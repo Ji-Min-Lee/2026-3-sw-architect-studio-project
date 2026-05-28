@@ -6,5 +6,12 @@ build/
 *.user.*
 CMakeLists.txt.user
 
+# 인스톨러 / 대용량 바이너리
+*.dmg
+*.exe
+
+# 원본 zip (소스코드는 src/ 에서 관리)
+.claude/skills/time-grapher/assets/TimeGrapher_v10.5_Student.zip
+
 # macOS
 .DS_Store
