@@ -1,0 +1,88 @@
+{
+  "skill": "time-grapher",
+  "version": "0.1.0",
+  "cases": [
+    {
+      "id": "trigger-project-summary",
+      "category": "trigger",
+      "input": "TimeGrapher 과제 프로젝트 요약해줘",
+      "expected": {
+        "skill_loaded": "time-grapher",
+        "context_loaded": ["references/project/overview.md"],
+        "response_includes": [
+          "LG SW Architect",
+          "Raspberry Pi",
+          "Qt",
+          "Rate",
+          "Amplitude",
+          "Beat Error"
+        ]
+      }
+    },
+    {
+      "id": "trigger-milestone-deliverables",
+      "category": "trigger",
+      "input": "Milestone 1 산출물이 뭐야? 언제까지야?",
+      "expected": {
+        "skill_loaded": "time-grapher",
+        "context_loaded": ["references/project/milestones.md"],
+        "response_includes": [
+          "2026-06-09",
+          "Project Plan",
+          "Architectural Drivers",
+          "Risk Assessment",
+          "Planned Experiments",
+          "Architectural Approaches"
+        ]
+      }
+    },
+    {
+      "id": "trigger-weekly-todo",
+      "category": "trigger",
+      "input": "이번 주 (6월 첫째 주) 할 일 리스트 보여줘",
+      "expected": {
+        "skill_loaded": "time-grapher",
+        "context_loaded": ["references/project/todo.md"],
+        "response_includes": [
+          "Week 1",
+          "코드베이스 분석",
+          "아키텍처 드라이버",
+          "Risk"
+        ]
+      }
+    },
+    {
+      "id": "trigger-quality-attributes",
+      "category": "context",
+      "input": "이 프로젝트에서 중요한 품질 속성이 뭐야?",
+      "expected": {
+        "skill_loaded": "time-grapher",
+        "context_loaded": ["references/project/overview.md"],
+        "response_includes": [
+          "Real-Time Performance",
+          "Low Latency",
+          "Correctness",
+          "Extensibility",
+          "96000"
+        ]
+      }
+    },
+    {
+      "id": "trigger-final-demo-requirements",
+      "category": "context",
+      "input": "Final Demo에서 뭘 증명해야 해?",
+      "expected": {
+        "skill_loaded": "time-grapher",
+        "context_loaded": ["references/project/milestones.md"],
+        "response_includes": [
+          "Low Latency",
+          "Real-Time Performance",
+          "Consistency",
+          "Accuracy",
+          "Extensibility",
+          "Raspberry Pi"
+        ]
+      }
+    }
+  ]
+}
