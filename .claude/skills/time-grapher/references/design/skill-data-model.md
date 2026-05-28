@@ -1,8 +1,8 @@
 # TimeGrapher Skill — Data Model
 
-## 정적 데이터 구조
+## Static Data Structure
 
-이 스킬은 외부 DB·API 없이 `references/` 내 마크다운 파일을 정적 데이터 소스로 사용한다.
+This skill uses markdown files under `references/` as static data sources without external DB or API.
 
 ```
 references/
@@ -10,18 +10,18 @@ references/
 │   ├── overview.md        ← ProjectContext
 │   ├── milestones.md      ← MilestoneContext
 │   └── todo.md            ← TodoContext
-└── design/                ← SkillDesign (메타)
+└── design/                ← SkillDesign (meta)
     ├── skill-architecture.md
     ├── skill-module-contracts.md
     ├── skill-data-model.md
     └── skill-dependency-map.md
 
-assets/                    ← RawAssets (PDF/ZIP, 직접 접근 최소화)
+assets/                    ← RawAssets (PDF/ZIP, direct access minimized)
 evals/
 └── evals.json             ← EvalCases
 ```
 
-## 핵심 데이터 타입
+## Core Data Types
 
 ### ProjectContext
 
@@ -64,7 +64,7 @@ quality_attributes:
   - name: MeasurementAccuracy
     events: [T1, T3]
   - name: Extensibility
-    criteria: "새 그래프 추가 시 기존 코드 대규모 수정 없음"
+    criteria: "New graphs addable without major changes to existing code"
 ```
 
 ### MilestoneContext
@@ -105,19 +105,19 @@ weeks:
     milestone: null
   - week: 1
     period: "06/01 ~ 06/05"
-    theme: 분석 & 계획
+    theme: Analysis & Planning
     milestone: null
   - week: 2
     period: "06/08 ~ 06/12"
-    theme: Milestone 1 제출
+    theme: Milestone 1 Submission
     milestone: M1  # due 06/09
   - week: 3
     period: "06/15 ~ 06/19"
-    theme: 실험 & 설계 & 구현
+    theme: Experiments & Design & Implementation
     milestone: null
   - week: 4
     period: "06/22 ~ 06/26"
-    theme: Milestone 2 제출
+    theme: Milestone 2 Submission
     milestone: M2  # due 06/22
   - week: 5
     period: "06/29 ~ 07/01"
@@ -125,14 +125,14 @@ weeks:
     milestone: M3  # due 07/01
 ```
 
-## 데이터 흐름
+## Data Flow
 
 ```
 RawAssets (PDF/ZIP)
-    ↓ 읽고 정리 (수동 1회)
-references/project/*.md   ← Claude가 직접 참조
-    ↓ 스킬 트리거 시 로드
+    ↓ read and organize (manual, one-time)
+references/project/*.md   ← directly referenced by Claude
+    ↓ loaded on skill trigger
 Claude Context
-    ↓ 응답 생성
-사용자
+    ↓ generate response
+User
 ```
