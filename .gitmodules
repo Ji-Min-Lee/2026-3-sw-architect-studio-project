@@ -1,0 +1,6 @@
+[submodule ".claude/skills/time-grapher"]
+	path = .claude/skills/time-grapher
+	url = git@github.com:Ji-Min-Lee/time-grapher.git
+[submodule ".github/skills/time-grapher"]
+	path = .github/skills/time-grapher
+	url = git@github.com:Ji-Min-Lee/time-grapher.git
