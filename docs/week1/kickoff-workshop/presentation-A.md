@@ -270,8 +270,8 @@ sequenceDiagram
     AW->>BUF: Write float32 PCM (emit AudioDataReady)
     MW->>BUF: Read new samples (HandleAudioInput)
     MW->>TG: tg_process(pcm, N, &result)
-    TG-->>MW: result.events[] (A/C events + timestamps)
-    MW->>MW: A_Event() / C_Event()
+    TG-->>MW: "result.events[] (A/C events + timestamps)"
+    MW->>MW: "A_Event() / C_Event()"
     MW->>MW: ComputeRateError / BeatError / Amplitude
     MW->>UI: Append data to QCustomPlot + replot()
 ```

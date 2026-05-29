@@ -136,16 +136,13 @@ T_tac = (n_{2k+3} − n_{2k+1}) / f_s
 ```mermaid
 graph TD
     MIC["Microphone input\n96k sps"] --> DETECT["T1 / T3 event detection\nbeat timestamps"]
-
     DETECT --> RATE_CALC["Rate calculation\ntic + tac split average\nunit: s/day"]
     DETECT --> AMP_CALC["Amplitude calculation\nT1 → T3 event interval\nunit: °"]
     DETECT --> BE_CALC["Beat Error calculation\ntic − toc spacing diff\nunit: ms"]
-
     RATE_CALC --> TRACE["Trace Display\ncumulative error dot graph"]
     RATE_CALC --> VARIO["Rate Stability\nMin / Max / Avg / σ"]
     AMP_CALC --> TRACE
     BE_CALC --> BEAT_DISP["Beat Error Display"]
-
     DETECT --> SCOPE["Scope Display\nindividual beat waveform"]
 ```
 
