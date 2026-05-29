@@ -1,4 +1,6 @@
-# PC Build Verification Record
+# PC Build Verification Record (macOS)
+
+> Windows CLI verification is documented separately: `pc-build-verification-windows.md`
 
 **Date**: 2026-05-28  
 **Author**: Jimin Lee  
