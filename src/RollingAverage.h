@@ -1,6 +1,7 @@
 #ifndef ROLLINGAVERAGE_H
 #define ROLLINGAVERAGE_H
 #include <deque>
+#include <cstddef>
 class RollingAverage
 {
 
