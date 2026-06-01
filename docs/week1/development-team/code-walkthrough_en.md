@@ -1,5 +1,101 @@
 # TimeGrapher — Code Structure & Execution Flow Analysis
 
+## 0. Feature-to-File Map (Quick Reference)
+
+> **Quick reference table for team members new to the codebase**
+
+### 🎯 Core Features → File Mapping
+
+| Feature | File | Key Functions/Classes | One-line Description |
+|---------|------|----------------------|---------------------|
+| **App Entry Point** | `Main.cpp` | `main()` | Qt app initialization, MainWindow creation |
+| **UI & Overall Control** | `MainWindow.cpp/h` | `MainWindow` | Hub for all features (God Object) |
+| **Microphone Input** | `AudioWorker.cpp/h` | `TAudioWorker` | Real-time mic → ring buffer |
+| **WAV Playback** | `PlaybackWorker.cpp/h` | `TPlaybackWorker` | WAV file → ring buffer |
+| **Simulation** | `SimWorker.cpp/h` | `TSimWorker` | Synthesized signal → ring buffer |
+| **Watch Sound Synthesis** | `WatchSynthStream.cpp/h` | `watch_synth_stream_*` | Tic-Toc signal generation for testing |
+| **Signal Processing (DSP)** | `Dsp.cpp/h` | `tg_hpf_*`, `tg_envelope_*` | HPF + Envelope extraction |
+| **A/C Event Detection** | `Detector.cpp/h` | `tg_detector_*` | Silence→Burst detection |
+| **BPH Detection & Sync** | `Bph.cpp/h` | `tg_phase_score`, `tg_sync_*` | Rayleigh phase score + PLL |
+| **DSP Unified API** | `Timegrapher.cpp/h` | `tg_process()` | Single entry point for above 3 |
+| **Sound Image Visualization** | `SoundImageRenderer.cpp/h` | `SoundImageRenderer` | 2D folded image rendering |
+| **WAV Save** | `WavStreamWriter.cpp/h` | `WavStreamWriter` | Streaming WAV file save |
+| **Linear Regression (Rate)** | `RollingLeastSquares.cpp/h` | `RollingLeastSquares` | For rate error calculation |
+| **Moving Average** | `RollingAverage.cpp/h` | `RollingAverage` | Beat error/amplitude smoothing |
+| **Graph Library** | `qcustomplot.cpp/h` | `QCustomPlot` | Qt-based plotting library |
+
+---
+
+### 📁 Detailed File Roles
+
+```
+src/
+├── Main.cpp                 # App entry point
+├── MainWindow.cpp/h/ui      # UI + all logic (1,600+ lines, refactoring target)
+│
+├── [Audio Input Layer]
+│   ├── AudioWorker.cpp/h    # Live: QAudioSource → ring buffer
+│   ├── PlaybackWorker.cpp/h # Playback: WAV file → ring buffer
+│   ├── SimWorker.cpp/h      # Sim: synthesizer → ring buffer
+│   ├── WatchSynthStream.cpp/h # Watch sound synthesis engine
+│   └── SharedAudio.h        # Ring buffer struct (TMasterAudioDataRaw)
+│
+├── [Signal Processing Layer]
+│   ├── Timegrapher.cpp/h    # ★ DSP pipeline unified API
+│   ├── Dsp.cpp/h            # HPF (DC removal) + Envelope
+│   ├── Detector.cpp/h       # Silence/Burst based A/C event detection
+│   └── Bph.cpp/h            # BPH auto-detection + PLL sync tracking
+│
+├── [Visualization Layer]
+│   ├── SoundImageRenderer.cpp/h  # 2D Sound Image (timegrapher-specific)
+│   ├── SoundImageWidget.cpp/h    # Sound Image Qt widget
+│   └── qcustomplot.cpp/h         # Graph library (external)
+│
+├── [Utilities]
+│   ├── RollingLeastSquares.cpp/h # Linear regression (rate calculation)
+│   ├── RollingAverage.cpp/h      # Moving average
+│   ├── WavStreamWriter.cpp/h     # WAV file save
+│   └── WaveHeader.h              # WAV header struct
+│
+└── [Platform Audio]
+    ├── LinuxAudio.cpp/h     # Linux ALSA volume control
+    └── WindowsAudio.cpp/h   # Windows volume control
+```
+
+---
+
+### 🔗 Data Flow at a Glance
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Data Flow                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[Input Sources]              [Ring Buffer]           [Processing]        [Output]
+                                  │
+ AudioWorker ──┐                  │
+ (Microphone)  │                  ▼
+               ├──► TMasterAudioDataRaw ──► ProcessSamples()
+ PlaybackWorker│     (30-sec float buffer)         │
+ (WAV file)    │                                   │
+               │                                   ├──► tg_process()
+ SimWorker ────┘                                   │    (HPF→ENV→DET→BPH)
+ (Synthesis)                                       │         │
+                                                   │         ├──► A/C Events
+                                                   │         │       │
+                                                   │         │       ├──► ComputeRateError()  → Rate (s/day)
+                                                   │         │       ├──► ComputeBeatError()  → Beat Error (ms)
+                                                   │         │       └──► ComputeAmplitude()  → Amplitude (°)
+                                                   │         │
+                                                   │         └──► processed_pcm → ScopePlot
+                                                   │
+                                                   ├──► SoundImageRenderer → Sound Image
+                                                   │
+                                                   └──► WavStreamWriter → WAV file
+```
+
+---
+
 ## 1. Static View Accuracy Check
 
 Comparison between `docs/static.pu` and the actual codebase.
@@ -18,6 +114,272 @@ Comparison between `docs/static.pu` and the actual codebase.
 ### Missing Component: ScopePlot
 
 Exists in code but absent from the diagram. It is a QCustomPlot graph that displays `processed_pcm` (processed audio waveform) and `onset_threshold` (detection threshold) from `tg_process()` in real time, like an oscilloscope. Vertical markers and time labels are also added here whenever A/C events are detected.
+
+---
+
+## 1.5. Core Features Detailed Explanation
+
+> **Explains what problem each feature solves and how it works in code**
+
+---
+
+### 🎤 Feature 1: Audio Acquisition
+
+**Problem**: Need to capture watch sounds in real-time.
+
+**Solution**: Worker pattern supporting 3 input modes
+
+| Mode | Class | Input Source | Use Case |
+|------|-------|--------------|----------|
+| **Live** | `TAudioWorker` | Microphone (QAudioSource) | Real watch measurement |
+| **Playback** | `TPlaybackWorker` | WAV file | Re-analyze recorded sound |
+| **Sim** | `TSimWorker` | `WatchSynthStream` | Test with known parameters |
+
+**Key Code Location**:
+```cpp
+// AudioWorker.cpp - Microphone data reception
+void TAudioWorker::ProcessAudioInput() {
+    QByteArray data = mAudioInputDevice->readAll();  // Read from mic
+    memcpy(&mRawAudio->RawData[WriteIndex], ...);    // Write to ring buffer
+    emit AudioDataReady();                            // Notify main thread
+}
+```
+
+**Ring Buffer Structure** (`SharedAudio.h`):
+```cpp
+typedef struct {
+    float    *RawData;           // float PCM data (30 seconds worth)
+    uint64_t  WriteIndex;        // Write position
+    uint64_t  TotalSamplesWritten;
+    QMutex   *Mutex;             // Thread synchronization
+    int       SampleRate;        // 48000 Hz
+    int       BufferSize;        // SampleRate × 30
+} TMasterAudioDataRaw;
+```
+
+---
+
+### 🔊 Feature 2: Signal Processing Pipeline (DSP)
+
+**Problem**: Need to accurately detect Tic/Toc events from raw audio.
+
+**Solution**: 4-stage pipeline encapsulated in single `tg_process()` call
+
+```
+┌─────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│   PCM   │ → │   HPF    │ → │ Envelope │ → │ Detector │ → A/C Events
+│ (Raw)   │    │(DC Block)│    │          │    │          │
+└─────────┘    └──────────┘    └──────────┘    └──────────┘
+                                                    ↓
+                                              ┌──────────┐
+                                              │   BPH    │ → Sync Status
+                                              │  (Sync)  │
+                                              └──────────┘
+```
+
+| Stage | File | Function | Role |
+|-------|------|----------|------|
+| **1. HPF** | `Dsp.cpp` | `tg_hpf_process()` | Remove DC/hum below 200Hz |
+| **2. Envelope** | `Dsp.cpp` | `tg_envelope_process()` | Rectify + 0.15ms LPF → envelope |
+| **3. Detector** | `Detector.cpp` | `tg_detector_process()` | Silence/Burst analysis → A/C events |
+| **4. BPH Sync** | `Bph.cpp` | `tg_sync_update()` | Rayleigh score + PLL tracking |
+
+**Key Code Location**:
+```cpp
+// Timegrapher.cpp - Single entry point
+tg_result_t r;
+tg_process(mCtx, inputSamples, sampleCount, &r);
+
+// Outputs:
+// r.events[]        - A/C event array
+// r.processed_pcm[] - Processed waveform (for oscilloscope)
+// r.detected_bph    - Detected BPH (e.g., 21600)
+// r.sync_status     - NOT_SYNCED / SYNCED / MISMATCH
+```
+
+**What are A/C Events?**
+```
+A Event (Unlock/Tic start):
+  - Moment when escapement opens
+  - Point where envelope first crosses noise floor
+  - Linear interpolation for sub-sample precision
+
+C Event (Drop/Toc peak):
+  - Moment when escape wheel drops onto locking face
+  - Maximum point of envelope
+  - Parabolic interpolation for sub-sample precision
+```
+
+---
+
+### 📊 Feature 3: Measurement Calculations
+
+**Problem**: Need to calculate watch performance metrics from A/C events.
+
+**Solution**: 3 core measurement calculations
+
+| Measurement | Unit | Function | Meaning |
+|-------------|------|----------|---------|
+| **Rate Error** | s/day | `ComputeRateError()` | Gains/loses per day |
+| **Beat Error** | ms | `ComputeBeatError()` | Tic:Toc balance |
+| **Amplitude** | ° | `ComputeAmplitude()` | Balance wheel amplitude |
+
+#### Rate Error
+
+```cpp
+// MainWindow.cpp - ComputeRateError()
+// Principle: Linear regression slope of A event time vs ideal time
+
+RollingLeastSquares.AddPoint(actual_time, ideal_time);
+slope = regression_slope;
+rate_error = (slope - 1.0) × 86400;  // Convert to s/day
+
+// Example: slope=1.000116 → +10 s/day (gains 10 seconds per day)
+```
+
+#### Beat Error
+
+```cpp
+// MainWindow.cpp - ComputeBeatError()
+// Principle: Compare intervals of 3 consecutive A events
+
+t[0] = A event 1 time
+t[1] = A event 2 time  
+t[2] = A event 3 time
+
+beat_error = ((t[2]-t[1]) - (t[1]-t[0])) / 2 × 1000;  // ms
+
+// Example: 0.5ms → Tic is 0.5ms later than Toc
+```
+
+#### Amplitude
+
+```cpp
+// MainWindow.cpp - ComputeAmplitude()
+// Principle: Reverse calculate from A→C time and BPH
+
+T1 = C_event_time - A_event_time;  // seconds
+amplitude = arcsin(π × T1 × BPH/3600) × (180/π) × 2 / LiftAngle;
+
+// Example: 270° → Good balance wheel amplitude
+```
+
+---
+
+### 🖼️ Feature 4: Sound Image Visualization
+
+**Problem**: Need to generate timegrapher-specific 2D folded image.
+
+**Solution**: `SoundImageRenderer` class
+
+```
+Sound Image Structure:
+┌─────────────────────────────────────────┐
+│ ← X-axis: Beat number (time elapsed) → │
+│                                         │
+│ ↑                                       │
+│ Y-axis: Time position within beat       │
+│ ↓                                       │
+│                                         │
+│  Green dot = A event (Tic)              │
+│  Blue dot = C event (Toc)               │
+│  Brightness = Signal magnitude          │
+└─────────────────────────────────────────┘
+```
+
+**Key Code Location**:
+```cpp
+// SoundImageRenderer.cpp
+void SoundImageRenderer::processSamples(const float* pcm, size_t count) {
+    // 1. Calculate beat period based on BPH
+    // 2. Fold samples by beat period
+    // 3. Pixel brightness = normalized signal magnitude
+    // 4. Move to next column at beat boundary
+}
+
+void SoundImageRenderer::markAEventAbsoluteSampleIndex(uint64_t idx) {
+    // Mark green pixel at A event position
+}
+
+void SoundImageRenderer::markCEventAbsoluteSampleIndex(uint64_t idx) {
+    // Mark blue pixel at C event position
+}
+```
+
+---
+
+### ⏱️ Feature 5: BPH Auto-Detection and Synchronization
+
+**Problem**: Need to automatically determine watch's BPH (Beats Per Hour).
+
+**Solution**: Rayleigh phase score + PLL tracking
+
+```
+Supported BPH (auto-detection):
+  12000, 14400, 18000, 19800, 21600, 25200, 28800, 36000, 43200
+
+Detection Algorithm:
+  1. Collect events for ~1.5 seconds
+  2. Calculate Rayleigh phase score for each candidate BPH
+     score = |Σ e^(i × 2π × event_time / T)| / N
+  3. Select highest-scoring BPH above threshold (0.7)
+  4. Fine-track with PLL (drift correction)
+```
+
+**Key Code Location**:
+```cpp
+// Bph.cpp
+double tg_phase_score(const double *event_times, size_t n, double period) {
+    // Calculate phase alignment using Rayleigh statistics
+    // 0.0 = random, 1.0 = perfect alignment
+}
+
+int tg_bph_pick_by_phase(event_times, n, candidate_list, ...) {
+    // Select highest scoring BPH from all candidates
+}
+
+void tg_sync_update(tg_sync_t *s, tg_raw_event_t *ev) {
+    // PLL-style fine adjustment of beat_period and ac_offset
+}
+```
+
+---
+
+### 💾 Feature 6: WAV File Save
+
+**Problem**: Need to save audio being measured to file.
+
+**Solution**: Streaming WAV save (`WavStreamWriter`)
+
+```cpp
+// WavStreamWriter.cpp
+// Feature: Write header first, patch size on close
+
+writer.open("output.wav", 48000, 1);  // Write header
+while (recording) {
+    writer.write(samples, count);      // Append data
+}
+writer.close();                        // Patch header sizes
+```
+
+---
+
+### 🧪 Feature 7: Simulation Mode
+
+**Problem**: Need to test with known parameters.
+
+**Solution**: Generate synthetic signal with `WatchSynthStream`
+
+```cpp
+// WatchSynthStream.cpp
+WatchSynthStreamConfig cfg;
+cfg.bph = 21600;                    // BPH
+cfg.rate_error_s_per_day = 10.0;    // +10 s/day
+cfg.beat_error_ms = 0.5;            // 0.5ms beat error
+cfg.watch_amplitude_degrees = 270;  // Amplitude
+
+// Ground truth available for algorithm verification
+```
 
 ---
 
@@ -444,3 +806,107 @@ No changes needed:
 - The demo must answer: *"How many files did you change to add a new graph?"*
 - Current structure → "Everything in MainWindow" → **architecture failure**
 - Target structure → "1 new Tab class file + 1 `connect()` call" → **architecture success**
+
+---
+
+## 7. Code Reading Guide (For New Team Members)
+
+> **If you don't know where to start reading the code, follow this order**
+
+---
+
+### 📖 Recommended Reading Order
+
+#### Level 1: Grasp Overall Structure (30 min)
+
+| Order | File | What to Read | Understanding Goal |
+|-------|------|--------------|-------------------|
+| 1 | `MainWindow.h` | Entire class declaration | What members/methods exist |
+| 2 | `SharedAudio.h` | Entire file (short) | Ring buffer structure |
+| 3 | `Timegrapher.h` | Comments + `tg_event_t`, `tg_result_t` | DSP input/output structure |
+
+#### Level 2: Trace Core Flow (1 hour)
+
+| Order | File | What to Read | Understanding Goal |
+|-------|------|--------------|-------------------|
+| 4 | `MainWindow.cpp` | `on_StartPushButton_clicked()` | Entry point on start |
+| 5 | `MainWindow.cpp` | `StartAudioThread()` | Thread creation method |
+| 6 | `AudioWorker.cpp` | `ProcessAudioInput()` | Mic → ring buffer |
+| 7 | `MainWindow.cpp` | `ProcessSamples()` | DSP call + event handling |
+
+#### Level 3: Understand Measurement Logic (1 hour)
+
+| Order | File | What to Read | Understanding Goal |
+|-------|------|--------------|-------------------|
+| 8 | `MainWindow.cpp` | `A_Event()`, `C_Event()` | Event handlers |
+| 9 | `MainWindow.cpp` | `ComputeRateError()` | Rate calculation algorithm |
+| 10 | `MainWindow.cpp` | `ComputeBeatError()` | Beat error calculation |
+| 11 | `MainWindow.cpp` | `ComputeAmplitude()` | Amplitude calculation |
+
+#### Level 4: DSP Internals (Optional, 2 hours)
+
+| Order | File | What to Read | Understanding Goal |
+|-------|------|--------------|-------------------|
+| 12 | `Dsp.cpp` | `tg_hpf_process()`, `tg_envelope_process()` | Filter operation |
+| 13 | `Detector.cpp` | `tg_detector_process()` | A/C detection algorithm |
+| 14 | `Bph.cpp` | `tg_phase_score()`, `tg_sync_update()` | BPH detection/sync |
+
+---
+
+### 🔍 Where to Check When Debugging
+
+| Symptom | File to Check | Function to Check |
+|---------|---------------|-------------------|
+| Mic input not working | `AudioWorker.cpp` | `ProcessAudioInput()` |
+| A/C events not detected | `Detector.cpp` | `tg_detector_process()` |
+| BPH not recognized | `Bph.cpp` | `tg_bph_pick_by_phase()` |
+| Abnormal rate value | `MainWindow.cpp` | `ComputeRateError()` |
+| Sound Image not rendering | `SoundImageRenderer.cpp` | `processSamples()` |
+| ScopePlot not updating | `MainWindow.cpp` | ScopePlot code in `ProcessSamples()` |
+
+---
+
+### 📝 Key Constants/Settings Locations
+
+| Setting | File | Location |
+|---------|------|----------|
+| Sample rate | `MainWindow.cpp` | `ConfigureSoundCard()` |
+| Ring buffer size (30 sec) | `MainWindow.cpp` | `StartAudioThread()` |
+| HPF cutoff (200Hz) | `Timegrapher.cpp` | `tg_config_default()` |
+| Envelope smoothing (0.15ms) | `Timegrapher.cpp` | `tg_config_default()` |
+| BPH candidate list | `Bph.cpp` | `TG_AUTO_BPH_LIST[]` |
+| Phase score threshold (0.7) | `Bph.cpp` | `tg_bph_pick_by_phase()` |
+
+---
+
+### 🎯 Files to Modify When Adding Features
+
+| Feature to Add | Files to Modify |
+|----------------|-----------------|
+| New graph tab | `MainWindow.cpp/h/ui` (current structure) |
+| New input mode | New Worker class + `MainWindow.cpp` |
+| New measurement | `MainWindow.cpp` + new Compute function |
+| DSP parameter change | `Timegrapher.cpp` or `tg_config_t` |
+| New file format | `WavStreamWriter.cpp` or new Writer |
+
+---
+
+### 💡 Frequently Asked Questions (FAQ)
+
+**Q: Where is `tg_process()` called?**
+> A: Inside `ProcessSamples()` function in `MainWindow.cpp`
+
+**Q: What's the difference between A and C events?**
+> A: A = Tic start (escapement opens), C = Toc peak (escapement closes)
+
+**Q: How is BPH auto-detected?**
+> A: `Bph.cpp` selects highest Rayleigh phase score among candidate BPHs
+
+**Q: What happens when ring buffer is full?**
+> A: Circular buffer overwrites oldest data (maintains 30-sec history)
+
+**Q: Why separate threads?**
+> A: Audio capture blocking would freeze UI, so processed in TimeCriticalPriority worker thread
+
+**Q: What is QCustomPlot?**
+> A: Qt-based open-source graphing library (https://www.qcustomplot.com)

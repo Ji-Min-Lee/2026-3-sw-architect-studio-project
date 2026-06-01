@@ -1,5 +1,101 @@
 # TimeGrapher 코드 구조 및 실행 흐름 분석
 
+## 0. 기능별 소스 파일 맵 (Quick Reference)
+
+> **코드를 처음 보는 팀원을 위한 빠른 참조표**
+
+### 🎯 핵심 기능 → 파일 매핑
+
+| 기능 | 파일 | 핵심 함수/클래스 | 한 줄 설명 |
+|------|------|-----------------|-----------|
+| **앱 진입점** | `Main.cpp` | `main()` | Qt 앱 초기화, MainWindow 생성 |
+| **UI 및 전체 제어** | `MainWindow.cpp/h` | `MainWindow` | 모든 기능의 허브 (God Object) |
+| **마이크 입력** | `AudioWorker.cpp/h` | `TAudioWorker` | 실시간 마이크 → 링버퍼 |
+| **WAV 재생** | `PlaybackWorker.cpp/h` | `TPlaybackWorker` | WAV 파일 → 링버퍼 |
+| **시뮬레이션** | `SimWorker.cpp/h` | `TSimWorker` | 합성 신호 → 링버퍼 |
+| **시계 소리 합성** | `WatchSynthStream.cpp/h` | `watch_synth_stream_*` | 테스트용 Tic-Toc 신호 생성 |
+| **신호 처리 (DSP)** | `Dsp.cpp/h` | `tg_hpf_*`, `tg_envelope_*` | HPF + Envelope 추출 |
+| **A/C 이벤트 검출** | `Detector.cpp/h` | `tg_detector_*` | Silence→Burst 탐지 |
+| **BPH 감지 & 동기화** | `Bph.cpp/h` | `tg_phase_score`, `tg_sync_*` | Rayleigh 위상 점수 + PLL |
+| **DSP 통합 API** | `Timegrapher.cpp/h` | `tg_process()` | 위 3개를 묶은 단일 진입점 |
+| **Sound Image 시각화** | `SoundImageRenderer.cpp/h` | `SoundImageRenderer` | 2D 폴딩 이미지 렌더링 |
+| **WAV 저장** | `WavStreamWriter.cpp/h` | `WavStreamWriter` | 스트리밍 WAV 파일 저장 |
+| **선형회귀 (Rate)** | `RollingLeastSquares.cpp/h` | `RollingLeastSquares` | 레이트 오차 계산용 |
+| **이동 평균** | `RollingAverage.cpp/h` | `RollingAverage` | 비트 오차/진폭 평활화 |
+| **그래프 라이브러리** | `qcustomplot.cpp/h` | `QCustomPlot` | Qt 기반 플로팅 라이브러리 |
+
+---
+
+### 📁 파일별 역할 상세
+
+```
+src/
+├── Main.cpp                 # 앱 진입점
+├── MainWindow.cpp/h/ui      # UI + 전체 로직 (1,600줄+, 리팩토링 대상)
+│
+├── [오디오 입력 레이어]
+│   ├── AudioWorker.cpp/h    # Live: QAudioSource → 링버퍼
+│   ├── PlaybackWorker.cpp/h # Playback: WAV 파일 → 링버퍼
+│   ├── SimWorker.cpp/h      # Sim: 합성기 → 링버퍼
+│   ├── WatchSynthStream.cpp/h # 시계 소리 합성 엔진
+│   └── SharedAudio.h        # 링버퍼 구조체 (TMasterAudioDataRaw)
+│
+├── [신호 처리 레이어]
+│   ├── Timegrapher.cpp/h    # ★ DSP 파이프라인 통합 API
+│   ├── Dsp.cpp/h            # HPF (DC 제거) + Envelope (포락선)
+│   ├── Detector.cpp/h       # Silence/Burst 기반 A/C 이벤트 검출
+│   └── Bph.cpp/h            # BPH 자동 감지 + PLL 동기 추적
+│
+├── [시각화 레이어]
+│   ├── SoundImageRenderer.cpp/h  # 2D Sound Image (타임그래퍼 특유)
+│   ├── SoundImageWidget.cpp/h    # Sound Image Qt 위젯
+│   └── qcustomplot.cpp/h         # 그래프 라이브러리 (외부)
+│
+├── [유틸리티]
+│   ├── RollingLeastSquares.cpp/h # 선형회귀 (레이트 계산)
+│   ├── RollingAverage.cpp/h      # 이동 평균
+│   ├── WavStreamWriter.cpp/h     # WAV 파일 저장
+│   └── WaveHeader.h              # WAV 헤더 구조체
+│
+└── [플랫폼 오디오]
+    ├── LinuxAudio.cpp/h     # Linux ALSA 볼륨 제어
+    └── WindowsAudio.cpp/h   # Windows 볼륨 제어
+```
+
+---
+
+### 🔗 데이터 흐름 한눈에 보기
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           데이터 흐름 (Data Flow)                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[입력 소스]                    [링버퍼]              [처리]              [출력]
+                                  │
+ AudioWorker ──┐                  │
+ (마이크)       │                  ▼
+               ├──► TMasterAudioDataRaw ──► ProcessSamples()
+ PlaybackWorker│     (30초 float 버퍼)            │
+ (WAV 파일)    │                                  │
+               │                                  ├──► tg_process()
+ SimWorker ────┘                                  │    (HPF→ENV→DET→BPH)
+ (합성)                                           │         │
+                                                  │         ├──► A/C Events
+                                                  │         │       │
+                                                  │         │       ├──► ComputeRateError()  → Rate (s/day)
+                                                  │         │       ├──► ComputeBeatError()  → Beat Error (ms)
+                                                  │         │       └──► ComputeAmplitude()  → Amplitude (°)
+                                                  │         │
+                                                  │         └──► processed_pcm → ScopePlot
+                                                  │
+                                                  ├──► SoundImageRenderer → Sound Image
+                                                  │
+                                                  └──► WavStreamWriter → WAV 파일
+```
+
+---
+
 ## 1. Static View 정확도 검증
 
 `docs/static.pu`의 다이어그램과 실제 코드를 비교한 결과.
@@ -18,6 +114,272 @@
 ### 누락된 컴포넌트: ScopePlot
 
 다이어그램에 없지만 실제로 존재한다. `tg_process()` 결과의 `processed_pcm`(처리된 오디오 파형)과 `onset_threshold`(검출 임계값)를 실시간으로 오실로스코프처럼 표시하는 QCustomPlot 그래프다. A/C 이벤트 발생 시 수직 마커와 시간 레이블도 여기에 추가된다.
+
+---
+
+## 1.5. 핵심 기능별 상세 설명
+
+> **각 기능이 어떤 문제를 해결하고, 코드에서 어떻게 동작하는지 설명**
+
+---
+
+### 🎤 기능 1: 오디오 입력 (Audio Acquisition)
+
+**문제**: 시계 소리를 실시간으로 캡처해야 한다.
+
+**해결**: 3가지 입력 모드를 지원하는 Worker 패턴
+
+| 모드 | 클래스 | 입력 소스 | 사용 시나리오 |
+|------|--------|----------|--------------|
+| **Live** | `TAudioWorker` | 마이크 (QAudioSource) | 실제 시계 측정 |
+| **Playback** | `TPlaybackWorker` | WAV 파일 | 녹음된 소리 재분석 |
+| **Sim** | `TSimWorker` | `WatchSynthStream` | 알려진 파라미터로 테스트 |
+
+**핵심 코드 위치**:
+```cpp
+// AudioWorker.cpp - 마이크 데이터 수신
+void TAudioWorker::ProcessAudioInput() {
+    QByteArray data = mAudioInputDevice->readAll();  // 마이크에서 읽기
+    memcpy(&mRawAudio->RawData[WriteIndex], ...);    // 링버퍼에 쓰기
+    emit AudioDataReady();                            // 메인 스레드에 알림
+}
+```
+
+**링버퍼 구조** (`SharedAudio.h`):
+```cpp
+typedef struct {
+    float    *RawData;           // float PCM 데이터 (30초분)
+    uint64_t  WriteIndex;        // 쓰기 위치
+    uint64_t  TotalSamplesWritten;
+    QMutex   *Mutex;             // 스레드 동기화
+    int       SampleRate;        // 48000 Hz
+    int       BufferSize;        // SampleRate × 30
+} TMasterAudioDataRaw;
+```
+
+---
+
+### 🔊 기능 2: 신호 처리 파이프라인 (DSP Pipeline)
+
+**문제**: 원시 오디오에서 Tic/Toc 이벤트를 정확히 검출해야 한다.
+
+**해결**: 4단계 파이프라인을 `tg_process()` 하나로 캡슐화
+
+```
+┌─────────┐    ┌──────────┐    ┌──────────┐    ┌─────────┐
+│   PCM   │ → │   HPF    │ → │ Envelope │ → │ Detector│ → A/C Events
+│ (Raw)   │    │ (DC제거) │    │ (포락선) │    │ (검출)  │
+└─────────┘    └──────────┘    └──────────┘    └─────────┘
+                                                    ↓
+                                              ┌─────────┐
+                                              │   BPH   │ → Sync Status
+                                              │ (동기화)│
+                                              └─────────┘
+```
+
+| 단계 | 파일 | 함수 | 역할 |
+|------|------|------|------|
+| **1. HPF** | `Dsp.cpp` | `tg_hpf_process()` | 200Hz 이하 DC/험 제거 |
+| **2. Envelope** | `Dsp.cpp` | `tg_envelope_process()` | 정류 + 0.15ms LPF → 포락선 |
+| **3. Detector** | `Detector.cpp` | `tg_detector_process()` | Silence/Burst 분석 → A/C 이벤트 |
+| **4. BPH Sync** | `Bph.cpp` | `tg_sync_update()` | Rayleigh 점수 + PLL 추적 |
+
+**핵심 코드 위치**:
+```cpp
+// Timegrapher.cpp - 단일 진입점
+tg_result_t r;
+tg_process(mCtx, inputSamples, sampleCount, &r);
+
+// 결과물:
+// r.events[]        - A/C 이벤트 배열
+// r.processed_pcm[] - 처리된 파형 (오실로스코프용)
+// r.detected_bph    - 감지된 BPH (예: 21600)
+// r.sync_status     - NOT_SYNCED / SYNCED / MISMATCH
+```
+
+**A/C 이벤트란?**
+```
+A 이벤트 (Unlock/Tic 시작):
+  - 탈진기가 열리는 순간
+  - 포락선이 노이즈 플로어를 처음 넘는 지점
+  - 선형 보간으로 서브샘플 정밀도 확보
+
+C 이벤트 (Drop/Toc 피크):
+  - 탈진 휠이 잠금면에 떨어지는 순간
+  - 포락선의 최대값 지점
+  - 포물선 보간으로 서브샘플 정밀도 확보
+```
+
+---
+
+### 📊 기능 3: 계측값 계산 (Measurements)
+
+**문제**: A/C 이벤트로부터 시계 성능 지표를 계산해야 한다.
+
+**해결**: 3가지 핵심 계측값 계산
+
+| 계측값 | 단위 | 함수 | 의미 |
+|--------|------|------|------|
+| **Rate Error** | s/day | `ComputeRateError()` | 하루 빠르기/느리기 |
+| **Beat Error** | ms | `ComputeBeatError()` | Tic:Toc 균형 |
+| **Amplitude** | ° | `ComputeAmplitude()` | 밸런스 휠 진폭 |
+
+#### Rate Error (레이트 오차)
+
+```cpp
+// MainWindow.cpp - ComputeRateError()
+// 원리: A이벤트 시간 vs 이상적 시간의 선형회귀 기울기
+
+RollingLeastSquares.AddPoint(실제시간, 이상시간);
+slope = 회귀기울기;
+rate_error = (slope - 1.0) × 86400;  // s/day로 변환
+
+// 예: slope=1.000116 → +10 s/day (하루에 10초 빠름)
+```
+
+#### Beat Error (비트 오차)
+
+```cpp
+// MainWindow.cpp - ComputeBeatError()
+// 원리: 연속 3개 A이벤트 간격 비교
+
+t[0] = A이벤트1 시간
+t[1] = A이벤트2 시간  
+t[2] = A이벤트3 시간
+
+beat_error = ((t[2]-t[1]) - (t[1]-t[0])) / 2 × 1000;  // ms
+
+// 예: 0.5ms → Tic이 Toc보다 0.5ms 늦음
+```
+
+#### Amplitude (진폭)
+
+```cpp
+// MainWindow.cpp - ComputeAmplitude()
+// 원리: A→C 시간과 BPH로 역산
+
+T1 = C이벤트시간 - A이벤트시간;  // 초
+amplitude = arcsin(π × T1 × BPH/3600) × (180/π) × 2 / LiftAngle;
+
+// 예: 270° → 양호한 밸런스 휠 진폭
+```
+
+---
+
+### 🖼️ 기능 4: Sound Image 시각화
+
+**문제**: 타임그래퍼 특유의 2D 폴딩 이미지를 생성해야 한다.
+
+**해결**: `SoundImageRenderer` 클래스
+
+```
+Sound Image 구조:
+┌─────────────────────────────────────────┐
+│ ← X축: 비트(Beat) 번호 (시간 경과) →     │
+│                                         │
+│ ↑                                       │
+│ Y축: 비트 내 시간 위치                   │
+│ ↓                                       │
+│                                         │
+│  녹색 점 = A이벤트 (Tic)                 │
+│  파란 점 = C이벤트 (Toc)                 │
+│  밝기 = 신호 크기                        │
+└─────────────────────────────────────────┘
+```
+
+**핵심 코드 위치**:
+```cpp
+// SoundImageRenderer.cpp
+void SoundImageRenderer::processSamples(const float* pcm, size_t count) {
+    // 1. BPH 기반으로 비트 주기 계산
+    // 2. 샘플을 비트 주기로 폴딩
+    // 3. 픽셀 밝기 = 정규화된 신호 크기
+    // 4. 컬럼(비트) 경계에서 다음 열로 이동
+}
+
+void SoundImageRenderer::markAEventAbsoluteSampleIndex(uint64_t idx) {
+    // A이벤트 위치에 녹색 픽셀 마킹
+}
+
+void SoundImageRenderer::markCEventAbsoluteSampleIndex(uint64_t idx) {
+    // C이벤트 위치에 파란색 픽셀 마킹
+}
+```
+
+---
+
+### ⏱️ 기능 5: BPH 자동 감지 및 동기화
+
+**문제**: 시계의 BPH(Beats Per Hour)를 자동으로 알아내야 한다.
+
+**해결**: Rayleigh 위상 점수 + PLL 추적
+
+```
+지원 BPH (자동 감지):
+  12000, 14400, 18000, 19800, 21600, 25200, 28800, 36000, 43200
+
+감지 알고리즘:
+  1. 약 1.5초간 이벤트 수집
+  2. 각 후보 BPH에 대해 Rayleigh 위상 점수 계산
+     score = |Σ e^(i × 2π × event_time / T)| / N
+  3. 점수가 임계값(0.7) 이상인 최고 점수 BPH 선택
+  4. PLL로 미세 추적 (drift 보정)
+```
+
+**핵심 코드 위치**:
+```cpp
+// Bph.cpp
+double tg_phase_score(const double *event_times, size_t n, double period) {
+    // Rayleigh 통계로 위상 정렬도 계산
+    // 0.0 = 랜덤, 1.0 = 완벽 정렬
+}
+
+int tg_bph_pick_by_phase(event_times, n, candidate_list, ...) {
+    // 모든 후보 BPH 중 최고 점수 선택
+}
+
+void tg_sync_update(tg_sync_t *s, tg_raw_event_t *ev) {
+    // PLL 스타일로 beat_period와 ac_offset 미세 조정
+}
+```
+
+---
+
+### 💾 기능 6: WAV 파일 저장
+
+**문제**: 측정 중인 오디오를 파일로 저장해야 한다.
+
+**해결**: 스트리밍 WAV 저장 (`WavStreamWriter`)
+
+```cpp
+// WavStreamWriter.cpp
+// 특징: 헤더를 먼저 쓰고, 닫을 때 크기 패치
+
+writer.open("output.wav", 48000, 1);  // 헤더 쓰기
+while (recording) {
+    writer.write(samples, count);      // 데이터 추가
+}
+writer.close();                        // 헤더 크기 패치
+```
+
+---
+
+### 🧪 기능 7: 시뮬레이션 모드
+
+**문제**: 알려진 파라미터로 테스트해야 한다.
+
+**해결**: `WatchSynthStream`으로 합성 신호 생성
+
+```cpp
+// WatchSynthStream.cpp
+WatchSynthStreamConfig cfg;
+cfg.bph = 21600;                    // BPH
+cfg.rate_error_s_per_day = 10.0;    // +10 s/day
+cfg.beat_error_ms = 0.5;            // 0.5ms 비트 오차
+cfg.watch_amplitude_degrees = 270;  // 진폭
+
+// Ground Truth가 있어서 알고리즘 검증 가능
+```
 
 ---
 
@@ -444,3 +806,107 @@ public slots:
 - Demo에서 *"새 그래프 추가 시 몇 개 파일을 수정했는가?"* 를 설명해야 함
 - 현재 구조로는 답이 "MainWindow 하나에 전부" → 아키텍처 실패
 - 목표 구조로는 "새 Tab 클래스 파일 1개 추가 + `connect()` 1줄" → 아키텍처 성공
+
+---
+
+## 7. 코드 읽기 가이드 (신규 팀원용)
+
+> **어디서부터 코드를 읽어야 할지 모르겠다면 이 순서를 따르세요**
+
+---
+
+### 📖 추천 읽기 순서
+
+#### Level 1: 전체 구조 파악 (30분)
+
+| 순서 | 파일 | 읽을 부분 | 이해 목표 |
+|------|------|----------|----------|
+| 1 | `MainWindow.h` | 클래스 선언부 전체 | 어떤 멤버/메서드가 있는지 |
+| 2 | `SharedAudio.h` | 전체 (짧음) | 링버퍼 구조체 이해 |
+| 3 | `Timegrapher.h` | 주석 + `tg_event_t`, `tg_result_t` | DSP 입출력 구조 |
+
+#### Level 2: 핵심 흐름 추적 (1시간)
+
+| 순서 | 파일 | 읽을 부분 | 이해 목표 |
+|------|------|----------|----------|
+| 4 | `MainWindow.cpp` | `on_StartPushButton_clicked()` | 시작 진입점 |
+| 5 | `MainWindow.cpp` | `StartAudioThread()` | 스레드 생성 방법 |
+| 6 | `AudioWorker.cpp` | `ProcessAudioInput()` | 마이크 → 링버퍼 |
+| 7 | `MainWindow.cpp` | `ProcessSamples()` | DSP 호출 + 이벤트 처리 |
+
+#### Level 3: 계측 로직 이해 (1시간)
+
+| 순서 | 파일 | 읽을 부분 | 이해 목표 |
+|------|------|----------|----------|
+| 8 | `MainWindow.cpp` | `A_Event()`, `C_Event()` | 이벤트 핸들러 |
+| 9 | `MainWindow.cpp` | `ComputeRateError()` | 레이트 계산 알고리즘 |
+| 10 | `MainWindow.cpp` | `ComputeBeatError()` | 비트 오차 계산 |
+| 11 | `MainWindow.cpp` | `ComputeAmplitude()` | 진폭 계산 |
+
+#### Level 4: DSP 내부 (선택, 2시간)
+
+| 순서 | 파일 | 읽을 부분 | 이해 목표 |
+|------|------|----------|----------|
+| 12 | `Dsp.cpp` | `tg_hpf_process()`, `tg_envelope_process()` | 필터 동작 |
+| 13 | `Detector.cpp` | `tg_detector_process()` | A/C 검출 알고리즘 |
+| 14 | `Bph.cpp` | `tg_phase_score()`, `tg_sync_update()` | BPH 감지/동기화 |
+
+---
+
+### 🔍 디버깅 시 확인할 위치
+
+| 증상 | 확인할 파일 | 확인할 함수 |
+|------|------------|------------|
+| 마이크 입력 안 됨 | `AudioWorker.cpp` | `ProcessAudioInput()` |
+| A/C 이벤트 검출 안 됨 | `Detector.cpp` | `tg_detector_process()` |
+| BPH 인식 안 됨 | `Bph.cpp` | `tg_bph_pick_by_phase()` |
+| 레이트 값 이상 | `MainWindow.cpp` | `ComputeRateError()` |
+| Sound Image 안 그려짐 | `SoundImageRenderer.cpp` | `processSamples()` |
+| ScopePlot 업데이트 안 됨 | `MainWindow.cpp` | `ProcessSamples()` 내 ScopePlot 코드 |
+
+---
+
+### 📝 주요 상수/설정값 위치
+
+| 설정 | 파일 | 위치 |
+|------|------|------|
+| 샘플레이트 | `MainWindow.cpp` | `ConfigureSoundCard()` |
+| 링버퍼 크기 (30초) | `MainWindow.cpp` | `StartAudioThread()` |
+| HPF 컷오프 (200Hz) | `Timegrapher.cpp` | `tg_config_default()` |
+| Envelope 스무딩 (0.15ms) | `Timegrapher.cpp` | `tg_config_default()` |
+| BPH 후보 목록 | `Bph.cpp` | `TG_AUTO_BPH_LIST[]` |
+| 위상 점수 임계값 (0.7) | `Bph.cpp` | `tg_bph_pick_by_phase()` |
+
+---
+
+### 🎯 기능 추가 시 수정할 파일 예측
+
+| 추가할 기능 | 수정할 파일 |
+|------------|------------|
+| 새 그래프 탭 | `MainWindow.cpp/h/ui` (현재 구조) |
+| 새 입력 모드 | 새 Worker 클래스 + `MainWindow.cpp` |
+| 새 계측값 | `MainWindow.cpp` + 새 Compute 함수 |
+| DSP 파라미터 변경 | `Timegrapher.cpp` 또는 `tg_config_t` |
+| 파일 포맷 추가 | `WavStreamWriter.cpp` 또는 새 Writer |
+
+---
+
+### 💡 자주 묻는 질문 (FAQ)
+
+**Q: `tg_process()`는 어디서 호출되나요?**
+> A: `MainWindow.cpp`의 `ProcessSamples()` 함수 내부
+
+**Q: A이벤트와 C이벤트의 차이는?**
+> A: A = Tic 시작 (탈진기 열림), C = Toc 피크 (탈진기 닫힘)
+
+**Q: BPH는 어떻게 자동 감지되나요?**
+> A: `Bph.cpp`에서 Rayleigh 위상 점수로 후보 BPH 중 최고 점수 선택
+
+**Q: 링버퍼가 가득 차면?**
+> A: 원형 버퍼라서 오래된 데이터를 덮어씀 (30초 히스토리 유지)
+
+**Q: 왜 스레드를 분리했나요?**
+> A: 오디오 캡처가 블로킹되면 UI가 멈추므로, TimeCriticalPriority 워커 스레드에서 처리
+
+**Q: QCustomPlot은 뭔가요?**
+> A: Qt 기반 오픈소스 그래프 라이브러리 (https://www.qcustomplot.com)
