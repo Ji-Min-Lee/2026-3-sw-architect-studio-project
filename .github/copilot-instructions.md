@@ -26,3 +26,7 @@ git push
 ```
 
 Never update only one pointer — a mismatch causes the registry and the active skill to diverge.
+
+## Documentation Convention
+
+When writing files under `docs/`, refer to the documentation convention defined in the `/time-grapher` skill.

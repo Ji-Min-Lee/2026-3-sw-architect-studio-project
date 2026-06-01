@@ -26,3 +26,7 @@ git push
 ```
 
 Never update only one pointer — a mismatch causes the registry and the active skill to diverge.
+
+## Documentation Convention
+
+`docs/` 하위 문서 작성 시 `/time-grapher` 스킬의 문서 컨벤션을 참조한다.
