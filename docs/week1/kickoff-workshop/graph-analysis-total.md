@@ -1958,3 +1958,156 @@ graph TD
 |---|---|
 | 실선 `→` / Solid | A의 계산 결과가 B의 입력 데이터로 사용됨 / A's output is used as B's input |
 | 점선 `-.->` / Dashed | 직접 데이터를 주고받지 않지만 동일 공식 또는 동일 데이터를 다른 방식으로 표현 / No direct data flow, but same formula or data expressed differently |
+
+---
+
+## 베이스코드 현황 분석 / Baseline Code Analysis (TimeGrapher_v10.5)
+
+> 베이스코드를 직접 실행(시뮬레이션 모드)하여 확인한 현재 구현 상태와 11개 요구 그래프와의 비교  
+> Analysis of the current implementation confirmed by running the baseline in simulation mode, compared against the 11 required graphs
+
+### 현재 구현 구조 / Current Implementation Structure
+
+현재 베이스코드는 **2개 탭, 3개 시각적 출력**으로 구성된다.  
+The current baseline consists of **2 tabs with 3 visual outputs**.
+
+```
+Tab 1: Rate/Scope
+  ├── RatePlot  (상단 / upper) — QCustomPlot scatter
+  └── ScopePlot (하단 / lower) — QCustomPlot line + markers
+
+Tab 2: Sound Print
+  └── SoundImage — SoundImageRenderer (custom 2D image)
+```
+
+---
+
+### Tab 1 — Rate/Scope 실행 화면 / Running Screenshot
+
+![Baseline Rate/Scope Tab](screenshot-baseline-rate-scope.png)
+
+#### 상단: RatePlot / Upper: RatePlot
+
+**한국어**
+
+- Graph 0 (빨간 점): Tic beat 타이밍 오차
+- Graph 1 (파란 점): Toc beat 타이밍 오차
+- Y축: 타이밍 오차 ms (±10 ms로 wrap), X축: beat 번호 (0~250 순환)
+- 현재 화면: 점들이 아래로 기울어짐 → RATE -15.3 s/d (느린 시계)
+
+**English**
+
+- Graph 0 (red dots): Tic beat timing error
+- Graph 1 (blue dots): Toc beat timing error
+- Y-axis: timing error in ms (wrapped to ±10 ms), X-axis: beat index (0–250 circular)
+- Current screen: dots slope downward → RATE -15.3 s/d (slow watch)
+
+#### 하단: ScopePlot / Lower: ScopePlot
+
+**한국어**
+
+- 파란선 = `r.processed_pcm[]` — HPF + envelope 처리된 파형
+- 빨간선 = `r.onset_threshold` — 검출 임계값
+- A 이벤트: 초록 수직 점선 + A-A 간격 수평 화살표 + ms 레이블 (예: 166.71 ms)
+- C 이벤트: 빨간 수직 점선 + `t_AC (ms)` + `Amplitude (°)` 텍스트 (예: 9.6 ms / 289°)
+- 연속 스크롤 방식 — beat 단위 분리 없음
+
+**English**
+
+- Blue line = `r.processed_pcm[]` — HPF + envelope processed waveform
+- Red line = `r.onset_threshold` — detection threshold
+- A events: green vertical dashed line + A-A interval horizontal arrow + ms label (e.g. 166.71 ms)
+- C events: red vertical dashed line + `t_AC (ms)` + `Amplitude (°)` text (e.g. 9.6 ms / 289°)
+- Continuous scroll mode — no per-beat slicing
+
+---
+
+### Tab 2 — Sound Print 실행 화면 / Running Screenshot
+
+![Baseline Sound Print Tab](screenshot-baseline-sound-print.png)
+
+**한국어**
+
+- 2D 이미지: 열(column) = 1 beat 주기, 행(row) = beat 내 시간축
+- 빨간 픽셀 강도 = 신호 세기 (자동 peak 정규화 + gamma 보정)
+- 초록 3×3 마커 = A 이벤트, 파란 3×3 마커 = C 이벤트
+- BPH 검출 전: 렌더링 없음 (샘플 카운트만 진행)
+- 요구 11개 그래프 목록에 없는 Sound Print 고유 형식
+
+**English**
+
+- 2D image: column = one beat period, row = time within beat
+- Red pixel intensity = signal strength (auto peak normalization + gamma correction)
+- Green 3×3 marker = A event, Blue 3×3 marker = C event
+- Before BPH lock: no rendering (sample count only)
+- Unique Sound Print format not listed in the 11 required graphs
+
+---
+
+### 베이스코드 ↔ 11개 그래프 매핑 / Baseline ↔ 11-Graph Mapping
+
+| 현재 / Current | 관련 요구 그래프 / Related Required Graph | 주요 갭 / Key Gap |
+|---|---|---|
+| RatePlot (ms, beat 번호) | ① Trace Display — Rate 부분 | 단위 ms → s/d 변환, X축 beat번호 → 경과 시간(분), Amplitude 서브플롯 없음 |
+| ScopePlot (연속 스크롤) | ⑦ Escapement Analyzer (가장 유사) | beat 단위 슬라이싱 없음, X축이 A 기준 0 ms가 아닌 절대 샘플 인덱스 |
+| ScopePlot (processed_pcm + threshold) | ⑪ Scope Function **F3 패널 단독** | F0/F1/F2 3개 패널 없음 |
+| ScopePlot (beat 슬라이싱 추가 시) | ④ Beat-Noise Scope, ⑩ Scope Mode | per-beat PCM 링 버퍼 미구현 |
+| SoundImage | ④ Beat-Noise Scope와 목적 유사 | 요구 목록에 없는 Sound Print 형식; beat strip 방향 다름 |
+| 계산만 존재 (텍스트 표시) | ②③⑤⑥⑦ | Rate/BE/Amplitude 공식은 동작 중 — 그래프 레이어만 없음 |
+| 미구현 | ⑧ Spectrogram | Raw PCM → FFT 경로 없음; FFTW3 주석 처리됨 |
+| 미구현 | ⑨ Waveform Comparison | 멀티 beat PCM 히스토리 버퍼 없음 |
+
+**핵심 관찰 / Key Observation**
+
+**한국어**
+
+계산 로직(Rate / Beat Error / Amplitude 공식)은 이미 `MainWindow.cpp`에서 동작 중이다.  
+구현 과제의 본질은 **새로운 공식이 아니라 새로운 그래프 레이어 추가**이다.  
+단, 모든 계산이 `ProcessSamples()` 하나에 집중되어 있어 Extensibility QA 위험이 있다.
+
+**English**
+
+The computation logic (Rate / Beat Error / Amplitude formulas) already works inside `MainWindow.cpp`.  
+The implementation task is fundamentally about **adding new graph layers, not new formulas**.  
+However, all computation is concentrated in a single `ProcessSamples()` function — an Extensibility QA risk.
+
+---
+
+### Scope Function F0~F3 상세 분석 / Scope Function F0–F3 Detail Analysis
+
+> Figure 19 (PC-RM4 Four Scope Filters) 레퍼런스 이미지 기반 분석  
+> Analysis based on Figure 19 (PC-RM4 Four Scope Filters) reference image
+
+![Scope Function F0–F3 Reference (Figure 19)](reference-scope-function-f0-f3.png)
+
+각 패널의 실제 파형 특징 / Observed waveform characteristics per panel:
+
+| 패널 / Panel | 실제 파형 특징 / Observed Waveform | 데이터 접근 가능 여부 / Data Accessibility |
+|---|---|---|
+| **F0** Raw PCM | 노이즈 많음, 복잡한 고주파 성분, beat 버스트 구분 어려움 / Noisy, rich high-freq content, burst hard to distinguish | ✅ `tg_process()` 전 `mInputBlock` |
+| **F1** HPF 후 | DC 제거로 0 기준 정렬, A/C 버스트 보이기 시작, 진동 풍부 / DC removed, A/C bursts emerge, still oscillatory | ❌ `tg_context_t` 내부 은닉 / hidden inside `tg_context_t` |
+| **F2** Envelope 후 | A/C 두 피크 명확히 분리, 매끄러운 단방향 파형 / A/C peaks clearly separated, smooth unipolar waveform | ❌ `tg_context_t` 내부 은닉 / hidden inside `tg_context_t` |
+| **F3** Detection 후 | 임계값 라인 + A/C 마커, 가장 깔끔한 두 피크 / Threshold line + A/C markers, cleanest two peaks | ✅ `r.processed_pcm[]` + `r.onset_threshold` |
+
+**현재 ScopePlot = F3 패널 단독을 연속 스크롤로 표시**  
+**Current ScopePlot = F3 panel only, shown as continuous scroll**
+
+**F1/F2 노출을 위한 필요 변경 / Required change to expose F1/F2:**
+
+```cpp
+// Timegrapher.h — tg_result_t에 추가 필요 / fields to add to tg_result_t
+typedef struct {
+    /* ... 기존 필드 / existing fields ... */
+    float    *processed_pcm;      // F3 ✅ 이미 존재 / already present
+    size_t    processed_pcm_len;
+
+    float    *hpf_pcm;            // F1 ❌ 추가 필요 / must add
+    size_t    hpf_pcm_len;
+
+    float    *envelope_pcm;       // F2 ❌ 추가 필요 / must add
+    size_t    envelope_pcm_len;
+} tg_result_t;
+```
+
+`Timegrapher.cpp` 내부 `tg_process()`에서 HPF 및 Envelope 처리 시 해당 버퍼에 복사하는 로직 추가 필요.  
+Inside `Timegrapher.cpp`, `tg_process()` must copy HPF and Envelope outputs into these new buffers at each processing stage.
