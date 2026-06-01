@@ -139,6 +139,10 @@ Amp = (3600 × λ) / (π × BPH × t_AC)  [°]
 
 ### 그래프 예시 / Graph Examples
 
+**실제 샘플 (Witschi Chronoscope X1 G3) / Real Sample:**
+
+![Trace Display Sample](sample-trace-display.png)
+
 #### Case 1: 정상 시계 / Normal Watch
 
 ```
@@ -368,6 +372,10 @@ Same formulas applied to Amplitude
 
 ### 그래프 예시 / Graph Examples
 
+**실제 샘플 (Witschi Chronoscope X1 G3) / Real Sample:**
+
+![Vario Display Sample](sample-vario-display.png)
+
 #### Case 1: 잘 조정된 시계 / Well-adjusted Watch
 
 ```
@@ -531,6 +539,10 @@ update_interval ∝ elapsed_time
 ---
 
 ### 그래프 예시 / Graph Examples
+
+**실제 샘플 (Watch-O-Scope) / Real Sample:**
+
+![Long-Term Performance Graph Sample](sample-longterm-performance.png)
 
 #### Case 1: 건강한 시계 / Healthy Watch (장기 안정 / Long-term Stable)
 
