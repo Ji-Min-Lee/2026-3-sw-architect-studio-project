@@ -19,27 +19,45 @@
 > The QA that most constrains the architecture = top priority  
 > This decision becomes the premise for all other design directions
 
-### 제안 우선순위 / Proposed Priority
+### 확정 우선순위 / Confirmed Priority
+
+> **업데이트 / Updated**: 2026-06-02 — 팀 논의 후 확정 / Confirmed after team discussion
 
 **한국어**
 
 | 순위 | QA | 근거 |
 |------|----|------|
-| **1** | Real-Time Performance | RPi 하드웨어 한계가 고정값. 48k sps 미달 시 프로젝트 자체가 실패. 모든 설계의 전제 조건 |
-| **2** | Extensibility | 그래프 11개 + Enhanced 기능 추가가 전체 일정과 직결. 구조가 나쁘면 매 추가마다 일정 리스크 발생 |
-| **3** | Measurement Accuracy | 시스템의 존재 이유. 수치가 틀리면 TimeGrapher로서 의미 없음 |
-| **4** | Low Latency | Real-Time Performance와 연동. 단독으로는 덜 결정적 |
-| **5** | Correctness | Measurement Accuracy가 확보되면 따라오는 속성 |
+| **1** | Real-Time Performance | 나머지 모든 QA의 선행 조건. 이것이 무너지면 데이터 자체가 없음 |
+| **2** | Measurement Accuracy | 프로젝트의 존재 이유. WeiShi 비교가 최종 데모 핵심. 아키텍처 결정에 가장 큰 영향 |
+| **3** | Low Latency | Hard threshold — 초과 시 기능 붕괴. 실험으로만 검증 가능 |
+| **4** | Correctness | Accuracy + 단일 데이터 소스 구조로 자동 확보. 독립적 아키텍처 목표가 아님 |
+| **5** | Extensibility | 개발자 편의성이지만 11개 그래프 일정 리스크를 직접 통제 |
+
+```
+Real-Time Performance   → 시스템이 살아있는가?           (존재 조건)
+Measurement Accuracy    → 시스템이 올바른가?              (목적 달성)
+Low Latency             → 시스템이 쓸 만한가?             (사용자 체감)
+Correctness             → 시스템이 내부적으로 일관적인가?  (신뢰성)
+Extensibility           → 시스템을 계속 만들 수 있는가?   (개발 지속성)
+```
 
 **English**
 
 | Rank | QA | Rationale |
 |------|----|-----------|
-| **1** | Real-Time Performance | RPi hardware limits are fixed. Falling below 48k sps means the project fails entirely. This is the prerequisite for every design decision. |
-| **2** | Extensibility | Adding 11 graphs + Enhanced features is directly tied to the overall schedule. A poor structure creates schedule risk with every addition. |
-| **3** | Measurement Accuracy | The reason the system exists. If the numbers are wrong, there is no value in the TimeGrapher. |
-| **4** | Low Latency | Coupled to Real-Time Performance. Less decisive on its own. |
-| **5** | Correctness | Follows naturally once Measurement Accuracy is secured. |
+| **1** | Real-Time Performance | Precondition for all other QAs. Without it, no data exists to measure anything else |
+| **2** | Measurement Accuracy | The reason the project exists. WeiShi comparison is the core final demo requirement. Greatest influence on architectural decisions |
+| **3** | Low Latency | Hard threshold — exceeding it causes functional failure. Requires empirical validation via experiments |
+| **4** | Correctness | Automatically secured by Accuracy + single data source structure. Not an independent architectural target |
+| **5** | Extensibility | Developer-facing, but directly controls schedule risk across 11 graph implementations |
+
+```
+Real-Time Performance   → Is the system alive?               (existence condition)
+Measurement Accuracy    → Is the system correct?             (purpose achieved)
+Low Latency             → Is the system usable?              (user experience)
+Correctness             → Is the system internally coherent? (trustworthiness)
+Extensibility           → Can development continue?          (development sustainability)
+```
 
 ---
 
