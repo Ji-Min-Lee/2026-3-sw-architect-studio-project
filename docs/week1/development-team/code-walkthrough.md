@@ -676,6 +676,216 @@ DisplayResults()
 | 11 | **Scope Mode (Synchronized Sweep)** | 오실로스코프 스타일 고정 스윕 윈도우 / Oscilloscope-style fixed sweep window | 🔶 부분 구현 / Partial (ScopePlot exists but no synchronized sweep) |
 | (+) | **Scope Function (F0/F1/F2/F3 Filter Views)** | 4가지 필터 처리 뷰 동시 표시 / 4 filter views simultaneously | ❌ 미구현 / Not implemented |
 
+---
+
+### 📋 그래프별 구현 가이드 — 수정/생성 파일 명세 / Implementation Guide — Files to Modify/Create
+
+**한국어**
+
+각 미구현 그래프를 구현할 때 **수정해야 할 기존 파일**과 **새로 생성해야 할 파일**을 명시한다.
+목표 아키텍처(Observer 패턴 + 탭 분리)를 따를 경우의 가이드이다.
+
+**English**
+
+Specifies **existing files to modify** and **new files to create** for implementing each graph.
+This guide assumes the target architecture (Observer pattern + tab separation).
+
+---
+
+#### 1. Trace Display
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/TraceTab.h` | 트레이스 탭 위젯 클래스 선언 / Trace tab widget class declaration |
+| 🆕 신규 생성 / New | `src/TraceTab.cpp` | QCustomPlot 기반 Rate+Amplitude 시계열 그래프 / QCustomPlot-based Rate+Amplitude time series |
+| 🆕 신규 생성 / New | `src/MeasurementStore.h/cpp` | 과거 측정값 저장소 (시계열 버퍼) / Historical measurement store (time series buffer) |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | `connect(MeasurementEngine, &measurementUpdated, TraceTab, &onMeasurement)` 추가 / Add signal connection |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | 탭 위젯에 Trace 탭 추가 / Add Trace tab to tab widget |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `ComputeRateError()`, `ComputeAmplitude()` 결과값 → `MeasurementStore` → `TraceTab`
+
+---
+
+#### 2. Vario Display
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/VarioTab.h/cpp` | Min/Max/Avg/σ 통계 막대 그래프 / Statistics bar chart with min/max/avg/σ |
+| ✏️ 수정 / Modify | `src/MeasurementStore.h/cpp` | `getStatistics()` 메서드 추가 / Add `getStatistics()` method |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | VarioTab 시그널 연결 / Connect VarioTab signals |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Vario 탭 추가 / Add Vario tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `MeasurementStore::getStatistics()` → `VarioTab`
+
+---
+
+#### 3. Multi-Position Sequence Display
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/MultiPositionTab.h/cpp` | 최대 10개 자세 비교 테이블/그래프 / Up to 10 position comparison table/graph |
+| 🆕 신규 생성 / New | `src/PositionSession.h/cpp` | 자세별 측정 세션 관리 클래스 / Per-position measurement session manager |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | 자세 저장 버튼 핸들러 + 세션 관리 로직 / Position save button handler + session management |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | MultiPosition 탭 + 자세 저장 버튼 / MultiPosition tab + position save button |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `PositionSession` 배열 (최대 10개) / Array of `PositionSession` (up to 10)
+
+---
+
+#### 4. Beat-Noise Scope 1
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/BeatNoiseScope1Tab.h/cpp` | 개별 비트 파형 스트립 뷰 (20/200/400ms) / Individual beat waveform strip view |
+| 🆕 신규 생성 / New | `src/BeatWaveformBuffer.h/cpp` | 비트 단위 PCM 파형 버퍼 / Per-beat PCM waveform buffer |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | A이벤트 발생 시 파형 버퍼에 저장 + 탭 연결 / Store waveform on A event + connect tab |
+| ✏️ 수정 / Modify | `src/Timegrapher.h` | `tg_result_t`에 비트 경계 정보 추가 (선택적) / Add beat boundary info to `tg_result_t` (optional) |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Beat-Noise Scope 1 탭 추가 / Add Beat-Noise Scope 1 tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `r.processed_pcm[]` (A이벤트 전후 윈도우) / (window around A event)
+
+---
+
+#### 5. Beat-Noise Scope 2
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/BeatNoiseScope2Tab.h/cpp` | Tic/Toc 이중 축 + 평균화 그래프 / Dual-axis Tic/Toc with averaging |
+| ✏️ 수정 / Modify | `src/BeatWaveformBuffer.h/cpp` | Tic/Toc 분리 저장 + Σ 평균 계산 / Separate Tic/Toc storage + Σ average calculation |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | BeatNoiseScope2Tab 시그널 연결 / Connect BeatNoiseScope2Tab signals |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Beat-Noise Scope 2 탭 추가 / Add Beat-Noise Scope 2 tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `BeatWaveformBuffer`의 Tic/Toc 분리 평균 / Tic/Toc separated averages from `BeatWaveformBuffer`
+
+---
+
+#### 6. Beat Error Display & Diagnostic Trace
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/BeatErrorTab.h/cpp` | 비트오차 값 표시 + 트레이스 그래프 / Beat error value display + trace graph |
+| ✏️ 수정 / Modify | `src/MeasurementStore.h/cpp` | Beat Error 시계열 저장 추가 / Add Beat Error time series storage |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | BeatErrorTab 시그널 연결 / Connect BeatErrorTab signals |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Beat Error 탭 추가 / Add Beat Error tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `ComputeBeatError()` 결과값 → `MeasurementStore` → `BeatErrorTab`
+
+---
+
+#### 7. Long-Term Performance Graph
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/LongTermTab.h/cpp` | 장기 트렌드 그래프 (Rate/Amplitude/BeatError) / Long-term trend graph |
+| ✏️ 수정 / Modify | `src/MeasurementStore.h/cpp` | 확장된 히스토리 버퍼 (분/시간 단위) / Extended history buffer (minutes/hours) |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | LongTermTab 시그널 연결 / Connect LongTermTab signals |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Long-Term 탭 추가 / Add Long-Term tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `MeasurementStore`의 장기 히스토리 / Long-term history from `MeasurementStore`
+
+---
+
+#### 8. Escapement Analyzer & Marker-Line Display (확장 / Enhancement)
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/EscapementAnalyzerTab.h/cpp` | 전용 A/C 마커 분석 뷰 / Dedicated A/C marker analysis view |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | 기존 `AddVerticalMarker()` 로직 분리 + ms 레이블 강화 / Separate existing marker logic + enhance ms labels |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Escapement Analyzer 탭 추가 / Add Escapement Analyzer tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `r.events[]`의 A/C 이벤트 타이밍 / A/C event timing from `r.events[]`
+
+---
+
+#### 9. Time-Frequency Spectrogram
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/SpectrogramTab.h/cpp` | 2D 스펙트로그램 히트맵 렌더링 / 2D spectrogram heatmap rendering |
+| 🆕 신규 생성 / New | `src/FFTProcessor.h/cpp` | STFT (Short-Time FFT) 처리기 / STFT processor |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | FFT 처리 + SpectrogramTab 연결 / FFT processing + SpectrogramTab connection |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Spectrogram 탭 추가 / Add Spectrogram tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 + FFT 라이브러리 링크 / Add new source files + FFT library link |
+
+**데이터 소스 / Data Source**: `mInputBlock[]` 원시 PCM → `FFTProcessor` → 스펙트로그램 / Raw PCM → FFT → Spectrogram
+
+**의존성 / Dependencies**: FFTW 또는 KissFFT 라이브러리 / FFTW or KissFFT library
+
+---
+
+#### 10. Waveform Comparison Display
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/WaveformCompareTab.h/cpp` | 정렬된 비트 파형 오버레이 비교 / Aligned beat waveform overlay comparison |
+| ✏️ 수정 / Modify | `src/BeatWaveformBuffer.h/cpp` | 비트 정렬 알고리즘 추가 / Add beat alignment algorithm |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | WaveformCompareTab 시그널 연결 / Connect WaveformCompareTab signals |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Waveform Comparison 탭 추가 / Add Waveform Comparison tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `BeatWaveformBuffer`의 정렬된 연속 비트 / Aligned consecutive beats from `BeatWaveformBuffer`
+
+---
+
+#### 11. Scope Mode (Synchronized Sweep) (확장 / Enhancement)
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/SyncScopeTab.h/cpp` | BPH 동기화 스윕 오실로스코프 / BPH-synchronized sweep oscilloscope |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | 기존 ScopePlot 로직 참조 + 동기화 트리거 추가 / Reference existing ScopePlot + add sync trigger |
+| ✏️ 수정 / Modify | `src/Bph.h/cpp` | 동기화 트리거 타이밍 정보 노출 / Expose sync trigger timing info |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Sync Scope 탭 추가 / Add Sync Scope tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `r.processed_pcm[]` + `r.sync_status` + BPH 기반 트리거 / + BPH-based trigger
+
+---
+
+#### (+) Scope Function (F0/F1/F2/F3 Filter Views)
+
+| 구분 / Type | 파일 / File | 작업 내용 / Task |
+|------------|-------------|-----------------|
+| 🆕 신규 생성 / New | `src/FilterViewTab.h/cpp` | 4분할 필터 뷰 (F0~F3) / 4-way split filter view (F0~F3) |
+| ✏️ 수정 / Modify | `src/Dsp.h/cpp` | 다양한 필터 프리셋 (Lowpass/Highpass/Bandpass/Raw) / Multiple filter presets |
+| ✏️ 수정 / Modify | `src/Timegrapher.h/cpp` | 멀티 필터 출력 지원 (`tg_result_t` 확장) / Multi-filter output support (extend `tg_result_t`) |
+| ✏️ 수정 / Modify | `src/MainWindow.cpp` | FilterViewTab 시그널 연결 / Connect FilterViewTab signals |
+| ✏️ 수정 / Modify | `src/MainWindow.ui` | Filter View 탭 추가 / Add Filter View tab |
+| ✏️ 수정 / Modify | `src/CMakeLists.txt` | 새 소스 파일 추가 / Add new source files |
+
+**데이터 소스 / Data Source**: `tg_process()` 확장 — 4종 필터 처리 결과 동시 출력 / Extended `tg_process()` — 4 filter outputs simultaneously
+
+---
+
+### 📊 신규 파일 생성 요약 / New Files Summary
+
+| 카테고리 / Category | 신규 파일 / New Files | 총 개수 / Count |
+|--------------------|----------------------|-----------------|
+| **탭 위젯 / Tab Widgets** | `TraceTab`, `VarioTab`, `MultiPositionTab`, `BeatNoiseScope1Tab`, `BeatNoiseScope2Tab`, `BeatErrorTab`, `LongTermTab`, `EscapementAnalyzerTab`, `SpectrogramTab`, `WaveformCompareTab`, `SyncScopeTab`, `FilterViewTab` | 12 × 2 = **24 파일** |
+| **데이터 레이어 / Data Layer** | `MeasurementStore`, `PositionSession`, `BeatWaveformBuffer`, `FFTProcessor` | 4 × 2 = **8 파일** |
+| **합계 / Total** | — | **32 신규 파일** |
+
+### 📊 기존 파일 수정 요약 / Existing Files Modification Summary
+
+| 파일 / File | 수정 빈도 / Frequency | 주요 변경 / Key Changes |
+|-------------|----------------------|------------------------|
+| `MainWindow.cpp` | 🔴 높음 / High | 모든 탭 시그널 연결 / All tab signal connections |
+| `MainWindow.ui` | 🔴 높음 / High | 12개 탭 추가 / Add 12 tabs |
+| `CMakeLists.txt` | 🔴 높음 / High | 32개 신규 파일 등록 / Register 32 new files |
+| `MeasurementStore.h/cpp` | 🟡 중간 / Medium | 통계/히스토리 기능 확장 / Extend statistics/history |
+| `Dsp.h/cpp` | 🟡 중간 / Medium | 필터 프리셋 추가 / Add filter presets |
+| `Timegrapher.h/cpp` | 🟢 낮음 / Low | `tg_result_t` 확장 (선택적) / Extend `tg_result_t` (optional) |
+| `Bph.h/cpp` | 🟢 낮음 / Low | 동기화 트리거 정보 노출 / Expose sync trigger info |
+
+---
+
 ### 베이스코드에 이미 구현된 것 / Already Implemented in Base Code
 
 | 기능 / Feature | 파일 / File | 비고 / Notes |
