@@ -195,6 +195,7 @@ void MainWindow::EventsReset(void)
     }
     ui->RatePlot->clearItems();
     ui->RatePlot->replot();
+
     DisplayResults();
 }
 
@@ -592,6 +593,56 @@ void MainWindow::CreateGraphs(void)
     //ui->RatePlot->graph(1)->setBrush(QBrush(Qt::blue));
     ui->RatePlot->graph(1)->setName("Toc Rate");
     ui->RatePlot->legend->setVisible(true);
+
+    //hungsont
+    ui->SpectrogramPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    ui->SpectrogramPlot->legend->setVisible(true);
+    ui->SpectrogramPlot->legend->setFont(legendFont);
+    ui->SpectrogramPlot->legend->setSelectedFont(legendFont);
+    ui->SpectrogramPlot->legend->setSelectableParts(QCPLegend::spItems);
+    ui->SpectrogramPlot->yAxis->setLabel("Frequency (Hz)");
+    ui->SpectrogramPlot->yAxis->setTickLabels(true);
+    ui->SpectrogramPlot->xAxis->setLabel("Time (ms)");
+    ui->SpectrogramPlot->yAxis->setRange(-ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
+    ui->SpectrogramPlot->xAxis->setRange(0, mRateErrorEvents.MaxTicTocDataPoints);
+    ui->SpectrogramPlot->xAxis->setTickLabels(false);
+    ui->SpectrogramPlot->clearGraphs();
+    ui->SpectrogramPlot->addGraph();
+    ui->SpectrogramPlot->graph(0)->setScatterStyle(QCPScatterStyle::ssDisc);
+    ui->SpectrogramPlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 3));
+    ui->SpectrogramPlot->graph(0)->setLineStyle(QCPGraph::lsNone);
+    ui->SpectrogramPlot->graph(0)->setPen(QPen(Qt::blue));
+
+    //hungsont
+    ui->RateDeviationPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    ui->RateDeviationPlot->yAxis->setLabel("Rate deviation (s/d)");
+    ui->RateDeviationPlot->yAxis->setTickLabels(true);
+    ui->RateDeviationPlot->xAxis->setLabel("Time (ms)");
+    ui->RateDeviationPlot->yAxis->setRange(0, 360);
+    ui->RateDeviationPlot->xAxis->setRange(0, mRateErrorEvents.MaxTicTocDataPoints);
+    ui->RateDeviationPlot->xAxis->setTickLabels(false);
+    ui->RateDeviationPlot->clearGraphs();
+    ui->RateDeviationPlot->addGraph();
+    ui->RateDeviationPlot->graph(0)->setScatterStyle(QCPScatterStyle::ssDisc);
+    ui->RateDeviationPlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 10));
+    ui->RateDeviationPlot->graph(0)->setLineStyle(QCPGraph::lsLine);
+    ui->RateDeviationPlot->graph(0)->setPen(QPen(Qt::blue));
+
+    //hungsont
+    ui->AmplitudePlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    ui->AmplitudePlot->yAxis->setLabel("Amplitude (Degree)");
+    ui->AmplitudePlot->yAxis->setTickLabels(true);
+    ui->AmplitudePlot->xAxis->setLabel("Time (ms)");
+    ui->AmplitudePlot->yAxis->setRange(0, 360);
+    ui->AmplitudePlot->xAxis->setRange(0, mRateErrorEvents.MaxTicTocDataPoints);
+    ui->AmplitudePlot->xAxis->setTickLabels(false);
+    ui->AmplitudePlot->clearGraphs();
+    ui->AmplitudePlot->addGraph();
+    ui->AmplitudePlot->graph(0)->setScatterStyle(QCPScatterStyle::ssDisc);
+    ui->AmplitudePlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 10));
+    ui->AmplitudePlot->graph(0)->setLineStyle(QCPGraph::lsLine);
+    ui->AmplitudePlot->graph(0)->setPen(QPen(Qt::blue));
+
 }
 
 MainWindow::~MainWindow()
@@ -941,8 +992,16 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
             double pcm=r.processed_pcm[i];
             ui->ScopePlot->graph(0)->addData(mLocalGraphTicks, pcm);
             ui->ScopePlot->graph(1)->addData(mLocalGraphTicks, threshhold);
+            //hungsont
+            double pcm_raw=r.raw_pcm_after_hpf[i];
+            ui->SpectrogramPlot->graph (0)->addData(mLocalGraphTicks, pcm_raw);
+
             mLocalGraphTicks++;
            }
+
+           //hungsont
+           // process fft here
+
 
           if ((!mSoundRenderHasBPH) &&(r.sync_status==TG_SYNC_SYNCED))
            {
@@ -994,6 +1053,10 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
                    if (r.sync_status==TG_SYNC_SYNCED) // Have BPH
                    {
                        int Amp=qRound(Amplitude(mLiftAngle,delta/mCurrentSamplesPerSecond,r.detected_bph));
+
+                       //hungsont
+                       ui->AmplitudePlot->graph(0)->addData(mLocalGraphTicks, Amp);
+
                        if (Amp<360)
                        {
                         text= QString(" %1 ms\n%2°").arg(delta*1000.0/mCurrentSamplesPerSecond, 0, 'f', 1).arg(Amp);
@@ -1018,12 +1081,33 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
         SamplesToAdd=SamplesToAdd-slice;
         }
 
+        //hungsont
+        ui->RateDeviationPlot->graph(0)->addData(mLocalGraphTicks, mRateErrorEvents.RlsRate);
+
         SharedDataPtr->MainThrd_LastTotalSamplesWritten=mLocalTotalSamplesWritten;
         PurgeHistory();
         ui->ScopePlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
         //ui->ScopePlot->xAxis->rescale();
         ui->ScopePlot->yAxis->rescale();
         ui->ScopePlot->replot(QCustomPlot::rpQueuedReplot);
+        //hungsont
+        ui->SpectrogramPlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
+        //ui->SpectrogramPlot->xAxis->rescale();
+        ui->SpectrogramPlot->yAxis->rescale();
+        ui->SpectrogramPlot->replot(QCustomPlot::rpQueuedReplot);
+
+        //hungsont
+        ui->RateDeviationPlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
+        //ui->DeviationPlot->xAxis->rescale();
+        ui->RateDeviationPlot->yAxis->rescale();
+        ui->RateDeviationPlot->replot(QCustomPlot::rpQueuedReplot);
+
+        //hungsont
+        ui->AmplitudePlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
+        //ui->AmplitudePlot->xAxis->rescale();
+        ui->AmplitudePlot->yAxis->rescale();
+        ui->AmplitudePlot->replot(QCustomPlot::rpQueuedReplot);
+
         ui->SoundImage->DrawImage();
 
         mForegroundFrameCount++;
@@ -1069,6 +1153,57 @@ void MainWindow::PurgeHistory(void)
             else  qInfo()<<"getKeyRange not found";
         }
     }
+    //hungsont
+    for (int i=0;i<ui->SpectrogramPlot->graphCount();i++)
+    {
+        if (ui->SpectrogramPlot->graph(i)->data()->size()>(GRAPH_HISTORY_IN_SECONDS*mCurrentSamplesPerSecond))
+        {
+            //qInfo()<<"Data Size 1 -"<<ui->Scope->graph(i)->data()->size();
+            bool foundRange;
+            QCPRange keyRange = ui->SpectrogramPlot->graph(i)->getKeyRange(foundRange, QCP::sdBoth);
+            if (foundRange)
+            {
+                double minKey = keyRange.lower;
+                double maxKey = keyRange.upper;
+                double NumKeys=maxKey-minKey;
+                //qInfo()<<"Min "<< minKey<<" Max "<<maxKey;
+                //qInfo()<<"Data Size 2 -"<< NumKeys;
+                double NumToRemove= NumKeys-((GRAPH_HISTORY_IN_SECONDS*mCurrentSamplesPerSecond)/2);
+                double RemoveStart=minKey;
+                double RemoveEnd=minKey+NumToRemove;
+                // qInfo()<<"Remove "<< RemoveStart<<"  "<<RemoveEnd;
+                RemoveMarkersAndText(ui->SpectrogramPlot,RemoveStart, RemoveEnd);
+                ui->SpectrogramPlot->graph(i)->data()->remove(RemoveStart, RemoveEnd);
+            }
+            else  qInfo()<<"getKeyRange not found";
+        }
+    }
+
+    //hungsont
+    for (int i=0;i<ui->AmplitudePlot->graphCount();i++)
+    {
+        if (ui->AmplitudePlot->graph(i)->data()->size()>(GRAPH_HISTORY_IN_SECONDS*mCurrentSamplesPerSecond))
+        {
+            //qInfo()<<"Data Size 1 -"<<ui->Scope->graph(i)->data()->size();
+            bool foundRange;
+            QCPRange keyRange = ui->AmplitudePlot->graph(i)->getKeyRange(foundRange, QCP::sdBoth);
+            if (foundRange)
+            {
+                double minKey = keyRange.lower;
+                double maxKey = keyRange.upper;
+                double NumKeys=maxKey-minKey;
+                //qInfo()<<"Min "<< minKey<<" Max "<<maxKey;
+                //qInfo()<<"Data Size 2 -"<< NumKeys;
+                double NumToRemove= NumKeys-((GRAPH_HISTORY_IN_SECONDS*mCurrentSamplesPerSecond)/2);
+                double RemoveStart=minKey;
+                double RemoveEnd=minKey+NumToRemove;
+                // qInfo()<<"Remove "<< RemoveStart<<"  "<<RemoveEnd;
+                RemoveMarkersAndText(ui->AmplitudePlot,RemoveStart, RemoveEnd);
+                ui->AmplitudePlot->graph(i)->data()->remove(RemoveStart, RemoveEnd);
+            }
+            else  qInfo()<<"getKeyRange not found";
+        }
+    }
 }
 void MainWindow::Reset(void)
 {
@@ -1102,6 +1237,23 @@ void MainWindow::Reset(void)
     }
     ui->ScopePlot->clearItems();
     ui->ScopePlot->replot();
+
+    //hungsont
+    for (int i=0;i<ui->SpectrogramPlot->graphCount();i++)
+    {
+        ui->SpectrogramPlot->graph(i)->data()->clear();
+    }
+    ui->SpectrogramPlot->clearItems();
+    ui->SpectrogramPlot->replot();
+
+    //hungsont
+    for (int i=0;i<ui->AmplitudePlot->graphCount();i++)
+    {
+        ui->AmplitudePlot->graph(i)->data()->clear();
+    }
+    ui->AmplitudePlot->clearItems();
+    ui->AmplitudePlot->replot();
+
     mHaveLastA=false;
     CreateDectectors();
     EventsReset();
@@ -1539,3 +1691,36 @@ void MainWindow::on_SampleRatesComboBox_currentIndexChanged(int index)
 /************************************************************************************/
 /* END                                                                              */
 /************************************************************************************/
+void MainWindow::on_PausePushButton_clicked()
+{
+    SetGuiStopMode();
+
+    if(ui->ModeComboBox->currentText()==ModeStrings[LIVE])
+    {
+        StopAudioThread();
+        AudioCloseCheck();
+    }
+    else if(ui->ModeComboBox->currentText()==ModeStrings[PLAYBACK])
+    {
+        StopPlaybackThread();
+
+        if (mWavWriter)
+        {
+            mWavWriter->close();
+            delete mWavWriter;
+            mWavWriter=NULL;
+        }
+
+        SetAudioDevice(mDeviceNameBeforePlaybackOrSim);
+        SetAudioRate(mRateBeforePlaybackOrSim);
+    }
+    else if(ui->ModeComboBox->currentText()==ModeStrings[SIM])
+    {
+        StopSimThread();
+        SetAudioDevice(mDeviceNameBeforePlaybackOrSim);
+        SetAudioRate(mRateBeforePlaybackOrSim);
+    }
+
+    statusBar()->showMessage("Paused");
+}
+

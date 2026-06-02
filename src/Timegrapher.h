@@ -151,6 +151,11 @@ typedef struct {
     size_t            processed_pcm_len;
     uint64_t          processed_pcm_start_sample;
 
+    //hungsont
+    float            *raw_pcm_after_hpf;  // Original PCM after DC blocker (±)
+    size_t            raw_pcm_len;
+    uint64_t          raw_pcm_start_sample;
+
     /* One-shot edge flags */
     int               sync_lost_event;
     int               sync_acquired_event;
