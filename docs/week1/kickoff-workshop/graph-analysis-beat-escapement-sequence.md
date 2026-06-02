@@ -37,38 +37,45 @@
 
 **한국어**
 
-tick과 tock 사이의 시간 비대칭을 실시간으로 수치화하고 시간 추이를 시각화하여 이스케이프먼트의 조율 상태를 진단하는 그래프.
+수치(Rate·Amplitude·Beat Error·BPH)와 **Diagnostic Trace 선**을 함께 표시하여 수치만으로는 파악하기 어려운 Beat Error·불안정·조정 문제를 시각적으로 쉽게 진단하는 그래프.
 
-- Beat Error 수치가 **0.6 ms 이하**인지 판별
-- 시간에 따른 Beat Error **변화 추이** 모니터링
-- Rate 측정값의 **신뢰도 판단** 보조
+> 출처: Time Grapher Project Plan (Draft) — PLAKOSH, POPOWSKI  
+> *"Inspired by the standalone timegrapher display and the Watch-O-Scope graphing approach"*
 
-> 핵심: Rate가 정상이어도 Beat Error가 클 수 있음 — 두 지표는 독립적
+- 수치(Rate·Amplitude·Beat Error·BPH) + **Trace 선** 동시 표시
+- **Y축 = Beat Error (ms)**: beat 쌍마다 계산된 Beat Error 값을 점으로 표시
+- **이상적 상태**: 선이 **수평에 가깝게** 유지
+- **두 줄 경고**: 이전 Beat Error 값과 현재 Beat Error 값의 간격 허용 범위 초과 시 알림
+- **45° 경보**: 기울기 ±45° 초과 시 Major Fault 표시
 
 **English**
 
-A graph that quantifies tick/tock time asymmetry in real time and visualizes the trend over time to diagnose the escapement adjustment state.
+A graph that presents both **numerical measurements and a Diagnostic Trace line** to help users identify beat error, instability, and adjustment problems more easily than with numeric readings alone.
 
-- Determine whether Beat Error is **below 0.6 ms**
-- Monitor **trend changes** in Beat Error over time
-- Assist in judging **reliability of Rate measurements**
+> Source: Time Grapher Project Plan (Draft) — PLAKOSH, POPOWSKI  
+> *"Inspired by the standalone timegrapher display and the Watch-O-Scope graphing approach"*
 
-> Key: Rate can be normal even when Beat Error is large — the two metrics are independent
+- Display numeric values (Rate·Amplitude·Beat Error·BPH) + **trace line(s)**
+- **Y axis = Beat Error (ms)**: plots Beat Error value per beat pair as dots
+- **Desired condition**: line(s) remain as **close to horizontal as possible**
+- **Two-line alert**: alert user if gap between previous and current Beat Error exceeds acceptable range
+- **45° fault**: if slope exceeds ±45° in magnitude → indicate **Major Fault condition**
 
 **화면 구조 / Screen Layout:**
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  BEAT ERROR  0.8 ms                          [Beat Error]       │
+│  RATE +1.5 s/d  AMPLITUDE 297°  BEAT ERROR 0.8 ms  21600 bph   │  ← 수치 표시
 ├─────────────────────────────────────────────────────────────────┤
 │      │                                                          │
 │  2.0─│                                                          │
-│      │  * *                                                     │
-│  1.0─│       *  *                                               │
-│  0.6─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │  ← 기준선 / baseline
-│      │              * * * * * * * * * * * * * * *              │
+│      │  . . . . . . . . . .  ← 현재 Beat Error trace           │
+│  1.0─│                    ↕ 이전↔현재 간격 경고 / prev↔curr alert│
+│      │. . . . . . . . . . .  ← 이전 Beat Error trace           │
+│  0.6─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← 기준선 / baseline     │
+│      │                                                          │
 │  0.0─│                                                          │
-│      └──────┬──────┬──────┬──────┬──────┬──────────            │
+│      └──────┬──────┬──────┬──────┬──────────────────           │
 │           2:00   4:00   6:00   8:00  10:00 min                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -77,7 +84,16 @@ A graph that quantifies tick/tock time asymmetry in real time and visualizes the
 |---|---|---|---|
 | **X축** | 경과 시간 / Elapsed time | min | 0 ~ N |
 | **Y축** | Beat Error | ms | 0 ~ 2.0 ms |
+| **현재 trace** | 현재 Beat Error 값 점 / Current Beat Error dots | ms | — |
+| **이전 trace** | 이전 Beat Error 값 점 / Previous Beat Error dots | ms | — |
 | **기준선** | 정상/비정상 경계 / Normal boundary | ms | 0.6 ms |
+
+**알림 조건 / Alert Conditions:**
+
+| 조건 / Condition | 반응 / Response |
+|---|---|
+| 이전↔현재 Beat Error 간격 허용 초과 / Prev↔curr gap exceeds limit | ⚠️ 경고 표시 / Warning alert |
+| 기울기 ±45° 초과 / Slope exceeds ±45° | ❌ Major Fault 표시 / Major Fault indication |
 
 ---
 
@@ -143,73 +159,105 @@ DisplayValue = RollingAverage.GetAverage()
 
 ### 그래프 예시 / Graph Examples
 
-#### Case 1: 정상 시계 / Normal Watch
+#### Case 1: 정상 시계 / Normal Watch (수평 유지 / Horizontal)
 
 ```
 Beat Error (ms)
-2.0─│
-1.0─│
-0.6─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← 기준선 / baseline
-    │* * * * * * * * * * * * *   ← 기준선 아래 안정 / stable below baseline
-0.0─│____________________________
-     시간 / time →
+  2.0─│
+      │
+  1.0─│  . . . . . . . . . . .  ← 현재 Beat Error / current
+      │  . . . . . . . . . . .  ← 이전 Beat Error / previous
+  0.6─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← 기준선 / baseline
+      │
+  0.0─│___________________________
+       시간 / time →
+
+수치: BEAT ERROR 0.4 ms
 ```
 
-> 한국어: Beat Error < 0.6 ms, 안정적 수평 유지. 이스케이프먼트 조율 상태 양호  
-> English: Beat Error < 0.6 ms, stable horizontal. Escapement well adjusted
+> 한국어: 두 선 모두 기준선 아래 수평 유지, 이전↔현재 간격 좁음 → 이상적 상태  
+> English: Both lines horizontal below baseline, narrow gap between prev/curr → ideal condition
 
-#### Case 2: Beat Error 큰 시계 / High Beat Error Watch
+---
 
-```
-Beat Error (ms)
-2.0─│* *   * *   * *             ← 기준선 훨씬 위 / far above baseline
-1.0─│    *      *
-0.6─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← 기준선 / baseline
-0.0─│____________________________
-     시간 / time →
-```
-
-> 한국어: Beat Error > 1.0 ms. tick/tock 비대칭 심각 → 이스케이프먼트 조정 필요  
-> English: Beat Error > 1.0 ms. Severe tick/tock asymmetry → escapement adjustment required
-
-#### Case 3: 워밍업 후 안정화 / Stabilizing Watch
+#### Case 2: Beat Error 증가 / Increasing Beat Error
 
 ```
 Beat Error (ms)
-2.0─│* *                         ← 초기 불안정 / initially unstable
-1.0─│     * *
-0.6─│─ ─ ─ ─ ─*─*─*─*─*─*─*─  ← 점차 안정화 / gradually stabilizing
-0.0─│____________________________
-     시간 / time →
+  2.0─│              . . . .  ← 현재 / current
+      │         ↕ 간격 과도 / gap too wide → ⚠️ ALERT
+      │. . . . . . . . . . .  ← 이전 / previous
+  1.0─│
+  0.6─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← 기준선 / baseline
+  0.0─│___________________________
+       시간 / time →
+
+수치: BEAT ERROR 1.8 ms
 ```
 
-> 한국어: 시계를 올려놓은 직후 불안정 → 시간이 지나면서 기준선 아래로 안정화  
-> English: Unstable immediately after placing watch → stabilizes below baseline over time
+> 한국어: 현재 Beat Error가 이전보다 크게 증가 → 간격 허용 초과 → 경고 표시  
+> English: Current Beat Error significantly higher than previous → gap exceeds limit → alert displayed
 
-#### Case 4: Beat Error 장기 드리프트 / Long-term Drift
+---
+
+#### Case 3: Beat Error 안정 감소 / Stabilizing (Decreasing)
 
 ```
 Beat Error (ms)
-2.0─│                        * * ← 장기 증가 / long-term increasing
-1.0─│               * * * *
-0.6─│─ ─ ─ ─ ─*─*─*─ ─ ─ ─ ─  ← 기준선 / baseline
-    │* * * * *
-0.0─│____________________________
-     시간 / time →
+  2.0─│. . .                    ← 이전 / previous (높음)
+      │     . . .
+  1.0─│         . . .
+      │              . . .
+  0.6─│─ ─ ─ ─ ─ ─ ─ ─ *─*─*  ← 기준선 / baseline (안정화)
+      │               현재 / current
+  0.0─│___________________________
+       시간 / time →
 ```
 
-> 한국어: Beat Error만 장기적으로 증가 → 충격핀 마모 또는 팔레트 포크 간격 변화 징후  
-> English: Beat Error increasing long-term → signs of impulse pin wear or pallet fork gap change
+> 한국어: 이전보다 현재 Beat Error가 점차 감소 → 조정 효과 확인 가능  
+> English: Current Beat Error gradually decreasing from previous → adjustment effect visible
+
+---
+
+#### Case 4: Major Fault / 45° 초과
+
+```
+Beat Error (ms)
+  2.0─│                    . .  ← 현재 / current
+      │              . . .
+      │        . . .
+  1.0─│  . . .
+  0.6─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← 기준선 / baseline
+  0.0─│___________________________
+       시간 / time →
+
+                    ❌ MAJOR FAULT — 기울기 ±45° 초과
+```
+
+> 한국어: Beat Error 변화가 ±45° 기울기 초과 → Major Fault 표시. 이스케이프먼트 결함 가능성  
+> English: Beat Error slope exceeds ±45° → Major Fault indication. Possible escapement defect
 
 ---
 
 ### 정상 기준 / Normal Criteria
+
+**수치 기준 / Numeric Criteria:**
 
 | Beat Error 값 / Value | 상태 / Status |
 |---|---|
 | 0.0 ~ 0.6 ms | ✅ 정상 / Normal |
 | 0.6 ~ 1.0 ms | ⚠️ 경계 / Borderline |
 | 1.0 ms 이상 / above | ❌ 조정 필요 / Adjustment required |
+
+**Diagnostic Trace 기준 / Trace Criteria:**
+
+| 조건 / Condition | 상태 / Status |
+|---|---|
+| 선이 수평 유지 / Lines remain horizontal | ✅ 이상적 / Ideal |
+| 이전↔현재 Beat Error 간격 허용 이내 / Prev↔curr gap within limit | ✅ 정상 / Normal |
+| 이전↔현재 Beat Error 간격 허용 초과 / Prev↔curr gap exceeds limit | ⚠️ 경고 / Alert |
+| 기울기 ±45° 미만 / Slope below ±45° | ✅ 정상 / Normal |
+| 기울기 ±45° 이상 / Slope ≥ ±45° | ❌ Major Fault |
 
 ---
 
