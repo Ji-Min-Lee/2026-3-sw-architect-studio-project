@@ -24,16 +24,20 @@
 | TR-07 | 기존 코드베이스(v10.5) 구조 파악 난이도 — 잘못된 이해 기반 확장 설계 시 아키텍처 오류 | M | M | 🟡 M |
 | TR-08 | 크로스컴파일(macOS → RPi ARM64) 환경 셋업 실패 또는 빌드 복잡도 증가 | M | M | 🟡 M |
 | TR-09 | Time-Frequency Spectrogram의 FFT 연산이 RPi에서 실시간 처리에 과부하 | L | M | 🟢 L |
+| TR-10 | v10.5가 OOAD 기반 설계가 아니어서 확장 시 레이어 간 강결합 발생 — 새 기능 추가 시 기존 레이어 직접 수정 필요 | H | H | 🔴 H |
+| TR-11 | 레이어 경계는 파악됐으나 인터페이스·추상화 부재 — 새 그래프 추가가 UI 레이어 직접 수정으로 이어질 위험 | H | H | 🔴 H |
 
 ### 비기술 리스크 / Non-Technical Risks
 
 | ID | 리스크 / Risk | 확률 / Prob | 영향 / Impact | 수준 / Level |
 |----|--------------|:-----------:|:-------------:|:------------:|
-| NR-01 | WeiShi 1000 레퍼런스 디바이스 접근 지연 — 정확도 비교 기준 없이 Correctness 검증 불가 | M | H | 🟡 M |
-| NR-02 | 하드웨어(RPi / 마이크 / 터치스크린) 수령·셋업 지연으로 물리 실험 선행 불가 | M | M | 🟡 M |
-| NR-03 | 스코프 크리프 — 선택 기능 구현에 집중하여 핵심 기능 품질 저하 | H | M | 🟡 M |
-| NR-04 | 측정 수식 오해로 잘못된 구현 — Equations_v0 미숙지 | M | H | 🟡 M |
-| NR-05 | 팀원 역할 불명확으로 설계·실험 작업 직렬화 | L | M | 🟢 L |
+| NR-01 | WeiShi 1000과 RPi가 각각 별도 입력 장치를 사용 — 동일 신호로 동시 비교 불가 시 Correctness 검증 정확도 저하 (단일 입력 장치로 두 디바이스에 동시 송출 가능 여부 전문가 확인 필요) | M | H | 🟡 M |
+| NR-02 | 스코프 크리프 — 선택 기능 구현에 집중하여 핵심 기능 품질 저하 | H | M | 🟡 M |
+| NR-03 | 측정 수식 오해로 잘못된 구현 — Equations_v0 미숙지 | M | H | 🟡 M |
+| NR-04 | 팀원 역할 미정 상태에서 구현 시작 시 작업 중복 또는 누락 발생 | M | M | 🟡 M |
+| NR-05 | C++ 미숙 팀원(4명)이 코드 수정·확장에 투입될 경우 생산성 저하 및 버그 유입 | H | H | 🔴 H |
+| NR-06 | 시계 도메인 미숙으로 측정값 해석 오류 — Rate/Amplitude/Beat Error 정상 범위 판단 실패 | M | H | 🟡 M |
+| NR-07 | 전문가 미팅·이메일 응답 지연으로 도메인 불확실성이 구현 단계까지 미해소 | L | M | 🟢 L |
 
 **English**
 
@@ -52,16 +56,20 @@
 | TR-07 | Difficulty understanding baseline codebase (v10.5) structure — wrong mental model leads to flawed extension design | M | M | 🟡 M |
 | TR-08 | Cross-compilation setup (macOS → RPi ARM64) fails or adds build complexity | M | M | 🟡 M |
 | TR-09 | FFT computation for Time-Frequency Spectrogram too CPU-intensive for real-time on RPi | L | M | 🟢 L |
+| TR-10 | v10.5 is not designed on OOAD principles — tight coupling across layers may require modifying existing layers when adding new features | H | H | 🔴 H |
+| TR-11 | Layer boundaries identified but no interfaces or abstraction layer present — adding new graphs may require direct UI layer modification | H | H | 🔴 H |
 
 ### Non-Technical Risks
 
 | ID | Risk | Prob | Impact | Level |
 |----|------|:----:|:------:|:-----:|
-| NR-01 | Delayed access to WeiShi 1000 reference device — cannot validate Correctness QA without comparison baseline | M | H | 🟡 M |
-| NR-02 | Hardware (RPi / microphone / touchscreen) arrives late, blocking physical experiments | M | M | 🟡 M |
-| NR-03 | Scope creep — optional features consume time at expense of core feature quality | H | M | 🟡 M |
-| NR-04 | Misunderstanding of measurement equations leads to incorrect implementation | M | H | 🟡 M |
-| NR-05 | Unclear team role assignments cause design and experiment tasks to be serialized | L | M | 🟢 L |
+| NR-01 | WeiShi 1000 and RPi use separate input devices — if simultaneous signal input is not possible, side-by-side Correctness comparison is unreliable (need expert confirmation on whether a single input device can feed both) | M | H | 🟡 M |
+| NR-02 | Scope creep — optional features consume time at expense of core feature quality | H | M | 🟡 M |
+| NR-03 | Misunderstanding of measurement equations leads to incorrect implementation | M | H | 🟡 M |
+| NR-04 | Undefined team role assignments lead to duplicate or missing work when implementation begins | M | M | 🟡 M |
+| NR-05 | 4 team members unfamiliar with C++ — productivity loss and bug introduction when assigned to code modification or extension | H | H | 🔴 H |
+| NR-06 | No prior watch domain experience — risk of misinterpreting measurement values and normal ranges for Rate/Amplitude/Beat Error | M | H | 🟡 M |
+| NR-07 | Expert response delays (email/meeting) leave domain uncertainties unresolved into the implementation phase | L | M | 🟢 L |
 
 ---
 
@@ -77,7 +85,9 @@
 | T1/T3 beat event를 정확히 검출할 수 있는가? | TR-02 | Correctness / Accuracy | Rate·Amplitude·Beat Error 전부 오류 |
 | AGC 비활성화 상태가 실험 간 일관성 있게 유지되는가? | TR-03 | Consistency | 측정값 재현성 손실, 실험 신뢰도 저하 |
 | Equations_v0 수식 구현이 WeiShi 1000과 일치하는가? | TR-04 | Measurement Accuracy | M3 데모 정확도 기준 미달 |
-| 새 그래프를 기존 코드 수정 없이 추가할 수 있는가? | TR-07 | Extensibility | 요구 그래프 11종 구현 일정 초과 |
+| 단일 입력 장치로 RPi와 WeiShi 1000에 동시 신호 송출이 가능한가? | NR-01 | Correctness | 동시 비교 불가 시 정확도 검증 신뢰도 저하 |
+| v10.5 코드에 확장을 위한 추상화 계층을 도입할 수 있는가? | TR-10, TR-11 | Extensibility | 새 그래프 추가마다 기존 코드 대규모 수정 필요 |
+| C++ 미숙 팀원이 C++ 코드를 안전하게 수정할 수 있는가? | NR-05 | — | 버그 유입 및 디버깅 비용 증가로 전체 일정 압박 |
 
 **English**
 
@@ -89,7 +99,9 @@ Each open issue is directly linked to a core Quality Attribute (QA). If left unr
 | Can T1/T3 beat events be detected accurately? | TR-02 | Correctness / Accuracy | Rate, Amplitude, Beat Error all incorrect |
 | Does AGC disable setting persist across experiments? | TR-03 | Consistency | Measurement reproducibility lost, experiment validity undermined |
 | Does the Equations_v0 implementation match WeiShi 1000 output? | TR-04 | Measurement Accuracy | Accuracy criteria not met at M3 demo |
-| Can new graphs be added without modifying existing code? | TR-07 | Extensibility | Unable to implement all 11 required graphs on schedule |
+| Can a single input device feed both RPi and WeiShi 1000 simultaneously? | NR-01 | Correctness | Side-by-side comparison unreliable; Correctness validation weakened |
+| Can an abstraction layer be introduced into v10.5 for extensibility? | TR-10, TR-11 | Extensibility | Each new graph requires large-scale modification of existing code |
+| Can team members unfamiliar with C++ safely modify C++ code? | NR-05 | — | Bug introduction and debugging overhead creates schedule pressure |
 
 ---
 
@@ -107,9 +119,15 @@ Each open issue is directly linked to a core Quality Attribute (QA). If left unr
 | TR-06 | USB 버퍼 설정 최적화 | 버퍼 크기 조정 실험, 드롭 블록 카운트 모니터링 |
 | TR-07 | v10.5 코드 구조 분석 | 코드 리딩 후 모듈 구조 다이어그램 작성, Architectural Approaches에 반영 |
 | TR-08 | 크로스컴파일 환경 셋업 | Qt Creator + RPi 빌드 환경 구성, 실패 시 RPi 네이티브 빌드로 전환 |
-| NR-01 | WeiShi 1000 접근 전 대체 검증 | 접근 전까지 Playback 모드(녹음 파일)로 우선 검증 |
-| NR-02 | 하드웨어 지연 대비 | 하드웨어 셋업 우선 진행, 지연 시 Sim 모드로 실험 진행 |
-| NR-03 | 스코프 관리 | Architectural Drivers HIGH 기능 우선 구현, 선택 기능은 명시적으로 타임박스 |
+| NR-01 | 단일 입력 장치 동시 송출 가능 여부 확인 | 전문가에게 질의 — 불가 시 동일 조건의 순차 측정으로 대체 |
+| NR-02 | 스코프 관리 | Architectural Drivers HIGH 기능 우선 구현, 선택 기능은 명시적으로 타임박스 |
+| NR-03 | 수식 구현 정확도 검증 | Equations_v0 기반 단위 테스트 작성, WeiShi 1000 측정값과 수치 비교 |
+| NR-04 | 역할 분담 조기 확정 | C++ 숙련자를 신호처리·핵심 로직에 배치, 나머지는 UI·테스트·문서로 분리 |
+| NR-05 | C++ 미숙 팀원 리스크 완화 | C++ 숙련자가 핵심 모듈 담당, 미숙 팀원은 Qt UI·Playback·테스트 영역 우선 배치; 코드 리뷰로 버그 조기 발견 |
+| NR-06 | 시계 도메인 지식 보강 | Witschi Training Course 필독(pp.14-19), 전문가 미팅으로 측정값 정상 범위 확인 |
+| NR-07 | 전문가 응답 지연 대비 | 질의는 구현 전 최대한 조기 발송, 응답 대기 중에는 Playback 모드로 진행 |
+| TR-10 | 코드 확장 전략 수립 | v10.5 코드 분석 후 추상화 계층(인터페이스) 도입 범위 결정, Architectural Approaches에 반영 |
+| TR-11 | 레이어 간 의존성 정리 | 새 그래프 추가 시 UI 직접 수정 최소화를 위한 플러그인/전략 패턴 적용 검토 |
 
 **English**
 
@@ -123,9 +141,15 @@ Each open issue is directly linked to a core Quality Attribute (QA). If left unr
 | TR-06 | Optimize USB buffer settings | Tune buffer size; monitor dropped block count |
 | TR-07 | Analyze v10.5 code structure | Code reading session; produce module structure diagram; reflect in Architectural Approaches |
 | TR-08 | Set up cross-compilation environment | Configure Qt Creator + RPi build target; fall back to native RPi build if needed |
-| NR-01 | Alternative validation before WeiShi 1000 access | Use Playback mode (pre-recorded files) for interim accuracy validation |
-| NR-02 | Contingency for hardware delays | Prioritize hardware setup; proceed with Sim mode if delayed |
-| NR-03 | Scope management | Implement HIGH-priority Architectural Drivers first; explicitly timebox optional features |
+| NR-01 | Confirm simultaneous signal feed feasibility | Consult expert — if not feasible, use sequential measurement under identical conditions as fallback |
+| NR-02 | Scope management | Implement HIGH-priority Architectural Drivers first; explicitly timebox optional features |
+| NR-03 | Verify calculation accuracy | Unit tests based on Equations_v0; cross-check against WeiShi 1000 reference values |
+| NR-04 | Finalize role assignments early | Assign C++ proficient members to signal processing and core logic; others to UI, testing, and documentation |
+| NR-05 | Mitigate C++ skill gap | C++ proficient members own critical modules; less experienced members handle Qt UI, Playback, and testing; enforce code review |
+| NR-06 | Build watch domain knowledge | Required reading: Witschi Training Course pp.14-19; confirm normal measurement ranges with domain expert |
+| NR-07 | Mitigate expert response delays | Send queries as early as possible before implementation; proceed with Playback mode while awaiting responses |
+| TR-10 | Define code extension strategy | Analyze v10.5 structure; decide scope of abstraction layer introduction; reflect in Architectural Approaches |
+| TR-11 | Reduce inter-layer coupling | Evaluate plugin or strategy pattern to minimize direct UI layer modifications when adding new graphs |
 
 ---
 
@@ -142,6 +166,8 @@ quadrantChart
     quadrant-4 Contingency
     TR-01: [0.80, 0.90]
     TR-02: [0.80, 0.85]
+    TR-10: [0.75, 0.88]
+    TR-11: [0.75, 0.85]
     TR-03: [0.50, 0.80]
     TR-04: [0.50, 0.75]
     TR-05: [0.50, 0.75]
@@ -149,9 +175,13 @@ quadrantChart
     TR-07: [0.50, 0.50]
     TR-08: [0.45, 0.50]
     TR-09: [0.25, 0.45]
+    NR-05: [0.75, 0.88]
     NR-01: [0.50, 0.80]
-    NR-03: [0.75, 0.45]
-    NR-04: [0.50, 0.75]
+    NR-03: [0.50, 0.78]
+    NR-06: [0.50, 0.75]
+    NR-02: [0.75, 0.45]
+    NR-04: [0.50, 0.45]
+    NR-07: [0.25, 0.45]
 ```
 
 ---
