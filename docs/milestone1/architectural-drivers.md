@@ -363,55 +363,81 @@ Rationale for ≤ 3 files:
 
 ### 한국어
 
-기능 요건은 위 QA 시나리오를 작성하는 과정에서 이미 이해되어 있음이 전제된다. T1/T3 이벤트 구조, BPH-sps 관계, 11개 그래프 목록, 신호 열화 처리 등이 모두 QA 시나리오에 반영되어 있다.
+기능 요건은 시스템이 **무엇을 해야 하는가**를 정의한다. 표현 방식으로는 다음 두 가지가 대표적이다:
 
-| ID | 기능 요건 | 우선순위 |
-|----|---------|---------|
-| FR-01 | T1(A), T3(C) 음향 이벤트 감지 | HIGH |
-| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH 계산 | HIGH |
-| FR-03 | Live / Playback / Sim 운영 모드 지원 | HIGH |
-| FR-04 | Low-pass / High-pass 필터링 | HIGH |
-| FR-05 | Trace Display (Rate + Amplitude 실시간 기록) | HIGH |
-| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | HIGH |
-| FR-07 | Beat Error Display & Diagnostic Trace | HIGH |
-| FR-08 | Beat-Noise Scope (Scope 1 & 2, Σ 평균) | MEDIUM |
-| FR-09 | Multi-Position Sequence Display (최대 10포지션) | MEDIUM |
-| FR-10 | Long-Term Performance Graph | MEDIUM |
-| FR-11 | Escapement Analyzer & Marker-Line Display | MEDIUM |
-| FR-12 | Time-Frequency Spectrogram | MEDIUM |
-| FR-13 | Waveform Comparison Display + Timing Markers | MEDIUM |
-| FR-14 | Scope Mode (Synchronized Sweep) | MEDIUM |
-| FR-15 | Scope Function (F0/F1/F2/F3 Filter Views 동시 표시) | MEDIUM |
-| FR-16 | Watch-Position Testing (CH/CB/9H/6H/3H/12H) | MEDIUM |
-| FR-17 | Pause + 시간축 탐색 (앞/뒤 이동) | HIGH |
-| FR-18 | Latency 측정 보고 (capture→process→display) | HIGH |
-| FR-19 | AI 신호 품질 분류 (optional) | LOW |
+- **Use Cases** (UML Use Case Diagram + Use Case Description): 특정 목표를 달성하기 위한 액터와 시스템 간의 상호작용을 구조화하여 표현
+- **User Stories**: "As a [user], I want to [action], so that [benefit]" 형식으로 사용자 관점에서 간결하게 표현
+
+이 문서에서는 구현 현황 파악을 위해 테이블 형식을 사용한다. T1/T3 이벤트 구조, BPH-sps 관계, 11개 그래프 목록, 신호 열화 처리 등이 모두 QA 시나리오에 반영되어 있다.
+
+**구현 상태 범례 / Status Legend**
+
+| 상태 | 의미 |
+|------|------|
+| ✅ 구현됨 | v10.5에 존재 |
+| ⚠️ 부분 구현 | v10.5에 일부 존재하나 불완전 |
+| ❌ 미구현 | 새로 구현 필요 |
+
+| ID | 기능 요건 | 우선순위 | 현재 구현 상태 | 개선 필요 사항 |
+|----|---------|---------|-------------|-------------|
+| FR-01 | T1(A), T3(C) 음향 이벤트 감지 | HIGH | ✅ 구현됨 (`Detector.cpp`) | C(T3) 감지 정확도 개선 필요 — A보다 작고 불규칙하여 오감지 발생 가능 |
+| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH 계산 | HIGH | ✅ 구현됨 (`RollingLeastSquares`, `RollingAverage`) | 계산 로직은 존재. WeiShi 대비 정확도 검증 필요 (Experiment 3) |
+| FR-03 | Live / Playback / Sim 운영 모드 지원 | HIGH | ✅ 구현됨 (`AudioWorker`, `PlaybackWorker`, `SimWorker`) | 모드 전환 안정성 확인 필요 |
+| FR-04 | Low-pass / High-pass 필터링 | HIGH | ⚠️ 부분 구현 (`Dsp.cpp` — HPF만 존재) | Low-pass 필터 추가 구현 필요 |
+| FR-05 | Trace Display (Rate + Amplitude 실시간 기록) | HIGH | ❌ 미구현 | 신규 구현 |
+| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | HIGH | ❌ 미구현 | 신규 구현 |
+| FR-07 | Beat Error Display & Diagnostic Trace | HIGH | ❌ 미구현 | 신규 구현 |
+| FR-08 | Beat-Noise Scope (Scope 1 & 2, Σ 평균) | MEDIUM | ⚠️ 부분 구현 (`SoundImageRenderer` — Sound Image 존재) | Scope 1 & 2 형식으로 재구현 필요 |
+| FR-09 | Multi-Position Sequence Display (최대 10포지션) | MEDIUM | ❌ 미구현 | 신규 구현 |
+| FR-10 | Long-Term Performance Graph | MEDIUM | ❌ 미구현 | 신규 구현 |
+| FR-11 | Escapement Analyzer & Marker-Line Display | MEDIUM | ❌ 미구현 | 신규 구현 |
+| FR-12 | Time-Frequency Spectrogram | MEDIUM | ❌ 미구현 | 신규 구현 |
+| FR-13 | Waveform Comparison Display + Timing Markers | MEDIUM | ❌ 미구현 | 신규 구현 |
+| FR-14 | Scope Mode (Synchronized Sweep) | MEDIUM | ❌ 미구현 | 신규 구현 |
+| FR-15 | Scope Function (F0/F1/F2/F3 Filter Views 동시 표시) | MEDIUM | ❌ 미구현 | 신규 구현 |
+| FR-16 | Watch-Position Testing (CH/CB/9H/6H/3H/12H) | MEDIUM | ❌ 미구현 | 신규 구현 |
+| FR-17 | Pause + 시간축 탐색 (앞/뒤 이동) | HIGH | ❌ 미구현 | 신규 구현 |
+| FR-18 | Latency 측정 보고 (capture→process→display) | HIGH | ❌ 미구현 | 3구간 측정 계측 코드 추가 필요 |
+| FR-19 | AI 신호 품질 분류 (optional) | LOW | ❌ 미구현 | 시간 여유 시 구현 |
 
 ### English
 
-Functional requirements are assumed to be understood as a prerequisite for writing the QA scenarios above. T1/T3 event structure, BPH-sps relationships, 11-graph list, and signal degradation handling are all reflected in the QA scenarios.
+Functional requirements define **what the system shall do**. Common expression formats include:
 
-| ID | Functional Requirement | Priority |
-|----|----------------------|---------|
-| FR-01 | Detect T1(A) and T3(C) acoustic events | HIGH |
-| FR-02 | Calculate Rate (s/d), Amplitude (°), Beat Error (ms), BPH | HIGH |
-| FR-03 | Support Live / Playback / Sim operating modes | HIGH |
-| FR-04 | Apply low-pass / high-pass filtering | HIGH |
-| FR-05 | Trace Display (real-time Rate + Amplitude recording) | HIGH |
-| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | HIGH |
-| FR-07 | Beat Error Display & Diagnostic Trace | HIGH |
-| FR-08 | Beat-Noise Scope (Scope 1 & 2, Σ average) | MEDIUM |
-| FR-09 | Multi-Position Sequence Display (up to 10 positions) | MEDIUM |
-| FR-10 | Long-Term Performance Graph | MEDIUM |
-| FR-11 | Escapement Analyzer & Marker-Line Display | MEDIUM |
-| FR-12 | Time-Frequency Spectrogram | MEDIUM |
-| FR-13 | Waveform Comparison Display + Timing Markers | MEDIUM |
-| FR-14 | Scope Mode (Synchronized Sweep) | MEDIUM |
-| FR-15 | Scope Function (F0/F1/F2/F3 Filter Views simultaneous) | MEDIUM |
-| FR-16 | Watch-Position Testing (CH/CB/9H/6H/3H/12H) | MEDIUM |
-| FR-17 | Pause + time-axis navigation (forward/backward) | HIGH |
-| FR-18 | Latency measurement reporting (capture→process→display) | HIGH |
-| FR-19 | AI signal quality classification (optional) | LOW |
+- **Use Cases** (UML Use Case Diagram + Use Case Description): structured representation of interactions between actors and the system to achieve a specific goal
+- **User Stories**: concise user-perspective format — "As a [user], I want to [action], so that [benefit]"
+
+This document uses a table format to capture implementation status. T1/T3 event structure, BPH-sps relationships, 11-graph list, and signal degradation handling are all reflected in the QA scenarios above.
+
+**Status Legend**
+
+| Status | Meaning |
+|--------|---------|
+| ✅ Implemented | Exists in v10.5 |
+| ⚠️ Partial | Exists in v10.5 but incomplete |
+| ❌ Not implemented | Requires new implementation |
+
+| ID | Functional Requirement | Priority | Current Status | Needs to Improve |
+|----|----------------------|---------|---------------|-----------------|
+| FR-01 | Detect T1(A) and T3(C) acoustic events | HIGH | ✅ Implemented (`Detector.cpp`) | C(T3) detection accuracy — smaller and more irregular than A, prone to false detection |
+| FR-02 | Calculate Rate (s/d), Amplitude (°), Beat Error (ms), BPH | HIGH | ✅ Implemented (`RollingLeastSquares`, `RollingAverage`) | Calculation logic exists. Accuracy vs. WeiShi needs verification (Experiment 3) |
+| FR-03 | Support Live / Playback / Sim operating modes | HIGH | ✅ Implemented (`AudioWorker`, `PlaybackWorker`, `SimWorker`) | Mode-switching stability to be confirmed |
+| FR-04 | Apply low-pass / high-pass filtering | HIGH | ⚠️ Partial (`Dsp.cpp` — HPF only) | Low-pass filter needs to be added |
+| FR-05 | Trace Display (real-time Rate + Amplitude recording) | HIGH | ❌ Not implemented | New implementation required |
+| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | HIGH | ❌ Not implemented | New implementation required |
+| FR-07 | Beat Error Display & Diagnostic Trace | HIGH | ❌ Not implemented | New implementation required |
+| FR-08 | Beat-Noise Scope (Scope 1 & 2, Σ average) | MEDIUM | ⚠️ Partial (`SoundImageRenderer` — Sound Image exists) | Needs reimplementation in Scope 1 & 2 format |
+| FR-09 | Multi-Position Sequence Display (up to 10 positions) | MEDIUM | ❌ Not implemented | New implementation required |
+| FR-10 | Long-Term Performance Graph | MEDIUM | ❌ Not implemented | New implementation required |
+| FR-11 | Escapement Analyzer & Marker-Line Display | MEDIUM | ❌ Not implemented | New implementation required |
+| FR-12 | Time-Frequency Spectrogram | MEDIUM | ❌ Not implemented | New implementation required |
+| FR-13 | Waveform Comparison Display + Timing Markers | MEDIUM | ❌ Not implemented | New implementation required |
+| FR-14 | Scope Mode (Synchronized Sweep) | MEDIUM | ❌ Not implemented | New implementation required |
+| FR-15 | Scope Function (F0/F1/F2/F3 Filter Views simultaneous) | MEDIUM | ❌ Not implemented | New implementation required |
+| FR-16 | Watch-Position Testing (CH/CB/9H/6H/3H/12H) | MEDIUM | ❌ Not implemented | New implementation required |
+| FR-17 | Pause + time-axis navigation (forward/backward) | HIGH | ❌ Not implemented | New implementation required |
+| FR-18 | Latency measurement reporting (capture→process→display) | HIGH | ❌ Not implemented | Instrumentation code for 3-segment measurement needed |
+| FR-19 | AI signal quality classification (optional) | LOW | ❌ Not implemented | Implement if time permits |
 
 ---
 
