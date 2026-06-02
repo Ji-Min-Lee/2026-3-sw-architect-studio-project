@@ -5,6 +5,264 @@
 
 ---
 
+## 신호 처리 기초 개념 / Signal Processing Basics
+
+> 11개 그래프를 이해하기 위한 기초 — PCM / 샘플레이트 / F0~F3 파이프라인  
+> Fundamentals for understanding the 11 graphs — PCM / sample rate / F0–F3 pipeline
+
+---
+
+### PCM이란? / What is PCM?
+
+**PCM = Pulse Code Modulation** — 소리를 숫자 배열로 저장하는 가장 기본적인 방식.
+
+**한국어**
+
+마이크가 시계 소리를 받으면, 컴퓨터는 소리의 크기를 일정 간격으로 측정해서 숫자로 저장합니다.
+
+```
+시계 틱-톡 소리 (아날로그, 연속적인 파동)
+        ↓  일정 간격으로 크기 측정
+0.001, 0.003, 0.012, 0.045, 0.023, 0.008, 0.001, ...
+        ↑ 이것이 PCM — 매 순간의 소리 크기를 숫자로 나열한 배열
+```
+
+압축하지 않은 원본 그대로의 형태. WAV 파일이 PCM입니다.
+
+**English**
+
+When a microphone captures watch sounds, the computer measures the sound level at fixed intervals and stores the values as numbers.
+
+```
+Watch tick-tock sound (analog, continuous wave)
+        ↓  sampled at fixed intervals
+0.001, 0.003, 0.012, 0.045, 0.023, 0.008, 0.001, ...
+        ↑ This is PCM — an array of sound amplitude values at each moment
+```
+
+Uncompressed raw format. A WAV file is PCM.
+
+---
+
+### 왜 초당 48,000번? / Why 48,000 Times per Second?
+
+**한국어**
+
+사람 귀가 들을 수 있는 최고 주파수는 약 20,000 Hz입니다.  
+수학적으로, 어떤 소리를 정확하게 재현하려면 **그 주파수의 2배 이상으로 측정**해야 합니다 (나이퀴스트 정리).
+
+```
+사람이 듣는 최고 주파수: 20,000 Hz
+        × 2
+= 최소 40,000 번/초 필요
+→ 48,000은 40,000보다 여유 있는 표준 규격 (전문 오디오 표준)
+```
+
+**샘플레이트가 높을수록 A/C 이벤트 타이밍이 더 정밀해집니다:**
+
+```
+48,000 Hz  → 타이밍 정밀도: 1/48000  ≈ 0.021 ms
+96,000 Hz  → 타이밍 정밀도: 1/96000  ≈ 0.010 ms
+192,000 Hz → 타이밍 정밀도: 1/192000 ≈ 0.005 ms
+```
+
+높을수록 Rate / Amplitude 측정값이 더 정확해지지만, 처리해야 할 데이터도 더 많아집니다.
+
+**English**
+
+The highest frequency a human ear can hear is approximately 20,000 Hz.  
+Mathematically, to accurately reproduce any sound, it must be sampled at **more than twice that frequency** (Nyquist theorem).
+
+```
+Highest human-audible frequency: 20,000 Hz
+        × 2
+= minimum 40,000 samples/sec required
+→ 48,000 is a standard professional audio spec with headroom above 40,000
+```
+
+**Higher sample rate = more precise A/C event timing:**
+
+```
+48,000 Hz  → timing precision: 1/48000  ≈ 0.021 ms
+96,000 Hz  → timing precision: 1/96000  ≈ 0.010 ms
+192,000 Hz → timing precision: 1/192000 ≈ 0.005 ms
+```
+
+Higher rates yield more accurate Rate / Amplitude values, but also require more processing.
+
+---
+
+### 신호 처리 파이프라인: F0 ~ F3 / Signal Processing Pipeline: F0–F3
+
+**한국어**
+
+원본 소리(F0)에서 A/C 이벤트까지 4단계를 거칩니다. 각 단계의 출력을 F0~F3로 부릅니다.
+
+**English**
+
+From raw sound (F0) to A/C events, the signal passes through 4 stages. The output of each stage is labeled F0–F3.
+
+---
+
+#### F0 — 원본 PCM / Raw PCM
+
+마이크에서 온 숫자 그대로. 잡음이 많습니다.
+
+```
+F0: ~~~♦♦♦♦♦~~~♦♦♦♦♦~~~
+     잡음  틱   잡음  톡  잡음
+```
+
+---
+
+#### F1 — HPF 적용 후 / After High-Pass Filter
+
+200 Hz 이하의 저주파 잡음(테이블 진동, 전기 험)을 제거합니다.
+
+```
+공식: y[n] = x[n] - x[n-1] + a × y[n-1]   (a = exp(-2π × 200 / fs))
+
+F0: ~~~♦♦♦♦♦~~~♦♦♦♦♦~~~  (저주파 잡음 포함)
+        ↓ HPF
+F1: ___♦♦♦♦♦___♦♦♦♦♦___  (저주파 제거, 틱/톡 성분만 남음)
+```
+
+---
+
+#### F2 — Envelope 적용 후 / After Envelope Detection
+
+위아래로 진동하는 파형을 "봉우리" 모양(외곽선)으로 변환합니다.
+
+```
+공식: y[n] = y[n-1] + alpha × (|x[n]| - y[n-1])   (smoothing = 0.15 ms)
+
+F1: ___/\/\/\___/\/\/\___  (위아래 진동)
+        ↓ 전파정류 + LPF
+F2: ___/‾‾‾\___/‾‾‾\___   (봉우리 2개로 정리)
+        ↑A      ↑C
+```
+
+봉우리 2개 = 틱 소리의 두 충격 (A: 팔렛 포크 충격, C: 탈진기 잠금)
+
+---
+
+#### F3 — 검출 임계값 + A/C 마커 / After Detection (Threshold + Markers)
+
+봉우리가 임계값을 넘는 순간의 정확한 위치(타임스탬프)를 기록합니다.
+
+```
+F2: ___/‾‾‾\___/‾‾‾\___
+    ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← onset_threshold (임계선)
+
+결과:
+  A 이벤트: 타임스탬프 (몇 번째 샘플에서 A 봉우리가 났는가)
+  C 이벤트: 타임스탬프 (몇 번째 샘플에서 C 봉우리가 났는가)
+```
+
+**현재 베이스코드에서:**
+
+```
+F0 → 계산됨 ✅ (mInputBlock — tg_process 전)
+F1 → 계산됨 ✅ (ctx->buf_filt — 내부 전용, 외부 노출 안 됨)
+F2 → 계산됨 ✅ (ctx->buf_env — 내부 전용, 외부 노출 안 됨)
+F3 → 계산됨 ✅ (r.processed_pcm[] — 외부 접근 가능)
+A/C 이벤트 → 계산됨 ✅ (r.events[] — 외부 접근 가능)
+```
+
+그래프 ⑪ Scope Function을 구현하려면 F1/F2를 외부에 노출해야 합니다 → `tg_result_t`에 버퍼 추가 필요.
+
+---
+
+### 전체 데이터 흐름 한눈에 보기 / Full Pipeline at a Glance
+
+**한국어**
+
+```
+시계 소리
+    ↓
+[마이크] 소리를 숫자로 변환 → PCM 배열 (F0, Raw)
+    ↓
+[HPF 필터] 저주파 잡음 제거 → F1
+    ↓
+[Envelope] 봉우리 모양 추출 → F2
+    ↓
+[Detector] 봉우리 위치 찾기 → A/C 타임스탬프
+    ↓
+[BPH 감지] 시계 박자 파악 (몇 BPH인지 자동 감지)
+    ↓
+[계산]
+  A 타임스탬프 → Rate, Beat Error
+  C 타임스탬프 → Amplitude (t_AC = C - A 간격)
+    ↓
+[그래프] 11개 그래프로 시각화
+```
+
+**English**
+
+```
+Watch sound
+    ↓
+[Microphone] converts sound to numbers → PCM array (F0, Raw)
+    ↓
+[HPF filter] removes low-frequency noise → F1
+    ↓
+[Envelope] extracts peak shape → F2
+    ↓
+[Detector] finds peak positions → A/C timestamps
+    ↓
+[BPH detection] identifies watch beat rate (auto-detected)
+    ↓
+[Calculation]
+  A timestamps → Rate, Beat Error
+  C timestamps → Amplitude (t_AC = C − A interval)
+    ↓
+[Graphs] visualized as 11 graphs
+```
+
+---
+
+### 실시간 처리 제약 / Real-Time Processing Constraint
+
+**한국어**
+
+마이크는 쉬지 않고 데이터를 보냅니다. 코드는 **4,096개씩** 묶어서 처리합니다.
+
+```
+48,000 Hz에서 4,096개가 도착하는 간격: 4096 / 48000 = 85.3 ms
+→ 이전 묶음 처리를 85.3 ms 안에 끝내야 다음 묶음을 제때 처리 가능
+→ 초과하면 데이터가 쌓이다가 유실 → 측정값 오류
+```
+
+| 샘플레이트 | 허용 처리 시간 (4096개 기준) |
+|-----------|--------------------------|
+| 48,000 Hz | 85.3 ms |
+| 96,000 Hz | 42.7 ms |
+| 192,000 Hz | 21.3 ms |
+
+이 제약이 **Experiment 1 (RPi5 처리 성능 측정)** 의 핵심 기준입니다.
+
+**English**
+
+The microphone sends data continuously. The code processes it in chunks of **4,096 samples**.
+
+```
+At 48,000 Hz, 4,096 samples arrive every: 4096 / 48000 = 85.3 ms
+→ Each chunk must be processed within 85.3 ms before the next arrives
+→ If exceeded, data accumulates and eventually drops → measurement errors
+```
+
+| Sample Rate | Processing budget (per 4,096 samples) |
+|-------------|--------------------------------------|
+| 48,000 Hz | 85.3 ms |
+| 96,000 Hz | 42.7 ms |
+| 192,000 Hz | 21.3 ms |
+
+This constraint is the core criterion for **Experiment 1 (RPi5 processing performance)**.
+
+---
+
+---
+
 ## 전체 비교 요약 / Overall Comparison
 
 **한국어**
