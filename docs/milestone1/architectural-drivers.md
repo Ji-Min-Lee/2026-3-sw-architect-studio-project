@@ -38,7 +38,31 @@ The architectural drivers are derived directly from these objectives. "Real-time
 
 ---
 
-## 2. Quality Attribute Requirements — Priority & Rationale
+## 2. Types of Requirements
+
+### 한국어
+
+아키텍처 드라이버는 세 가지 유형의 요건으로 구성된다.
+
+| 유형 | 정의 | 이 문서에서 |
+|------|------|-----------|
+| **Functional Requirements** | 시스템이 무엇을 해야 하는가. 자극(stimulus)에 어떻게 반응해야 하는가 | Section 5 — FR-01~FR-19 |
+| **Quality Attribute Requirements** | 시스템이 얼마나 잘 해야 하는가. 성능, 정확성, 확장성 등 | Section 4 — QA-1~QA-5 |
+| **Design Constraints** | 이미 내려진 설계 결정. 변경 불가 | Section 7 — Platform, Language, Baseline code, AGC |
+
+### English
+
+Architectural drivers consist of three types of requirements.
+
+| Type | Definition | In this document |
+|------|------------|-----------------|
+| **Functional Requirements** | What the system shall do; how it should react to stimulus | Section 5 — FR-01~FR-19 |
+| **Quality Attribute Requirements** | How well the system shall perform; performance, accuracy, modifiability, etc. | Section 4 — QA-1~QA-5 |
+| **Design Constraints** | A design decision already made; it cannot be changed | Section 7 — Platform, Language, Baseline code, AGC |
+
+---
+
+## 3. Quality Attribute Requirements — Priority & Rationale
 
 ### 한국어
 
@@ -86,7 +110,7 @@ Extensibility           → Can development continue?          (development sust
 
 ---
 
-## 3. Quality Attribute Scenarios
+## 4. Quality Attribute Scenarios
 
 ### QA-1: Real-Time Performance ★ Priority 1
 
@@ -335,7 +359,7 @@ Rationale for ≤ 3 files:
 
 ---
 
-## 4. Functional Requirements
+## 5. Functional Requirements
 
 ### 한국어
 
@@ -391,7 +415,7 @@ Functional requirements are assumed to be understood as a prerequisite for writi
 
 ---
 
-## 5. Confirmed Values Summary
+## 6. Confirmed Values Summary
 
 ### 한국어
 
@@ -421,33 +445,33 @@ Functional requirements are assumed to be understood as a prerequisite for writi
 
 ---
 
-## 6. Constraints
+## 7. Design Constraints
 
 ### 한국어
 
-| 제약 | 내용 |
-|------|------|
-| 플랫폼 | Raspberry Pi 5 (ARM64, 8GB RAM) 위에서 동작 필수 |
-| 언어/프레임워크 | C++ / Qt (Qt Creator IDE) |
-| 기존 코드베이스 | TimeGrapher_v10.5를 교체가 아닌 확장해야 함 |
-| AGC | AlsaMixer에서 Auto Gain Control 비활성화 필수 |
-| 개발 기간 | 5주 (2026-05-27 ~ 2026-07-01) |
-| 레퍼런스 디바이스 | WeiShi No.1000 — Measurement Accuracy의 비교 기준 |
+> Design Constraint = 이미 내려진 설계 결정. 아키텍처 논의 대상이 아니며 변경 불가.
+
+| 제약 | 내용 | 변경 불가 이유 |
+|------|------|-------------|
+| 플랫폼 | Raspberry Pi 5 (ARM64, 8GB RAM) | 프로젝트에서 하드웨어 지급 |
+| 언어/프레임워크 | C++ / Qt (Qt Creator IDE) | 기존 코드베이스 언어 |
+| 기존 코드베이스 | TimeGrapher_v10.5를 교체가 아닌 확장 | 프로젝트 요구사항 명시 |
+| AGC | AlsaMixer에서 Auto Gain Control 비활성화 | 켜진 상태에서는 신호 왜곡 → Accuracy 달성 불가 |
 
 ### English
 
-| Constraint | Description |
-|------------|-------------|
-| Platform | Must run on Raspberry Pi 5 (ARM64, 8GB RAM) |
-| Language / Framework | C++ / Qt (Qt Creator IDE) |
-| Baseline code | Must extend TimeGrapher_v10.5, not replace it |
-| AGC | Auto Gain Control must be disabled in AlsaMixer |
-| Timeline | 5 weeks (2026-05-27 ~ 2026-07-01) |
-| Reference device | WeiShi No.1000 — comparison baseline for Measurement Accuracy |
+> Design Constraint = a design decision already made. Not subject to architectural discussion; cannot be changed.
+
+| Constraint | Description | Why non-negotiable |
+|------------|-------------|-------------------|
+| Platform | Raspberry Pi 5 (ARM64, 8GB RAM) | Hardware provided by the project |
+| Language / Framework | C++ / Qt (Qt Creator IDE) | Language of the existing codebase |
+| Baseline code | Must extend TimeGrapher_v10.5, not replace it | Explicitly required by project spec |
+| AGC | Auto Gain Control must be disabled in AlsaMixer | Signal distortion when enabled → Accuracy target unreachable |
 
 ---
 
-## 7. Open Issues
+## 8. Open Issues
 
 ### 한국어
 
