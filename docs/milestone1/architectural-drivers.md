@@ -341,53 +341,53 @@ Rationale for ≤ 3 files:
 
 기능 요건은 위 QA 시나리오를 작성하는 과정에서 이미 이해되어 있음이 전제된다. T1/T3 이벤트 구조, BPH-sps 관계, 11개 그래프 목록, 신호 열화 처리 등이 모두 QA 시나리오에 반영되어 있다.
 
-| ID | 기능 요건 | 우선순위 | 관련 QA |
-|----|---------|---------|--------|
-| FR-01 | T1(A), T3(C) 음향 이벤트 감지 | HIGH | QA-1, QA-2 |
-| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH 계산 | HIGH | QA-2, QA-4 |
-| FR-03 | Live / Playback / Sim 운영 모드 지원 | HIGH | QA-1 |
-| FR-04 | Low-pass / High-pass 필터링 | HIGH | QA-2 |
-| FR-05 | Trace Display (Rate + Amplitude 실시간 기록) | HIGH | QA-4 |
-| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | HIGH | QA-4 |
-| FR-07 | Beat Error Display & Diagnostic Trace | HIGH | QA-2, QA-4 |
-| FR-08 | Beat-Noise Scope (Scope 1 & 2, Σ 평균) | MEDIUM | QA-2 |
-| FR-09 | Multi-Position Sequence Display (최대 10포지션) | MEDIUM | QA-4 |
-| FR-10 | Long-Term Performance Graph | MEDIUM | QA-4 |
-| FR-11 | Escapement Analyzer & Marker-Line Display | MEDIUM | QA-2 |
-| FR-12 | Time-Frequency Spectrogram | MEDIUM | QA-1 |
-| FR-13 | Waveform Comparison Display + Timing Markers | MEDIUM | QA-2 |
-| FR-14 | Scope Mode (Synchronized Sweep) | MEDIUM | QA-2 |
-| FR-15 | Scope Function (F0/F1/F2/F3 Filter Views 동시 표시) | MEDIUM | QA-2 |
-| FR-16 | Watch-Position Testing (CH/CB/9H/6H/3H/12H) | MEDIUM | QA-4 |
-| FR-17 | Pause + 시간축 탐색 (앞/뒤 이동) | HIGH | QA-3 |
-| FR-18 | Latency 측정 보고 (capture→process→display) | HIGH | QA-3 |
-| FR-19 | AI 신호 품질 분류 (optional) | LOW | QA-2 |
+| ID | 기능 요건 | 우선순위 |
+|----|---------|---------|
+| FR-01 | T1(A), T3(C) 음향 이벤트 감지 | HIGH |
+| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH 계산 | HIGH |
+| FR-03 | Live / Playback / Sim 운영 모드 지원 | HIGH |
+| FR-04 | Low-pass / High-pass 필터링 | HIGH |
+| FR-05 | Trace Display (Rate + Amplitude 실시간 기록) | HIGH |
+| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | HIGH |
+| FR-07 | Beat Error Display & Diagnostic Trace | HIGH |
+| FR-08 | Beat-Noise Scope (Scope 1 & 2, Σ 평균) | MEDIUM |
+| FR-09 | Multi-Position Sequence Display (최대 10포지션) | MEDIUM |
+| FR-10 | Long-Term Performance Graph | MEDIUM |
+| FR-11 | Escapement Analyzer & Marker-Line Display | MEDIUM |
+| FR-12 | Time-Frequency Spectrogram | MEDIUM |
+| FR-13 | Waveform Comparison Display + Timing Markers | MEDIUM |
+| FR-14 | Scope Mode (Synchronized Sweep) | MEDIUM |
+| FR-15 | Scope Function (F0/F1/F2/F3 Filter Views 동시 표시) | MEDIUM |
+| FR-16 | Watch-Position Testing (CH/CB/9H/6H/3H/12H) | MEDIUM |
+| FR-17 | Pause + 시간축 탐색 (앞/뒤 이동) | HIGH |
+| FR-18 | Latency 측정 보고 (capture→process→display) | HIGH |
+| FR-19 | AI 신호 품질 분류 (optional) | LOW |
 
 ### English
 
 Functional requirements are assumed to be understood as a prerequisite for writing the QA scenarios above. T1/T3 event structure, BPH-sps relationships, 11-graph list, and signal degradation handling are all reflected in the QA scenarios.
 
-| ID | Functional Requirement | Priority | Related QA |
-|----|----------------------|---------|-----------|
-| FR-01 | Detect T1(A) and T3(C) acoustic events | HIGH | QA-1, QA-2 |
-| FR-02 | Calculate Rate (s/d), Amplitude (°), Beat Error (ms), BPH | HIGH | QA-2, QA-4 |
-| FR-03 | Support Live / Playback / Sim operating modes | HIGH | QA-1 |
-| FR-04 | Apply low-pass / high-pass filtering | HIGH | QA-2 |
-| FR-05 | Trace Display (real-time Rate + Amplitude recording) | HIGH | QA-4 |
-| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | HIGH | QA-4 |
-| FR-07 | Beat Error Display & Diagnostic Trace | HIGH | QA-2, QA-4 |
-| FR-08 | Beat-Noise Scope (Scope 1 & 2, Σ average) | MEDIUM | QA-2 |
-| FR-09 | Multi-Position Sequence Display (up to 10 positions) | MEDIUM | QA-4 |
-| FR-10 | Long-Term Performance Graph | MEDIUM | QA-4 |
-| FR-11 | Escapement Analyzer & Marker-Line Display | MEDIUM | QA-2 |
-| FR-12 | Time-Frequency Spectrogram | MEDIUM | QA-1 |
-| FR-13 | Waveform Comparison Display + Timing Markers | MEDIUM | QA-2 |
-| FR-14 | Scope Mode (Synchronized Sweep) | MEDIUM | QA-2 |
-| FR-15 | Scope Function (F0/F1/F2/F3 Filter Views simultaneous) | MEDIUM | QA-2 |
-| FR-16 | Watch-Position Testing (CH/CB/9H/6H/3H/12H) | MEDIUM | QA-4 |
-| FR-17 | Pause + time-axis navigation (forward/backward) | HIGH | QA-3 |
-| FR-18 | Latency measurement reporting (capture→process→display) | HIGH | QA-3 |
-| FR-19 | AI signal quality classification (optional) | LOW | QA-2 |
+| ID | Functional Requirement | Priority |
+|----|----------------------|---------|
+| FR-01 | Detect T1(A) and T3(C) acoustic events | HIGH |
+| FR-02 | Calculate Rate (s/d), Amplitude (°), Beat Error (ms), BPH | HIGH |
+| FR-03 | Support Live / Playback / Sim operating modes | HIGH |
+| FR-04 | Apply low-pass / high-pass filtering | HIGH |
+| FR-05 | Trace Display (real-time Rate + Amplitude recording) | HIGH |
+| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | HIGH |
+| FR-07 | Beat Error Display & Diagnostic Trace | HIGH |
+| FR-08 | Beat-Noise Scope (Scope 1 & 2, Σ average) | MEDIUM |
+| FR-09 | Multi-Position Sequence Display (up to 10 positions) | MEDIUM |
+| FR-10 | Long-Term Performance Graph | MEDIUM |
+| FR-11 | Escapement Analyzer & Marker-Line Display | MEDIUM |
+| FR-12 | Time-Frequency Spectrogram | MEDIUM |
+| FR-13 | Waveform Comparison Display + Timing Markers | MEDIUM |
+| FR-14 | Scope Mode (Synchronized Sweep) | MEDIUM |
+| FR-15 | Scope Function (F0/F1/F2/F3 Filter Views simultaneous) | MEDIUM |
+| FR-16 | Watch-Position Testing (CH/CB/9H/6H/3H/12H) | MEDIUM |
+| FR-17 | Pause + time-axis navigation (forward/backward) | HIGH |
+| FR-18 | Latency measurement reporting (capture→process→display) | HIGH |
+| FR-19 | AI signal quality classification (optional) | LOW |
 
 ---
 
