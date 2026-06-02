@@ -367,151 +367,127 @@ Rationale for ≤ 3 files:
 
 #### Group 1 — Signal Acquisition & Processing (FR-01 ~ FR-04)
 
-```plantuml
-@startuml
-left to right direction
-skinparam packageStyle rectangle
+```mermaid
+graph LR
+    watch["⌚ Mechanical Watch\n(external)"]
+    tech["👤 Watch Technician\n시계 기술자"]
 
-actor "Watch Technician\n(시계 기술자)" as tech
-actor "Mechanical Watch\n(기계식 시계)" as watch <<external>>
+    subgraph S1["TimeGrapher — Signal Acquisition & Processing"]
+        UC03(["FR-03\nSelect Operating Mode\nLive / Playback / Sim"])
+        UC04(["FR-04\nApply Signal Filter\nHPF / LPF"])
+        UC01(["FR-01\nDetect Beat Events\nT1·A, T3·C"])
+        UC02(["FR-02\nCalculate Metrics\nRate / Amplitude / Beat Error / BPH"])
+    end
 
-rectangle "TimeGrapher — Signal Acquisition & Processing" {
-  usecase "FR-03\nSelect Operating Mode\n(Live / Playback / Sim)" as UC03
-  usecase "FR-04\nApply Signal Filter\n(HPF / LPF)" as UC04
-  usecase "FR-01\nDetect Beat Events\n(T1·A, T3·C)" as UC01
-  usecase "FR-02\nCalculate Metrics\n(Rate / Amplitude / Beat Error / BPH)" as UC02
-}
-
-watch --> UC03 : provides acoustic signal
-tech --> UC03
-tech --> UC04
-UC03 ..> UC01 : <<include>>
-UC04 ..> UC01 : <<include>>
-UC01 ..> UC02 : <<include>>
-@enduml
+    watch -->|provides signal| UC03
+    tech --> UC03
+    tech --> UC04
+    UC03 -.->|include| UC01
+    UC04 -.->|include| UC01
+    UC01 -.->|include| UC02
 ```
 
 ---
 
 #### Group 2 — Core Measurement Displays (FR-05 ~ FR-07)
 
-```plantuml
-@startuml
-left to right direction
-skinparam packageStyle rectangle
+```mermaid
+graph LR
+    tech["👤 Watch Technician\n시계 기술자"]
 
-actor "Watch Technician\n(시계 기술자)" as tech
+    subgraph S2["TimeGrapher — Core Measurement Displays"]
+        UCcalc(["Compute Metrics\nRate / Amplitude / Beat Error"])
+        UC05(["FR-05\nView Trace Display\nRate + Amplitude over time"])
+        UC06(["FR-06\nView Vario\nMin / Max / Avg / σ"])
+        UC07(["FR-07\nView Beat Error Display\n& Diagnostic Trace"])
+    end
 
-rectangle "TimeGrapher — Core Measurement Displays" {
-  usecase "FR-05\nView Trace Display\n(Rate + Amplitude over time)" as UC05
-  usecase "FR-06\nView Vario\n(Min / Max / Avg / σ)" as UC06
-  usecase "FR-07\nView Beat Error Display\n& Diagnostic Trace" as UC07
-  usecase "Compute Metrics\n(Rate / Amplitude / Beat Error)" as UCcalc
-}
-
-tech --> UC05
-tech --> UC06
-tech --> UC07
-UC05 ..> UCcalc : <<include>>
-UC06 ..> UCcalc : <<include>>
-UC07 ..> UCcalc : <<include>>
-@enduml
+    tech --> UC05
+    tech --> UC06
+    tech --> UC07
+    UCcalc -.->|include| UC05
+    UCcalc -.->|include| UC06
+    UCcalc -.->|include| UC07
 ```
 
 ---
 
 #### Group 3 — Scope & Waveform Analysis (FR-08, FR-13 ~ FR-15)
 
-```plantuml
-@startuml
-left to right direction
-skinparam packageStyle rectangle
+```mermaid
+graph LR
+    tech["👤 Watch Technician\n시계 기술자"]
 
-actor "Watch Technician\n(시계 기술자)" as tech
+    subgraph S3["TimeGrapher — Scope & Waveform Analysis"]
+        UC08(["FR-08\nView Beat-Noise Scope\nScope 1 & 2, Σ average"])
+        UC13(["FR-13\nView Waveform Comparison\naligned beats + timing markers"])
+        UC14(["FR-14\nView Scope Mode\nSynchronized Sweep"])
+        UC15(["FR-15\nView Scope Function\nF0 / F1 / F2 / F3 filter views"])
+    end
 
-rectangle "TimeGrapher — Scope & Waveform Analysis" {
-  usecase "FR-08\nView Beat-Noise Scope\n(Scope 1 & 2, Σ average)" as UC08
-  usecase "FR-13\nView Waveform Comparison\n(aligned beats + timing markers)" as UC13
-  usecase "FR-14\nView Scope Mode\n(Synchronized Sweep)" as UC14
-  usecase "FR-15\nView Scope Function\n(F0 / F1 / F2 / F3 filter views)" as UC15
-}
-
-tech --> UC08
-tech --> UC13
-tech --> UC14
-tech --> UC15
-@enduml
+    tech --> UC08
+    tech --> UC13
+    tech --> UC14
+    tech --> UC15
 ```
 
 ---
 
 #### Group 4 — Multi-Position & Long-Term Analysis (FR-09, FR-10, FR-16)
 
-```plantuml
-@startuml
-left to right direction
-skinparam packageStyle rectangle
+```mermaid
+graph LR
+    tech["👤 Watch Technician\n시계 기술자"]
 
-actor "Watch Technician\n(시계 기술자)" as tech
+    subgraph S4["TimeGrapher — Multi-Position & Long-Term Analysis"]
+        UC16(["FR-16\nSelect Watch Position\nCH / CB / 9H / 6H / 3H / 12H"])
+        UC09(["FR-09\nView Multi-Position\nSequence Display (up to 10)"])
+        UC10(["FR-10\nView Long-Term\nPerformance Graph"])
+    end
 
-rectangle "TimeGrapher — Multi-Position & Long-Term Analysis" {
-  usecase "FR-16\nSelect Watch Position\n(CH / CB / 9H / 6H / 3H / 12H)" as UC16
-  usecase "FR-09\nView Multi-Position\nSequence Display (up to 10)" as UC09
-  usecase "FR-10\nView Long-Term\nPerformance Graph" as UC10
-}
-
-tech --> UC16
-tech --> UC09
-tech --> UC10
-UC16 ..> UC09 : <<include>>
-@enduml
+    tech --> UC16
+    tech --> UC09
+    tech --> UC10
+    UC16 -.->|include| UC09
 ```
 
 ---
 
 #### Group 5 — Escapement & Frequency Analysis (FR-11, FR-12)
 
-```plantuml
-@startuml
-left to right direction
-skinparam packageStyle rectangle
+```mermaid
+graph LR
+    tech["👤 Watch Technician\n시계 기술자"]
 
-actor "Watch Technician\n(시계 기술자)" as tech
+    subgraph S5["TimeGrapher — Escapement & Frequency Analysis"]
+        UCdet(["Detect Beat Events\nT1·A, T3·C"])
+        UC11(["FR-11\nView Escapement Analyzer\n& Marker-Line Display"])
+        UC12(["FR-12\nView Time-Frequency\nSpectrogram"])
+    end
 
-rectangle "TimeGrapher — Escapement & Frequency Analysis" {
-  usecase "FR-11\nView Escapement Analyzer\n& Marker-Line Display" as UC11
-  usecase "FR-12\nView Time-Frequency\nSpectrogram" as UC12
-  usecase "Detect Beat Events\n(T1·A, T3·C)" as UCdet
-}
-
-tech --> UC11
-tech --> UC12
-UCdet ..> UC11 : <<include>>
-UCdet ..> UC12 : <<include>>
-@enduml
+    tech --> UC11
+    tech --> UC12
+    UCdet -.->|include| UC11
+    UCdet -.->|include| UC12
 ```
 
 ---
 
 #### Group 6 — System Control & Reporting (FR-17 ~ FR-19)
 
-```plantuml
-@startuml
-left to right direction
-skinparam packageStyle rectangle
+```mermaid
+graph LR
+    tech["👤 Watch Technician\n시계 기술자"]
 
-actor "Watch Technician\n(시계 기술자)" as tech
+    subgraph S6["TimeGrapher — System Control & Reporting"]
+        UC17(["FR-17\nPause Measurement\n& Navigate Time Axis"])
+        UC18(["FR-18\nView Latency Report\ncapture → process → display"])
+        UC19(["FR-19\nAI Signal Quality\nClassification (optional)"])
+    end
 
-rectangle "TimeGrapher — System Control & Reporting" {
-  usecase "FR-17\nPause Measurement\n& Navigate Time Axis" as UC17
-  usecase "FR-18\nView Latency Report\n(capture→process→display)" as UC18
-  usecase "FR-19\nAI Signal Quality\nClassification (optional)" as UC19
-}
-
-tech --> UC17
-tech --> UC18
-tech --> UC19
-@enduml
+    tech --> UC17
+    tech --> UC18
+    tech --> UC19
 ```
 
 ---
