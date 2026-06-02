@@ -361,14 +361,162 @@ Rationale for ≤ 3 files:
 
 ## 5. Functional Requirements
 
-### 한국어
+### 5.1 UML Use Case Diagrams
 
-기능 요건은 시스템이 **무엇을 해야 하는가**를 정의한다. 표현 방식으로는 다음 두 가지가 대표적이다:
+---
 
-- **Use Cases** (UML Use Case Diagram + Use Case Description): 특정 목표를 달성하기 위한 액터와 시스템 간의 상호작용을 구조화하여 표현
-- **User Stories**: "As a [user], I want to [action], so that [benefit]" 형식으로 사용자 관점에서 간결하게 표현
+#### Group 1 — Signal Acquisition & Processing (FR-01 ~ FR-04)
 
-이 문서에서는 구현 현황 파악을 위해 테이블 형식을 사용한다. T1/T3 이벤트 구조, BPH-sps 관계, 11개 그래프 목록, 신호 열화 처리 등이 모두 QA 시나리오에 반영되어 있다.
+```plantuml
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Watch Technician\n(시계 기술자)" as tech
+actor "Mechanical Watch\n(기계식 시계)" as watch <<external>>
+
+rectangle "TimeGrapher — Signal Acquisition & Processing" {
+  usecase "FR-03\nSelect Operating Mode\n(Live / Playback / Sim)" as UC03
+  usecase "FR-04\nApply Signal Filter\n(HPF / LPF)" as UC04
+  usecase "FR-01\nDetect Beat Events\n(T1·A, T3·C)" as UC01
+  usecase "FR-02\nCalculate Metrics\n(Rate / Amplitude / Beat Error / BPH)" as UC02
+}
+
+watch --> UC03 : provides acoustic signal
+tech --> UC03
+tech --> UC04
+UC03 ..> UC01 : <<include>>
+UC04 ..> UC01 : <<include>>
+UC01 ..> UC02 : <<include>>
+@enduml
+```
+
+---
+
+#### Group 2 — Core Measurement Displays (FR-05 ~ FR-07)
+
+```plantuml
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Watch Technician\n(시계 기술자)" as tech
+
+rectangle "TimeGrapher — Core Measurement Displays" {
+  usecase "FR-05\nView Trace Display\n(Rate + Amplitude over time)" as UC05
+  usecase "FR-06\nView Vario\n(Min / Max / Avg / σ)" as UC06
+  usecase "FR-07\nView Beat Error Display\n& Diagnostic Trace" as UC07
+  usecase "Compute Metrics\n(Rate / Amplitude / Beat Error)" as UCcalc
+}
+
+tech --> UC05
+tech --> UC06
+tech --> UC07
+UC05 ..> UCcalc : <<include>>
+UC06 ..> UCcalc : <<include>>
+UC07 ..> UCcalc : <<include>>
+@enduml
+```
+
+---
+
+#### Group 3 — Scope & Waveform Analysis (FR-08, FR-13 ~ FR-15)
+
+```plantuml
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Watch Technician\n(시계 기술자)" as tech
+
+rectangle "TimeGrapher — Scope & Waveform Analysis" {
+  usecase "FR-08\nView Beat-Noise Scope\n(Scope 1 & 2, Σ average)" as UC08
+  usecase "FR-13\nView Waveform Comparison\n(aligned beats + timing markers)" as UC13
+  usecase "FR-14\nView Scope Mode\n(Synchronized Sweep)" as UC14
+  usecase "FR-15\nView Scope Function\n(F0 / F1 / F2 / F3 filter views)" as UC15
+}
+
+tech --> UC08
+tech --> UC13
+tech --> UC14
+tech --> UC15
+@enduml
+```
+
+---
+
+#### Group 4 — Multi-Position & Long-Term Analysis (FR-09, FR-10, FR-16)
+
+```plantuml
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Watch Technician\n(시계 기술자)" as tech
+
+rectangle "TimeGrapher — Multi-Position & Long-Term Analysis" {
+  usecase "FR-16\nSelect Watch Position\n(CH / CB / 9H / 6H / 3H / 12H)" as UC16
+  usecase "FR-09\nView Multi-Position\nSequence Display (up to 10)" as UC09
+  usecase "FR-10\nView Long-Term\nPerformance Graph" as UC10
+}
+
+tech --> UC16
+tech --> UC09
+tech --> UC10
+UC16 ..> UC09 : <<include>>
+@enduml
+```
+
+---
+
+#### Group 5 — Escapement & Frequency Analysis (FR-11, FR-12)
+
+```plantuml
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Watch Technician\n(시계 기술자)" as tech
+
+rectangle "TimeGrapher — Escapement & Frequency Analysis" {
+  usecase "FR-11\nView Escapement Analyzer\n& Marker-Line Display" as UC11
+  usecase "FR-12\nView Time-Frequency\nSpectrogram" as UC12
+  usecase "Detect Beat Events\n(T1·A, T3·C)" as UCdet
+}
+
+tech --> UC11
+tech --> UC12
+UCdet ..> UC11 : <<include>>
+UCdet ..> UC12 : <<include>>
+@enduml
+```
+
+---
+
+#### Group 6 — System Control & Reporting (FR-17 ~ FR-19)
+
+```plantuml
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Watch Technician\n(시계 기술자)" as tech
+
+rectangle "TimeGrapher — System Control & Reporting" {
+  usecase "FR-17\nPause Measurement\n& Navigate Time Axis" as UC17
+  usecase "FR-18\nView Latency Report\n(capture→process→display)" as UC18
+  usecase "FR-19\nAI Signal Quality\nClassification (optional)" as UC19
+}
+
+tech --> UC17
+tech --> UC18
+tech --> UC19
+@enduml
+```
+
+---
+
+### 5.2 Functional Requirements Table
 
 **구현 상태 범례 / Status Legend**
 
@@ -401,13 +549,6 @@ Rationale for ≤ 3 files:
 | FR-19 | AI 신호 품질 분류 (optional) | LOW | ❌ 미구현 | 시간 여유 시 구현 |
 
 ### English
-
-Functional requirements define **what the system shall do**. Common expression formats include:
-
-- **Use Cases** (UML Use Case Diagram + Use Case Description): structured representation of interactions between actors and the system to achieve a specific goal
-- **User Stories**: concise user-perspective format — "As a [user], I want to [action], so that [benefit]"
-
-This document uses a table format to capture implementation status. T1/T3 event structure, BPH-sps relationships, 11-graph list, and signal degradation handling are all reflected in the QA scenarios above.
 
 **Status Legend**
 
