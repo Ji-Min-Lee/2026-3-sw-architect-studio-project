@@ -14,7 +14,7 @@ Each experiment resolves a specific open issue (OI) or technical risk (TR) and c
 
 | ID | 실험 / Experiment | 해결 대상 / Resolves | 검증 QA | 선행 조건 / Prerequisite |
 |----|-----------------|---------------------|---------|------------------------|
-| EX-01 | RPi 성능 벤치마크 / RPi Performance Benchmark | OI-03, TR-03, TR-04, TR-07 | QAS-1, QAS-3 | — |
+| EX-01 | RPi 성능 벤치마크 / RPi Performance Benchmark | OI-02, OI-03, TR-02, TR-03, TR-04, TR-07 | QAS-1, QAS-3 | — |
 | EX-02 | WeiShi & RPi 동시 측정 환경 / Simultaneous Measurement Setup | OI-09, TR-08 | QAS-2 | — |
 | EX-03 | `tg_c_placement_t` 비교 / Placement Setting Comparison | OI-01, OI-02, TR-01, TR-02 | QAS-2 | EX-02 |
 
@@ -96,7 +96,10 @@ This experiment provides data for:
 
 **한국어**
 
-1. AlsaMixer에서 AGC 비활성화 후 TimeGrapher Sim 모드 실행
+1. AGC 비활성화 및 지속 여부 검증 (OI-02)
+   - 1-a. AlsaMixer에서 AGC 비활성화
+   - 1-b. RPi 재부팅 후 AlsaMixer 재진입하여 AGC 상태 확인 — off 유지 시 계속 진행, on으로 복원 시 영구 비활성화 방법 적용 후 재시도
+   - 1-c. AGC off 확인 후 TimeGrapher Sim 모드 실행
 2. 48k → 96k → 192k sps 순서로 각 5분 실행
 3. 각 sps에서 측정:
    - CPU 점유율 (`htop`), 드롭 블록 수, GUI FPS
@@ -108,7 +111,10 @@ This experiment provides data for:
 
 **English**
 
-1. Disable AGC in AlsaMixer and run TimeGrapher in Sim mode
+1. Disable AGC and verify persistence (OI-02)
+   - 1-a. Disable AGC in AlsaMixer
+   - 1-b. Reboot RPi and re-enter AlsaMixer to verify AGC state — if still off, proceed; if restored to on, apply permanent disable method and retry
+   - 1-c. Confirm AGC off, then launch TimeGrapher in Sim mode
 2. Run at 48k → 96k → 192k sps, 5 minutes each
 3. At each sps, measure:
    - CPU usage (`htop`), dropped blocks, GUI FPS
