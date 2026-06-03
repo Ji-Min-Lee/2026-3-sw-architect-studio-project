@@ -1,40 +1,35 @@
 # 계획된 실험 / Planned Experiments
 
-**팀 / Team**: Blue Sky (3팀) | **마일스톤 / Milestone**: M1 | **마감 / Due**: 2026-06-09 | **상태 / Status**: [ ] 초안 Draft / [ ] 최종 Final
-
-> **한국어**
-> 각 실험은 특정 미해결 이슈(OI) 또는 리스크(TR)에 답하기 위해 설계된다. 실험 결과는 M2 아키텍처 뷰와 QA 수치 확정에 직접 반영된다.
->
-> **English**
-> Each experiment is designed to answer a specific open issue (OI) or risk (TR). Results feed directly into M2 architecture views and finalized QA target values.
+> **작성일 / Date**: 2026-06-04  
+> **팀 / Team**: Blue Sky (3팀) | **마일스톤 / Milestone**: M1 | **마감 / Due**: 2026-06-09
 
 ---
 
-## 실험 목록 요약 / Experiment Summary
+## 개요 / Overview
 
-| ID | 제목 / Title | 해결 대상 / Resolves | M1 마감 / Due | 상태 / Status |
-|----|-------------|---------------------|--------------|--------------|
-| EX-01 | RPi 5 오디오 성능 및 캡처 지연 / RPi 5 Audio Performance & Capture Latency | TR-04, OI-03 | 06-09 (계획 완료) | [ ] 계획 Planned |
-| EX-02 | Qt 렌더링 성능 및 표시 지연 / Qt Rendering Performance & Display Latency | TR-05, OI-03 | 06-09 (계획 완료) | [ ] 계획 Planned |
-| EX-03 | 비트 감지 방식 비교 및 측정 정확도 / Beat Detection Method Comparison & Accuracy | TR-01, OI-01 | 06-09 (계획 완료) | [ ] 계획 Planned |
-| EX-04 | AGC 비활성화 지속성 검증 / AGC Disable Persistence Verification | TR-02, OI-02 | 06-09 (계획 완료) | [ ] 계획 Planned |
-| EX-05 | 신호 필터 파라미터 최적화 / Signal Filter Parameter Optimization | TR-01 | 06-09 (계획 완료) | [ ] 계획 Planned |
-| EX-06 | 빌드 환경 검증 / Build Environment Verification | TR-10, OI-05 | 06-09 (계획 완료) | [ ] 계획 Planned |
+**한국어**
 
-> **EX-01 + EX-02** 결과 → Low Latency QA 3구간 수치 확정 (architectural-drivers QA-3)
-> **EX-03** 결과 → Measurement Accuracy QA 수치 확정 (architectural-drivers QA-2)
+각 실험은 risk-assessment에서 식별된 특정 미결 질문 또는 기술 리스크를 해소하기 위해 설계되었다.
+실험 결과는 M2에서의 아키텍처 결정(sample rate 선택, beat 감지 방식, 필터 파라미터, 스레딩 모델 등)의 근거 데이터로 활용된다.
+
+**English**
+
+Each experiment is designed to resolve a specific open question or technical risk identified in the risk assessment.
+Results feed into M2 architecture decisions (sample rate target, beat detection method, filter parameters, threading model, etc.).
 
 ---
 
-## EX-01: RPi 5 오디오 성능 및 캡처 지연 / RPi 5 Audio Performance & Capture Latency
+## EX-01: RPi 5 샘플레이트 성능 검증 / Sample Rate Performance on Raspberry Pi 5
 
 ### 결과 및 권고 / Results and Recommendations
 
 **한국어**
-*(M2에서 작성)*
+
+*(M2에서 기록 예정)*
 
 **English**
-*(To be filled at M2)*
+
+*(To be recorded at M2)*
 
 ---
 
@@ -42,65 +37,62 @@
 
 **한국어**
 
-Raspberry Pi 5가 Qt GUI를 실행하는 동안 오디오 블록 누락 없이 지속할 수 있는 최대 샘플레이트(sps)는 얼마인가? 그리고 각 sps에서 캡처→처리(capture→process) 구간의 지연 시간은 얼마인가?
+Qt GUI가 실행 중인 Raspberry Pi 5에서 오디오 블록 드롭 없이 유지할 수 있는 최대 샘플레이트는 무엇인가?
 
-이 실험은 두 가지 아키텍처 결정을 내리기 위한 데이터를 제공한다:
-1. 목표 sps 확정 (96k sps 유지 가능 여부, 또는 48k sps 폴백 필요 여부)
-2. Low Latency QA-3의 ① capture→process 구간 수치 확정 (현재 잠정값: < 46 ms)
+QAS-1 (Real-Time Performance)은 96,000 sps 처리 유지를 목표로 하고, 최소 기준은 48,000 sps로 정의되어 있다.
+그러나 RPi 5에서 Qt GUI와 신호 처리를 동시에 실행할 때의 실제 처리 한계가 검증되지 않았다 (OI-03, TR-03).
+본 실험은 다음 결정을 위한 데이터를 제공한다:
 
-해결 대상 리스크: **TR-04** (RPi 96k sps 미검증), **OI-03** (GUI 실행 중 RPi 최대 sps 미확인)
+- 아키텍처 목표 샘플레이트 (96k vs 48k) 확정
+- 오디오 캡처 스레드와 GUI 렌더링 스레드의 분리 필요 여부 판단
+- FFT 스펙트로그램 활성화 시의 CPU 과부하 여부 확인 (TR-07)
 
 **English**
 
-What is the maximum sample rate (sps) that Raspberry Pi 5 can sustain without dropping audio blocks while running the Qt GUI? And what is the capture→process latency at each sps?
+What is the maximum sustained audio sample rate the RPi 5 can process without dropping blocks while running the Qt GUI?
 
-This experiment provides data for two architectural decisions:
-1. Confirming the target sps (whether 96k sps is achievable, or whether a 48k sps fallback is needed)
-2. Finalizing the ① capture→process segment of Low Latency QA-3 (current provisional value: < 46 ms)
+QAS-1 (Real-Time Performance) targets 96,000 sps with a minimum threshold of 48,000 sps.
+However, the actual processing capacity of the RPi 5 running Qt GUI and signal processing concurrently has not been verified (OI-03, TR-03).
+This experiment provides data for the following decisions:
 
-Risks addressed: **TR-04** (RPi 96k sps unverified), **OI-03** (max sps with GUI running unconfirmed)
+- Confirm architecture target sample rate (96k vs 48k)
+- Determine whether audio capture and GUI rendering threads must be separated
+- Verify whether FFT spectrogram causes CPU overload (TR-07)
 
 ---
 
 ### 상태 / Status
 
-**[ ] Planned**
+`[ ] Planned` | `[ ] In Progress` | `[ ] Concluded`
 
 ---
 
-### 예상 산출물 / Expected Outcomes
+### 기대 산출물 / Expected Outcomes
 
 **한국어**
 
-- sps별(48k / 96k / 192k) CPU 점유율, 드랍 블록 수, capture→process 지연 측정값 표
-- 목표 sps 결정 (96k 유지 / 48k 폴백) 및 근거 문서
-- Low Latency QA-3 ① 구간 수치 (< 46 ms 잠정값의 확정 또는 조정)
-- 아키텍처 결정 사항: 스레드 분리 구조 필요 여부
+- 48k / 96k / 192k sps 각각에서의 CPU 점유율, 메모리 사용량, 드롭된 오디오 블록 수, GUI FPS 측정 데이터
+- Qt GUI 동시 실행 조건에서의 처리 가능 최대 sps 결론
+- FFT 활성화 시 CPU 과부하 여부 판정
+- M2 아키텍처 결정을 위한 목표 sps 권고
 
 **English**
 
-- Table of CPU usage, dropped block count, and capture→process latency per sps (48k / 96k / 192k)
-- Target sps decision (sustain 96k / fall back to 48k) with rationale document
-- Finalized Low Latency QA-3 ① segment value (confirm or adjust < 46 ms provisional)
-- Architectural decision: whether thread separation is required
+- Measured CPU usage, memory, dropped audio blocks, and GUI FPS at 48k / 96k / 192k sps
+- Conclusion on maximum sustainable sps with concurrent Qt GUI
+- Go/no-go on FFT spectrogram under load
+- Target sps recommendation for M2 architecture decisions
 
 ---
 
-### 필요 리소스 / Resources Required
+### 필요 자원 / Resources Required
 
-**한국어**
-
-- 하드웨어: Raspberry Pi 5 (8GB RAM), 8인치 터치스크린, USB 오디오 인터페이스
-- 소프트웨어: TimeGrapher_v10.5, AlsaMixer (AGC 비활성화 상태), Sim 모드
-- 계측 도구: `perf` / `htop` (CPU), Qt `QElapsedTimer` (구간 지연 측정), ALSA 버퍼 모니터
-- 노력: 약 0.5 person-day
-
-**English**
-
-- Hardware: Raspberry Pi 5 (8GB RAM), 8" touchscreen, USB audio interface
-- Software: TimeGrapher_v10.5, AlsaMixer (AGC disabled), Sim mode
-- Measurement tools: `perf` / `htop` (CPU), Qt `QElapsedTimer` (segment latency), ALSA buffer monitor
-- Effort: ~0.5 person-day
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| 하드웨어 / Hardware | Raspberry Pi 5 (8GB), 8" touchscreen, USB audio sensor |
+| 소프트웨어 / Software | TimeGrapher_v10.5, AlsaMixer (AGC disabled), `htop`, Qt FPS counter |
+| 데이터 / Data | TimeGrapher Sim mode (no watch required) |
+| 공수 / Effort | 0.5 person-day |
 
 ---
 
@@ -108,27 +100,38 @@ Risks addressed: **TR-04** (RPi 96k sps unverified), **OI-03** (max sps with GUI
 
 **한국어**
 
-1. RPi 5에서 TimeGrapher를 Sim 모드로 실행 (실제 오디오 하드웨어 없이 처리 부하만 측정)
-2. AlsaMixer에서 AGC 비활성화 확인 후 실험 시작
-3. 48k sps → 96k sps → 192k sps 순서로 각 sps에서 5분간 실행
-4. 각 sps에서 측정:
-   - 드랍된 오디오 블록 수 (ALSA `xrun` 카운트)
-   - CPU 점유율 평균 및 최대값
-   - capture→process 구간 지연: 오디오 콜백 시작 → beat event 타임스탬프 생성 시점까지 `QElapsedTimer`로 측정
-5. 터치스크린 GUI 활성화 상태에서 동일 측정 반복 (GUI 오버헤드 분리)
-6. 결과 표 작성 및 48k sps 폴백 필요 여부 결정
+1. RPi 5에서 AlsaMixer로 AGC 비활성화 (OI-02 관련)
+2. TimeGrapher를 Sim 모드로 실행
+3. 샘플레이트를 48k → 96k → 192k sps 순으로 설정하고 각 5분간 실행
+4. 각 설정에서 측정: CPU 점유율 (`htop`), 메모리, 드롭된 오디오 블록 수, GUI 렌더링 FPS
+5. FFT 스펙트로그램 탭 활성화 후 동일 측정 반복
+6. 결과를 표로 정리하고 48k 폴백 여부 결정
 
 **English**
 
-1. Run TimeGrapher on RPi 5 in Sim mode (measures processing load without real audio hardware)
-2. Confirm AGC is disabled in AlsaMixer before starting
-3. Run sequentially at 48k → 96k → 192k sps, 5 minutes per rate
-4. Measure at each sps:
-   - Dropped audio block count (ALSA `xrun` count)
-   - CPU usage: average and peak
-   - capture→process latency: from audio callback start to beat event timestamp generation, measured with `QElapsedTimer`
-5. Repeat measurements with touchscreen GUI active (to isolate GUI overhead)
-6. Compile results table and decide whether 48k sps fallback is required
+1. Disable AGC on RPi 5 via AlsaMixer (related to OI-02)
+2. Launch TimeGrapher in Sim mode
+3. Set sample rate to 48k → 96k → 192k sps, run each for 5 minutes
+4. At each setting, measure: CPU usage (`htop`), memory, dropped audio blocks, GUI rendering FPS
+5. Enable FFT spectrogram tab and repeat measurements
+6. Summarize results in a comparison table and decide on 48k fallback
+
+---
+
+### 완료 기준 / Completion Criteria
+
+**한국어**
+
+- 세 가지 샘플레이트(48k / 96k / 192k)에서 모두 측정 데이터 수집 완료
+- FFT 활성화 조건 포함
+- "목표 sps 확정 + 48k 폴백 여부" 결정이 팀 내 합의됨
+- dropped block = 0 달성 가능한 최대 sps가 문서에 명시됨
+
+**English**
+
+- Measurement data collected at all three sample rates (48k / 96k / 192k) including FFT-active condition
+- Team agreement on target sps and 48k fallback decision
+- Maximum sps achieving dropped block = 0 explicitly documented
 
 ---
 
@@ -136,35 +139,33 @@ Risks addressed: **TR-04** (RPi 96k sps unverified), **OI-03** (max sps with GUI
 
 **한국어**
 
-- 계획 완료: 2026-06-09 (M1 제출)
-- 실험 실행: 2026-06-09 ~ 2026-06-13 (Week 2)
-- 결과 보고: 2026-06-16 (M2 준비 시작 시점)
+M1 제출 전 완료 목표: **2026-06-07**
 
 **English**
 
-- Plan finalized: 2026-06-09 (M1 submission)
-- Experiment execution: 2026-06-09 ~ 2026-06-13 (Week 2)
-- Results reported: 2026-06-16 (M2 preparation start)
+Target completion before M1 submission: **2026-06-07**
 
 ---
 
-### 참고 자료 / Links and References
+### 참고 링크 / Links and References
 
-- `architectural-drivers.md` QA-1 (Real-Time Performance), QA-3 (Low Latency)
-- `risk-assessment-revision.md` TR-04, OI-03
-- ALSA buffer configuration: [https://www.alsa-project.org/wiki/FramesPeriods](https://www.alsa-project.org/wiki/FramesPeriods)
+- [Risk Assessment — OI-03, TR-03, TR-04, TR-07](./risk-assessment-revision.md)
+- [Architectural Drivers — QAS-1 (Real-Time Performance)](./architectural-drivers.md#qas-1-real-time-performance--priority-1)
+- [Architectural Drivers — QAS-3 (Low Latency)](./architectural-drivers.md#qas-3-low-latency--priority-3)
 
 ---
 
-## EX-02: Qt 렌더링 성능 및 표시 지연 / Qt Rendering Performance & Display Latency
+## EX-02: Beat 이벤트 감지 정확도 / Beat Event Detection Accuracy
 
 ### 결과 및 권고 / Results and Recommendations
 
 **한국어**
-*(M2에서 작성)*
+
+*(M2에서 기록 예정)*
 
 **English**
-*(To be filled at M2)*
+
+*(To be recorded at M2)*
 
 ---
 
@@ -172,69 +173,61 @@ Risks addressed: **TR-04** (RPi 96k sps unverified), **OI-03** (max sps with GUI
 
 **한국어**
 
-RPi 5에서 Qt GUI가 여러 그래프 탭을 동시에 렌더링할 때 FPS와 처리→표시(process→display) 구간 지연이 얼마인가? 탭 수가 늘어날수록 성능이 어떻게 변화하는가?
+`tg_c_placement_t` 설정 — `TG_C_PLACEMENT_PEAK`(C 이벤트의 최대 진폭 지점)와 `TG_C_PLACEMENT_ONSET`(C 이벤트에서 역방향으로 반높이를 교차하는 지점) — 중 어느 것이 WeiShi No.1000 대비 Rate와 Beat Error 오차를 최소화하는가?
 
-이 실험은 다음 아키텍처 결정을 내리기 위한 데이터를 제공한다:
-1. Low Latency QA-3의 ② process→display 구간 수치 확정 (현재 잠정값: < 20 ms)
-2. 렌더링 구조 결정: 공유 타이머 vs. 탭별 독립 타이머, GPU 가속 필요 여부
+onset/peak 감지 자체는 `Detector.cpp` / `Timegrapher.h`에 이미 구현되어 있다. C 이벤트는 두 개의 타이밍 정보를 동시에 제공한다:
+- **C-peak**: burst 내 최대 진폭 지점 (parabolic interpolation)
+- **C-onset**: C peak에서 역방향으로 half-height를 교차하는 지점 (V5.4 backward walk)
 
-EX-01과 함께 Low Latency QA-3 end-to-end 수치 (< 66 ms 잠정)를 확정한다.
-
-해결 대상 리스크: **TR-05** (Qt 렌더링 FPS 저하), **OI-03** (GUI 실행 중 성능 미확인)
+`tg_c_placement_t` 파라미터로 primary timing 기준을 전환할 수 있으므로, 본 실험은 **어느 설정이 측정 정확도를 높이는지** 확인하는 것이 목적이다 (OI-01, TR-01).
+결과는 QAS-2 수치 임계값 (< 5 s/d, < 0.1 ms) 확정의 근거가 된다.
 
 **English**
 
-What are the FPS and process→display latency of the Qt GUI rendering multiple graph tabs simultaneously on RPi 5? How does performance degrade as the number of active tabs increases?
+Which `tg_c_placement_t` setting — `TG_C_PLACEMENT_PEAK` (C-event at maximum amplitude) or `TG_C_PLACEMENT_ONSET` (C-event at half-height backward walk from peak) — minimizes Rate and Beat Error against WeiShi No.1000?
 
-This experiment provides data for two architectural decisions:
-1. Finalizing the ② process→display segment of Low Latency QA-3 (current provisional: < 20 ms)
-2. Rendering architecture: shared timer vs. per-tab independent timer, whether GPU acceleration is needed
+Onset and peak detection are already implemented in `Detector.cpp` / `Timegrapher.h`. Each C event carries two timing values:
+- **C-peak**: maximum amplitude within burst (parabolic interpolation)
+- **C-onset**: half-height crossing found by backward walk from C peak (V5.4)
 
-Together with EX-01, this experiment finalizes the end-to-end Low Latency QA-3 value (provisional: < 66 ms).
-
-Risks addressed: **TR-05** (Qt rendering FPS drops), **OI-03** (performance unverified with GUI active)
+Since `tg_c_placement_t` switches the primary timing reference, this experiment determines **which setting yields lower measurement error** (OI-01, TR-01).
+Results confirm the numeric thresholds for QAS-2 (< 5 s/d, < 0.1 ms).
 
 ---
 
 ### 상태 / Status
 
-**[ ] Planned**
+`[ ] Planned` | `[ ] In Progress` | `[ ] Concluded`
 
 ---
 
-### 예상 산출물 / Expected Outcomes
+### 기대 산출물 / Expected Outcomes
 
 **한국어**
 
-- 탭 수(1 / 2 / 4 / 8 / 11)별 렌더링 FPS 및 CPU 점유율 측정값 표
-- process→display 구간 지연 수치 (< 20 ms 잠정값의 확정 또는 조정)
-- end-to-end 지연 확정 (EX-01 결과와 합산)
-- 렌더링 아키텍처 결정: 공유 타이머 / 독립 타이머 / 레이지 렌더링 선택
+- `TG_C_PLACEMENT_PEAK` vs `TG_C_PLACEMENT_ONSET` 설정별 Rate 오차(mean, std dev) 및 Beat Error 오차(mean, std dev) 비교표
+- WeiShi No.1000 기준 측정값과의 수치 비교
+- `tg_c_placement_t` 최적 설정 확정 결론
+- QAS-2 수치 임계값 확정 (< 5 s/d, < 0.1 ms 또는 실측 기반 조정)
 
 **English**
 
-- Table of rendering FPS and CPU usage per tab count (1 / 2 / 4 / 8 / 11)
-- process→display latency value (confirm or adjust < 20 ms provisional)
-- Finalized end-to-end latency (combined with EX-01 result)
-- Rendering architecture decision: shared timer / independent timer / lazy rendering
+- Comparison table of Rate error (mean, std dev) and Beat Error error (mean, std dev) for `TG_C_PLACEMENT_PEAK` vs `TG_C_PLACEMENT_ONSET`
+- Numeric comparison against WeiShi No.1000 reference values
+- Confirmed optimal `tg_c_placement_t` setting
+- Confirmed QAS-2 numeric thresholds (< 5 s/d, < 0.1 ms or empirically adjusted)
 
 ---
 
-### 필요 리소스 / Resources Required
+### 필요 자원 / Resources Required
 
-**한국어**
-
-- 하드웨어: Raspberry Pi 5 (8GB RAM), 8인치 터치스크린
-- 소프트웨어: Qt 프로토타입 (QCustomPlot 기반 스텁 탭 다수), TimeGrapher_v10.5
-- 계측 도구: Qt `QElapsedTimer` (렌더링 구간), `htop` (CPU), Qt FPS 카운터
-- 노력: 약 1 person-day (스텁 탭 프로토타입 구현 포함)
-
-**English**
-
-- Hardware: Raspberry Pi 5 (8GB RAM), 8" touchscreen
-- Software: Qt prototype (multiple QCustomPlot stub tabs), TimeGrapher_v10.5
-- Measurement tools: Qt `QElapsedTimer` (rendering segment), `htop` (CPU), Qt FPS counter
-- Effort: ~1 person-day (including stub tab prototype implementation)
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| 하드웨어 / Hardware | 기계식 시계 (1종 이상), WeiShi No.1000, USB 마이크 |
+| 소프트웨어 / Software | TimeGrapher_v10.5 (Playback mode) — `tg_c_placement_t` 파라미터 전환 기능 활용 |
+| 관련 코드 / Code | `src/Detector.cpp`, `src/Detector.h`, `src/Timegrapher.h` (`tg_c_placement_t`, `tg_raw_event_t`) |
+| 데이터 / Data | 동일 시계의 PCM 녹음 파일 (30초 이상) — EX-06 동시 측정 환경 확보 후 진행 |
+| 공수 / Effort | 1 person-day |
 
 ---
 
@@ -242,27 +235,43 @@ Risks addressed: **TR-05** (Qt rendering FPS drops), **OI-03** (performance unve
 
 **한국어**
 
-1. QCustomPlot 기반 스텁 그래프 탭 구현 (실제 DSP 없이 더미 데이터로 렌더링)
-2. 탭 수를 1 → 2 → 4 → 8 → 11개로 순차 증가하며 각 조건에서 5분간 실행
-3. 각 조건에서 측정:
-   - 렌더링 FPS (Qt 타이머 콜백 주기 기준)
-   - process→display 지연: beat event 타임스탬프 생성 → 화면 업데이트 완료까지 `QElapsedTimer`로 측정
-   - CPU 점유율 평균 및 최대값
-4. 백그라운드 스레드에서 신호 처리 시뮬레이션 동시 실행 (실제 운영 조건 재현)
-5. 렌더링 FPS 임계값 확인: 허용 가능한 최대 탭 수 결정
-6. EX-01 결과와 합산하여 end-to-end 지연 계산
+> **전제**: EX-06(동시 측정 환경 구축)이 먼저 완료되어야 동일 입력 기반 비교가 가능하다.
+
+1. EX-06에서 확정된 방식(동시 또는 순차)으로 WeiShi No.1000 레퍼런스 Rate, Beat Error 값 기록
+2. 동일 시계 신호로 RPi에서 PCM 녹음 (30초 이상)
+3. TimeGrapher Playback 모드에서 `tg_c_placement_t`를 (a) `TG_C_PLACEMENT_PEAK`, (b) `TG_C_PLACEMENT_ONSET`으로 각각 설정하여 실행
+4. 각 설정에서 Rate, Beat Error 계산 결과를 WeiShi 레퍼런스와 비교
+5. 오차 통계(mean, std dev) 산출; 더 낮은 오차를 보이는 설정을 확정
+6. 시계 기종 2종 이상으로 반복하여 일반성 검증
 
 **English**
 
-1. Implement QCustomPlot-based stub graph tabs (render with dummy data, no real DSP)
-2. Incrementally increase tab count: 1 → 2 → 4 → 8 → 11, run 5 minutes per condition
-3. Measure at each condition:
-   - Rendering FPS (based on Qt timer callback interval)
-   - process→display latency: beat event timestamp generation → screen update complete, measured with `QElapsedTimer`
-   - CPU usage: average and peak
-4. Run signal processing simulation concurrently in a background thread (replicate real operating conditions)
-5. Identify FPS threshold: determine maximum acceptable number of active tabs
-6. Combine with EX-01 results to calculate end-to-end latency
+> **Prerequisite**: EX-06 (simultaneous measurement setup) must be completed first to enable same-input comparison.
+
+1. Record reference Rate and Beat Error from WeiShi No.1000 using the method confirmed in EX-06
+2. Record PCM audio of the same watch on RPi (30+ seconds)
+3. In TimeGrapher Playback mode, run with (a) `TG_C_PLACEMENT_PEAK` and (b) `TG_C_PLACEMENT_ONSET`
+4. Compare calculated Rate and Beat Error against WeiShi reference for each setting
+5. Compute error statistics (mean, std dev); confirm the lower-error setting
+6. Repeat with 2+ watch models to verify generalizability
+
+---
+
+### 완료 기준 / Completion Criteria
+
+**한국어**
+
+- `TG_C_PLACEMENT_PEAK` vs `TG_C_PLACEMENT_ONSET` 설정별 Rate 오차 및 Beat Error 오차 수치가 2종 이상의 시계에 대해 측정됨
+- WeiShi No.1000 레퍼런스 대비 수치 비교표 완성
+- `tg_c_placement_t` 최적 설정 팀 합의로 확정
+- QAS-2의 "잠정" 수치가 실측 데이터로 대체됨
+
+**English**
+
+- Rate and Beat Error errors for `TG_C_PLACEMENT_PEAK` vs `TG_C_PLACEMENT_ONSET` measured across 2+ watch models
+- Comparison table against WeiShi No.1000 reference completed
+- Optimal `tg_c_placement_t` setting confirmed by team agreement
+- QAS-2 "tentative" thresholds replaced with empirical data
 
 ---
 
@@ -270,35 +279,35 @@ Risks addressed: **TR-05** (Qt rendering FPS drops), **OI-03** (performance unve
 
 **한국어**
 
-- 계획 완료: 2026-06-09 (M1 제출)
-- 실험 실행: 2026-06-10 ~ 2026-06-15 (Week 2, EX-01 이후)
-- 결과 보고: 2026-06-16
+M1 제출 전 완료 목표: **2026-06-08**  
+*(WeiShi No.1000 장비 접근 필요 — 장비 사용 가능 일정에 따라 조정)*
 
 **English**
 
-- Plan finalized: 2026-06-09 (M1 submission)
-- Experiment execution: 2026-06-10 ~ 2026-06-15 (Week 2, after EX-01)
-- Results reported: 2026-06-16
+Target completion before M1 submission: **2026-06-08**  
+*(Requires access to WeiShi No.1000 — adjust based on equipment availability)*
 
 ---
 
-### 참고 자료 / Links and References
+### 참고 링크 / Links and References
 
-- `architectural-drivers.md` QA-3 (Low Latency), QA-5 (Extensibility)
-- `risk-assessment-revision.md` TR-05, OI-03
-- QCustomPlot performance notes: [https://www.qcustomplot.com/index.php/support/forum](https://www.qcustomplot.com/index.php/support/forum)
+- [Risk Assessment — OI-01, TR-01](./risk-assessment-revision.md)
+- [Architectural Drivers — QAS-2 (Measurement Accuracy)](./architectural-drivers.md#qas-2-measurement-accuracy--priority-2)
+- TimeGrapher Equations_v0 (assets/)
 
 ---
 
-## EX-03: 비트 감지 방식 비교 및 측정 정확도 / Beat Detection Method Comparison & Accuracy
+## EX-03: 필터 파라미터 최적화 / Filter Parameter Sweep
 
 ### 결과 및 권고 / Results and Recommendations
 
 **한국어**
-*(M2에서 작성)*
+
+*(M2에서 기록 예정)*
 
 **English**
-*(To be filled at M2)*
+
+*(To be recorded at M2)*
 
 ---
 
@@ -306,67 +315,54 @@ Risks addressed: **TR-05** (Qt rendering FPS drops), **OI-03** (performance unve
 
 **한국어**
 
-T1 이벤트 감지 시 onset 방식과 peak 방식 중 어느 것이 Rate 및 Beat Error 측정에서 더 안정적이고 정확한 결과를 내는가? 감지된 결과가 WeiShi No.1000 레퍼런스 디바이스와 비교하여 목표 오차 범위 내에 있는가?
+주변 노이즈를 효과적으로 제거하면서 T1·T3 beat 이벤트를 가장 잘 보존하는 Low-pass / High-pass 컷오프 주파수 조합은 무엇인가?
 
-이 실험(architectural-drivers에서 "Experiment 3"으로 참조)은 다음을 확정한다:
-- Measurement Accuracy QA-2의 Rate 오차 상한 (현재 잠정: < 5 s/d)
-- Measurement Accuracy QA-2의 Beat Error 오차 상한 (현재 잠정: < 0.1 ms)
-- T1 감지 알고리즘 설계 결정 (onset vs peak)
-
-해결 대상 리스크: **TR-01** (T1/T3 감지 부정확), **OI-01** (T1 감지 기준점 미결정)
+현재 코드에는 HPF만 부분 구현되어 있으며 (FR-04: ⚠️ 부분 구현), LPF는 미구현 상태이다.
+필터 파라미터가 잘못 설정되면 beat 이벤트 신호가 왜곡되어 EX-02의 감지 정확도에 직접 영향을 미친다.
+본 실험은 기본 컷오프 값을 확정하고, 필터 아키텍처 설계의 근거 데이터를 제공한다.
 
 **English**
 
-Between the onset method and the peak method for detecting T1 events, which produces more stable and accurate Rate and Beat Error measurements? Are the detected results within the target error margin compared to the WeiShi No.1000 reference device?
+What LP/HP cutoff frequency combination best preserves T1·T3 beat events while rejecting ambient noise?
 
-This experiment (referenced as "Experiment 3" in architectural-drivers) finalizes:
-- Rate error ceiling for Measurement Accuracy QA-2 (current provisional: < 5 s/d)
-- Beat Error error ceiling for Measurement Accuracy QA-2 (current provisional: < 0.1 ms)
-- T1 detection algorithm design decision (onset vs peak)
-
-Risks addressed: **TR-01** (T1/T3 detection inaccurate), **OI-01** (T1 detection reference point undecided)
+Currently, only HPF is partially implemented (FR-04: ⚠️ partial), and LPF is not implemented.
+Incorrectly set filter parameters will distort beat event signals and directly affect detection accuracy in EX-02.
+This experiment determines the default cutoff values and provides the empirical basis for the filter architecture design.
 
 ---
 
 ### 상태 / Status
 
-**[ ] Planned**
+`[ ] Planned` | `[ ] In Progress` | `[ ] Concluded`
 
 ---
 
-### 예상 산출물 / Expected Outcomes
+### 기대 산출물 / Expected Outcomes
 
 **한국어**
 
-- onset vs peak 방식별 Rate 오차 및 Beat Error 오차 비교 표 (평균, 표준편차, WeiShi 대비)
-- 선택된 T1 감지 방식 및 근거 문서
-- Measurement Accuracy QA-2 수치 확정 (< 5 s/d, < 0.1 ms 또는 조정값)
-- C(T3) 감지 안정성 평가 결과
+- HP / LP 컷오프 조합별 T1·T3 신호 가시성 및 SNR 비교표
+- 권장 기본 HP / LP 컷오프 값 (예: HP ~200 Hz, LP ~8,000 Hz)
+- 시각화 자료 (필터 적용 전후 파형 비교)
+- FR-04 완전 구현을 위한 파라미터 기준
 
 **English**
 
-- Comparison table of Rate error and Beat Error per detection method (mean, std dev, vs WeiShi)
-- Selected T1 detection method with rationale document
-- Finalized Measurement Accuracy QA-2 values (< 5 s/d, < 0.1 ms, or adjusted)
-- C(T3) detection stability assessment
+- Comparison table of T1·T3 signal visibility and SNR across HP/LP cutoff combinations
+- Recommended default HP/LP cutoff values (e.g., HP ~200 Hz, LP ~8,000 Hz)
+- Visualizations: waveform before and after filter application
+- Parameter baseline for full implementation of FR-04
 
 ---
 
-### 필요 리소스 / Resources Required
+### 필요 자원 / Resources Required
 
-**한국어**
-
-- 하드웨어: 기계식 시계 (알려진 Rate), WeiShi No.1000 레퍼런스 디바이스, USB 오디오 인터페이스
-- 소프트웨어: TimeGrapher_v10.5 Playback 모드, 분석 스크립트 (Python/C++ 중 택일)
-- 데이터: 동일 시계의 PCM 녹음 파일 (최소 5분, 노이즈 있는 환경 / 없는 환경 각 1개)
-- 노력: 약 1 person-day
-
-**English**
-
-- Hardware: mechanical watch (known rate), WeiShi No.1000 reference device, USB audio interface
-- Software: TimeGrapher_v10.5 Playback mode, analysis script (Python or C++)
-- Data: PCM recording of the same watch (minimum 5 minutes, one with ambient noise, one without)
-- Effort: ~1 person-day
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| 하드웨어 / Hardware | USB 마이크, 기계식 시계 |
+| 소프트웨어 / Software | Python (scipy, matplotlib) 또는 Qt 분석 스크립트 |
+| 데이터 / Data | 주변 노이즈 포함/미포함 시계 PCM 녹음 파일 |
+| 공수 / Effort | 0.5 person-day |
 
 ---
 
@@ -374,27 +370,35 @@ Risks addressed: **TR-01** (T1/T3 detection inaccurate), **OI-01** (T1 detection
 
 **한국어**
 
-1. 기계식 시계를 USB 마이크로 5분간 녹음 (동시에 WeiShi No.1000으로 레퍼런스 Rate 기록)
-2. 녹음된 PCM을 Playback 모드로 재생하여 두 가지 방식으로 T1 감지:
-   - (A) onset 방식: 신호 포락선이 임계값을 처음 초과하는 시점
-   - (B) peak 방식: 신호 포락선의 최대값 시점
-3. 각 방식으로 계산된 Rate 및 Beat Error를 WeiShi No.1000 기준값과 비교
-4. 평균 오차, 표준편차, 이상값 발생 빈도 측정
-5. 노이즈 환경 녹음에 동일 실험 반복 (환경 노이즈 영향도 평가)
-6. C(T3) 감지 안정성 별도 평가: T3 감지 실패율 및 오감지율 측정
-7. 결과 기반 T1 감지 방식 결정 및 Measurement Accuracy QA 수치 확정
+1. 조용한 환경과 주변 노이즈가 있는 환경 각각에서 시계 PCM 녹음
+2. HP 컷오프: 100 / 200 / 500 Hz, LP 컷오프: 4k / 8k / 16k Hz 조합 적용
+3. 각 조합에서 T1·T3 이벤트의 SNR 및 감지 성공률 측정
+4. 파형 시각화로 필터 효과 직관적 비교
+5. 최적 컷오프 조합 확정; 이 값을 EX-02에 반영
 
 **English**
 
-1. Record the mechanical watch via USB microphone for 5 minutes (simultaneously record reference Rate using WeiShi No.1000)
-2. Play back the PCM in Playback mode and detect T1 using two methods:
-   - (A) Onset: the moment the signal envelope first exceeds a threshold
-   - (B) Peak: the moment of the maximum signal envelope value
-3. Compare Rate and Beat Error calculated by each method against the WeiShi No.1000 reference
-4. Measure mean error, standard deviation, and outlier frequency
-5. Repeat the experiment with the noisy environment recording (assess ambient noise impact)
-6. Separately evaluate C(T3) detection stability: measure T3 miss rate and false-positive rate
-7. Decide T1 detection method based on results and finalize Measurement Accuracy QA values
+1. Record watch PCM in a quiet environment and in an ambient-noise environment
+2. Apply combinations of HP cutoffs (100 / 200 / 500 Hz) and LP cutoffs (4k / 8k / 16k Hz)
+3. Measure T1·T3 event SNR and detection success rate for each combination
+4. Visualize waveforms to compare filter effects intuitively
+5. Confirm optimal cutoff combination; feed results into EX-02
+
+---
+
+### 완료 기준 / Completion Criteria
+
+**한국어**
+
+- 9개 이상의 HP/LP 조합에 대한 SNR 및 감지 성공률 데이터 수집
+- 권장 HP / LP 기본값이 근거 데이터와 함께 문서화됨
+- EX-02에 적용할 필터 파라미터 확정
+
+**English**
+
+- SNR and detection success rate data collected for 9+ HP/LP combinations
+- Recommended HP/LP default values documented with supporting data
+- Filter parameters for use in EX-02 confirmed
 
 ---
 
@@ -402,36 +406,33 @@ Risks addressed: **TR-01** (T1/T3 detection inaccurate), **OI-01** (T1 detection
 
 **한국어**
 
-- 계획 완료: 2026-06-09 (M1 제출)
-- 실험 실행: 2026-06-11 ~ 2026-06-17 (WeiShi 디바이스 접근 가능 시점 기준)
-- 결과 보고: 2026-06-18
+M1 제출 전 완료 목표: **2026-06-07** *(EX-02 이전에 완료)*
 
 **English**
 
-- Plan finalized: 2026-06-09 (M1 submission)
-- Experiment execution: 2026-06-11 ~ 2026-06-17 (contingent on WeiShi device access)
-- Results reported: 2026-06-18
+Target completion before M1 submission: **2026-06-07** *(must complete before EX-02)*
 
 ---
 
-### 참고 자료 / Links and References
+### 참고 링크 / Links and References
 
-- `architectural-drivers.md` QA-2 (Measurement Accuracy), Section 6 (Confirmed Values)
-- `risk-assessment-revision.md` TR-01, OI-01
-- `TimeGrapher Equations_v0.docx.pdf` — Rate / Amplitude / Beat Error 계산 공식
-- `Witschi-Training-Course.pdf` pp.14-19 — Escapement 원리 및 T1/T3 이벤트 정의
+- [Risk Assessment — OI-01, TR-01](./risk-assessment-revision.md)
+- [Architectural Drivers — FR-04](./architectural-drivers.md)
+- TimeGrapher Equations_v0 (assets/)
 
 ---
 
-## EX-04: AGC 비활성화 지속성 검증 / AGC Disable Persistence Verification
+## EX-04: 크로스 컴파일 및 RPi 배포 / Cross-Compilation & RPi Deploy
 
 ### 결과 및 권고 / Results and Recommendations
 
 **한국어**
-*(M2에서 작성)*
+
+*(M2에서 기록 예정)*
 
 **English**
-*(To be filled at M2)*
+
+*(To be recorded at M2)*
 
 ---
 
@@ -439,59 +440,51 @@ Risks addressed: **TR-01** (T1/T3 detection inaccurate), **OI-01** (T1 detection
 
 **한국어**
 
-AlsaMixer에서 AGC(Auto Gain Control)를 비활성화한 설정이 RPi 5 재부팅 후에도 유지되는가? 또한 AGC 활성화 상태와 비활성화 상태 사이의 신호 품질 차이는 측정값에 얼마나 영향을 미치는가?
+Qt 프로젝트를 macOS 또는 Windows에서 크로스 컴파일하여 RPi에 배포하는 것이 가능한가?
+아니면 RPi에서 네이티브로 빌드해야 하는가?
 
-AGC가 활성화되면 신호 진폭이 자동 조정되어 Beat Event 타이밍이 왜곡된다. 이는 모든 측정값을 신뢰 불가 상태로 만드는 Design Constraint 사항이다. 이 실험이 실패하면 소프트웨어적 보완책(앱 시작 시 AGC 경고 진단)이 필수가 된다.
-
-해결 대상 리스크: **TR-02** (AGC 재활성화로 신호 왜곡), **OI-02** (AGC 비활성화 지속 여부 미확인)
+팀원 2명이 macOS를 사용 중이며, RPi에 네이티브 빌드만 가능할 경우 로컬 오디오 테스트가 불가능해진다 (OI-05, TR-06).
+개발 환경 전략 확정이 늦어지면 팀 전체의 개발 및 디버깅 속도에 직접 영향을 미친다.
 
 **English**
 
-Does the AGC (Auto Gain Control) disable setting in AlsaMixer persist across Raspberry Pi 5 reboots? And how much does the difference in signal quality between AGC-on and AGC-off states affect measurement values?
+Is it feasible to cross-compile the Qt project on macOS or Windows and deploy to RPi?
+Or must we build natively on RPi?
 
-When AGC is active, it automatically adjusts signal amplitude, distorting Beat Event timing and making all measurements unreliable. This is a Design Constraint item. If this experiment fails, a software-level mitigation (AGC warning diagnostic at app startup) becomes mandatory.
-
-Risks addressed: **TR-02** (AGC re-activation distorts signal), **OI-02** (AGC disable persistence unconfirmed)
+Two team members use macOS; if only native RPi builds are possible, local audio testing becomes unavailable for them (OI-05, TR-06).
+Delay in confirming the build strategy directly impacts the team's development and debugging speed.
 
 ---
 
 ### 상태 / Status
 
-**[ ] Planned**
+`[ ] Planned` | `[ ] In Progress` | `[ ] Concluded`
 
 ---
 
-### 예상 산출물 / Expected Outcomes
+### 기대 산출물 / Expected Outcomes
 
 **한국어**
 
-- 재부팅 후 AGC 비활성화 지속 여부 확인 결과 (지속됨 / 지속 안 됨)
-- 지속되지 않을 경우: 부팅 시 자동 적용 스크립트 (`asound.state` 또는 systemd 서비스)
-- AGC ON vs OFF 상태에서의 Rate 오차 비교값
-- 앱 시작 시 AGC 활성화 여부 진단 기능 필요 여부 결정
+- macOS → RPi 크로스 컴파일 가능 여부 판정
+- RPi 네이티브 빌드 시간 측정
+- 권장 빌드 전략 (크로스 컴파일 vs 네이티브) 및 macOS 팀원을 위한 대안 (예: `Q_OS_MAC` 분기, `MacAudio` 스텁)
 
 **English**
 
-- Verification of whether AGC disable persists after reboot (persists / does not persist)
-- If not persistent: auto-apply boot script (`asound.state` or systemd service)
-- Rate error comparison between AGC ON and AGC OFF states
-- Decision on whether AGC diagnostic warning at app startup is required
+- Go/no-go verdict on macOS → RPi cross-compilation
+- Measured RPi native build time
+- Recommended build strategy (cross-compile vs native) and alternatives for macOS members (e.g., `Q_OS_MAC` branch, `MacAudio` stub)
 
 ---
 
-### 필요 리소스 / Resources Required
+### 필요 자원 / Resources Required
 
-**한국어**
-
-- 하드웨어: Raspberry Pi 5, USB 오디오 인터페이스, 기계식 시계
-- 소프트웨어: AlsaMixer, `alsactl`, TimeGrapher_v10.5
-- 노력: 약 0.5 person-day
-
-**English**
-
-- Hardware: Raspberry Pi 5, USB audio interface, mechanical watch
-- Software: AlsaMixer, `alsactl`, TimeGrapher_v10.5
-- Effort: ~0.5 person-day
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| 하드웨어 / Hardware | macOS 개발 머신, Raspberry Pi 5, SSH 접속 |
+| 소프트웨어 / Software | Qt Creator, RPi 크로스 컴파일 툴체인 (`aarch64-linux-gnu-g++`) |
+| 공수 / Effort | 0.5 person-day |
 
 ---
 
@@ -499,21 +492,35 @@ Risks addressed: **TR-02** (AGC re-activation distorts signal), **OI-02** (AGC d
 
 **한국어**
 
-1. AlsaMixer에서 AGC 비활성화 후 `alsactl store`로 설정 저장
-2. RPi 5 재부팅 후 `amixer` 명령으로 AGC 상태 확인 → 지속 여부 기록
-3. 지속되지 않을 경우: `alsactl restore`를 systemd `rc-local` 서비스에 등록
-4. 동일 시계 PCM을 AGC ON / AGC OFF 두 조건에서 각 2분간 녹음
-5. 두 녹음에서 Rate 및 Beat Error 계산 후 비교 → AGC 영향도 수치화
-6. 앱 시작 시 AGC 상태 자동 감지 및 경고 출력 기능 구현 여부 결정
+1. macOS에서 Qt Creator + RPi sysroot로 크로스 컴파일 시도
+2. 성공 시: RPi에서 바이너리 실행 확인 및 빌드 절차 문서화
+3. 실패 시: RPi 네이티브 빌드 확인, 빌드 시간 측정
+4. macOS 팀원을 위한 `Q_OS_MAC` 분기 또는 `MacAudio` 스텁 프로토타입 작성
+5. 최종 권장 빌드 전략 결정
 
 **English**
 
-1. Disable AGC in AlsaMixer and save the configuration with `alsactl store`
-2. Reboot RPi 5 and check AGC state with `amixer` → record whether setting persisted
-3. If not persistent: register `alsactl restore` as a systemd `rc-local` service
-4. Record the same watch PCM for 2 minutes each under AGC ON and AGC OFF conditions
-5. Calculate Rate and Beat Error from both recordings and compare → quantify AGC impact
-6. Decide whether to implement automatic AGC state detection and warning at app startup
+1. Attempt Qt cross-compilation on macOS with RPi sysroot
+2. If successful: verify binary runs on RPi and document the build procedure
+3. If failed: confirm native build on RPi and measure build time
+4. Prototype `Q_OS_MAC` branch or `MacAudio` stub for macOS team members
+5. Decide final recommended build strategy
+
+---
+
+### 완료 기준 / Completion Criteria
+
+**한국어**
+
+- RPi 5에서 실행 가능한 바이너리 확인 (크로스 컴파일 또는 네이티브)
+- macOS에서의 로컬 빌드 또는 스텁 방안 확정
+- 빌드 전략 문서화 완료
+
+**English**
+
+- Confirmed working binary on RPi 5 (via cross-compile or native build)
+- Local build strategy or stub solution confirmed for macOS members
+- Build strategy documented
 
 ---
 
@@ -521,35 +528,32 @@ Risks addressed: **TR-02** (AGC re-activation distorts signal), **OI-02** (AGC d
 
 **한국어**
 
-- 계획 완료: 2026-06-09 (M1 제출)
-- 실험 실행: 2026-06-09 ~ 2026-06-11 (Week 2 초반, 하드웨어 셋업 단계)
-- 결과 보고: 2026-06-12
+M1 제출 전 완료 목표: **2026-06-08**
 
 **English**
 
-- Plan finalized: 2026-06-09 (M1 submission)
-- Experiment execution: 2026-06-09 ~ 2026-06-11 (early Week 2, hardware setup phase)
-- Results reported: 2026-06-12
+Target completion before M1 submission: **2026-06-08**
 
 ---
 
-### 참고 자료 / Links and References
+### 참고 링크 / Links and References
 
-- `architectural-drivers.md` Section 7 (Design Constraints — AGC)
-- `risk-assessment-revision.md` TR-02, OI-02
-- ALSA state persistence: `man alsactl`
+- [Risk Assessment — OI-05, TR-06](./risk-assessment-revision.md)
+- [TimeGrapher GUI Set Up Instructions](../../.claude/skills/time-grapher/assets/) (assets/)
 
 ---
 
-## EX-05: 신호 필터 파라미터 최적화 / Signal Filter Parameter Optimization
+## EX-05: Qt 멀티탭 렌더링 성능 / Qt Multi-Tab Rendering Performance
 
 ### 결과 및 권고 / Results and Recommendations
 
 **한국어**
-*(M2에서 작성)*
+
+*(M2에서 기록 예정)*
 
 **English**
-*(To be filled at M2)*
+
+*(To be recorded at M2)*
 
 ---
 
@@ -557,63 +561,52 @@ Risks addressed: **TR-02** (AGC re-activation distorts signal), **OI-02** (AGC d
 
 **한국어**
 
-시계 비트 이벤트(T1, T3)를 가장 잘 보존하면서 주변 노이즈를 효과적으로 제거하는 HPF 및 LPF 컷오프 주파수 조합은 무엇인가?
+RPi 5에서 신호 처리 스레드가 백그라운드에서 실행되는 동안 Qt 멀티탭 렌더링이 목표 FPS를 유지할 수 있는가?
 
-현재 베이스코드(`Dsp.cpp`)에는 HPF만 구현되어 있다. 이 실험은:
-1. LPF 구현 필요 여부와 최적 컷오프 값을 결정한다
-2. EX-03(비트 감지 정확도)을 위한 전처리 파라미터를 확정한다
-
-해결 대상 리스크: **TR-01** (T1/T3 감지 부정확 — 노이즈 환경에서 악화)
+11개의 그래프 탭을 구현해야 하는 일정 리스크 (NR-02, OI-07) 가운데, 렌더링 성능이 구조적으로 보장 가능한지 먼저 검증해야 스레딩 모델 결정이 가능하다 (QAS-5 Extensibility, TR-04).
+본 실험은 "탭 수 증가 → FPS 저하" 임계점을 파악하여, 별도 렌더 타이머 또는 lazy rendering 전략 채택 여부를 결정한다.
 
 **English**
 
-What combination of HPF and LPF cutoff frequencies best preserves watch beat events (T1, T3) while effectively rejecting ambient noise?
+Can Qt multi-tab rendering sustain the target FPS on RPi 5 while signal processing runs in a background thread?
 
-The current base code (`Dsp.cpp`) implements only an HPF. This experiment:
-1. Determines whether LPF implementation is needed and what the optimal cutoff value is
-2. Finalizes the preprocessing parameters for EX-03 (beat detection accuracy)
-
-Risk addressed: **TR-01** (T1/T3 detection inaccurate — worsens in noisy environments)
+Given the schedule risk of implementing 11 graph tabs (NR-02, OI-07), we must verify whether rendering performance is structurally guaranteed before making threading model decisions (QAS-5 Extensibility, TR-04).
+This experiment identifies the FPS degradation threshold as tab count increases, and informs whether to adopt separate render timers or lazy rendering.
 
 ---
 
 ### 상태 / Status
 
-**[ ] Planned**
+`[ ] Planned` | `[ ] In Progress` | `[ ] Concluded`
 
 ---
 
-### 예상 산출물 / Expected Outcomes
+### 기대 산출물 / Expected Outcomes
 
 **한국어**
 
-- HPF/LPF 컷오프 조합별 T1/T3 감지 SNR 비교 표
-- 권장 HPF 컷오프 값 (현재 설정 확인 또는 조정)
-- LPF 구현 필요 여부 결정 및 권장 컷오프 값
-- EX-03에 사용할 전처리 파라미터 확정
+- 1 / 2 / 3 / 4 활성 탭 조건에서의 FPS 및 CPU 사용률 측정 데이터
+- 신호 처리 스레드 실행 중 vs 미실행 중 비교
+- FPS 저하 임계 탭 수 파악
+- 스레딩 모델 결정 (separate render timers 또는 lazy rendering) 근거
 
 **English**
 
-- Comparison table of T1/T3 detection SNR per HPF/LPF cutoff combination
-- Recommended HPF cutoff value (confirm current setting or adjust)
-- Decision on whether LPF implementation is needed and recommended cutoff value
-- Finalized preprocessing parameters for use in EX-03
+- FPS and CPU usage data at 1 / 2 / 3 / 4 active tabs
+- Comparison: with vs without signal processing thread running
+- Identified FPS degradation threshold tab count
+- Basis for threading model decision (separate render timers or lazy rendering)
 
 ---
 
-### 필요 리소스 / Resources Required
+### 필요 자원 / Resources Required
 
-**한국어**
-
-- 소프트웨어: TimeGrapher_v10.5, Python 분석 스크립트 (scipy.signal), 오디오 분석 도구 (Audacity 등)
-- 데이터: 노이즈 환경 포함 시계 PCM 녹음 파일 (EX-03과 공유 가능)
-- 노력: 약 0.5 person-day
-
-**English**
-
-- Software: TimeGrapher_v10.5, Python analysis script (scipy.signal), audio analysis tool (Audacity, etc.)
-- Data: watch PCM recordings including ambient noise (can be shared with EX-03)
-- Effort: ~0.5 person-day
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| 하드웨어 / Hardware | Raspberry Pi 5 (8GB), 8" touchscreen |
+| 소프트웨어 / Software | Qt Creator, FPS 측정 유틸리티, `QElapsedTimer` |
+| 구현 / Implementation | placeholder `paint()` 구현된 stub QWidget 탭 2~4개 |
+| 공수 / Effort | 1 person-day |
 
 ---
 
@@ -621,21 +614,35 @@ Risk addressed: **TR-01** (T1/T3 detection inaccurate — worsens in noisy envir
 
 **한국어**
 
-1. 시계 PCM 녹음 파일에 HPF 컷오프를 100 / 200 / 400 / 800 Hz 구간으로 스윕 적용
-2. LPF 컷오프를 4k / 8k / 16k Hz 구간으로 스윕 적용
-3. 각 조합에서 T1/T3 이벤트 감지 SNR 계산 (신호 대 노이즈 비율)
-4. 노이즈 환경 녹음에 동일 스윕 반복
-5. SNR이 가장 높고 T1/T3 감지 실패율이 가장 낮은 조합 선택
-6. EX-03 실험 전 베이스코드 `Dsp.cpp`에 선택된 파라미터 적용
+1. placeholder `paint()` (단색 채우기)를 가진 stub QWidget 탭 4개 구현
+2. RPi 5에서 1 → 2 → 3 → 4 탭 순으로 활성화하며 FPS 측정 (`QElapsedTimer`)
+3. 신호 처리 스레드 없이 측정 후, Sim 모드 신호 처리 활성화하여 동일 측정 반복
+4. FPS가 목표치 이하로 떨어지는 탭 수 파악
+5. 결과를 바탕으로 렌더링 전략 (separate timer, lazy rendering 등) 결정
 
 **English**
 
-1. Apply HPF cutoff sweep (100 / 200 / 400 / 800 Hz) to watch PCM recording
-2. Apply LPF cutoff sweep (4k / 8k / 16k Hz)
-3. Calculate T1/T3 detection SNR (signal-to-noise ratio) for each combination
-4. Repeat the same sweep on noisy environment recording
-5. Select the combination with the highest SNR and lowest T1/T3 miss rate
-6. Apply selected parameters to `Dsp.cpp` in the base code before running EX-03
+1. Implement 4 stub QWidget tabs with placeholder `paint()` (solid fill)
+2. On RPi 5, activate tabs 1 → 2 → 3 → 4 and measure FPS (`QElapsedTimer`)
+3. Measure without signal processing thread; then repeat with Sim mode signal processing active
+4. Identify the tab count at which FPS drops below target
+5. Based on results, decide rendering strategy (separate timers, lazy rendering, etc.)
+
+---
+
+### 완료 기준 / Completion Criteria
+
+**한국어**
+
+- 1~4 탭 × 신호 처리 유/무 조건에서 FPS 데이터 수집 완료
+- FPS 목표치 유지 가능한 최대 탭 수 명시
+- 스레딩 및 렌더링 모델 결정이 근거 데이터와 함께 문서화됨
+
+**English**
+
+- FPS data collected for 1–4 tabs × with/without signal processing
+- Maximum tab count maintaining target FPS explicitly documented
+- Threading and rendering model decision documented with supporting data
 
 ---
 
@@ -643,36 +650,32 @@ Risk addressed: **TR-01** (T1/T3 detection inaccurate — worsens in noisy envir
 
 **한국어**
 
-- 계획 완료: 2026-06-09 (M1 제출)
-- 실험 실행: 2026-06-10 ~ 2026-06-12 (EX-03 선행 실험)
-- 결과 보고: 2026-06-13
+M1 제출 전 완료 목표: **2026-06-08** *(EX-01 이후 실행)*
 
 **English**
 
-- Plan finalized: 2026-06-09 (M1 submission)
-- Experiment execution: 2026-06-10 ~ 2026-06-12 (prerequisite for EX-03)
-- Results reported: 2026-06-13
+Target completion before M1 submission: **2026-06-08** *(run after EX-01)*
 
 ---
 
-### 참고 자료 / Links and References
+### 참고 링크 / Links and References
 
-- `architectural-drivers.md` QA-2 (Measurement Accuracy)
-- `risk-assessment-revision.md` TR-01
-- `TimeGrapher Equations_v0.docx.pdf` — T1/T3 이벤트 정의
-- scipy.signal filter design: [https://docs.scipy.org/doc/scipy/reference/signal.html](https://docs.scipy.org/doc/scipy/reference/signal.html)
+- [Risk Assessment — OI-03, TR-04](./risk-assessment-revision.md)
+- [Architectural Drivers — QAS-5 (Extensibility)](./architectural-drivers.md#qas-5-extensibility--priority-5)
 
 ---
 
-## EX-06: 빌드 환경 검증 / Build Environment Verification
+## EX-06: WeiShi 1000 & RPi 동시 측정 환경 구축 / Simultaneous WeiShi 1000 & RPi Measurement Setup
 
 ### 결과 및 권고 / Results and Recommendations
 
 **한국어**
-*(M2에서 작성)*
+
+*(M2에서 기록 예정)*
 
 **English**
-*(To be filled at M2)*
+
+*(To be recorded at M2)*
 
 ---
 
@@ -680,59 +683,51 @@ Risk addressed: **TR-01** (T1/T3 detection inaccurate — worsens in noisy envir
 
 **한국어**
 
-Qt 프로젝트를 macOS/Windows에서 크로스 컴파일하여 RPi에 배포할 수 있는가? 아니면 RPi에서 네이티브 빌드가 유일한 경로인가? 또한 macOS 팀원이 `Q_OS_MAC` 분기 처리 없이 오디오 기능을 제외한 나머지 기능을 로컬에서 개발할 수 있는가?
+WeiShi No.1000과 RPi 5가 동일 시계의 음향 신호를 동시에 수집하여 accuracy를 비교하는 환경 구축이 가능한가?
 
-이 실험은 팀 전체의 개발 환경 전략을 확정한다. macOS 팀원 2명이 로컬에서 빌드·테스트 불가 상태이면 개발 속도에 직접 영향을 준다.
-
-해결 대상 리스크: **TR-10** (PC-RPi 빌드 환경 불일치), **OI-05** (macOS `Q_OS_MAC` 처리 방안 미결정)
+QAS-2는 WeiShi No.1000 대비 Rate 오차 < 5 s/d, Beat Error 오차 < 0.1 ms를 기준으로 한다.
+동일 입력 신호를 사용하지 않으면 시계 운동 변동성 때문에 두 장비의 측정값을 의미 있게 비교할 수 없다 (OI-09, TR-08).
+동시 수집이 불가능할 경우 순차 측정(sequential) 방식으로 대안을 확정하고, 그에 따른 오차 기준을 조정해야 한다.
 
 **English**
 
-Can the Qt project be cross-compiled on macOS/Windows and deployed to RPi, or is native build on RPi the only viable path? Additionally, can macOS team members develop non-audio features locally without `Q_OS_MAC` branch handling?
+Is it feasible to simultaneously collect acoustic signals from the same watch using both WeiShi No.1000 and the RPi 5 for accuracy comparison?
 
-This experiment finalizes the development environment strategy for the entire team. If 2 macOS team members cannot build and test locally, it directly impacts development velocity.
-
-Risks addressed: **TR-10** (PC-RPi build environment mismatch), **OI-05** (macOS `Q_OS_MAC` handling undecided)
+QAS-2 requires Rate error < 5 s/d and Beat Error error < 0.1 ms compared to WeiShi No.1000.
+Without using the same input signal, watch movement variation makes meaningful comparison between the two devices impossible (OI-09, TR-08).
+If simultaneous collection is infeasible, a sequential measurement alternative must be confirmed and accuracy thresholds adjusted accordingly.
 
 ---
 
 ### 상태 / Status
 
-**[ ] Planned**
+`[ ] Planned` | `[ ] In Progress` | `[ ] Concluded`
 
 ---
 
-### 예상 산출물 / Expected Outcomes
+### 기대 산출물 / Expected Outcomes
 
 **한국어**
 
-- 빌드 경로 결정: 크로스 컴파일 가능 / RPi 네이티브 빌드 전용
-- macOS 빌드 성공 여부 (`Q_OS_MAC` 스텁 또는 분기 처리 후)
-- 팀 개발 환경 가이드 문서 (SSH 접속, 빌드 명령, 배포 절차)
-- macOS 팀원이 오디오 비활성화 상태로 DSP/UI 개발 가능한지 여부 확인
+- 동시 측정 환경 구축 가능 여부 판정 (마이크 스플리터 / 멀티채널 ADC / 순차 측정)
+- 채택된 측정 방식 및 셋업 절차 문서화
+- 동시 측정 불가 시 순차 측정으로 인한 오차 한계 추정 및 QAS-2 임계값 조정 근거
 
 **English**
 
-- Build path decision: cross-compilation viable / RPi native build only
-- macOS build success (after `Q_OS_MAC` stub or branch handling)
-- Team development environment guide document (SSH access, build commands, deploy procedure)
-- Confirmation of whether macOS team members can develop DSP/UI with audio disabled
+- Go/no-go verdict on simultaneous measurement (mic splitter / multi-channel ADC / sequential)
+- Confirmed measurement method and setup procedure documented
+- If simultaneous not feasible: estimated error margin from sequential measurement and basis for QAS-2 threshold adjustment
 
 ---
 
-### 필요 리소스 / Resources Required
+### 필요 자원 / Resources Required
 
-**한국어**
-
-- 하드웨어: macOS 개발 머신, Raspberry Pi 5, SSH 접속 환경
-- 소프트웨어: Qt Creator, Qt for RPi 크로스 컴파일 툴체인 (시도), TimeGrapher_v10.5
-- 노력: 약 0.5 person-day
-
-**English**
-
-- Hardware: macOS development machine, Raspberry Pi 5, SSH access
-- Software: Qt Creator, Qt for RPi cross-compilation toolchain (attempt), TimeGrapher_v10.5
-- Effort: ~0.5 person-day
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| 하드웨어 / Hardware | WeiShi No.1000, RPi 5, USB 마이크, (후보) 마이크 스플리터 또는 멀티채널 USB ADC |
+| 소프트웨어 / Software | TimeGrapher_v10.5, WeiShi 디스플레이 |
+| 공수 / Effort | 0.5 person-day |
 
 ---
 
@@ -740,21 +735,35 @@ Risks addressed: **TR-10** (PC-RPi build environment mismatch), **OI-05** (macOS
 
 **한국어**
 
-1. macOS에서 `Q_OS_MAC` 분기 없는 현재 상태로 빌드 시도 → 실패 지점 기록
-2. `MacAudio.cpp/h` 스텁 파일 추가 및 `Q_OS_MAC` 분기 처리 적용 후 재빌드
-3. macOS에서 오디오 비활성화 상태로 DSP·UI 기능 정상 동작 여부 확인
-4. RPi에서 SSH를 통한 네이티브 빌드 시도: `qmake` → `make` 실행 시간 측정
-5. (선택) Qt 크로스 컴파일 툴체인 설정 시도: 성공 여부 및 복잡도 평가
-6. 팀 표준 개발 워크플로우 결정 및 문서화
+1. 마이크 스플리터를 사용하여 WeiShi No.1000과 RPi USB 마이크에 동시 신호 공급 시도
+2. 동시 수집이 가능하면: 동일 시계 신호로 두 장비의 측정값 비교하고 오차 기록
+3. 동시 수집 불가 시: WeiShi → 즉시 → RPi 순차 측정 진행; 시계 드리프트로 인한 오차 범위 추정
+4. 채택된 방식의 반복 재현성 검증 (동일 조건 3회 반복)
+5. 최종 측정 방식 및 QAS-2 임계값 조정 여부 결정
 
 **English**
 
-1. Attempt to build on macOS without `Q_OS_MAC` branch → record failure points
-2. Add `MacAudio.cpp/h` stub files and apply `Q_OS_MAC` branch handling, then rebuild
-3. Verify that DSP/UI features work correctly on macOS with audio disabled
-4. Attempt native build on RPi via SSH: measure `qmake` → `make` execution time
-5. (Optional) Attempt Qt cross-compilation toolchain setup: evaluate success and complexity
-6. Decide and document the standard team development workflow
+1. Attempt to simultaneously feed signal to WeiShi No.1000 and RPi USB mic using a mic splitter
+2. If simultaneous collection is feasible: compare measurements from both devices on the same watch signal and record errors
+3. If not feasible: perform sequential measurement (WeiShi → immediately → RPi); estimate error range from watch drift
+4. Verify repeatability of the adopted method (3 repetitions under same conditions)
+5. Confirm final measurement method and decide whether to adjust QAS-2 thresholds
+
+---
+
+### 완료 기준 / Completion Criteria
+
+**한국어**
+
+- 동시 측정 또는 순차 측정 방식 중 하나가 결정되고 문서화됨
+- 채택된 방식으로 WeiShi No.1000 대비 RPi 측정 오차 데이터 수집 완료
+- QAS-2 임계값 (< 5 s/d, < 0.1 ms) 유지 또는 실측 근거 기반으로 조정됨
+
+**English**
+
+- One measurement method (simultaneous or sequential) decided and documented
+- RPi vs WeiShi No.1000 error data collected using the confirmed method
+- QAS-2 thresholds (< 5 s/d, < 0.1 ms) maintained or empirically adjusted
 
 ---
 
@@ -762,56 +771,50 @@ Risks addressed: **TR-10** (PC-RPi build environment mismatch), **OI-05** (macOS
 
 **한국어**
 
-- 계획 완료: 2026-06-09 (M1 제출)
-- 실험 실행: 2026-06-09 ~ 2026-06-11 (Week 2 초반, 개발 환경 셋업 단계)
-- 결과 보고: 2026-06-12
+M1 제출 전 완료 목표: **2026-06-08** *(WeiShi No.1000 장비 접근 필요)*
 
 **English**
 
-- Plan finalized: 2026-06-09 (M1 submission)
-- Experiment execution: 2026-06-09 ~ 2026-06-11 (early Week 2, dev environment setup phase)
-- Results reported: 2026-06-12
+Target completion before M1 submission: **2026-06-08** *(requires access to WeiShi No.1000)*
 
 ---
 
-### 참고 자료 / Links and References
+### 참고 링크 / Links and References
 
-- `architectural-drivers.md` Section 7 (Design Constraints — Platform, Language)
-- `risk-assessment-revision.md` TR-10, TR-08, OI-05
-- `TimeGrapher GUI Set Up Instructions.pdf` — Qt 환경 셋업 가이드
-- Qt cross-compilation for RPi: [https://wiki.qt.io/Cross-Compile_Qt_6_for_Raspberry_Pi](https://wiki.qt.io/Cross-Compile_Qt_6_for_Raspberry_Pi)
+- [Risk Assessment — OI-09, TR-08](./risk-assessment-revision.md)
+- [Architectural Drivers — QAS-2 (Measurement Accuracy)](./architectural-drivers.md#qas-2-measurement-accuracy--priority-2)
 
 ---
 
-## 실험 전체 요약 / Experiment Status Summary
+## 실험 현황 요약 / Experiment Status Summary
 
-| ID | 제목 / Title | 해결 대상 / Resolves | 실행 시기 / When | M2 결과 / M2 Result |
-|----|-------------|---------------------|-----------------|---------------------|
-| EX-01 | RPi 5 오디오 성능 및 캡처 지연 / RPi 5 Audio Performance & Capture Latency | TR-04, OI-03 | Week 2 (06-09~13) | [ ] |
-| EX-02 | Qt 렌더링 성능 및 표시 지연 / Qt Rendering Performance & Display Latency | TR-05, OI-03 | Week 2 (06-10~15) | [ ] |
-| EX-03 | 비트 감지 방식 비교 및 측정 정확도 / Beat Detection Method Comparison & Accuracy | TR-01, OI-01 | Week 2~3 (06-11~17) | [ ] |
-| EX-04 | AGC 비활성화 지속성 검증 / AGC Disable Persistence Verification | TR-02, OI-02 | Week 2 (06-09~11) | [ ] |
-| EX-05 | 신호 필터 파라미터 최적화 / Signal Filter Parameter Optimization | TR-01 | Week 2 (06-10~12) | [ ] |
-| EX-06 | 빌드 환경 검증 / Build Environment Verification | TR-10, OI-05 | Week 2 (06-09~11) | [ ] |
+| ID | 제목 / Title | 상태 / Status | 해소 리스크 / Resolves | 완료 기한 / Deadline | M2 결과 |
+|----|-------------|:-------------:|----------------------|:-------------------:|:-------:|
+| EX-01 | RPi 5 샘플레이트 성능 / Sample Rate Performance | Planned | OI-03, TR-03, TR-04, TR-07 | 2026-06-07 | [ ] |
+| EX-02 | Beat 감지 정확도 / Beat Event Detection Accuracy | Planned | OI-01, TR-01 | 2026-06-08 | [ ] |
+| EX-03 | 필터 파라미터 최적화 / Filter Parameter Sweep | Planned | OI-01, TR-01 | 2026-06-07 | [ ] |
+| EX-04 | 크로스 컴파일 & RPi 배포 / Cross-Compilation & RPi Deploy | Planned | OI-05, TR-06 | 2026-06-08 | [ ] |
+| EX-05 | Qt 멀티탭 렌더링 성능 / Qt Multi-Tab Rendering Performance | Planned | OI-03, TR-04 | 2026-06-08 | [ ] |
+| EX-06 | WeiShi 1000 & RPi 동시 측정 / Simultaneous Measurement Setup | Planned | OI-09, TR-08 | 2026-06-08 | [ ] |
 
-### QA 수치 확정 매핑 / QA Value Confirmation Mapping
-
-| QA 수치 / QA Value | 확정 실험 / Confirming Experiment | 현재 잠정값 / Current Provisional |
-|-------------------|----------------------------------|----------------------------------|
-| Low Latency ① capture→process | EX-01 | < 46 ms |
-| Low Latency ② process→display | EX-02 | < 20 ms |
-| Low Latency ③ end-to-end | EX-01 + EX-02 합산 | < 66 ms |
-| Measurement Accuracy — Rate | EX-03 | < 5 s/d |
-| Measurement Accuracy — Beat Error | EX-03 | < 0.1 ms |
+> **실행 순서 권고 / Recommended Execution Order**: EX-03 → EX-01 → EX-02 → EX-04, EX-05, EX-06 (병렬 / parallel)
 
 ---
 
 ## 리뷰 체크리스트 / Review Checklist
 
-- [ ] 각 실험이 템플릿 형식을 따르고 있는가 / Each experiment follows the template format
-- [ ] 각 실험이 명확하게 risk/OI와 연결되어 있는가 / Each experiment is clearly linked to a risk/OI
-- [ ] 완료 기준(Expected Outcomes)이 측정 가능한가 / Completion criteria are measurable
-- [ ] 실험 일정이 M1→M2 기간(06-09~06-22) 내에 실현 가능한가 / Experiments are feasible within M1→M2 period
-- [ ] EX-01+EX-02가 Low Latency QA 수치를 확정하는가 / EX-01+EX-02 confirm Low Latency QA values
-- [ ] EX-03이 Measurement Accuracy QA 수치를 확정하는가 / EX-03 confirms Measurement Accuracy QA values
-- [ ] OI-01~OI-03, OI-05가 모두 커버되는가 / OI-01~OI-03, OI-05 are all covered
+**한국어**
+
+- [ ] 모든 실험이 템플릿 구조(목적 / 상태 / 기대 산출물 / 필요 자원 / 실험 절차 / 완료 기준 / 기간 / 참고)를 따름
+- [ ] 각 실험의 목적이 구체적인 질문 형태로 명시됨
+- [ ] 각 실험이 risk-assessment의 특정 리스크 또는 OI와 연결됨
+- [ ] 완료 기준이 명확하고 측정 가능함
+- [ ] M1→M2 일정 내에 실행 가능한 범위
+
+**English**
+
+- [ ] All experiments follow the template structure (objective / status / expected outcomes / resources / description / completion criteria / duration / references)
+- [ ] Each experiment's objective is articulated as a specific technical question
+- [ ] Each experiment is linked to a specific risk or open issue from the risk assessment
+- [ ] Completion criteria are clear and measurable
+- [ ] Experiments are feasible within the M1→M2 timeline
