@@ -84,6 +84,8 @@ private slots:
     void on_AveragingPeriodComboBox_currentIndexChanged(int index);
     void on_ModeComboBox_currentTextChanged(const QString &arg1);
 
+    void on_PausePushButton_clicked();
+
 public slots:
     void HandleAudioInput();
     void HandlePlaybackInput();
