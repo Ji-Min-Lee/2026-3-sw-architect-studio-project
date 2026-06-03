@@ -10,6 +10,8 @@ The `time-grapher` skill is tracked as a Git submodule in **three locations**:
 | `.agents/skills/time-grapher` | Active skill loaded by Codex |
 | `.github/skills/time-grapher` | Skill registry pointer for GitHub |
 
+**Rule: If any one of the three submodule pointers is updated, all three must be updated together before committing.**
+
 All three must always point to the same commit. Whenever you make or pull changes to the `time-grapher` skill, update **all three pointers** together:
 
 ```bash
