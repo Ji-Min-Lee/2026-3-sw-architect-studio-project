@@ -221,14 +221,14 @@ QAS-2 uses WeiShi No.1000 as the reference. Without the same input signal, watch
 
 1. 마이크 스플리터로 WeiShi No.1000과 RPi USB 마이크에 동시 신호 공급 시도
 2. 성공 시: 동일 신호로 두 장비 측정값 비교, 반복 재현성 확인 (3회)
-3. 실패 시: 순차 측정 (WeiShi → 즉시 → RPi) 진행, 드리프트 오차 범위 추정
+3. 실패 시: 순차 측정 진행 — WeiShi No.1000 측정 후 **1분 이내** RPi 측정으로 전환, 3회 반복하여 측정값 분산(std dev)으로 드리프트 오차 범위 추정
 4. 채택된 방식 문서화 → EX-03에 전달
 
 **English**
 
 1. Attempt simultaneous signal feed to WeiShi No.1000 and RPi mic via mic splitter
 2. If feasible: compare measurements on same signal, verify repeatability (3 trials)
-3. If not feasible: perform sequential measurement (WeiShi → immediately → RPi), estimate drift error
+3. If not feasible: perform sequential measurement — switch from WeiShi No.1000 to RPi within **1 minute**, repeat 3 times, and estimate drift error margin from measurement variance (std dev)
 4. Document confirmed method → hand off to EX-03
 
 ---
