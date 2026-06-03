@@ -127,14 +127,12 @@ The five QAs are prioritized in order of the greatest constraint they impose on 
 | 36,000 | 100 ms | 80 ms | 56 ms | 24 ms |
 | **43,200** | **83 ms** | **66 ms** | **46 ms** | **20 ms** |
 
-> ⚠️ **팀 결정 필요 — 지원 BPH 범위 미확정 (보유 시계 BPH 확인 후 결정)**
+> | 옵션 / Option | 지원 범위 / Range | end-to-end | ① | ② | 비고 / Note |
+> |:------------:|-----------------|-----------|---|---|---|
+> | **Option A** *(현재 목표 / current target)* | ~28,800 BPH | **< 100 ms** | **< 70 ms** | **< 30 ms** | 기본 목표 / Baseline target |
+> | **Option B** *(stretch)* | ~43,200 BPH (worst-case) | < 66 ms | < 46 ms | < 20 ms | EX-01 결과 후 상향 검토 / Consider after EX-01 |
 >
-> | 옵션 / Option | 지원 범위 / Range | end-to-end | ① | ② |
-> |:------------:|-----------------|-----------|---|---|
-> | **Option A** | ~28,800 BPH | < 100 ms | < 70 ms | < 30 ms |
-> | **Option B** *(현재 잠정 / current provisional)* | ~43,200 BPH (worst-case) | **< 66 ms** | **< 46 ms** | **< 20 ms** |
->
-> *현재 잠정값은 Option B (worst-case 43,200 BPH 기준). EX-01 결과 및 보유 시계 BPH 확인 후 팀 합의로 확정.*
+> *현재 잠정값은 Option A (28,800 BPH 기준). EX-01 결과 후 Option B 상향 가능 여부 팀 합의로 결정.*
 
 **English**
 
@@ -143,7 +141,7 @@ The five QAs are prioritized in order of the greatest constraint they impose on 
 
 > ⚠️ **Team decision required — supported BPH range not yet confirmed (to be decided after verifying available watches)**
 >
-> *Current provisional values use Option B (worst-case 43,200 BPH). To be finalized by team after EX-01 results and available watch BPH confirmation.*
+> *Current target is Option A (28,800 BPH baseline). Option B (43,200 BPH stretch) will be considered for upgrade after EX-01 results.*
 
 **공통 제약 / Common Constraints**: Dropped audio block: 0, Missed beat: 0  
 *([EX-01](./planned-experiments.md#ex-01-rpi-성능-벤치마크--rpi-performance-benchmark) 결과 후 확정 / to be confirmed after EX-01)*
