@@ -41,13 +41,12 @@ Each risk is assessed on a High/Medium/Low scale for both Probability and Impact
 | NR-01 | 코딩팀-아키텍처팀 역할 경계 불명확 — 설계 결정이 구현에 미반영 또는 중복 작업 / Coding/architecture boundary unclear — design decisions not reaching implementation | H | H | 현재 동기화 회의 미고정; 구현 시작 전 아키텍처 리뷰 게이트 없음 / No fixed sync meeting; no architecture review gate before implementation |
 | NR-02 | 일부 팀원이 OOD 설계에 익숙하지 않아 설계 의도와 구현 불일치 / C++/Qt 숙련도 차이로 코드 리뷰·통합 단계 병목 / OOD unfamiliarity causes implementation deviation; skill gap creates integration bottleneck | H | H | DSP 파이프라인은 도메인 지식 필요; 숙련도 차이가 통합 단계에서 병목 / DSP pipeline requires domain knowledge; skill gap compounds at integration |
 | NR-03 | 소통 채널 분산 (오프라인 + KakaoTalk + Teams) — 설계 결정사항 추적 어렵고 부재 팀원 전달 누락 / Fragmented comms — design decisions hard to track, absent members miss updates | H | M | 현재 설계 결정의 단일 기록 채널 없음 / No single channel for design decision records |
-| NR-04 | M1 이전 멘토 미팅 미진행 — 아키텍처 방향 사전 검증 없이 M1 제출 / No mentor meeting before M1 — architecture direction unvalidated | H | H | 근본 결함 발견 시 M2 전 전면 재작업 필요 / Fundamental flaws require full rework before M2 |
-| NR-05 | Hung Son Tong에게 설계 의도 전달 누락 위험 / 팀 전반의 영어 커뮤니케이션 부담 / Design intent lost in translation for Hung Son; team-wide English communication burden | M | H | 한국어 위주 오프라인 회의 결정사항이 영어로 전달 안 되면 잘못된 구현 발생 / Korean-only offline decisions cause wrong implementation if not translated |
-| NR-06 | 범위 과다 확장 — 11개 그래프 전부 구현 시 핵심 기능 품질 저하 / 5주 일정 내 완성 불가 / Scope overextension — full 11-graph implementation degrades core quality in 5-week schedule | H | M | 7명 × 2h/day = 70h/week 대비 추정 작업량 143h 이상 / Estimated 143h+ workload vs 70h/week capacity |
-| NR-07 | Equations_v0 미숙지로 측정 공식 잘못된 구현 / Measurement formula misimplementation — insufficient Equations_v0 familiarity | M | H | Rate/Amplitude/Beat Error 공식 오해 시 QAR-03 달성 불가 / Misunderstood formulas make QAR-03 (Measurement Accuracy) unachievable |
-| NR-08 | WeiShi 1000 레퍼런스 디바이스 접근 지연 — 정확도 비교 기준 없이 Correctness 검증 불가 / Delayed WeiShi 1000 access — accuracy validation impossible without reference | M | H | 레퍼런스 없이는 ±5 s/d 오차 기준 충족 여부 확인 불가 / Cannot verify ±5 s/d error margin without reference device |
-| NR-09 | 하드웨어 장애 (RPi, 센서 스탠드, 시계) — 대체 장비 없어 실물 검증 전면 중단 / Hardware failure — no spare equipment, physical validation fully blocked | L | H | RPi 고장 시 Sim 모드로 일부 개발 가능하나 실물 검증 불가 / RPi failure allows Sim-mode dev only; no physical validation |
-| NR-10 | 시계 공학 도메인 지식 부족 — Escapement 원리 미이해 시 측정값 해석 오류 가능 / Insufficient watch engineering knowledge — risk of misinterpreting measurement values | M | L | 문서(Witschi Training Course)로 보완 가능한 수준 / Recoverable via documentation (Witschi Training Course) |
+| NR-04 | 팀 전반의 영어 커뮤니케이션 부담 / Team-wide English communication burden | M | H | 한국어 위주 오프라인 회의 결정사항이 영어로 전달 안 되면 잘못된 구현 발생 / Korean-only offline decisions cause wrong implementation if not translated |
+| NR-05 | 범위 과다 확장 — 11개 그래프 전부 구현 시 핵심 기능 품질 저하 / 5주 일정 내 완성 불가 / Scope overextension — full 11-graph implementation degrades core quality in 5-week schedule | H | M | 7명 × 2h/day = 70h/week 대비 추정 작업량 143h 이상 / Estimated 143h+ workload vs 70h/week capacity |
+| NR-06 | Equations_v0 미숙지로 측정 공식 잘못된 구현 / Measurement formula misimplementation — insufficient Equations_v0 familiarity | M | H | Rate/Amplitude/Beat Error 공식 오해 시 QAR-03 달성 불가 / Misunderstood formulas make QAR-03 (Measurement Accuracy) unachievable |
+| NR-07 | WeiShi 1000 레퍼런스 디바이스 접근 지연 — 정확도 비교 기준 없이 Accuracy 검증 불가 / Delayed WeiShi 1000 access — accuracy validation impossible without reference | M | H | 레퍼런스 없이는 ±5 s/d 오차 기준 충족 여부 확인 불가 / Cannot verify ±5 s/d error margin without reference device |
+| NR-08 | 하드웨어 장애 (RPi, 센서 스탠드, 시계) — 대체 장비 없어 실물 검증 전면 중단 / Hardware failure — no spare equipment, physical validation fully blocked | L | H | RPi 고장 시 Sim 모드로 일부 개발 가능하나 실물 검증 불가 / RPi failure allows Sim-mode dev only; no physical validation |
+| NR-09 | 시계 공학 도메인 지식 부족 — Escapement 원리 미이해 시 측정값 해석 오류 가능 / Insufficient watch engineering knowledge — risk of misinterpreting measurement values | M | L | 문서(Witschi Training Course)로 보완 가능한 수준 / Recoverable via documentation (Witschi Training Course) |
 
 ---
 
@@ -67,7 +66,7 @@ All issues below directly affect final demo quality (QA achievement). The conseq
 | OI-04 | `MainWindow.cpp` God Object 리팩토링 범위 확정 (`MeasurementEngine`, `AudioCapture` 분리) / Confirm refactoring scope | TR-07 | **QAR-04 확장성 미달** — 신규 그래프 추가마다 전체 파일 충돌 / Extensibility QA fails — every new graph triggers whole-file conflicts |
 | OI-05 | macOS `Q_OS_MAC` 빌드 분기 처리 방안 결정 / Decide macOS branch strategy | TR-08 | macOS 팀원 2명이 로컬에서 오디오 기능 테스트 불가 — 개발 속도 저하 / 2 macOS devs cannot test audio locally — development slowdown |
 | OI-06 | 코딩팀-아키텍처팀 협업 프로세스 및 Teams 채널 구조 확정 / Finalize collaboration process and Teams channel structure | NR-01 | 설계 결정이 구현에 반영되지 않아 M2 전 전면 재작업 위험 / Design decisions not reaching implementation — full rework risk before M2 |
-| OI-07 | 11개 그래프 우선순위 분류 확정 (Core / Required / Stretch) / Finalize graph priority classification | NR-06 | 우선순위 없이 개발 시 핵심 기능 미완성 상태로 데모 진행 위험 / Without priority, core features may be incomplete at demo |
+| OI-07 | 11개 그래프 우선순위 분류 확정 (Core / Required / Stretch) / Finalize graph priority classification | NR-05 | 우선순위 없이 개발 시 핵심 기능 미완성 상태로 데모 진행 위험 / Without priority, core features may be incomplete at demo |
 
 ---
 
