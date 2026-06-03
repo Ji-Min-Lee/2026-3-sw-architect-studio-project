@@ -69,8 +69,8 @@ Technical risks with uncertainty are resolved through Planned Experiments; other
 
 | 이슈 / Issue | 대응 / Action | 완료 기준 / Done When |
 |:-----------:|--------------|---------------------|
-| OI-01, OI-02 | **EX-01**: onset vs peak 비교 실험, WeiShi 1000 기준 오차 측정 / Compare onset vs peak, measure error vs WeiShi 1000 | 감지 방식 결정 + 오차 margin 수치 확보 / Method decided + error margin measured |
-| OI-03 | **EX-02**: RPi에서 96k/48k sps × Qt GUI 처리 시간 및 FPS 실측 / Measure processing time and FPS at 96k/48k sps with Qt GUI | sps별 처리 시간 + FPS 확보; 48k 폴백 여부 결정 / Time and FPS measured; fallback decided |
+| OI-01, OI-02 | **EX-02**: onset vs peak 비교 실험, WeiShi 1000 기준 오차 측정 / Compare onset vs peak, measure error vs WeiShi 1000 | 감지 방식 결정 + 오차 margin 수치 확보 / Method decided + error margin measured |
+| OI-03 | **EX-01**: RPi에서 96k/48k sps × Qt GUI 처리 시간 및 FPS 실측 / Measure processing time and FPS at 96k/48k sps with Qt GUI | sps별 처리 시간 + FPS 확보; 48k 폴백 여부 결정 / Time and FPS measured; fallback decided |
 | OI-04 | `AudioCapture` / `MeasurementEngine` 분리 범위 확정 후 4-layer 모듈 경계 문서화 / Confirm split scope and document 4-layer boundaries | 모듈 경계 확정 / Module boundaries locked |
 | OI-05 | `Q_OS_MAC` 분기 추가 또는 `MacAudio` 스텁 생성 / Add `Q_OS_MAC` branch or `MacAudio` stub | macOS에서 빌드 성공 / Build succeeds on macOS |
 | OI-06 | 매일 오후 동기화 회의 고정 + Teams 채널 소통 / Fix daily afternoon sync meeting + communicate via Teams channel | 첫 동기화 회의 완료 / First sync meeting held |

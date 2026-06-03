@@ -2,11 +2,35 @@ cmake_minimum_required(VERSION 3.16)
 
 project(TimeGrapher VERSION 0.1 LANGUAGES CXX)
 
+# Set deployment target to match system
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "macOS deployment target")
+    set(CMAKE_OSX_ARCHITECTURES "arm64")
+    
+    # Apple Silicon clang 12.0.5 MOC crash workaround
+    find_program(CCACHE_PROGRAM ccache)
+    if(CCACHE_PROGRAM)
+        set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE PATH "C compiler launcher")
+    endif()
+    
+    # Force separate MOC compilation instead of unity build
+    set(CMAKE_AUTOMOC_MOC_OPTIONS --no-warnings)
+    
+    # Disable all optimizations for MOC compilation files only
+    string(APPEND CMAKE_CXX_FLAGS " -w -O0")
+endif()
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+# Workaround for Apple Silicon clang MOC segfault
+set(CMAKE_UNITY_BUILD OFF)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+# Disable LTO which can cause issues with MOC
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -38,7 +62,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(TimeGrapher
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        qcustomplot.h
         qcustomplot.cpp
         AudioWorker.h
         AudioWorker.cpp
@@ -129,6 +152,12 @@ set_target_properties(TimeGrapher PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
+
+if(APPLE)
+    set_target_properties(TimeGrapher PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/MacInfo.plist"
+    )
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS TimeGrapher

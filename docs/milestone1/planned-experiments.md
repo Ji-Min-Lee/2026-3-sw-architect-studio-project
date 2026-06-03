@@ -28,7 +28,7 @@ Results:      [Fill in at M2]
 | Field | Value |
 |-------|-------|
 | **Question** | What is the maximum sustained audio sample rate the RPi 5 can process while running the Qt GUI without dropping blocks? |
-| **Risk Addressed** | TR-01 (RPi cannot sustain 96k sps) |
+| **Risk Addressed** | TR-03 (RPi cannot sustain 96k sps) |
 | **Approach** | Run TimeGrapher in Sim mode at 48k, 96k, 192k sps. Measure: FPS, dropped audio blocks, CPU %, memory usage. |
 | **Setup** | Raspberry Pi 5 + 8" touchscreen, TimeGrapher_v10.5, AlsaMixer AGC disabled, Sim mode |
 | **Completion Criteria** | Data collected at all three sample rates; clear recommendation for target sps |
@@ -43,7 +43,7 @@ Results:      [Fill in at M2]
 | Field | Value |
 |-------|-------|
 | **Question** | Which T1 detection reference point (onset vs peak) produces the most stable and accurate rate/beat-error measurements? |
-| **Risk Addressed** | TR-02 (beat detection inaccurate) |
+| **Risk Addressed** | TR-01 (beat detection inaccurate) |
 | **Approach** | Use a known-rate watch. Record signal. Detect T1 using (a) onset, (b) peak methods. Compare rate and beat error against WeiShi 1000 reference. |
 | **Setup** | Mechanical watch, WeiShi No.1000 reference, recorded PCM signal (Playback mode), analysis script |
 | **Completion Criteria** | Quantitative comparison of onset vs peak detection accuracy (mean error, std dev vs reference) |
@@ -58,7 +58,7 @@ Results:      [Fill in at M2]
 | Field | Value |
 |-------|-------|
 | **Question** | What low-pass and high-pass cutoff values best preserve watch beat events while rejecting ambient noise? |
-| **Risk Addressed** | TR-05 (ambient noise causes erratic measurements) |
+| **Risk Addressed** | TR-01 (ambient noise degrades beat detection accuracy) |
 | **Approach** | Apply LP/HP filters at different cutoff combinations to recorded watch signal + noise. Evaluate T1/T3 visibility and detection SNR. |
 | **Setup** | Recorded watch PCM with and without ambient noise, parameter sweep script, visualization |
 | **Completion Criteria** | Recommended LP/HP default values with justification; documented effect on detection quality |
@@ -73,7 +73,7 @@ Results:      [Fill in at M2]
 | Field | Value |
 |-------|-------|
 | **Question** | Can the Qt project be built on macOS/Windows and deployed to RPi, or must we build natively on RPi? |
-| **Risk Addressed** | TR-03 (cross-compilation fails) |
+| **Risk Addressed** | TR-06 (no macOS build branch — 2 devs cannot test locally) |
 | **Approach** | Attempt Qt cross-compile with RPi sysroot on macOS. If failed, verify native build on RPi and assess build time. |
 | **Setup** | macOS dev machine, Qt Creator, RPi 5, SSH access |
 | **Completion Criteria** | Working binary running on RPi 5 with confirmed build path documented |
