@@ -55,7 +55,7 @@ Each open issue directly affects final demo outcome.
 | OI-06 | 코딩팀-아키텍처팀 동기화 프로세스 미확정 / Coding/arch sync process not defined | NR-01 | 설계 결정이 구현에 미반영 — M2 전 전면 재작업 위험 / Design decisions not implemented — rework risk before M2 |
 | OI-07 | 11개 그래프 우선순위 미분류 / Graph priority not classified | NR-02 | 핵심 기능 미완성 상태로 데모 진행 위험 / Core features incomplete at demo |
 | OI-08 | WeiShi 1000 대여 일정 미확보 / WeiShi 1000 loan schedule not secured | NR-03 | ±5 s/d 오차 기준 충족 여부 확인 불가 / Cannot verify ±5 s/d accuracy target |
-| OI-09 | 오프라인 결정사항 영어 공유 프로세스 없음 / No process to share offline decisions in English | NR-04 | 영어권 팀원의 잘못된 구현 위험 / Risk of wrong implementation by English-speaking member |
+| OI-09 | 팀 내 소통 언어 불일치 — 산출물 작성 기준 미정 / Language mismatch — no standard for deliverable writing (교수 외국인, 발표·마일스톤 제출 영어 필수) | NR-04 | 영어권 팀원 이해 누락 + 마일스톤 제출물 품질 저하 / English-speaking member misses context + milestone quality degraded |
 
 ---
 
@@ -76,4 +76,4 @@ Technical risks with uncertainty are resolved through Planned Experiments; other
 | OI-06 | 매일 오후 동기화 회의 고정 + Teams 채널 소통 / Fix daily afternoon sync meeting + communicate via Teams channel | 첫 동기화 회의 완료 / First sync meeting held |
 | OI-07 | 11개 그래프를 Core / Required / Stretch로 분류 / Classify graphs as Core / Required / Stretch | 팀 합의 완료 / Team agreement reached |
 | OI-08 | WeiShi 1000 대여 일정 조기 확보 / Secure WeiShi 1000 loan schedule early | 대여 일정 확정 / Loan date confirmed |
-| OI-09 | 오프라인 회의 결정사항 영문 요약 Teams 공유 / Share English summary of offline decisions on Teams | 매 회의 후 영문 요약 업로드 / English summary posted after each meeting |
+| OI-09 | 모든 산출물을 한영 병기로 작성; 마일스톤 제출·발표는 영어 기준 / Write all deliverables in bilingual (KO/EN); milestone submissions and presentations in English | 팀 전체 작성 기준 합의 완료 / Writing standard agreed by team |
