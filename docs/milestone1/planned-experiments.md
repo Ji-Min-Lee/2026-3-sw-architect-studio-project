@@ -36,19 +36,25 @@ Each experiment resolves a specific open issue (OI) or technical risk (TR) and c
 
 **한국어**
 
-Qt GUI가 실행 중인 RPi 5에서 오디오 블록 드롭 없이 지속할 수 있는 최대 sps는 얼마인가? capture→process 구간 지연은 얼마인가?
+Qt GUI가 실행 중인 RPi 5에서 오디오 블록 드롭 없이 지속할 수 있는 최대 sps는 얼마인가? QAS-3의 3개 지연 구간은 각각 얼마인가?
 
 이 실험은 다음 결정의 근거 데이터를 제공한다:
 - QAS-1: 목표 sps 확정 (96k 유지 / 48k 폴백 여부)
-- QAS-3: capture→process 지연 수치 확정 (현재 잠정값 < 70 ms)
+- QAS-3: 3구간 지연 수치 확정
+  - ① capture→process: 오디오 콜백 시작 → beat event 타임스탬프 생성 (잠정 < 70 ms)
+  - ② process→display: beat event 타임스탬프 → GUI 화면 갱신 완료 (잠정 < 30 ms)
+  - ③ end-to-end: ① + ② 전체 (잠정 < 100 ms)
 
 **English**
 
-What is the maximum sps the RPi 5 can sustain without dropping audio blocks while running the Qt GUI? What is the capture→process latency?
+What is the maximum sps the RPi 5 can sustain without dropping audio blocks while running the Qt GUI? What are the three latency segments of QAS-3?
 
 This experiment provides data for:
 - QAS-1: Confirm target sps (sustain 96k or fall back to 48k)
-- QAS-3: Finalize capture→process latency (current provisional: < 70 ms)
+- QAS-3: Finalize all three latency segments
+  - ① capture→process: audio callback start → beat event timestamp generated (provisional < 70 ms)
+  - ② process→display: beat event timestamp → GUI screen update complete (provisional < 30 ms)
+  - ③ end-to-end: ① + ② total (provisional < 100 ms)
 
 ---
 
@@ -62,13 +68,15 @@ This experiment provides data for:
 
 **한국어**
 
-- 48k / 96k / 192k sps별 CPU 점유율, 드롭 블록 수, capture→process 지연, GUI FPS 측정표
+- 48k / 96k / 192k sps별 CPU 점유율, 드롭 블록 수, GUI FPS 측정표
+- QAS-3 3구간 지연 측정값: ① capture→process, ② process→display, ③ end-to-end
 - 목표 sps 결정 (96k 유지 / 48k 폴백) 및 근거
 - QAS-1 / QAS-3 수치 확정 (잠정값 대체)
 
 **English**
 
-- Table of CPU usage, dropped block count, capture→process latency, and GUI FPS at 48k / 96k / 192k sps
+- Table of CPU usage, dropped block count, and GUI FPS at 48k / 96k / 192k sps
+- QAS-3 latency measurements: ① capture→process, ② process→display, ③ end-to-end
 - Target sps decision (sustain 96k / fall back to 48k) with rationale
 - Finalized QAS-1 / QAS-3 values (replacing provisional figures)
 
@@ -90,7 +98,11 @@ This experiment provides data for:
 
 1. AlsaMixer에서 AGC 비활성화 후 TimeGrapher Sim 모드 실행
 2. 48k → 96k → 192k sps 순서로 각 5분 실행
-3. 각 sps에서 측정: CPU 점유율, 드롭 블록 수, capture→process 지연 (`QElapsedTimer`), GUI FPS
+3. 각 sps에서 측정:
+   - CPU 점유율 (`htop`), 드롭 블록 수, GUI FPS
+   - ① capture→process: 오디오 콜백 시작 → beat event 타임스탬프 생성 (`QElapsedTimer`)
+   - ② process→display: beat event 타임스탬프 → GUI `paintEvent` 완료 (`QElapsedTimer`)
+   - ③ end-to-end: ① + ② 합산
 4. FFT 스펙트로그램 탭 활성화 후 동일 측정 반복 (TR-07)
 5. 결과 표 작성 및 48k 폴백 여부 결정
 
@@ -98,7 +110,11 @@ This experiment provides data for:
 
 1. Disable AGC in AlsaMixer and run TimeGrapher in Sim mode
 2. Run at 48k → 96k → 192k sps, 5 minutes each
-3. At each sps, measure: CPU usage, dropped blocks, capture→process latency (`QElapsedTimer`), GUI FPS
+3. At each sps, measure:
+   - CPU usage (`htop`), dropped blocks, GUI FPS
+   - ① capture→process: audio callback start → beat event timestamp generated (`QElapsedTimer`)
+   - ② process→display: beat event timestamp → GUI `paintEvent` complete (`QElapsedTimer`)
+   - ③ end-to-end: ① + ② combined
 4. Enable FFT spectrogram tab and repeat (TR-07)
 5. Compile results table and decide on 48k fallback
 
