@@ -69,11 +69,11 @@ Technical risks with uncertainty are resolved through Planned Experiments; other
 
 | 이슈 / Issue | 대응 / Action | 완료 기준 / Done When |
 |:-----------:|--------------|---------------------|
-| OI-01, OI-02 | **EX-02**: `tg_c_placement_t` 설정별 오차 비교 실험 — `TG_C_PLACEMENT_PEAK` / `TG_C_PLACEMENT_ONSET` 각각으로 동일 시계 측정 후 WeiShi 1000 기준 Rate/Amplitude 오차 비교 (onset/peak 감지 자체는 코드에 구현 완료, 최적 설정 선택이 목적) / Compare error by `tg_c_placement_t` setting — measure same watch with PEAK vs ONSET placement, compare Rate/Amplitude error vs WeiShi 1000 (detection already implemented; goal is selecting optimal setting) | placement 설정 결정 + 오차 margin 수치 확보 / Placement setting decided + error margin measured |
+| OI-01, OI-02 | **EX-03**: `tg_c_placement_t` 설정별 오차 비교 실험 — `TG_C_PLACEMENT_PEAK` / `TG_C_PLACEMENT_ONSET` 각각으로 동일 시계 측정 후 WeiShi 1000 기준 Rate/Amplitude 오차 비교 (onset/peak 감지 자체는 코드에 구현 완료, 최적 설정 선택이 목적) / Compare error by `tg_c_placement_t` setting — measure same watch with PEAK vs ONSET placement, compare Rate/Amplitude error vs WeiShi 1000 (detection already implemented; goal is selecting optimal setting) | placement 설정 결정 + 오차 margin 수치 확보 / Placement setting decided + error margin measured |
 | OI-03 | **EX-01**: RPi에서 96k/48k sps × Qt GUI 처리 시간 및 FPS 실측 / Measure processing time and FPS at 96k/48k sps with Qt GUI | sps별 처리 시간 + FPS 확보; 48k 폴백 여부 결정 / Time and FPS measured; fallback decided |
 | OI-04 | `AudioCapture` / `MeasurementEngine` 분리 범위 확정 후 4-layer 모듈 경계 문서화 / Confirm split scope and document 4-layer boundaries | 모듈 경계 확정 / Module boundaries locked |
 | OI-05 | `Q_OS_MAC` 분기 추가 또는 `MacAudio` 스텁 생성 / Add `Q_OS_MAC` branch or `MacAudio` stub | macOS에서 빌드 성공 / Build succeeds on macOS |
 | OI-06 | 매일 오후 동기화 회의 고정 + Teams 채널 소통 / Fix daily afternoon sync meeting + communicate via Teams channel | 첫 동기화 회의 완료 / First sync meeting held |
 | OI-07 | 11개 그래프를 Core / Required / Stretch로 분류 / Classify graphs as Core / Required / Stretch | 팀 합의 완료 / Team agreement reached |
 | OI-08 | 모든 산출물을 한영 병기로 작성; 마일스톤 제출·발표는 영어 기준 / Write all deliverables in bilingual (KO/EN); milestone submissions and presentations in English | 팀 전체 작성 기준 합의 완료 / Writing standard agreed by team |
-| OI-09 | **EX-03**: WeiShi 1000 & RPi 동시 측정 환경 구축 실험 — 마이크 분기 또는 순차 측정 방식 검토 / Experiment simultaneous measurement setup — evaluate mic splitter or sequential method | 동시 측정 가능 여부 확인 + 방식 결정 / Setup feasibility confirmed + method decided |
+| OI-09 | **EX-02**: WeiShi 1000 & RPi 동시 측정 환경 구축 실험 — 마이크 분기 또는 순차 측정 방식 검토 / Experiment simultaneous measurement setup — evaluate mic splitter or sequential method | 동시 측정 가능 여부 확인 + 방식 결정 / Setup feasibility confirmed + method decided |
