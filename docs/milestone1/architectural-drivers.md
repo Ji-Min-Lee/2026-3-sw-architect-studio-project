@@ -215,5 +215,5 @@ Language, framework, and library choices are team decisions and are therefore no
 
 | 제약 / Constraint | 내용 / Detail | 변경 불가 이유 / Rationale |
 |------------------|-------------|--------------------------|
-| 타겟 하드웨어 / Target Hardware | Raspberry Pi 5 (ARM64, 8GB RAM) + USB audio sensor + 8" touchscreen | 프로젝트에서 하드웨어 지급 / Hardware provided by program |
+| 타겟 하드웨어 / Target Hardware | Raspberry Pi 5 (ARM64, 16GB RAM) + USB audio sensor + 8" touchscreen | 프로젝트에서 하드웨어 지급 / Hardware provided by program |
 | 레퍼런스 디바이스 / Reference Device | WeiShi No.1000 | 평가 기준 장비 — 정확도 측정의 ground truth / Grading reference device — ground truth for accuracy |
