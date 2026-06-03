@@ -278,15 +278,15 @@ QAS-2 uses WeiShi No.1000 as the reference. Without the same input signal, watch
 
 `TG_C_PLACEMENT_PEAK`(C 이벤트 최대 진폭 지점)와 `TG_C_PLACEMENT_ONSET`(C peak에서 역방향 half-height 교차점) 중 어느 설정이 WeiShi No.1000 대비 Rate / Beat Error 오차를 최소화하는가?
 
-onset / peak 감지 자체는 `Detector.cpp` / `Timegrapher.h`에 이미 구현되어 있다. `tg_c_placement_t` 파라미터로 primary timing 기준을 전환할 수 있으므로, 이 실험은 **최적 설정 선택**이 목적이다. 결과는 QAS-2 수치 (Rate < 5 s/d, Beat Error < 0.1 ms) 확정의 근거가 된다.
+onset / peak 감지 자체는 `Detector.cpp` / `Timegrapher.h`에 이미 구현되어 있다. `tg_c_placement_t` 파라미터로 primary timing 기준을 전환할 수 있으므로, 이 실험은 **최적 설정 선택**이 목적이다. Beat Error는 A 이벤트만으로 계산되므로 placement 설정과 무관하다. 결과는 QAS-2 수치 (Rate < 5 s/d) 및 Amplitude 오차 확정의 근거가 된다.
 
 > **선행 조건**: EX-02 완료 후 실행
 
 **English**
 
-Which setting — `TG_C_PLACEMENT_PEAK` (C event at maximum amplitude) or `TG_C_PLACEMENT_ONSET` (half-height crossing found by backward walk from peak) — minimizes Rate and Beat Error error vs WeiShi No.1000?
+Which setting — `TG_C_PLACEMENT_PEAK` (C event at maximum amplitude) or `TG_C_PLACEMENT_ONSET` (half-height crossing found by backward walk from peak) — minimizes Rate and Amplitude error vs WeiShi No.1000?
 
-Onset/peak detection is already implemented in `Detector.cpp` / `Timegrapher.h`. Since `tg_c_placement_t` switches the primary timing reference, this experiment selects the **optimal setting**. Results confirm QAS-2 thresholds (Rate < 5 s/d, Beat Error < 0.1 ms).
+Onset/peak detection is already implemented in `Detector.cpp` / `Timegrapher.h`. Since `tg_c_placement_t` switches the primary timing reference, this experiment selects the **optimal setting**. Beat Error is computed solely from A events and is unaffected by placement. Results confirm QAS-2 Rate threshold (< 5 s/d) and establish the Amplitude error margin.
 
 > **Prerequisite**: Run after EX-02 is concluded.
 
@@ -302,15 +302,15 @@ Onset/peak detection is already implemented in `Detector.cpp` / `Timegrapher.h`.
 
 **한국어**
 
-- `TG_C_PLACEMENT_PEAK` vs `TG_C_PLACEMENT_ONSET` 설정별 Rate / Beat Error 오차(mean, std dev) 비교표 (2종 이상 시계)
+- `TG_C_PLACEMENT_PEAK` vs `TG_C_PLACEMENT_ONSET` 설정별 Rate / Amplitude 오차(mean, std dev) 비교표 (2종 이상 시계)
 - 최적 `tg_c_placement_t` 설정 확정
-- QAS-2 수치 확정 (잠정값 대체)
+- QAS-2 Rate 수치 확정 및 Amplitude 오차 margin 확보 (잠정값 대체)
 
 **English**
 
-- Comparison table of Rate / Beat Error error (mean, std dev) for PEAK vs ONSET setting across 2+ watch models
+- Comparison table of Rate / Amplitude error (mean, std dev) for PEAK vs ONSET setting across 2+ watch models
 - Confirmed optimal `tg_c_placement_t` setting
-- Finalized QAS-2 thresholds (replacing provisional values)
+- Finalized QAS-2 Rate threshold and established Amplitude error margin (replacing provisional values)
 
 ---
 
@@ -334,7 +334,7 @@ Onset/peak detection is already implemented in `Detector.cpp` / `Timegrapher.h`.
 1. WeiShi No.1000으로 레퍼런스 Rate, Beat Error 기록
 2. 동일 시계 신호를 RPi USB 마이크로 PCM 녹음 (30초 이상)
 3. Playback 모드에서 (a) `TG_C_PLACEMENT_PEAK`, (b) `TG_C_PLACEMENT_ONSET`으로 각각 실행
-4. 각 설정의 Rate, Beat Error를 WeiShi 레퍼런스와 비교
+4. 각 설정의 Rate, Amplitude를 WeiShi 레퍼런스와 비교 (Beat Error는 A 이벤트 기반으로 placement와 무관하므로 제외)
 5. 오차 통계 (mean, std dev) 산출; 낮은 오차 설정 확정
 6. 시계 2종 이상으로 반복하여 일반성 검증
 
@@ -345,7 +345,7 @@ Onset/peak detection is already implemented in `Detector.cpp` / `Timegrapher.h`.
 1. Record reference Rate and Beat Error from WeiShi No.1000
 2. Record PCM audio of the same watch via USB mic (30+ seconds)
 3. Run Playback mode with (a) `TG_C_PLACEMENT_PEAK`, (b) `TG_C_PLACEMENT_ONSET`
-4. Compare Rate and Beat Error for each setting against WeiShi reference
+4. Compare Rate and Amplitude for each setting against WeiShi reference (Beat Error excluded — computed from A events only, unaffected by placement)
 5. Compute error statistics (mean, std dev); confirm lower-error setting
 6. Repeat with 2+ watch models to verify generalizability
 
@@ -355,15 +355,15 @@ Onset/peak detection is already implemented in `Detector.cpp` / `Timegrapher.h`.
 
 **한국어**
 
-- 두 설정의 오차 수치가 2종 이상 시계에 대해 측정됨
+- 두 설정의 Rate / Amplitude 오차 수치가 2종 이상 시계에 대해 측정됨
 - 최적 `tg_c_placement_t` 설정 팀 합의로 확정
-- QAS-2 잠정값이 실측 데이터로 대체됨
+- QAS-2 Rate 잠정값 및 Amplitude 오차 margin이 실측 데이터로 대체됨
 
 **English**
 
-- Error data collected for both settings across 2+ watch models
+- Rate / Amplitude error data collected for both settings across 2+ watch models
 - Optimal `tg_c_placement_t` setting confirmed by team
-- QAS-2 provisional values replaced with empirical data
+- QAS-2 Rate provisional value and Amplitude error margin replaced with empirical data
 
 ---
 
