@@ -74,7 +74,7 @@ Technical risks with uncertainty are resolved through Planned Experiments; other
 | OI-03 | **EX-01**: RPi에서 96k/48k sps × Qt GUI 처리 시간 및 FPS 실측 / Measure processing time and FPS at 96k/48k sps with Qt GUI | sps별 처리 시간 + FPS 확보; 48k 폴백 여부 결정 / Time and FPS measured; fallback decided |
 | OI-04 | `AudioCapture` / `MeasurementEngine` 분리 범위 확정 후 4-layer 모듈 경계 문서화 / Confirm split scope and document 4-layer boundaries | 모듈 경계 확정 / Module boundaries locked |
 | OI-05 | `Q_OS_MAC` 분기 추가 또는 `MacAudio` 스텁 생성 / Add `Q_OS_MAC` branch or `MacAudio` stub | macOS에서 빌드 성공 / Build succeeds on macOS |
-| OI-06 | 매일 오후 동기화 회의 고정 + Teams 채널 소통 / Fix daily afternoon sync meeting + communicate via Teams channel | 첫 동기화 회의 완료 / First sync meeting held |
-| OI-07 | 11개 그래프를 Core / Required / Stretch로 분류 / Classify graphs as Core / Required / Stretch | 팀 합의 완료 / Team agreement reached |
-| OI-08 | 모든 산출물을 한영 병기로 작성; 마일스톤 제출·발표는 영어 기준 / Write all deliverables in bilingual (KO/EN); milestone submissions and presentations in English | 팀 전체 작성 기준 합의 완료 / Writing standard agreed by team |
+| OI-06 | 매일 오후 동기화 회의 고정 + Teams 채널 소통 / Fix daily afternoon sync meeting + communicate via Teams channel | Project Plan 작성 시 코딩팀-아키텍처팀 역할 경계 확정 및 문서화 완료 / Role boundaries confirmed and documented in Project Plan |
+| OI-07 | 11개 그래프를 Core / Required / Stretch로 분류 / Classify graphs as Core / Required / Stretch | 11개 그래프 우선순위가 Project Plan에 Core / Required / Stretch로 분류 반영됨 / Graph priorities classified as Core / Required / Stretch and reflected in Project Plan |
+| OI-08 | 모든 산출물을 한영 병기로 작성; 마일스톤 제출·발표는 영어 기준 / Write all deliverables in bilingual (KO/EN); milestone submissions and presentations in English | 작성 기준 합의 완료 + M1 제출 산출물 전체가 한/영 병기 규칙 준수 확인됨 / Writing standard agreed + all M1 deliverables verified to comply with bilingual rule |
 | OI-09 | **EX-02**: WeiShi 1000 & RPi 동시 측정 환경 구축 실험 — 마이크 분기 또는 순차 측정 방식 검토 / Experiment simultaneous measurement setup — evaluate mic splitter or sequential method | 동시 측정 가능 여부 확인 + 방식 결정 / Setup feasibility confirmed + method decided |
