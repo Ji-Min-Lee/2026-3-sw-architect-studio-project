@@ -25,6 +25,7 @@ Each risk is assessed on a High/Medium/Low scale for both Probability and Impact
 | TR-05 | `MainWindow.cpp` God Object — 3명 동시 수정 시 merge conflict 상시 / God Object causes constant merge conflicts | H | H | OI-04 |
 | TR-06 | macOS 빌드 분기 없음 — macOS 팀원 2명 오디오 동작 불가 / No macOS branch — audio broken for 2 devs | H | M | OI-05 |
 | TR-07 | FFT 스펙트로그램 RPi CPU 과부하 / FFT spectrogram CPU overload on RPi | M | M | OI-03 |
+| TR-08 | WeiShi 1000 & RPi 동시 측정 환경 구축 불확실 — 동일 입력으로 accuracy 비교하려면 두 장비가 같은 시계 신호를 동시에 수집해야 함 / Simultaneous WeiShi 1000 & RPi measurement setup uncertain — same input required for accuracy comparison | H | H | OI-09 |
 
 ### 비기술 리스크 / Non-Technical Risks
 
@@ -54,6 +55,7 @@ Each open issue directly affects final demo outcome.
 | OI-06 | 코딩팀-아키텍처팀 동기화 프로세스 미확정 / Coding/arch sync process not defined | NR-01 | 설계 결정이 구현에 미반영 — M2 전 전면 재작업 위험 / Design decisions not implemented — rework risk before M2 |
 | OI-07 | 11개 그래프 우선순위 미분류 / Graph priority not classified | NR-02 | 핵심 기능 미완성 상태로 데모 진행 위험 / Core features incomplete at demo |
 | OI-08 | 팀 내 소통 언어 불일치 — 산출물 작성 기준 미정 / Language mismatch — no standard for deliverable writing (교수 외국인, 발표·마일스톤 제출 영어 필수) | NR-03 | 영어권 팀원 이해 누락 + 마일스톤 제출물 품질 저하 / English-speaking member misses context + milestone quality degraded |
+| OI-09 | WeiShi 1000 & RPi 동시 측정 환경 구축 가능 여부 미검증 / Simultaneous WeiShi 1000 & RPi measurement setup not verified | TR-08 | 동일 입력 기반 accuracy 비교 불가 — ±5 s/d 기준 충족 여부 확인 불가 / Cannot compare accuracy on same input — ±5 s/d target unverifiable |
 
 ---
 
@@ -74,3 +76,4 @@ Technical risks with uncertainty are resolved through Planned Experiments; other
 | OI-06 | 매일 오후 동기화 회의 고정 + Teams 채널 소통 / Fix daily afternoon sync meeting + communicate via Teams channel | 첫 동기화 회의 완료 / First sync meeting held |
 | OI-07 | 11개 그래프를 Core / Required / Stretch로 분류 / Classify graphs as Core / Required / Stretch | 팀 합의 완료 / Team agreement reached |
 | OI-08 | 모든 산출물을 한영 병기로 작성; 마일스톤 제출·발표는 영어 기준 / Write all deliverables in bilingual (KO/EN); milestone submissions and presentations in English | 팀 전체 작성 기준 합의 완료 / Writing standard agreed by team |
+| OI-09 | WeiShi 1000 & RPi 동시 측정 환경 구축 실험 — 마이크 분기 또는 순차 측정 방식 검토 / Experiment simultaneous measurement setup — evaluate mic splitter or sequential method | 동시 측정 가능 여부 확인 + 방식 결정 / Setup feasibility confirmed + method decided |
