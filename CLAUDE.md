@@ -47,4 +47,4 @@ Each file may have agent-specific wording (e.g. tool names, skill paths) but the
 
 ## Documentation Convention
 
-`docs/` 하위 문서 작성 시 `/time-grapher` 스킬의 문서 컨벤션을 참조한다.
+When writing files under `docs/`, refer to the documentation convention defined in the `/time-grapher` skill.
