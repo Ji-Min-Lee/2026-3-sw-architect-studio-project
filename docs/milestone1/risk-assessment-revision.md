@@ -18,7 +18,7 @@ Each risk is assessed on a High/Medium/Low scale for both Probability and Impact
 
 | ID | 리스크 / Risk | Prob | Impact | 연관 이슈 / Issue |
 |----|-------------|:----:|:------:|:----------------:|
-| TR-01 | Beat 감지 부정확 — 시계 기종마다 패턴 상이 / Beat detection inaccurate — pattern varies per watch | H | H | OI-01 |
+| TR-01 | C 이벤트 placement 설정 미최적화 — `TG_C_PLACEMENT_PEAK` vs `TG_C_PLACEMENT_ONSET` 중 어느 설정이 WeiShi 1000 기준 오차를 최소화하는지 미검증 / C-event placement not optimized — which of `TG_C_PLACEMENT_PEAK` vs `TG_C_PLACEMENT_ONSET` minimizes error vs WeiShi 1000 is unverified | H | H | OI-01 |
 | TR-02 | AGC 재활성화로 신호 왜곡 — 재부팅 후 측정값 신뢰 불가 / AGC re-enabled after reboot corrupts signal | M | H | OI-02 |
 | TR-03 | RPi에서 96k sps + Qt GUI 동시 처리 성능 미검증 / RPi throughput at 96k sps with Qt GUI unverified | H | H | OI-03 |
 | TR-04 | Qt 11개 그래프 탭 동시 렌더링 시 FPS 저하 / Qt FPS drops with 11 active graph tabs | M | H | OI-03 |
@@ -47,7 +47,7 @@ Each open issue directly affects final demo outcome.
 
 | ID | 미해결 이슈 / Open Issue | 연관 리스크 / Risk | 미해결 시 결과 / If Unresolved |
 |----|------------------------|:-----------------:|-------------------------------|
-| OI-01 | T1 감지 기준점 미결정 (onset vs peak) / T1 detection reference point undecided | TR-01 | Rate/Amplitude 측정값 신뢰 불가 / Measurement values unreliable |
+| OI-01 | C 이벤트 placement 설정 미결정 — onset/peak 감지는 코드에 구현되어 있으나(`tg_c_placement_t`), 어느 설정이 WeiShi 1000 기준 오차를 최소화하는지 미검증 / C-event placement undecided — onset/peak detection implemented (`tg_c_placement_t`) but optimal setting vs WeiShi 1000 unverified | TR-01 | Rate/Amplitude 측정값 신뢰 불가 / Measurement values unreliable |
 | OI-02 | RPi 재부팅 후 AGC 비활성화 지속 여부 미확인 / AGC-off persistence after reboot unverified | TR-02 | 모든 측정값 신뢰 불가 / All measurements unreliable |
 | OI-03 | GUI 실행 중 RPi 최대 성능 미측정 (sps, FPS, FFT) / RPi performance under load unverified | TR-03, TR-04, TR-07 | 실시간 처리 불가 — 데모에서 오디오·렌더링 실패 / Real-time processing fails at demo |
 | OI-04 | `MainWindow.cpp` 리팩토링 범위 미확정 / Refactoring scope not confirmed | TR-05 | 신규 그래프 추가마다 전체 파일 충돌 / Every new graph triggers whole-file conflicts |
@@ -69,7 +69,7 @@ Technical risks with uncertainty are resolved through Planned Experiments; other
 
 | 이슈 / Issue | 대응 / Action | 완료 기준 / Done When |
 |:-----------:|--------------|---------------------|
-| OI-01, OI-02 | **EX-01**: onset vs peak 비교 실험, WeiShi 1000 기준 오차 측정 / Compare onset vs peak, measure error vs WeiShi 1000 | 감지 방식 결정 + 오차 margin 수치 확보 / Method decided + error margin measured |
+| OI-01, OI-02 | **EX-01**: `tg_c_placement_t` 설정별 오차 비교 실험 — `TG_C_PLACEMENT_PEAK` / `TG_C_PLACEMENT_ONSET` 각각으로 동일 시계 측정 후 WeiShi 1000 기준 Rate/Amplitude 오차 비교 (onset/peak 감지 자체는 코드에 구현 완료, 최적 설정 선택이 목적) / Compare error by `tg_c_placement_t` setting — measure same watch with PEAK vs ONSET placement, compare Rate/Amplitude error vs WeiShi 1000 (detection already implemented; goal is selecting optimal setting) | placement 설정 결정 + 오차 margin 수치 확보 / Placement setting decided + error margin measured |
 | OI-03 | **EX-02**: RPi에서 96k/48k sps × Qt GUI 처리 시간 및 FPS 실측 / Measure processing time and FPS at 96k/48k sps with Qt GUI | sps별 처리 시간 + FPS 확보; 48k 폴백 여부 결정 / Time and FPS measured; fallback decided |
 | OI-04 | `AudioCapture` / `MeasurementEngine` 분리 범위 확정 후 4-layer 모듈 경계 문서화 / Confirm split scope and document 4-layer boundaries | 모듈 경계 확정 / Module boundaries locked |
 | OI-05 | `Q_OS_MAC` 분기 추가 또는 `MacAudio` 스텁 생성 / Add `Q_OS_MAC` branch or `MacAudio` stub | macOS에서 빌드 성공 / Build succeeds on macOS |
