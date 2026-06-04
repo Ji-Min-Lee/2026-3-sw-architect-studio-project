@@ -70,7 +70,7 @@ flowchart LR
 
 ---
 
-### AP-01: Observer / Qt Signal-Slot (Measurement → Visualization Coupling)
+### AP-01: Observer (Measurement → Visualization Coupling)
 
 | Item | Detail |
 |------|--------|
