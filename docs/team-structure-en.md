@@ -64,24 +64,7 @@ graph TD
 
 ## 4. Inter-team Interface
 
-The data structures produced by Pulse Team are the sole input to Trace Team.
-Any change to the interface spec must be agreed upon through the Architecture Committee before being applied.
-
-```
-Pulse Team (DSP / Analysis)
-    │
-    │  AnalysisResult {
-    │      tg_event_t  events[]      // A/C beat events
-    │      double      rate_spd      // Rate (s/d)
-    │      double      amplitude_deg // Amplitude (°)
-    │      double      beat_error_ms // Beat Error (ms)
-    │      int         bph           // Beats Per Hour
-    │      bool        synced        // BPH lock status
-    │  }
-    │
-    ▼
-Trace Team (UI / Visualization)
-```
+> ⚠️ **To be discussed** — The inter-team interface spec will be finalized in a separate Architecture Committee session.
 
 ---
 

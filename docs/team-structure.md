@@ -81,29 +81,11 @@ The table below summarizes each team's core responsibilities, deliverables, and 
 
 **한국어**
 
-Pulse Team이 생산하는 데이터 구조가 Trace Team의 유일한 입력이다.
-인터페이스 스펙 변경은 반드시 Architecture Committee를 통해 합의 후 적용한다.
+> ⚠️ **추후 논의 예정** — 팀 간 인터페이스 스펙은 Architecture Committee에서 별도 논의 후 확정한다.
 
 **English**
 
-The data structures produced by Pulse Team are the sole input to Trace Team.
-Any change to the interface spec must be agreed upon through the Architecture Committee before being applied.
-
-```
-Pulse Team (DSP / Analysis)
-    │
-    │  AnalysisResult {
-    │      tg_event_t  events[]      // A/C beat events
-    │      double      rate_spd      // Rate (s/d)
-    │      double      amplitude_deg // Amplitude (°)
-    │      double      beat_error_ms // Beat Error (ms)
-    │      int         bph           // Beats Per Hour
-    │      bool        synced        // BPH lock status
-    │  }
-    │
-    ▼
-Trace Team (UI / Visualization)
-```
+> ⚠️ **To be discussed** — The inter-team interface spec will be finalized in a separate Architecture Committee session.
 
 ---
 
