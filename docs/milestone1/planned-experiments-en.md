@@ -97,8 +97,8 @@ Target completion: **2026-06-07**
 
 ### Links and References
 
-- [Risk Assessment — OI-03, TR-03, TR-04, TR-07](./risk-assessment-revision.md)
-- [Architectural Drivers — QAS-1, QAS-3](./architectural-drivers.md)
+- [Risk Assessment — OI-03, TR-03, TR-04, TR-07](./risk-assessment-revision-en.md)
+- [Architectural Drivers — QAS-1, QAS-3](./architectural-drivers-en.md)
 
 ---
 
@@ -166,8 +166,8 @@ Target completion: **2026-06-07** *(before EX-03)*
 
 ### Links and References
 
-- [Risk Assessment — OI-09, TR-08](./risk-assessment-revision.md)
-- [Architectural Drivers — QAS-2](./architectural-drivers.md)
+- [Risk Assessment — OI-09, TR-08](./risk-assessment-revision-en.md)
+- [Architectural Drivers — QAS-2](./architectural-drivers-en.md)
 
 ---
 
@@ -243,5 +243,5 @@ Target completion: **2026-06-08** *(after EX-02 concluded)*
 
 ### Links and References
 
-- [Risk Assessment — OI-01, OI-02, TR-01, TR-02](./risk-assessment-revision.md)
-- [Architectural Drivers — QAS-2](./architectural-drivers.md)
+- [Risk Assessment — OI-01, OI-02, TR-01, TR-02](./risk-assessment-revision-en.md)
+- [Architectural Drivers — QAS-2](./architectural-drivers-en.md)

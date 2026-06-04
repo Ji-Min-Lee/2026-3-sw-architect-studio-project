@@ -109,7 +109,7 @@ The five QAs are prioritized in order of the greatest constraint they impose on 
 > ⚠️ **Team decision required — supported BPH range not yet confirmed (to be decided after verifying available watches)**
 
 **Common Constraints**: Dropped audio block: 0, Missed beat: 0  
-*(to be confirmed after [EX-01](./planned-experiments.md#ex-01-rpi-performance-benchmark))*
+*(to be confirmed after [EX-01](./planned-experiments-en.md#ex-01-rpi-performance-benchmark))*
 
 ---
 

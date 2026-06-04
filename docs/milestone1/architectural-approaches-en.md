@@ -89,7 +89,7 @@ flowchart LR
 | **Pattern** | Single Source of Truth |
 | **Applied To** | Rate, Amplitude, and Beat Error are computed from the same T1·T3 timestamps and stored in a single `MeasurementState` object. All graph tabs read from this one source |
 | **Rationale** | If each view computed independently, values would diverge across views. Computing once in `MeasurementEngine` and distributing via `measurementUpdated` structurally guarantees QAS-4 (inter-view deviation = 0). The only QAS achievable by design alone, without experiments |
-| **Trade-off** | Changes to `MeasurementState` fields affect all tabs. However, field additions are backward-compatible, and some fields may be adjusted based on [EX-02](./planned-experiments.md#ex-02-beat-event-detection-accuracy) results |
+| **Trade-off** | Changes to `MeasurementState` fields affect all tabs. However, field additions are backward-compatible, and some fields may be adjusted based on [EX-02](./planned-experiments-en.md#ex-02-simultaneous-weishi--rpi-measurement-setup) results |
 | **Related Drivers** | QAS-4 (Correctness), QAS-2 (Measurement Accuracy — single computation source) |
 
 ---
@@ -152,9 +152,9 @@ flowchart LR
 
 | Driver | Related Approach | Confidence | Rationale |
 |--------|-----------------|-----------|-----------|
-| QAS-1 Real-Time Performance (96k sps, 0 dropped blocks) | AT-01 Pipeline, AT-02 Thread Separation, AT-04 Graceful Degradation | ⚠️ Conditional | Design direction is correct; achieving 96k sps on RPi 5 requires verification via [EX-01](./planned-experiments.md#ex-01-sample-rate-performance-on-raspberry-pi-5) |
-| QAS-2 Measurement Accuracy (Rate error < 5 s/d, Beat Error < 0.1 ms) | AT-01 Pipeline (independent stage replacement), AT-04 Fallback design, AP-02 Single Source | ⚠️ Conditional | Pipeline stage separation enables filter/detection swap. Single source guarantees internal consistency. Actual error vs. WeiShi confirmed by [EX-02](./planned-experiments.md#ex-02-beat-event-detection-accuracy)·[EX-03](./planned-experiments.md#ex-03-filter-parameter-sweep) |
-| QAS-3 Low Latency (end-to-end < 100 ms) | AT-01 Minimal-buffer pipeline (block ≤ 4096 samples), AT-02 Thread separation | ⚠️ Conditional | Structure reduces latency; achieving < 100 ms requires verification via [EX-01](./planned-experiments.md#ex-01-sample-rate-performance-on-raspberry-pi-5) |
+| QAS-1 Real-Time Performance (96k sps, 0 dropped blocks) | AT-01 Pipeline, AT-02 Thread Separation, AT-04 Graceful Degradation | ⚠️ Conditional | Design direction is correct; achieving 96k sps on RPi 5 requires verification via [EX-01](./planned-experiments-en.md#ex-01-rpi-performance-benchmark) |
+| QAS-2 Measurement Accuracy (Rate error < 5 s/d, Beat Error < 0.1 ms) | AT-01 Pipeline (independent stage replacement), AT-04 Fallback design, AP-02 Single Source | ⚠️ Conditional | Pipeline stage separation enables filter/detection swap. Single source guarantees internal consistency. Actual error vs. WeiShi confirmed by [EX-02](./planned-experiments-en.md#ex-02-simultaneous-weishi--rpi-measurement-setup)·[EX-03](./planned-experiments-en.md#ex-03-tg_c_placement_t-placement-setting-comparison) |
+| QAS-3 Low Latency (end-to-end < 100 ms) | AT-01 Minimal-buffer pipeline (block ≤ 4096 samples), AT-02 Thread separation | ⚠️ Conditional | Structure reduces latency; achieving < 100 ms requires verification via [EX-01](./planned-experiments-en.md#ex-01-rpi-performance-benchmark) |
 | QAS-4 Correctness (0 deviation across all views) | AP-02 Single Source, AT-03 4-layer (single Domain Layer computes), AP-01 Observer (all views subscribe same signal) | ✅ Guaranteed by design | Single `MeasurementEngine` computes; all views subscribe to same signal → inter-view deviation = 0 structurally guaranteed. No experiment needed |
 | QAS-5 Extensibility (≤ 3 files modified to add new graph) | AT-01 Single-responsibility pipeline stages, AP-01 Signal-Slot decoupling, AT-03 4-layer separation | ✅ Guaranteed by design | 1 new tab class + 1 `connect()` call → ≤ 3 file changes structurally guaranteed |
 
@@ -168,8 +168,8 @@ Decisions to be confirmed in M2 based on experiment results. Until then, use the
 
 | Decision | Options | Provisional Default | Related Experiment | Status |
 |---------|---------|--------------------|--------------------|--------|
-| T1 detection reference | onset vs peak | onset (temporary, pre-EX-02) | [EX-02](./planned-experiments.md) | Open |
-| Target sample rate | 192k / 96k / 48k sps | 96k sps target, 48k sps fallback | [EX-01](./planned-experiments.md) | Open |
-| Threading model | Single thread vs audio/UI separate | Separate threads (retain current structure) | [EX-01](./planned-experiments.md), [EX-05](./planned-experiments.md) | Provisional |
-| Filter defaults | LP cutoff, HP cutoff combinations | HP=200Hz, LP=8000Hz (current code) | [EX-03](./planned-experiments.md) | Open |
-| Build method | macOS cross-compile vs RPi native | RPi native build (safe fallback) | [EX-04](./planned-experiments.md) | Open |
+| T1 detection reference | onset vs peak | onset (temporary, pre-EX-03) | [EX-03](./planned-experiments-en.md#ex-03-tg_c_placement_t-placement-setting-comparison) | Open |
+| Target sample rate | 192k / 96k / 48k sps | 96k sps target, 48k sps fallback | [EX-01](./planned-experiments-en.md#ex-01-rpi-performance-benchmark) | Open |
+| Threading model | Single thread vs audio/UI separate | Separate threads (retain current structure) | [EX-01](./planned-experiments-en.md#ex-01-rpi-performance-benchmark) | Provisional |
+| Filter defaults | LP cutoff, HP cutoff combinations | HP=200Hz, LP=8000Hz (to be confirmed) | [EX-03](./planned-experiments-en.md#ex-03-tg_c_placement_t-placement-setting-comparison) | Open |
+| Build method | macOS cross-compile vs RPi native | RPi native build (safe fallback) | Immediate Action (OI-05) | Open |
