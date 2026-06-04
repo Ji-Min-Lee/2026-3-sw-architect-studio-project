@@ -29,6 +29,11 @@ Seven members are organized into two functional teams:
 graph TD
     AC["🏛️ Architecture Committee\n─────────────────────\n아키텍처 의사결정 기구\n(양 팀장 + 전체)\n\n• Quality Attribute 우선순위\n• 팀 간 인터페이스 확정\n• 설계 패턴 / 구조 결정\n• 기술 부채 / Trade-off 판단"]
 
+    AC -->|"아키텍처 결정 전달"| TL2
+    AC -->|"아키텍처 결정 전달"| TL3
+    TL2 -->|"아키텍처 이슈 상정"| AC
+    TL3 -->|"아키텍처 이슈 상정"| AC
+
     subgraph PT["Pulse Team — DSP / Analysis"]
         TL2["👑 Sungho Shin\n팀장 · 팀간 소통 대표"]
         M2A["Gyeongjin Shin"]
@@ -48,8 +53,6 @@ graph TD
     end
 
     TL2 <-->|"인터페이스 협의\nAnalysisResult 구조체\n이벤트 스펙 조율"| TL3
-    TL2 -->|"아키텍처 이슈 상정"| AC
-    TL3 -->|"아키텍처 이슈 상정"| AC
 ```
 
 ---

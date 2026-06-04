@@ -22,6 +22,11 @@ Seven members are organized into two functional teams:
 graph TD
     AC["🏛️ Architecture Committee\n─────────────────────\nArchitectural Decision Body\n(Both Leads + All Members)\n\n• Quality Attribute priorities\n• Inter-team interface finalization\n• Design pattern / structure decisions\n• Technical debt / Trade-off judgment"]
 
+    AC -->|"Deliver architectural decisions"| TL2
+    AC -->|"Deliver architectural decisions"| TL3
+    TL2 -->|"Raise architectural issues"| AC
+    TL3 -->|"Raise architectural issues"| AC
+
     subgraph PT["Pulse Team — DSP / Analysis"]
         TL2["👑 Sungho Shin\nLead · Inter-team Representative"]
         M2A["Gyeongjin Shin"]
@@ -41,8 +46,6 @@ graph TD
     end
 
     TL2 <-->|"Interface negotiation\nAnalysisResult struct\nEvent spec alignment"| TL3
-    TL2 -->|"Raise architectural issues"| AC
-    TL3 -->|"Raise architectural issues"| AC
 ```
 
 ---
