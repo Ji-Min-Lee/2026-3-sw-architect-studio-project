@@ -79,6 +79,8 @@ The five QAs are prioritized in order of the greatest constraint they impose on 
 
 ### QAS-1: 실시간 성능 / Real-Time Performance ★ Priority 1
 
+> ⚠️ **실험 검증 필수 / Experiment Required**: 아래 수치는 잠정값이며 **EX-01** 실측 전까지 확정 불가. SPS가 달라지면 레이턴시·드롭 블록 수 모두 변하므로 **QAS-3(Low Latency)와 반드시 함께 측정**한다.
+
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
 | **Source** | 기계식 시계 (음향 신호 발생) / Mechanical watch (acoustic signal source) |
@@ -86,7 +88,25 @@ The five QAs are prioritized in order of the greatest constraint they impose on 
 | **Artifact** | 신호 수집 → 처리 → 분석 → GUI 표시 파이프라인 전체 / Full pipeline: capture → process → analyze → GUI display |
 | **Environment** | Raspberry Pi 5 (8GB RAM), 정상 운영 상태 / normal operating state |
 | **Response** | 수집된 샘플을 끊김 없이 실시간으로 처리하고 GUI에 표시 / Process captured samples continuously in real time and display in GUI |
-| **Response Measure** | - **Objective**: 96,000 sps 처리 유지 / sustain 96,000 sps<br>- **Minimum**: 48,000 sps (이 이하면 프로젝트 실패 / below this = project failure)<br>- **Stretch**: 192,000 sps<br>- Dropped audio block: **0** |
+| **Response Measure** | - **Objective**: 96,000 sps 처리 유지 / sustain 96,000 sps<br>- **Minimum**: 48,000 sps (이 이하면 프로젝트 실패 / below this = project failure)<br>- **Stretch**: 192,000 sps<br>- Dropped audio block: **0**<br>- *잠정값 — EX-01 결과로 확정 / Provisional — confirmed by EX-01* |
+
+**SPS ↔ 성능 관계 / SPS ↔ Performance Relationship**
+
+**한국어**
+
+SPS는 단순 "샘플레이트 설정"이 아니라 시스템 전체 성능을 결정하는 핵심 파라미터다. SPS가 높을수록 감지 정밀도는 올라가지만, ALSA 버퍼 처리 빈도와 DSP 연산량이 함께 증가한다.
+
+| SPS | 초당 버퍼 처리 횟수 / Buffers/sec | T1 감지 정밀도 / Detection resolution | 비고 / Note |
+|-----|:--------------------------------:|:------------------------------------:|------------|
+| 48,000 | ~50 | 20.8 µs / sample | 최소 동작 기준 / Minimum viable |
+| **96,000** | ~100 | **10.4 µs / sample** | **목표 / Target** |
+| 192,000 | ~200 | 5.2 µs / sample | RPi 성능 미확인 / Unverified on RPi |
+
+**English**
+
+SPS is not merely a "sample rate setting" — it is the single parameter that determines overall system performance. Higher SPS improves detection precision but increases ALSA buffer processing frequency and DSP computation load proportionally.
+
+*→ EX-01에서 sps별 CPU%, dropped blocks, end-to-end latency를 동시 측정 / EX-01 measures CPU%, dropped blocks, and end-to-end latency at each sps simultaneously*
 
 ---
 
