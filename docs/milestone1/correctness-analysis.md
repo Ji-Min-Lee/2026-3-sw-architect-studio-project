@@ -5,42 +5,78 @@
 
 ---
 
+## 0. QA / ASR 판단 기준 / Classification Criteria
+
+### QA (Quality Attribute) 판단 기준
+
+**한국어**
+
+QA는 시스템이 stakeholder의 needs를 얼마나 잘 충족하는지를 나타내는 **측정 가능하거나 테스트 가능한(measurable or testable) 속성**이다. [Bass et al., *Software Architecture in Practice* 4th ed., p.39]
+
+> "A quality attribute (QA) is a *measurable or testable property* of a system that is used to indicate how well the system satisfies the *needs of its stakeholders*."
+
+핵심은 **수치화가 아니라 테스트 가능성**이다. 정성적 기준이라도 pass/fail을 판단할 수 있으면 valid한 QA response measure이다. [Bass et al., p.43: "measurable in some fashion so that the scenario can be tested"]
+
+**English**
+
+A QA is a measurable or testable property — quantification is not required; testability is the criterion.
+
+---
+
+### ASR (Architecturally Significant Requirement) 판단 기준
+
+**한국어**
+
+ASR은 **아키텍처에 영향을 주는** 요구사항이다. 조건은 단 하나: 아키텍처 결정(컴포넌트 구조, 패턴, 커넥터 방식 등)을 유발했거나 유발하는가. [Merson, *Architectural Drivers*, LG Architecture Training, CMU, slide 5]
+
+> "Requirements that influence the architecture are called *architectural drivers* or *architecturally significant requirements (ASRs)*."
+
+**두 가지 흔한 오해:**
+1. ❌ "이미 아키텍처 결정이 내려졌으니 ASR이 아니다" → 결정이 완료된 상태는 ASR 여부와 무관하다. 그 요구사항이 결정을 유발했다면 ASR이다.
+2. ❌ "대안이 하나뿐이면 ASR이 아니다" → 대안 수는 ASR 조건이 아니다. 아키텍처에 영향을 주면 ASR이다.
+
+**English**
+
+An ASR is any requirement that influences the architecture. The single condition is: did (or does) it cause an architectural decision? The number of alternatives and whether the decision is already made are irrelevant to ASR classification.
+
+---
+
 ## 1. 요구사항 분류 / Requirement Classification
 
 ### 1.1 분류 결과 / Classification Result
 
 **한국어**
 
-원문 Correctness 요구사항은 두 가지 관심사를 포함한다. QA 기준("아키텍처 결정이 필요하고 측정 가능해야 한다")을 적용한 결과, **두 가지 모두 기능 요구사항(FR)** 으로 분류된다.
+원문 Correctness 요구사항은 두 가지 관심사를 포함한다. QA 기준(측정/테스트 가능하고, 아키텍처 결정에 영향을 준다)을 적용한 결과, **두 가지 모두 QA (및 ASR)** 로 분류된다.
 
 | 관심사 / Concern | 분류 / Classification | 근거 / Rationale |
 |-----------------|----------------------|-----------------|
-| 모든 GUI 뷰가 동일 데이터 소스에서 계산됨 / All GUI views computed from same data source | **FR** | Observer 패턴으로 구조적으로 보장 — 별도 아키텍처 결정 불필요 |
-| 소음 환경에서도 올바른 beat 감지 유지 / Correct beat detection maintained under ambient noise | **FR** | DSP 파이프라인·adaptive threshold 알고리즘 이미 구현됨 — 남은 것은 파라미터 튜닝이며 아키텍처 결정 아님 |
+| 모든 GUI 뷰가 동일 데이터 소스에서 계산됨 / All GUI views computed from same data source | **QA (ASR)** | 테스트 가능 (뷰 간 값 불일치 여부로 검증). Observer 패턴 선택을 유발한 아키텍처 결정임 |
+| 소음 환경에서도 올바른 beat 감지 유지 / Correct beat detection maintained under ambient noise | **QA (ASR)** | Δ Rate / Δ Amplitude / Δ Beat Error로 측정 가능. HPF→Envelope→Detector 파이프라인 + adaptive threshold 아키텍처를 유발함 |
 
 **English**
 
-The original Correctness requirement contains two concerns. Applying the QA criterion ("requires an architectural decision and is measurable"), **both are classified as Functional Requirements (FR)**.
+The original Correctness requirement contains two concerns. Applying the QA criterion (measurable/testable + influences architecture), **both are classified as QA (and ASR)**.
 
-- **Same data source → FR**: Structurally guaranteed by the Observer pattern. No architectural decision required.
-- **Noise robustness → FR**: The DSP pipeline (HPF → Envelope → Detector) and adaptive threshold algorithm are already implemented in `Detector.cpp`. The remaining task is parameter tuning (`onset_fraction`, `min_peak_fraction`), which is configuration — not an architectural decision.
+- **Same data source → QA**: Testable (verify no divergence across views). The requirement caused the architectural decision to apply the Observer pattern.
+- **Noise robustness → QA**: Measurable via Δ Rate / Δ Amplitude / Δ Beat Error. The requirement caused the HPF → Envelope → Detector pipeline and adaptive threshold architecture.
 
 ---
 
-### 1.2 기능 요구사항 / Functional Requirements
+### 1.2 QA 요구사항 / Quality Attribute Requirements
 
 **한국어**
 
-Correctness 요구사항에서 도출된 기능 요구사항은 아래와 같다.
+Correctness 요구사항에서 도출된 QA 요구사항은 아래와 같다.
 
-| ID | 기능 요건 / Functional Requirement | 우선순위 / Priority | 상태 / Status |
-|----|----------------------------------|:-----------------:|:------------:|
-| FR-C1 | 모든 GUI 뷰(Rate·Amplitude·Beat Error 그래프)가 동일한 Measurement 구조체를 구독 / All GUI views subscribe to the same Measurement struct | HIGH | ⚠️ 부분 구현 (리팩토링 필요) |
-| FR-C2 | 소음 환경에서 beat 감지 품질 유지를 위한 Detector 파라미터(`onset_fraction`, `min_peak_fraction`) 튜닝 / Tune Detector parameters (`onset_fraction`, `min_peak_fraction`) to maintain beat detection quality under ambient noise | HIGH | ⚠️ 미결 — EX-04 결과로 최적값 확정 (현재 기본값: 0.03 / 0.20) |
+| ID | QA 요건 / QA Requirement | 우선순위 / Priority | 상태 / Status |
+|----|--------------------------|:-----------------:|:------------:|
+| QA-C1 | 모든 GUI 뷰(Rate·Amplitude·Beat Error 그래프)가 동일한 Measurement 구조체를 구독 / All GUI views subscribe to the same Measurement struct | HIGH | ⚠️ 부분 구현 (리팩토링 필요) |
+| QA-C2 | 소음 환경에서 beat 감지 품질 유지를 위한 Detector 파라미터(`onset_fraction`, `min_peak_fraction`) 튜닝 / Tune Detector parameters (`onset_fraction`, `min_peak_fraction`) to maintain beat detection quality under ambient noise | HIGH | ⚠️ 미결 — EX-04 결과로 최적값 확정 (현재 기본값: 0.03 / 0.20) |
 
 **English**
 
-FR-C1 is guaranteed structurally once the Observer pattern is in place. FR-C2: the adaptive threshold algorithm is already implemented in `Detector.cpp` (noise floor via 75th percentile, reference peak via median of last 16 beats). The open question is whether the default parameter values (`onset_fraction` = 0.03, `min_peak_fraction` = 0.20) hold up under noise — to be confirmed by EX-04.
+QA-C1 is guaranteed structurally once the Observer pattern is in place. QA-C2: the adaptive threshold algorithm is already implemented in `Detector.cpp` (noise floor via 75th percentile, reference peak via median of last 16 beats). The open question is whether the default parameter values (`onset_fraction` = 0.03, `min_peak_fraction` = 0.20) hold up under noise — to be confirmed by EX-04.
 
 ---
 
@@ -295,13 +331,13 @@ flowchart LR
 
 ### 4.2 핵심 아키텍처 어프로치 / Main Architectural Approaches
 
-#### AP-1: 파이프라인 필터링 (FR-C2 지원) / Pipeline Filtering (supports FR-C2)
+#### AP-1: 파이프라인 필터링 (QA-C2 지원) / Pipeline Filtering (supports QA-C2)
 
 **한국어**
 
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
-| **대응 FR** | FR-C2 — 소음 환경에서의 beat 감지 품질 유지 |
+| **대응 QA** | QA-C2 — 소음 환경에서의 beat 감지 품질 유지 |
 | **고정 결정** | DSP 파이프라인(HPF → Envelope → Detector) + adaptive threshold 알고리즘 (`noise_floor` = 75th percentile, `reference_peak` = median of 16 beats) |
 | **개방 결정** | `onset_fraction` / `min_peak_fraction` 파라미터 값 — 소음 환경에 적합한 값 확정 필요 |
 | **현재 기본값** | `onset_fraction` = 0.03, `min_peak_fraction` = 0.20 |
@@ -314,19 +350,19 @@ The DSP pipeline and adaptive threshold algorithm are fixed (`Detector.cpp`: `no
 
 **설계가 드라이버를 지원하는 방식 / How the design supports the driver**
 
-**한국어**: Detector의 adaptive threshold는 noise floor를 실시간으로 추정하므로 소음 환경 변화에 구조적으로 대응한다. EX-04에서 소음 3조건에 걸쳐 Δ를 최소화하는 파라미터 값을 확정함으로써 FR-C2 구현을 완성한다.
+**한국어**: Detector의 adaptive threshold는 noise floor를 실시간으로 추정하므로 소음 환경 변화에 구조적으로 대응한다. EX-04에서 소음 3조건에 걸쳐 Δ를 최소화하는 파라미터 값을 확정함으로써 QA-C2 구현을 완성한다.
 
-**English**: The Detector's adaptive threshold continuously estimates the noise floor, structurally enabling robustness to changing acoustic conditions. EX-04 confirms the parameter values that minimize Δ across all three noise conditions, completing the FR-C2 implementation.
+**English**: The Detector's adaptive threshold continuously estimates the noise floor, structurally enabling robustness to changing acoustic conditions. EX-04 confirms the parameter values that minimize Δ across all three noise conditions, completing the QA-C2 implementation.
 
 ---
 
-#### AP-2: Observer / Qt Signal-Slot (FR-C1 지원) / Observer Pattern (supports FR-C1)
+#### AP-2: Observer / Qt Signal-Slot (QA-C1 지원) / Observer Pattern (supports QA-C1)
 
 **한국어**
 
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
-| **대응 FR** | FR-C1 — 모든 GUI 뷰가 동일 데이터 소스 사용 |
+| **대응 QA** | QA-C1 — 모든 GUI 뷰가 동일 데이터 소스 사용 |
 | **패턴** | Observer / Qt Signal-Slot |
 | **설명** | MeasurementEngine이 단일 Measurement 구조체를 발행, 모든 탭이 동일 신호 구독 |
 | **결정 필요 여부** | 없음 — 구조적으로 자동 보장 |
@@ -337,18 +373,18 @@ MeasurementEngine emits a single `Measurement` struct; all 11 graph tabs subscri
 
 ---
 
-### 4.3 FR-아키텍처 대응 / FR–Architecture Traceability
+### 4.3 QA-아키텍처 대응 / QA–Architecture Traceability
 
 **한국어**
 
-| FR | 리스크 | 실험 | 아키텍처 어프로치 | 구현 충분성 |
+| QA | 리스크 | 실험 | 아키텍처 어프로치 | 구현 충분성 |
 |----|-------|------|-----------------|-----------|
-| FR-C2 (소음 환경 beat 감지) | TR-C1 (파라미터 미최적화) | EX-04 → Δ 비교 (EX-01과 병렬) | AP-1: 최적 `onset_fraction` / `min_peak_fraction` 확정 | EX-04 후 확정 |
-| FR-C1 (동일 데이터 소스) | — | — | AP-2: Observer 패턴 (구조적 보장) | ✅ 설계로 즉시 보장 |
+| QA-C2 (소음 환경 beat 감지) | TR-C1 (파라미터 미최적화) | EX-04 → Δ 비교 (EX-01과 병렬) | AP-1: 최적 `onset_fraction` / `min_peak_fraction` 확정 | EX-04 후 확정 |
+| QA-C1 (동일 데이터 소스) | — | — | AP-2: Observer 패턴 (구조적 보장) | ✅ 설계로 즉시 보장 |
 
 **English**
 
-| FR | Risk | Experiment | Architectural Approach | Implementation Soundness |
+| QA | Risk | Experiment | Architectural Approach | Implementation Soundness |
 |----|------|-----------|----------------------|-----------------|
-| FR-C2 (noise-robust beat detection) | TR-C1 (parameter not optimized) | EX-04 → Δ comparison (parallel with EX-01) | AP-1: confirms optimal `onset_fraction` / `min_peak_fraction` values | Confirmed after EX-04 |
-| FR-C1 (same data source) | — | — | AP-2: Observer pattern (structural guarantee) | ✅ Immediately guaranteed by design |
+| QA-C2 (noise-robust beat detection) | TR-C1 (parameter not optimized) | EX-04 → Δ comparison (parallel with EX-01) | AP-1: confirms optimal `onset_fraction` / `min_peak_fraction` values | Confirmed after EX-04 |
+| QA-C1 (same data source) | — | — | AP-2: Observer pattern (structural guarantee) | ✅ Immediately guaranteed by design |
