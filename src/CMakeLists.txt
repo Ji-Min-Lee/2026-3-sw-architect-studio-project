@@ -68,6 +68,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         SimWorker.h
         WatchSynthStream.cpp
         WatchSynthStream.h
+        FftLib.h
+        fftlib.cpp
         Splash.qrc
         LinuxAudio.cpp
         LinuxAudio.h
