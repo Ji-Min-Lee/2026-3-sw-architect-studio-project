@@ -11,7 +11,7 @@
 | **Source** | 기계식 시계 (음향 신호 발생) / Mechanical watch (acoustic signal source) |
 | **Stimulus** | USB 센서를 통해 연속적인 음향 샘플 스트림 입력 / Continuous audio sample stream via USB sensor |
 | **Artifact** | 신호 수집 → 처리 → 분석 → GUI 표시 파이프라인 전체 / Full pipeline: capture → process → analyze → GUI display |
-| **Environment** | Raspberry Pi 5 (8GB RAM), 정상 운영 상태 / normal operating state |
+| **Environment** | - 하드웨어: Raspberry Pi 5 (8GB RAM), Ubuntu 24.04 / Hardware: Raspberry Pi 5 (8GB RAM), Ubuntu 24.04<br>- 입력: USB PnP 마이크 연결, Live 모드 실행 중 / Input: USB PnP microphone connected, running in Live mode<br>- 측정 조건: 28,800 BPH 기계식 시계, 연속 10분 이상 / Measurement: 28,800 BPH mechanical watch, continuous ≥ 10 min<br>- 부하: Qt GUI 렌더링·오디오 처리·DSP 파이프라인 동시 실행 / Load: Qt GUI rendering, audio processing, and DSP pipeline running concurrently |
 | **Response** | 수집된 샘플을 끊김 없이 실시간으로 처리하고 GUI에 표시 / Process captured samples continuously in real time and display in GUI |
 | **Response Measure** | - **Objective**: 96,000 sps 처리 유지 / sustain 96,000 sps<br>- **Minimum**: 48,000 sps (이 이하면 프로젝트 실패 / below this = project failure)<br>- **Stretch**: 192,000 sps<br>- Dropped audio block: **0**<br>- *(잠정값 — EX-01 결과로 확정 / Provisional — confirmed by EX-01)* |
 
