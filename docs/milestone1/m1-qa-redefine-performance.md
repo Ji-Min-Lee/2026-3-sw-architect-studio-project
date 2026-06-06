@@ -13,15 +13,15 @@
 | **Artifact** | 오디오 캡처 파이프라인 — ALSA 드라이버 → Audio Thread → Ring Buffer (Dropped Block 직접 측정 경계). DSP 파이프라인(필터링 → T1/T3 감지 → 측정값 계산) 처리 속도가 Ring Buffer 점유율을 결정 / Audio capture pipeline — ALSA driver → Audio Thread → Ring Buffer (direct Dropped Block measurement boundary). DSP pipeline processing speed determines Ring Buffer occupancy |
 | **Environment** | - 하드웨어: Raspberry Pi 5 (8GB RAM), Ubuntu 24.04 / Hardware: Raspberry Pi 5 (8GB RAM), Ubuntu 24.04<br>- 입력: USB PnP 마이크 연결, Live 모드 실행 중 / Input: USB PnP microphone connected, running in Live mode<br>- 측정 조건: 28,800 BPH 기계식 시계, 연속 10분 이상 / Measurement: 28,800 BPH mechanical watch, continuous ≥ 10 min<br>- 부하: Qt GUI 렌더링·오디오 처리·DSP 파이프라인 동시 실행 / Load: Qt GUI rendering, audio processing, and DSP pipeline running concurrently |
 | **Response** | ALSA 드라이버가 생성하는 각 오디오 블록을 Ring Buffer 오버플로 없이 수신·저장한다. DSP 파이프라인(필터링 → T1/T3 감지 → 측정값 계산)이 블록 주기(1/Background FPS)를 초과하면 Ring Buffer가 차올라 Dropped Block이 발생하므로, 블록 주기 내 DSP 완료가 전제 조건이다. GUI 표시까지의 지연은 QAS-3에서 관리한다 / Store each audio block from the ALSA driver into the Ring Buffer without overflow. If the DSP pipeline (filtering → T1/T3 detection → measurement computation) exceeds the block period (1/Background FPS), the Ring Buffer fills and causes Dropped Blocks; completing DSP within the block period is therefore a prerequisite. GUI display latency is managed by QAS-3 |
-| **Response Measure** | - **Objective**: 96,000 sps 처리 유지 / sustain 96,000 sps<br>- **Minimum**: 48,000 sps (이 이하면 프로젝트 실패 / below this = project failure)<br>- **Stretch**: 192,000 sps<br>- Dropped audio block: **0** (Ring Buffer 오버플로 없음 / no Ring Buffer overflow)<br>- CPU 사용률: **< 80%** (DSP 파이프라인이 블록 주기를 초과하지 않는 여유 확인 / confirms DSP completes within block period)<br>- *(잠정값 — EX-01 결과로 확정 / Provisional — confirmed by EX-01)* |
+| **Response Measure** | - **Objective**: 96,000 sps 처리 유지 / sustain 96,000 sps<br>- **Minimum**: 48,000 sps (이 이하면 프로젝트 실패 / below this = project failure)<br>- **Stretch**: 192,000 sps<br>- Dropped audio block: **0** (Ring Buffer 오버플로 없음 / no Ring Buffer overflow)<br>- *(잠정값 — EX-01 결과로 확정 / Provisional — confirmed by EX-01)* |
 
 > **한국어**
 >
-> Dropped Block은 ALSA 드라이버 → Audio Thread → Ring Buffer 구간에서 발생하는 오버플로를 직접 측정한다. Ring Buffer가 오버플로되는 근본 원인은 DSP 파이프라인(필터링 → T1/T3 이벤트 감지 → Rate·Amplitude·Beat Error 계산)이 블록 주기보다 오래 걸리는 것이다. 즉, DSP 처리 속도는 Dropped Block의 **원인**이고, Ring Buffer 오버플로 여부가 **측정 지점**이다. SPS가 높을수록 블록 주기가 짧아져 DSP에 허용되는 시간이 줄어들므로, CPU%를 함께 측정하여 DSP가 블록 주기 내에 완료되는지 확인한다. RPi가 96k sps를 감당하지 못하면 48k sps로 폴백하여 블록 주기를 2배 늘려 안정성을 보장한다. GUI 표시 지연은 QAS-3 Low Latency에서 별도 관리한다.
+> Dropped Block은 ALSA 드라이버 → Audio Thread → Ring Buffer 구간에서 발생하는 오버플로를 직접 측정한다. Ring Buffer가 오버플로되는 근본 원인은 DSP 파이프라인(필터링 → T1/T3 이벤트 감지 → Rate·Amplitude·Beat Error 계산)이 블록 주기보다 오래 걸리는 것이다. 즉, DSP 처리 속도는 Dropped Block의 **원인**이고, Ring Buffer 오버플로 여부가 **측정 지점**이다. SPS가 높을수록 블록 주기가 짧아져 DSP에 허용되는 시간이 줄어든다. RPi가 96k sps를 감당하지 못하면 48k sps로 폴백하여 블록 주기를 2배 늘려 안정성을 보장한다. GUI 표시 지연은 QAS-3 Low Latency에서 별도 관리한다.
 >
 > **English**
 >
-> Dropped Block directly measures overflow at the ALSA driver → Audio Thread → Ring Buffer boundary. The root cause of Ring Buffer overflow is the DSP pipeline (filtering → T1/T3 event detection → Rate·Amplitude·Beat Error computation) taking longer than the block period. In other words, DSP processing speed is the **cause** and Ring Buffer overflow is the **measurement point**. Higher SPS shortens the block period, reducing the time budget for DSP; CPU% is therefore measured alongside Dropped Blocks to confirm DSP completes within the block period. If the RPi cannot sustain 96k sps, the system falls back to 48k sps, doubling the block period to guarantee stability. GUI display latency is managed separately under QAS-3 Low Latency.
+> Dropped Block directly measures overflow at the ALSA driver → Audio Thread → Ring Buffer boundary. The root cause of Ring Buffer overflow is the DSP pipeline (filtering → T1/T3 event detection → Rate·Amplitude·Beat Error computation) taking longer than the block period. In other words, DSP processing speed is the **cause** and Ring Buffer overflow is the **measurement point**. Higher SPS shortens the block period, reducing the time budget for DSP. If the RPi cannot sustain 96k sps, the system falls back to 48k sps, doubling the block period to guarantee stability. GUI display latency is managed separately under QAS-3 Low Latency.
 
 ---
 
@@ -49,10 +49,10 @@
 
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
-| **목적 / Goal** | SPS별로 Ring Buffer 오버플로(Dropped Block) 발생 여부와 CPU%를 측정하여, DSP 파이프라인이 블록 주기 내에 완료되는지 확인하고 96k sps 목표 달성 가능 여부 결정 / Measure Ring Buffer overflow (Dropped Block) and CPU% per SPS tier to confirm DSP completes within the block period and determine whether 96k sps target is achievable |
-| **방법 / Method** | 48k / 96k / 192k sps 각각 10분 연속 실행. Dropped Block 수·CPU%·Background FPS 기록. GUI 표시 지연(end-to-end latency)은 QAS-3 실험에서 별도 측정 / Run each SPS tier for 10 min. Record Dropped Block count, CPU%, and Background FPS. GUI display latency (end-to-end) is measured separately in QAS-3 experiment |
-| **측정 항목 / Metrics** | SPS \| 블록 주기 / Block period \| CPU% \| Dropped Blocks \| Background FPS |
-| **완료 기준 / Done** | 96k sps에서 Dropped Block = 0, CPU% < 80% 달성 확인. 미달 시 48k 폴백 결정 / Confirm Dropped Block = 0 and CPU% < 80% at 96k sps; decide 48k fallback if not met |
+| **목적 / Goal** | SPS별로 Ring Buffer 오버플로(Dropped Block) 발생 여부를 측정하여 96k sps 목표 달성 가능 여부 결정 / Measure Ring Buffer overflow (Dropped Block) per SPS tier to determine whether 96k sps target is achievable |
+| **방법 / Method** | 48k / 96k / 192k sps 각각 10분 연속 실행. Dropped Block 수·Background FPS 기록. GUI 표시 지연(end-to-end latency)은 QAS-3 실험에서 별도 측정 / Run each SPS tier for 10 min. Record Dropped Block count and Background FPS. GUI display latency (end-to-end) is measured separately in QAS-3 experiment |
+| **측정 항목 / Metrics** | SPS \| 블록 주기 / Block period \| Dropped Blocks \| Background FPS |
+| **완료 기준 / Done** | 96k sps에서 Dropped Block = 0 달성 확인. 미달 시 48k 폴백 결정 / Confirm Dropped Block = 0 at 96k sps; decide 48k fallback if not met |
 
 ---
 
