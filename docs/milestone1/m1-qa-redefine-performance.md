@@ -25,26 +25,6 @@
 
 ---
 
-## SPS ↔ 성능 관계 / SPS ↔ Performance Relationship
-
-**한국어**
-
-SPS가 높을수록 T1 감지 정밀도는 올라가지만 블록 주기가 짧아져 DSP 파이프라인에 허용되는 처리 시간이 줄어든다. DSP가 블록 주기를 초과하면 Ring Buffer가 차올라 Dropped Block이 발생한다. 아래 수치는 잠정값이며 EX-01 실측 전까지 확정 불가.
-
-| SPS | 블록 주기 / Block period | T1 감지 정밀도 / Detection resolution | 비고 / Note |
-|-----|:------------------------:|:------------------------------------:|------------|
-| 48,000 | ~20 ms | 20.8 µs / sample | 최소 동작 기준 (폴백) / Minimum viable (fallback) |
-| **96,000** | **~10 ms** | **10.4 µs / sample** | **목표 / Target** |
-| 192,000 | ~5 ms | 5.2 µs / sample | RPi 성능 미확인 / Unverified on RPi |
-
-**English**
-
-Higher SPS improves T1 detection precision but shortens the block period, reducing the DSP processing time budget. If DSP exceeds the block period, the Ring Buffer fills up and Dropped Blocks occur. Values below are provisional until EX-01 measurement.
-
-*→ EX-01에서 SPS별 CPU%·Dropped Blocks 측정. CPU% < 80%이면 DSP가 블록 주기 이내에 완료됨을 간접 확인 / EX-01 measures CPU% and Dropped Blocks per SPS tier. CPU% < 80% indirectly confirms DSP completes within the block period*
-
----
-
 ## Priority
 
 | 항목 / Item | 수준 / Level | 근거 / Rationale |
