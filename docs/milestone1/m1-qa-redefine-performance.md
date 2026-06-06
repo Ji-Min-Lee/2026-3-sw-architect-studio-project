@@ -58,11 +58,8 @@ Higher SPS improves T1 detection precision but shortens the block period, reduci
 
 | 리스크 / Risk | 설명 / Description | 영향 / Impact |
 |--------------|-------------------|--------------|
-| **DSP 처리 지연 → Ring Buffer 오버플로** | DSP 파이프라인(필터링·FFT·RLS)이 블록 주기(96k: ~10ms)를 초과 → Ring Buffer 차오름 → Dropped Block / DSP pipeline exceeds block period (~10ms at 96k) → Ring Buffer fills → Dropped Block | T1/T3 이벤트 시간 소실 → Rate·Amplitude 오차 증가 / T1/T3 timing data lost → increased Rate·Amplitude error |
-| **GUI 렌더링이 DSP 처리 지연 유발** | 비가시 탭까지 매 프레임 replot() 호출 시 UI 스레드가 DSP 처리를 지연 → Ring Buffer 차오름 → Dropped Block / replot() called for invisible tabs delays DSP processing → Ring Buffer fills → Dropped Block | DSP 처리 지연의 간접 원인 / Indirect cause of DSP processing delay |
-| **DSP 연산 단일 스레드 집중** | 96k sps에서 FFT·RLS·Rolling Average 연산이 한 스레드에 집중 → 블록 주기 초과 → Ring Buffer 오버플로 / FFT·RLS·Rolling Average concentrated in one thread at 96k → block period exceeded → Ring Buffer overflow | Ring Buffer 오버플로 → Dropped Block 발생 / Ring Buffer overflow → Dropped Block |
-| **48k 폴백 후 정밀도 저하** | SPS를 48k로 낮추면 블록 주기가 ~20ms로 늘어나 DSP 여유는 생기지만 T1 감지 정밀도가 10.4µs → 20.8µs로 저하 / Dropping to 48k sps doubles block period (~20ms), giving DSP headroom but halving T1 detection precision | Beat Error 분해능 저하, QAS-2 목표(< 0.1ms) 재확인 필요 / Reduced Beat Error resolution; QAS-2 target (< 0.1ms) needs re-verification |
-| **스케줄러 지터로 인한 간헐적 블록 주기 초과** | Linux 범용 스케줄러에서 오디오 스레드 우선순위가 낮아 간헐적으로 DSP 처리가 블록 주기를 초과 → Ring Buffer 일시적 오버플로 / Low audio thread scheduling priority causes intermittent DSP processing to exceed block period → transient Ring Buffer overflow | 산발적 Dropped Block → 장기 Rate 측정 오차 누적 / Sporadic Dropped Blocks → accumulated long-term Rate measurement error |
+| **DSP 처리 지연 → Ring Buffer 오버플로** | DSP 파이프라인(필터링·FFT·RLS)이 블록 주기(96k: ~10ms)를 초과 → Ring Buffer 차오름 → Dropped Block / DSP pipeline exceeds block period (~10ms at 96k) → Ring Buffer fills → Dropped Block | T1/T3 이벤트 시간 소실 → Rate·Amplitude 측정 불가 / T1/T3 timing data lost → Rate·Amplitude measurement failure |
+| **스케줄러 지터 → 간헐적 블록 주기 초과** | Linux 범용 스케줄러에서 오디오 스레드 우선순위가 낮아 간헐적으로 DSP 처리가 블록 주기를 초과 → Ring Buffer 일시적 오버플로 / Low audio thread scheduling priority causes intermittent DSP to exceed block period → transient Ring Buffer overflow | 산발적 Dropped Block → 장기 Rate 측정 오차 누적 / Sporadic Dropped Blocks → accumulated long-term Rate error |
 
 ---
 
@@ -83,8 +80,6 @@ Higher SPS improves T1 detection precision but shortens the block period, reduci
 
 | 전술 · 패턴 / Tactic · Pattern | 적용 이유 / Rationale |
 |-------------------------------|----------------------|
-| **Pipe-and-Filter** | Acquisition → Processing → Detection → Calculation → Visualization 5단계 분리. 각 단계의 처리 시간을 독립적으로 측정하여 블록 주기 초과 병목 단계를 식별 가능 / 5-stage separation enables independent measurement of each stage's processing time to identify which stage exceeds the block period |
-| **Lock-Free Ring Buffer** | Audio Thread(생산자)와 Processing Thread(소비자) 사이의 Ring Buffer에 뮤텍스 제거 → 락 경합으로 인한 DSP 처리 지연 방지 → Ring Buffer 오버플로(Dropped Block) 예방 / Eliminating mutex on the Ring Buffer between Audio Thread (producer) and Processing Thread (consumer) prevents DSP delays caused by lock contention → prevents Ring Buffer overflow (Dropped Block) |
-| **Graceful Degradation** | DSP가 96k sps 블록 주기 내에 완료되지 못해 Ring Buffer 오버플로 위험 시, 자동으로 48k sps로 전환하여 블록 주기를 2배 확보. 정밀도는 낮아지지만 Dropped Block = 0 보장 / When DSP cannot complete within the 96k sps block period and Ring Buffer overflow is at risk, auto-switch to 48k sps to double the block period. Lower precision but Dropped Block = 0 guaranteed |
-| **Lazy Rendering (isVisible())** | 비가시 탭의 replot()을 스킵하여 UI 스레드가 DSP 처리를 지연시키는 것을 방지 → Ring Buffer 오버플로 간접 예방 / Skipping replot() for invisible tabs prevents UI thread from delaying DSP processing → indirectly prevents Ring Buffer overflow |
-| **Priority Scheduling** | 오디오 처리 스레드에 높은 스케줄링 우선순위 부여 → Linux 스케줄러 지터로 인한 DSP 처리의 블록 주기 초과 예방 → Ring Buffer 오버플로 방지 / Elevating audio thread scheduling priority prevents Linux scheduler jitter from causing DSP to exceed the block period → prevents Ring Buffer overflow |
+| **Lock-Free Ring Buffer** | Audio Thread(생산자)와 Processing Thread(소비자) 사이 Ring Buffer의 뮤텍스 제거 → 락 경합으로 인한 DSP 지연 방지 → Ring Buffer 오버플로(Dropped Block) 직접 예방 / Eliminating mutex on the Ring Buffer between Audio Thread (producer) and Processing Thread (consumer) prevents DSP delays from lock contention → directly prevents Ring Buffer overflow (Dropped Block) |
+| **Graceful Degradation** | DSP가 96k sps 블록 주기(~10ms) 내에 완료되지 못할 경우 48k sps로 자동 전환하여 블록 주기를 ~20ms로 확보. 정밀도는 낮아지지만 Dropped Block = 0 보장 / Auto-switch to 48k sps when DSP cannot complete within the 96k block period (~10ms), securing ~20ms block period. Lower precision but Dropped Block = 0 guaranteed |
+| **Priority Scheduling** | 오디오 처리 스레드에 높은 스케줄링 우선순위 부여 → Linux 스케줄러 지터로 인한 간헐적 블록 주기 초과 예방 → Ring Buffer 오버플로 방지 / Elevating audio thread scheduling priority prevents intermittent block period violations caused by Linux scheduler jitter → prevents Ring Buffer overflow |
