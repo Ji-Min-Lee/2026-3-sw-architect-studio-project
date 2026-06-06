@@ -471,16 +471,16 @@ Detailed experiment documents are written separately using the `technical-experi
 
 ```mermaid
 graph TD
-    PO["제품 책임자 / Product Owner\n(3팀 팀장)"]
-    AC["Architecture Committee\n(Sprint Planning — ADD Step 2~4)"]
-    SM1["스크럼 마스터 / SM — Team 1\nSungho Shin"]
-    SM2["스크럼 마스터 / SM — Team 2\nDong Ho Shin"]
-    T1["개발팀 1 / Dev Team 1\nGyeongjin Shin\nHung Son Tong\nKyudae Bahn"]
-    T2["개발팀 2 / Dev Team 2\nTaejoon Song\nJimin Lee"]
+    PO["🧑‍💼 제품 책임자 / Product Owner\n3팀 팀장"]
+    AC["🏛️ Architecture Committee\nSprint Planning — ADD Step 2~4"]
+    SM1["👤 스크럼 마스터 / SM — Team 1\nSungho Shin"]
+    SM2["👤 스크럼 마스터 / SM — Team 2\nDong Ho Shin"]
+    T1["👥 개발팀 1 / Dev Team 1\nGyeongjin Shin · Hung Son Tong · Kyudae Bahn"]
+    T2["👥 개발팀 2 / Dev Team 2\nTaejoon Song · Jimin Lee"]
 
     PO --> AC
-    SM1 --> AC
-    SM2 --> AC
+    AC --> SM1
+    AC --> SM2
     SM1 --> T1
     SM2 --> T2
 ```
