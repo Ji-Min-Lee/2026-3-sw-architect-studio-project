@@ -43,25 +43,25 @@
 이보다 파일 수가 많으면 Presentation Layer가 충분히 분리되지 않았다는 구조적 신호입니다.
 
 ```mermaid
-flowchart TB
-    subgraph PL["Presentation Layer — 변경 영역"]
-        A["① 새 그래프 위젯\n🆕 신규 생성"]
-        B["② 탭 컨테이너\n✏️ 수정"]
-        C["③ 데이터 구독 연결부\n✏️ 수정"]
+flowchart LR
+    subgraph PL["Presentation ✏️"]
+        B["② 탭 컨테이너"]
+        C["③ 구독 연결부"]
+        A["① 새 그래프 🆕"]
         B --> A
         C --> A
     end
 
-    subgraph DL["Domain Layer — 변경 없음 🔒"]
+    subgraph DL["Domain 🔒"]
         ME["MeasurementEngine"]
     end
 
-    subgraph SL["Signal Processing / Acquisition — 변경 없음 🔒"]
-        SP["..."]
+    subgraph SL["Signal Processing / Acquisition 🔒"]
+        SP["Detector / AudioCapture"]
     end
 
-    ME -->|"데이터 발행"| C
-    DL ~~~ SL
+    ME -->|"발행"| C
+    SL --> DL
 ```
 
 **English**
