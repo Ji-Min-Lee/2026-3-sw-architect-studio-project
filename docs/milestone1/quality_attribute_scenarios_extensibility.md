@@ -15,7 +15,7 @@
 | **Artifact** | 소스코드 |
 | **Environment** | 개발 환경 (Qt Creator, Windows PC), 5주 프로젝트 진행 기간 내 |
 | **Response** | 기존 전처리 모듈 수정 없이 새 그래프 위젯을 독립적으로 생성·등록·테스트 가능 |
-| **Response Measure** | 새 그래프 1개 추가 시 변경되는 파일 수: **≤ 3개** *(잠정, 코드 분석 후 확정)* |
+| **Response Measure** | - 새 그래프 1개 추가 시 변경되는 파일 수: **≤ 3개** *(잠정, 코드 분석 후 확정)*<br>- 새로 추가된 그래프의 의존성이 Presentation → Domain 방향을 준수함 (Signal Processing / Acquisition 직접 참조 = **0**) |
 
 **English**
 
@@ -26,7 +26,7 @@
 | **Artifact** | Source code |
 | **Environment** | Development environment (Qt Creator, Windows PC), within the 5-week project period |
 | **Response** | New graph widget can be created, registered, and tested independently without modifying existing preprocessing modules |
-| **Response Measure** | Files changed when adding 1 new graph: **≤ 3** *(provisional, confirmed after codebase analysis)* |
+| **Response Measure** | - Files changed when adding 1 new graph: **≤ 3** *(provisional, confirmed after codebase analysis)*<br>- Dependencies of the added graph follow Presentation → Domain direction (direct references to Signal Processing / Acquisition = **0**) |
 
 ---
 
@@ -65,6 +65,8 @@ flowchart LR
     end
 
     ACQ --> DSP --> DOM -->|"발행"| C
+    A -. "❌ 직접 참조 금지" .-> DT
+    A -. "❌ 직접 참조 금지" .-> AC
 ```
 
 **English**
