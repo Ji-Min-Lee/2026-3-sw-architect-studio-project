@@ -44,6 +44,18 @@
 
 ```mermaid
 flowchart LR
+    subgraph ACQ["Acquisition 🔒"]
+        AC["AudioCapture"]
+    end
+
+    subgraph DSP["Signal Processing 🔒"]
+        DT["Detector"]
+    end
+
+    subgraph DOM["Domain 🔒"]
+        ME["MeasurementEngine"]
+    end
+
     subgraph PL["Presentation ✏️"]
         B["② 탭 컨테이너"]
         C["③ 구독 연결부"]
@@ -52,16 +64,7 @@ flowchart LR
         C --> A
     end
 
-    subgraph DL["Domain 🔒"]
-        ME["MeasurementEngine"]
-    end
-
-    subgraph SL["Signal Processing / Acquisition 🔒"]
-        SP["Detector / AudioCapture"]
-    end
-
-    ME -->|"발행"| C
-    SL --> DL
+    ACQ --> DSP --> DOM -->|"발행"| C
 ```
 
 **English**
