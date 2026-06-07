@@ -169,11 +169,11 @@ graph TD
 
 **한국어**
 
-아키텍처 어프로치는 총 7개이며, 각각 하나 이상의 QA 드라이버에 직접 연결된다.
+아키텍처 어프로치는 총 8개이며, 각각 하나 이상의 QA 드라이버에 직접 연결된다.
 
 **English**
 
-There are 7 architectural approaches in total; each directly addresses one or more QA drivers.
+There are 8 architectural approaches in total; each directly addresses one or more QA drivers.
 
 ---
 
@@ -422,6 +422,32 @@ graph LR
 
 ---
 
+### AP-8: 애플리케이션 Ring Buffer 크기 증설 (Increase Resources) / Application Ring Buffer Size Increase
+
+**한국어**
+
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| **전술 / Tactic** | Increase Resources (Bass13 Performance Tactic) |
+| **설명** | 애플리케이션 Ring Buffer(`SECONDS_OF_BUFFER`)를 늘려 포그라운드 처리 지연 허용 시간을 확보. 현재 30초(96k sps 기준 약 11.5 MB). 파라미터 한 줄 변경만으로 크기 조정 가능 |
+| **적용 근거** | Ring Buffer가 가득 차면 오래된 미처리 샘플이 덮어쓰여 Dropped Block 발생. 버퍼를 충분히 크게 유지하면 포그라운드가 일시적으로 지연되어도 샘플 손실 없이 따라잡을 수 있는 시간적 여유 제공 |
+| **트레이드오프** | 메모리 증가 (RPi 5 8 GB 기준 부담 없음). 단, 버퍼가 과도하게 크면 시스템이 지속적으로 과부하 상태일 때 감지가 늦어지고 AP-6 폴백 결정이 지연됨 |
+| **잠정 상태** | ⚠️ 최적 크기는 **EXP-01** 결과에서 실제 처리 지연 패턴을 확인한 후 결정. 현재 30초 기본값 유지 |
+| **연결 드라이버** | QAS-1 (Real-Time Performance — 일시적 처리 지연 흡수) |
+
+**English**
+
+| Item | Detail |
+|------|--------|
+| **Tactic** | Increase Resources (Bass13 Performance Tactic) |
+| **Description** | Increases the application Ring Buffer (`SECONDS_OF_BUFFER`) to provide more headroom for transient foreground processing delays. Currently 30 s (~11.5 MB at 96k sps). Size is adjustable by changing a single parameter |
+| **Rationale** | When the Ring Buffer fills up, unprocessed samples are overwritten, causing Dropped Blocks. A sufficiently large buffer gives the foreground time to catch up after a temporary stall without sample loss |
+| **Trade-off** | Memory increase (negligible on RPi 5 8 GB). However, an excessively large buffer delays detection of sustained overload and postpones the AP-6 fallback decision |
+| **Provisional** | ⚠️ Optimal size determined after **EXP-01** reveals actual processing delay patterns. Default of 30 s retained until then |
+| **Linked drivers** | QAS-1 (Real-Time Performance — absorbs transient processing delays) |
+
+---
+
 ## 3. 설계 건전성 평가 / Design Soundness Assessment
 
 **한국어**
@@ -444,8 +470,9 @@ graph LR
 | AP-6 | Graceful Degradation | ⚠️ | 폴백 로직 설계 확정. 48k 폴백 발동 기준은 EXP-01 후 확정 |
 | AP-7a | Lazy Rendering | ⚠️ | 전술 방향 확정. 필수 적용 여부는 EXP-02 OI-L2 결과에 의존 |
 | AP-7b | Heartbeat 패턴 | ⚠️ | 감지 구조 확정. N·M 수치 + 임계값은 EXP-04 후 확정 |
+| AP-8 | Ring Buffer 크기 증설 | ⚠️ | 증설 방향 확정. 최적 크기는 EXP-01 처리 지연 실측 후 결정 |
 
-**설계 건전성 결론**: 7개 어프로치 모두 **구조적 방향은 확정**되어 구현 착수 가능. 파라미터/임계값만 실험으로 확정 필요하며, Conservative 기본값(48k sps 폴백, 100ms 상한)으로 최소 동작을 보장한다.
+**설계 건전성 결론**: 8개 어프로치 모두 **구조적 방향은 확정**되어 구현 착수 가능. 파라미터/임계값만 실험으로 확정 필요하며, Conservative 기본값(48k sps 폴백, 100ms 상한)으로 최소 동작을 보장한다.
 
 **English**
 
@@ -467,8 +494,9 @@ Is the design sound enough to guide construction? Each approach is assessed on c
 | AP-6 | Graceful Degradation | ⚠️ | Fallback logic design confirmed; 48k trigger threshold confirmed after EXP-01 |
 | AP-7a | Lazy Rendering | ⚠️ | Tactic direction confirmed; mandatory application depends on EXP-02 OI-L2 |
 | AP-7b | Heartbeat Pattern | ⚠️ | Detection structure confirmed; N·M values + thresholds confirmed after EXP-04 |
+| AP-8 | Ring Buffer Size Increase | ⚠️ | Increase direction confirmed; optimal size confirmed after EXP-01 processing delay measurement |
 
-**Soundness conclusion**: All 7 approaches have a **confirmed structural direction** — implementation can begin on all of them. Only parameters and thresholds require experimental confirmation; conservative defaults (48k sps fallback, 100 ms ceiling) guarantee minimum behavior regardless of experiment outcomes.
+**Soundness conclusion**: All 8 approaches have a **confirmed structural direction** — implementation can begin on all of them. Only parameters and thresholds require experimental confirmation; conservative defaults (48k sps fallback, 100 ms ceiling) guarantee minimum behavior regardless of experiment outcomes.
 
 ---
 
@@ -510,7 +538,7 @@ graph LR
         E4["EXP-04\nWarning Threshold"]
     end
 
-    QAS1 --> AP1 & AP2 & AP6
+    QAS1 --> AP1 & AP2 & AP6 & AP8["AP-8\nRing Buffer\nSize Increase"]
     QAS2 --> AP1 & AP2 & AP7a
     QAS3 --> AP4 & AP5
     QAS4 --> AP7b
@@ -533,7 +561,7 @@ graph LR
 
 | QA | 우선순위 | 지원 어프로치 | 지원 방식 | 미결 실험 |
 |----|:------:|------------|---------|:--------:|
-| **QAS-1** Real-Time Performance | 1 | AP-1, AP-2, AP-6 | 스레드 분리로 캡처 콜백 보호 + Lock-Free로 DSP 지연 방지 + 폴백으로 Dropped Block = 0 보장 | EXP-01 |
+| **QAS-1** Real-Time Performance | 1 | AP-1, AP-2, AP-6, AP-8 | 스레드 분리로 캡처 콜백 보호 + Lock-Free로 DSP 지연 방지 + 폴백으로 Dropped Block = 0 보장 + Ring Buffer 증설로 일시적 처리 지연 흡수 | EXP-01 |
 | **QAS-2** Low Latency | 2 | AP-1, AP-2, AP-7a | 3구간 분리 측정 가능 + ① 구간 하한 보호 + ② 구간 렌더링 부하 감소 | EXP-02 |
 | **QAS-3** Correctness | 3 | AP-4 (QA-C1), AP-5 (QA-C2) | Observer로 단일 소스 구조적 보장 + Adaptive Threshold로 소음 환경 beat 감지 | EXP-03 |
 | **QAS-4** Usability | 4 | AP-7b | Heartbeat 패턴으로 신호 소실/노이즈 즉시 감지 | EXP-04 |
@@ -543,7 +571,7 @@ graph LR
 
 | QA | Priority | Supporting Approaches | How | Open Experiment |
 |----|:--------:|----------------------|-----|:--------------:|
-| **QAS-1** Real-Time Performance | 1 | AP-1, AP-2, AP-6 | Thread separation protects capture callback + Lock-Free prevents DSP delay + fallback guarantees Dropped Block = 0 | EXP-01 |
+| **QAS-1** Real-Time Performance | 1 | AP-1, AP-2, AP-6, AP-8 | Thread separation protects capture callback + Lock-Free prevents DSP delay + fallback guarantees Dropped Block = 0 + Ring Buffer increase absorbs transient processing delays | EXP-01 |
 | **QAS-2** Low Latency | 2 | AP-1, AP-2, AP-7a | 3-segment measurability + segment ① lower bound protection + segment ② rendering load reduction | EXP-02 |
 | **QAS-3** Correctness | 3 | AP-4 (QA-C1), AP-5 (QA-C2) | Observer structurally guarantees single source + Adaptive Threshold maintains beat detection under noise | EXP-03 |
 | **QAS-4** Usability | 4 | AP-7b | Heartbeat pattern immediately detects signal loss / noise | EXP-04 |
@@ -571,9 +599,10 @@ Assesses how well the architecture supports each QA driver.
 
 - AP-1(스레드 분리)이 캡처 콜백을 DSP/GUI로부터 격리하여 Dropped Block의 1차 방어선을 형성한다.
 - AP-2(Lock-Free Ring Buffer)가 스레드 간 뮤텍스 경합을 제거하여 DSP 처리 지연의 2차 방어선을 형성한다.
+- AP-8(Ring Buffer 크기 증설)이 포그라운드 처리가 일시적으로 지연될 때 샘플 손실 없이 따라잡을 수 있는 시간적 여유를 제공한다. 최적 크기는 EXP-01 후 결정.
 - AP-6(Graceful Degradation)이 96k sps 달성 불가 시에도 48k sps 폴백으로 Dropped Block = 0을 보장하는 최후 방어선이 된다.
 
-**미결 사항**: EXP-01 결과 없이는 96k sps 달성 가능 여부가 미확인. Conservative 설계(48k 폴백)로 최소 목표는 보장 가능.
+**미결 사항**: EXP-01 결과 없이는 96k sps 달성 가능 여부 및 Ring Buffer 최적 크기가 미확인. Conservative 기본값(48k 폴백, 30초 버퍼)으로 최소 목표는 보장 가능.
 
 **English**
 
@@ -581,9 +610,10 @@ Assesses how well the architecture supports each QA driver.
 
 - AP-1 (thread separation) isolates the capture callback from DSP/GUI, forming the first line of defense against Dropped Blocks.
 - AP-2 (Lock-Free Ring Buffer) eliminates mutex contention between threads, forming the second line of defense against DSP processing delays.
+- AP-8 (Ring Buffer size increase) provides temporal headroom for the foreground to catch up after a transient processing stall without sample loss. Optimal size determined after EXP-01.
 - AP-6 (Graceful Degradation) guarantees Dropped Block = 0 via 48k sps fallback even if 96k sps is unachievable — the last line of defense.
 
-**Open item**: Whether 96k sps is achievable cannot be confirmed without EXP-01. Conservative design (48k fallback) guarantees minimum target.
+**Open item**: Whether 96k sps is achievable and the optimal Ring Buffer size cannot be confirmed without EXP-01. Conservative defaults (48k fallback, 30 s buffer) guarantee minimum target.
 
 ---
 
@@ -698,7 +728,7 @@ Architectural approaches are not independent of each other. The following intera
 | 질문 / Question | 답 / Answer |
 |----------------|------------|
 | 아키텍처 개요는? | 단방향 4-계층 신호 처리 파이프라인 (Acquisition → Signal Processing → Domain → Presentation). 3-스레드(Audio/DSP/GUI)로 RPi 5의 단일 프로세스 내 자원 경쟁 제어 |
-| 주요 어프로치는? | AP-1(3-스레드 파이프라인), AP-2(Lock-Free Ring Buffer), AP-3(Layered Architecture), AP-4(Observer/Signal-Slot), AP-5(Adaptive Threshold DSP), AP-6(Graceful Degradation), AP-7(Lazy Rendering + Heartbeat) |
+| 주요 어프로치는? | AP-1(3-스레드 파이프라인), AP-2(Lock-Free Ring Buffer), AP-3(Layered Architecture), AP-4(Observer/Signal-Slot), AP-5(Adaptive Threshold DSP), AP-6(Graceful Degradation), AP-7(Lazy Rendering + Heartbeat), AP-8(Ring Buffer 크기 증설) |
 | 설계가 구현을 안내하기에 충분한가? | ✅ 모든 어프로치의 구조적 방향 확정. ⚠️ 파라미터/임계값(EXP-01~04) 미결이나 Conservative 기본값으로 최소 동작 보장 |
 | 어프로치가 드라이버에 연결되어 있는가? | ✅ 5개 QA 드라이버 각각에 1개 이상의 어프로치가 명시적으로 연결 (Section 4 트레이서빌리티 매핑 참조) |
 | 드라이버가 얼마나 잘 지원되는가? | QAS-1, QAS-2: 구조적 충분 + 실험 검증 필요 | QAS-3 QA-C1: 구조적 완전 보장 | QAS-3 QA-C2, QAS-4: 구조 확정 + 실험 파라미터 확정 필요 | QAS-5: 리팩터링 후 구조적 달성 가능 |
@@ -708,7 +738,7 @@ Architectural approaches are not independent of each other. The following intera
 | Question | Answer |
 |----------|--------|
 | Architecture overview? | Unidirectional 4-layer signal processing pipeline (Acquisition → Signal Processing → Domain → Presentation). 3 threads (Audio/DSP/GUI) manage resource contention in a single RPi 5 process |
-| Main approaches? | AP-1 (3-thread pipeline), AP-2 (Lock-Free Ring Buffer), AP-3 (Layered Architecture), AP-4 (Observer/Signal-Slot), AP-5 (Adaptive Threshold DSP), AP-6 (Graceful Degradation), AP-7 (Lazy Rendering + Heartbeat) |
+| Main approaches? | AP-1 (3-thread pipeline), AP-2 (Lock-Free Ring Buffer), AP-3 (Layered Architecture), AP-4 (Observer/Signal-Slot), AP-5 (Adaptive Threshold DSP), AP-6 (Graceful Degradation), AP-7 (Lazy Rendering + Heartbeat), AP-8 (Ring Buffer Size Increase) |
 | Sound enough to guide construction? | ✅ Structural direction confirmed for all approaches. ⚠️ Parameters/thresholds pending (EXP-01~04), but conservative defaults guarantee minimum behavior |
 | Approaches linked to drivers? | ✅ Each of 5 QA drivers has at least one explicitly linked approach (see Section 4 traceability mapping) |
 | How well are drivers supported? | QAS-1, QAS-2: Structurally sufficient + empirical verification needed | QAS-3 QA-C1: Fully guaranteed by structure | QAS-3 QA-C2, QAS-4: Structure confirmed + experimental parameter confirmation needed | QAS-5: Structurally achievable after refactoring |
