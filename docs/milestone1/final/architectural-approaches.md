@@ -422,7 +422,7 @@ graph LR
 
 ---
 
-### AP-8: 애플리케이션 Ring Buffer 크기 증설 (Increase Resources) / Application Ring Buffer Size Increase
+### AP-8: Increase Resources (애플리케이션 Ring Buffer 크기 증설) / Increase Resources
 
 **한국어**
 
