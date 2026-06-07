@@ -68,17 +68,35 @@ This experiment provides data for:
 
 **한국어**
 
-- 48k / 96k / 192k sps별 CPU 점유율, 드롭 블록 수, GUI FPS 측정표
-- QAS-3 3구간 지연 측정값: ① capture→process, ② process→display, ③ end-to-end
+- 아래 SPS × Latency 통합 측정표 완성 (멘토 코멘트: SPS와 Latency는 함께 측정·논의)
 - 목표 sps 결정 (96k 유지 / 48k 폴백) 및 근거
 - QAS-1 / QAS-3 수치 확정 (잠정값 대체)
 
+**SPS × Latency 통합 측정표 (기록 양식) / SPS × Latency Integrated Measurement Table**
+
+**한국어**
+
+| SPS | CPU % | Dropped Blocks | GUI FPS | ① capture→process (ms) | ② process→display (ms) | ③ end-to-end (ms) | 판정 / Result |
+|-----|:-----:|:--------------:|:-------:|:----------------------:|:----------------------:|:-----------------:|:------------:|
+| 48,000 | | | | | | | |
+| **96,000** | | | | | | | |
+| 192,000 | | | | | | | |
+
+> 각 조건당 5분 측정. ①②③은 `QElapsedTimer`로 측정. end-to-end 목표: SPS별 beat 주기의 80% 이내.
+
 **English**
 
-- Table of CPU usage, dropped block count, and GUI FPS at 48k / 96k / 192k sps
-- QAS-3 latency measurements: ① capture→process, ② process→display, ③ end-to-end
+- Complete the SPS × Latency integrated measurement table below (mentor comment: SPS and Latency must be measured and discussed together)
 - Target sps decision (sustain 96k / fall back to 48k) with rationale
 - Finalized QAS-1 / QAS-3 values (replacing provisional figures)
+
+| SPS | CPU % | Dropped Blocks | GUI FPS | ① capture→process (ms) | ② process→display (ms) | ③ end-to-end (ms) | Result |
+|-----|:-----:|:--------------:|:-------:|:----------------------:|:----------------------:|:-----------------:|:------:|
+| 48,000 | | | | | | | |
+| **96,000** | | | | | | | |
+| 192,000 | | | | | | | |
+
+> 5-minute run per condition. ①②③ measured via `QElapsedTimer`. End-to-end target: within 80% of beat period for each SPS.
 
 ---
 
