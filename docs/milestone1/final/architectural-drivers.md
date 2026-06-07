@@ -324,13 +324,11 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 **프로젝트 목표와의 연결:** 팀 제1목표(정확한 데이터)를 두 측면에서 지원. QA-C1은 "어느 뷰를 보더라도 동일한 정확한 값"을 보장. QA-C2는 소음 환경에서도 beat 감지 품질을 유지하여 정확도를 구조적으로 확보.
 
-**관련 아키텍처 전술:**
+**관련 아키텍처 패턴:**
 
-| 전술 / Tactic | 연결 QA | 적용 이유 |
-|-------------|:------:|---------|
+| 패턴 / Pattern | 연결 QA | 적용 이유 |
+|--------------|:------:|---------|
 | Observer / Qt Signal-Slot | QA-C1 | MeasurementEngine이 단일 Measurement 구조체 발행 → 모든 탭이 동일 신호 구독 |
-| Adaptive threshold (noise floor 기반) | QA-C2 | noise_floor = 최근 256ms 75th percentile, reference_peak = 최근 16 beat median |
-| Detector 파라미터 튜닝 (EXP-03) | QA-C2 | onset_fraction / min_peak_fraction 최적값 실험으로 확정 |
 
 ---
 
@@ -441,7 +439,7 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 |----|:------:|---------|----------|
 | Real-Time Performance | 1 | Lock-Free Ring Buffer, Priority Scheduling, Graceful Degradation | EXP-01 (SPS별 Dropped Block) |
 | Low Latency | 2 | Thread 분리 (Concurrency), Lock-Free Ring Buffer, Lazy Rendering | EXP-02 (3구간 타임스탬프 측정) |
-| Correctness | 3 | Observer/Signal-Slot, Adaptive threshold, Detector 파라미터 튜닝 | EXP-03 (소음 조건 × 파라미터 Δ) |
+| Correctness | 3 | Observer/Signal-Slot | EXP-03 (소음 조건 × 파라미터 Δ) |
 | Usability | 4 | Heartbeat 패턴 | 임계값 실험 (N·M 수치 확정) |
 | Extensibility | 5 | Split Module, Observer/Signal-Slot, Layered Architecture | ≤ 3파일 검증 실험 |
 
@@ -451,7 +449,7 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 |----|:-------:|---------------|----------------|
 | Real-Time Performance | 1 | Lock-Free Ring Buffer, Priority Scheduling, Graceful Degradation | EXP-01 (Dropped Block per SPS) |
 | Low Latency | 2 | Thread separation (Concurrency), Lock-Free Ring Buffer, Lazy Rendering | EXP-02 (3-segment timestamp measurement) |
-| Correctness | 3 | Observer/Signal-Slot, Adaptive threshold, Detector parameter tuning | EXP-03 (noise × parameter Δ) |
+| Correctness | 3 | Observer/Signal-Slot | EXP-03 (noise × parameter Δ) |
 | Usability | 4 | Heartbeat pattern | Threshold experiment (N·M values) |
 | Extensibility | 5 | Split Module, Observer/Signal-Slot, Layered Architecture | ≤ 3-file verification experiment |
 
