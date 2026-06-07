@@ -74,31 +74,49 @@ TimeGrapher analyzes acoustic signals (beat noise) from the escapement vibration
 
 아키텍처를 이해하기 위해 파악된 기능 요구사항. 현재 샘플 코드(`TimeGrapher_v10.5`) 기준 구현 상태 포함.
 
-| ID | 기능 요건 / Functional Requirement | 우선순위 | 현재 구현 상태 |
-|----|----------------------------------|:------:|:----------:|
-| FR-01 | T1(A), T3(C) 음향 이벤트 감지 | HIGH | ✅ 구현됨 (`Detector.cpp`) |
-| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH 계산 | HIGH | ✅ 구현됨 |
-| FR-03 | Live / Playback / Sim 운영 모드 지원 | HIGH | ✅ 구현됨 |
-| FR-04 | 신호 필터링 (HPF + Envelope) | HIGH | ⚠️ 부분 구현 (HPF만) |
-| FR-05 | Trace Display (Rate + Amplitude 실시간 기록) | MEDIUM | ❌ 미구현 |
-| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | MEDIUM | ❌ 미구현 |
-| FR-07 | Beat Error Display & Diagnostic Trace | MEDIUM | ❌ 미구현 |
-| FR-08 | 신호 품질 경고 표시 (No signal / Noisy signal) | MEDIUM | ❌ 미구현 |
-| FR-09 | Pause + 시간축 탐색 — 라이브 표시를 일시 정지하고 커서로 과거 beat 데이터를 앞뒤 탐색. 정지 중에도 백그라운드 수집은 계속 유지 | LOW | ❌ 미구현 |
+| ID | 기능 요건 / Functional Requirement | 티어 | 우선순위 | 현재 구현 상태 |
+|----|----------------------------------|:----:|:------:|:----------:|
+| FR-01 | T1(A), T3(C) 음향 이벤트 감지 | — | HIGH | ✅ 구현됨 (`Detector.cpp`) |
+| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH 계산 | — | HIGH | ✅ 구현됨 |
+| FR-03 | Live / Playback / Sim 운영 모드 지원 | — | HIGH | ✅ 구현됨 |
+| FR-04 | 신호 필터링 (HPF + Envelope) | — | HIGH | ⚠️ 부분 구현 (HPF만) |
+| FR-05 | Trace Display (Rate + Amplitude 실시간 기록) | **Core** | HIGH | ❌ 미구현 |
+| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | **Core** | HIGH | ❌ 미구현 |
+| FR-07 | Beat Error Display & Diagnostic Trace | **Core** | HIGH | ❌ 미구현 |
+| FR-08 | 신호 품질 경고 표시 (No signal / Noisy signal) | — | MEDIUM | ❌ 미구현 |
+| FR-09 | Pause + 시간축 탐색 — 라이브 표시를 일시 정지하고 커서로 과거 beat 데이터를 앞뒤 탐색. 정지 중에도 백그라운드 수집은 계속 유지 | — | LOW | ❌ 미구현 |
+| FR-10 | Watch-Position Testing — 시계를 여러 자세(Dial-Up, Crown-Left 등)로 놓고 포지션별 Rate 편차 측정 | **Required** | MEDIUM | ❌ 미구현 |
+| FR-11 | Beat-Noise Scope Display — beat 파형을 오실로스코프 형태로 표시 (Scope 1: 원시 파형, Scope 2: 필터 후 파형) | **Required** | MEDIUM | ❌ 미구현 |
+| FR-12 | Multi-Position Sequence Display — 복수 포지션 측정 결과를 순차적으로 비교 표시 | **Required** | MEDIUM | ❌ 미구현 |
+| FR-13 | Long-Term Performance Graph — 수 시간~수 일에 걸친 Rate/Amplitude 장기 추이 기록 및 표시 | **Stretch** | LOW | ❌ 미구현 |
+| FR-14 | Escapement Analyzer & Marker-Line Display — 탈진기 동작 분석 및 마커라인 오버레이 | **Stretch** | LOW | ❌ 미구현 |
+| FR-15 | Time-Frequency Spectrogram Display — beat 신호의 시간-주파수 스펙트로그램 표시 | **Stretch** | LOW | ❌ 미구현 |
+| FR-16 | Waveform Comparison Display with Timing Markers — 기준 파형 대비 현재 파형 비교 및 타이밍 마커 표시 | **Stretch** | LOW | ❌ 미구현 |
+| FR-17 | Scope Mode with Synchronized Sweep — 트리거 동기화된 스윕 모드 스코프 표시 | **Stretch** | LOW | ❌ 미구현 |
+| FR-18 | Scope Function with Multiple Filter Views — 복수 필터 조합을 동시에 비교하는 스코프 뷰 | **Stretch** | LOW | ❌ 미구현 |
 
 **English**
 
-| ID | Functional Requirement | Priority | Status |
-|----|----------------------|:-------:|:------:|
-| FR-01 | T1(A), T3(C) acoustic event detection | HIGH | ✅ Implemented (`Detector.cpp`) |
-| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH computation | HIGH | ✅ Implemented |
-| FR-03 | Live / Playback / Sim mode support | HIGH | ✅ Implemented |
-| FR-04 | Signal filtering (HPF + Envelope) | HIGH | ⚠️ Partial (HPF only) |
-| FR-05 | Trace Display (real-time Rate + Amplitude recording) | MEDIUM | ❌ Not implemented |
-| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | MEDIUM | ❌ Not implemented |
-| FR-07 | Beat Error Display & Diagnostic Trace | MEDIUM | ❌ Not implemented |
-| FR-08 | Signal quality warning (No signal / Noisy signal) | MEDIUM | ❌ Not implemented |
-| FR-09 | Pause + timeline navigation — freeze the live display and use a cursor to move backward/forward through captured beat data; background data collection continues while paused | LOW | ❌ Not implemented |
+| ID | Functional Requirement | Tier | Priority | Status |
+|----|----------------------|:----:|:-------:|:------:|
+| FR-01 | T1(A), T3(C) acoustic event detection | — | HIGH | ✅ Implemented (`Detector.cpp`) |
+| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH computation | — | HIGH | ✅ Implemented |
+| FR-03 | Live / Playback / Sim mode support | — | HIGH | ✅ Implemented |
+| FR-04 | Signal filtering (HPF + Envelope) | — | HIGH | ⚠️ Partial (HPF only) |
+| FR-05 | Trace Display (real-time Rate + Amplitude recording) | **Core** | HIGH | ❌ Not implemented |
+| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | **Core** | HIGH | ❌ Not implemented |
+| FR-07 | Beat Error Display & Diagnostic Trace | **Core** | HIGH | ❌ Not implemented |
+| FR-08 | Signal quality warning (No signal / Noisy signal) | — | MEDIUM | ❌ Not implemented |
+| FR-09 | Pause + timeline navigation — freeze the live display and use a cursor to move backward/forward through captured beat data; background data collection continues while paused | — | LOW | ❌ Not implemented |
+| FR-10 | Watch-Position Testing — measure Rate deviation across multiple watch positions (Dial-Up, Crown-Left, etc.) | **Required** | MEDIUM | ❌ Not implemented |
+| FR-11 | Beat-Noise Scope Display — display beat waveform in oscilloscope style (Scope 1: raw, Scope 2: filtered) | **Required** | MEDIUM | ❌ Not implemented |
+| FR-12 | Multi-Position Sequence Display — sequentially compare measurement results across multiple positions | **Required** | MEDIUM | ❌ Not implemented |
+| FR-13 | Long-Term Performance Graph — record and display Rate/Amplitude trends over hours to days | **Stretch** | LOW | ❌ Not implemented |
+| FR-14 | Escapement Analyzer & Marker-Line Display — analyze escapement action with marker-line overlay | **Stretch** | LOW | ❌ Not implemented |
+| FR-15 | Time-Frequency Spectrogram Display — display time-frequency spectrogram of the beat signal | **Stretch** | LOW | ❌ Not implemented |
+| FR-16 | Waveform Comparison Display with Timing Markers — overlay reference and current waveforms with timing markers | **Stretch** | LOW | ❌ Not implemented |
+| FR-17 | Scope Mode with Synchronized Sweep — trigger-synchronized sweep scope display | **Stretch** | LOW | ❌ Not implemented |
+| FR-18 | Scope Function with Multiple Filter Views — simultaneously compare multiple filter combinations in scope view | **Stretch** | LOW | ❌ Not implemented |
 
 ---
 
