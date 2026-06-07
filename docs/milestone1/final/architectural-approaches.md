@@ -330,7 +330,7 @@ graph LR
 
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
-| **전술 / Tactic** | 파이프라인 필터링 + Adaptive Threshold |
+| **DSP 전략 / DSP Strategy** | 파이프라인 필터링 + Adaptive Threshold |
 | **고정 결정** | DSP 파이프라인: Raw PCM → HPF (DC blocker ≥200 Hz) → Envelope (one-pole LPF) → Detector. Adaptive threshold 전략 채택 (이미 구현됨): `noise_floor` = 최근 256 ms 무음 구간 75th percentile, `reference_peak` = 최근 16 beat peak median |
 | **미결 결정** | Detector 파라미터(`onset_fraction`=0.03, `min_peak_fraction`=0.20) 기본값이 소음 3조건에서 최적인지 검증 필요 → **EXP-03** |
 | **트레이드오프** | `onset_fraction` 높이면 노이즈 차단↑ but 실제 beat onset missed. 낮추면 민감도↑ but false detection |
@@ -340,7 +340,7 @@ graph LR
 
 | Item | Detail |
 |------|--------|
-| **Tactic** | Pipeline Filtering + Adaptive Threshold |
+| **DSP Strategy** | Pipeline Filtering + Adaptive Threshold |
 | **Fixed decisions** | DSP pipeline: Raw PCM → HPF (DC blocker ≥200 Hz) → Envelope (one-pole LPF) → Detector. Adaptive threshold strategy adopted (already implemented): `noise_floor` = 75th percentile of last 256 ms silence; `reference_peak` = median of last 16 beat peaks |
 | **Open decision** | Whether default Detector parameters (`onset_fraction`=0.03, `min_peak_fraction`=0.20) are optimal under 3 noise conditions — confirmed by **EXP-03** |
 | **Trade-off** | Higher `onset_fraction` → better noise rejection but may miss real beat onset. Lower → higher sensitivity but false detections |

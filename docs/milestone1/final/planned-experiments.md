@@ -750,7 +750,7 @@ The results of this experiment directly inform:
 - `docs/milestone1/final/architectural-drivers.md` — QAS-4, OI-U1, OI-U2
 - `docs/milestone1/final/risk-assessment.md` — TR-09, 액션 계획 순서 6
 - `docs/milestone1/quality_attribute_scenarios_usability.md` — 원본 QA 분석
-- Heartbeat 패턴 설명 — QAS-4 관련 아키텍처 전술
+- Heartbeat 패턴 설명 — QAS-4 관련 아키텍처 패턴
 
 **English**
 
