@@ -76,7 +76,20 @@ Correctness 요구사항에서 도출된 QA 요구사항은 아래와 같다.
 
 **English**
 
-QA-C1 is guaranteed structurally once the Observer pattern is in place. QA-C2: the adaptive threshold algorithm is already implemented in `Detector.cpp` (noise floor via 75th percentile, reference peak via median of last 16 beats). The open question is whether the default parameter values (`onset_fraction` = 0.03, `min_peak_fraction` = 0.20) hold up under noise — to be confirmed by EX-04.
+QA-C1 is guaranteed structurally once the Observer pattern is in place. QA-C2: the adaptive threshold algorithm is already implemented in `Detector.cpp` (noise floor via 75th percentile, reference peak via median of last 16 beats). The open question is whether the default Detector parameter (`onset_fraction`, `min_peak_fraction`) values (0.03 / 0.20) hold up under noise — to be confirmed by EX-04.
+
+---
+
+#### Detector 파라미터 설명 / Detector Parameter Glossary
+
+> 아래 두 파라미터는 `Detector.cpp`의 adaptive threshold 알고리즘에서 beat 판정 민감도를 제어한다. 이후 문서에서 **Detector 파라미터 (`onset_fraction`, `min_peak_fraction`)** 로 통칭한다.
+>
+> The two parameters below control beat detection sensitivity in the adaptive threshold algorithm in `Detector.cpp`. Throughout this document they are referred to collectively as **Detector parameters (`onset_fraction`, `min_peak_fraction`)**.
+
+| 파라미터 / Parameter | 역할 / Role | 기본값 / Default |
+|---------------------|------------|:---------------:|
+| `onset_fraction` | `reference_peak`에 대한 비율로 onset threshold를 결정한다. 신호가 `onset_fraction × reference_peak`를 초과해야 beat onset으로 인정된다. / Sets the onset threshold as a fraction of `reference_peak`. A signal must exceed `onset_fraction × reference_peak` to be recognized as a beat onset. | **0.03** |
+| `min_peak_fraction` | `reference_peak`에 대한 비율로 유효 beat peak의 최솟값을 결정한다. `min_peak_fraction × reference_peak` 미만의 peak는 노이즈로 간주해 무시된다. / Sets the minimum valid beat peak as a fraction of `reference_peak`. Peaks below `min_peak_fraction × reference_peak` are treated as noise and discarded. | **0.20** |
 
 ---
 
@@ -89,14 +102,15 @@ QA-C1 is guaranteed structurally once the Observer pattern is in place. QA-C2: t
 **한국어**
 
 Correctness FR 구현은 파라미터 설정에 따른 두 가지 실패 경로로 위협받는다.
+Detector 파라미터 (`onset_fraction`, `min_peak_fraction`) 설정에 따른 두 가지 실패 경로가 존재한다.
 - **`onset_fraction`이 너무 높으면**: 실제 beat onset을 threshold 이하로 판단 → missed beat
 - **`onset_fraction`이 너무 낮으면**: 노이즈 burst를 beat로 판단 → false detection → 측정값 오염
 
-성능(SPS) 문제는 이 FR의 범위 밖이다 — 파라미터 값은 상수이므로 연산량에 영향을 주지 않는다.
+성능(SPS) 문제는 이 QA의 범위 밖이다 — Detector 파라미터 값은 상수이므로 연산량에 영향을 주지 않는다.
 
 **English**
 
-Correctness FR implementation faces two failure paths depending on parameter settings: (1) `onset_fraction` too high → real beat onset falls below threshold → missed beat; (2) `onset_fraction` too low → noise burst detected as beat → false detection. SPS/performance is out of scope — parameter values are constants and do not affect compute load.
+Two failure paths exist depending on Detector parameter (`onset_fraction`, `min_peak_fraction`) settings: (1) `onset_fraction` too high → real beat onset falls below threshold → missed beat; (2) `onset_fraction` too low → noise burst detected as beat → false detection. SPS/performance is out of scope — parameter values are constants and do not affect compute load.
 
 ---
 
@@ -104,7 +118,7 @@ Correctness FR implementation faces two failure paths depending on parameter set
 
 | ID | 리스크 / Risk | Prob | Impact | 연관 실험 / Experiment |
 |----|-------------|:----:|:------:|:---------------------:|
-| **TR-C1** | **Threshold 파라미터 미최적화**: 기본값(`onset_fraction`=0.03, `min_peak_fraction`=0.20)이 소음 환경에서 부적절 → Δ Rate / Δ Amplitude / Δ Beat Error 허용 범위 초과 / Default parameter values inadequate under noise → metrics exceed acceptable Δ | H | H | EX-04 |
+| **TR-C1** | **Detector 파라미터 미최적화**: Detector 파라미터 (`onset_fraction`, `min_peak_fraction`) 기본값(0.03 / 0.20)이 소음 환경에서 부적절 → Δ Rate / Δ Amplitude / Δ Beat Error 허용 범위 초과 / Default Detector parameter values inadequate under noise → metrics exceed acceptable Δ | H | H | EX-04 |
 
 ---
 
@@ -114,7 +128,7 @@ Correctness FR implementation faces two failure paths depending on parameter set
 
 | 이슈 / Open Issue | 연관 리스크 / Risk | 대응 / Action | 완료 기준 / Done When |
 |------------------|:-----------------:|--------------|---------------------|
-| 소음 3조건에서 Δ를 최소화하는 `onset_fraction` / `min_peak_fraction` 값은 무엇인가 / What `onset_fraction` / `min_peak_fraction` values minimize Δ across the 3 noise conditions | TR-C1 | **EX-04** — 파라미터 값 변화에 따른 Δ 측정 | 최적 파라미터 값 팀 합의 결정 |
+| 소음 3조건에서 Δ를 최소화하는 Detector 파라미터 (`onset_fraction`, `min_peak_fraction`) 값은 무엇인가 / What Detector parameter (`onset_fraction`, `min_peak_fraction`) values minimize Δ across the 3 noise conditions | TR-C1 | **EX-04** — Detector 파라미터 값 변화에 따른 Δ 측정 | 최적 Detector 파라미터 값 팀 합의 결정 |
 
 **English**
 
@@ -126,6 +140,8 @@ TR-C1 is resolved by EX-04. SPS/performance is not a factor — parameter values
 
 **한국어**
 
+Detector 파라미터 (`onset_fraction`, `min_peak_fraction`) 기준 트레이드오프:
+
 | 결정 / Decision | 얻는 것 / Gain | 잃는 것 / Loss |
 |----------------|--------------|--------------|
 | 높은 `onset_fraction` / Higher `onset_fraction` | 노이즈 버스트 차단 향상 / Better rejection of noise bursts | beat onset이 threshold 아래로 → missed beat |
@@ -133,7 +149,7 @@ TR-C1 is resolved by EX-04. SPS/performance is not a factor — parameter values
 
 **English**
 
-The tradeoff is purely about detection accuracy — parameter values are constants and do not affect compute load or sps. EX-04 finds the values that minimize Δ across all three noise conditions.
+The tradeoff for Detector parameters (`onset_fraction`, `min_peak_fraction`) is purely about detection accuracy — values are constants and do not affect compute load or SPS. EX-04 finds the values that minimize Δ across all three noise conditions.
 
 ---
 
@@ -158,21 +174,21 @@ The tradeoff is purely about detection accuracy — parameter values are constan
 Detector에는 noise floor 기반 adaptive threshold가 이미 구현되어 있다 (`noise_floor` = 최근 256ms 무음 구간의 75th percentile, `reference_peak` = 최근 16개 beat peak의 median). 소음 환경에서 이 메커니즘이 올바르게 작동하려면 `onset_fraction`과 `min_peak_fraction`이 적절히 설정되어야 한다.
 
 이 실험이 답해야 하는 기술 질문:  
-> **"소음 3조건에서 Δ Rate / Δ Amplitude / Δ Beat Error를 최소화하는 `onset_fraction` / `min_peak_fraction` 값은 무엇인가?"**
+> **"소음 3조건에서 Δ Rate / Δ Amplitude / Δ Beat Error를 최소화하는 Detector 파라미터 (`onset_fraction`, `min_peak_fraction`) 값은 무엇인가?"**
 
 이 결과를 바탕으로:
-- 소음 환경에 적합한 파라미터 값 확정 (기본값 0.03 / 0.20 유지 또는 조정)
+- 소음 환경에 적합한 Detector 파라미터 값 확정 (기본값 0.03 / 0.20 유지 또는 조정)
 - QAS-C Response Measure (허용 Δ 한계) 수치 확정
 
 **English**
 
-The Detector already implements a noise-floor-based adaptive threshold (`noise_floor` = 75th percentile of recent 256 ms silence samples; `reference_peak` = median of last 16 beat peaks). For this mechanism to work correctly under noise, `onset_fraction` and `min_peak_fraction` must be appropriately set.
+The Detector already implements a noise-floor-based adaptive threshold (`noise_floor` = 75th percentile of recent 256 ms silence samples; `reference_peak` = median of last 16 beat peaks). For this mechanism to work correctly under noise, Detector parameters (`onset_fraction`, `min_peak_fraction`) must be appropriately set.
 
 Technical question this experiment must answer:  
-> **"What values of `onset_fraction` / `min_peak_fraction` minimize Δ Rate / Δ Amplitude / Δ Beat Error across the three noise conditions?"**
+> **"What Detector parameter (`onset_fraction`, `min_peak_fraction`) values minimize Δ Rate / Δ Amplitude / Δ Beat Error across the three noise conditions?"**
 
 Results feed into:
-- Confirming parameter values for noisy environments (keep defaults 0.03 / 0.20 or adjust)
+- Confirming Detector parameter values for noisy environments (keep defaults 0.03 / 0.20 or adjust)
 - Finalizing QAS-C Response Measure thresholds
 
 ---
@@ -339,14 +355,14 @@ flowchart LR
 |------------|--------------|
 | **대응 QA** | QA-C2 — 소음 환경에서의 beat 감지 품질 유지 |
 | **고정 결정** | DSP 파이프라인(HPF → Envelope → Detector) + adaptive threshold 알고리즘 (`noise_floor` = 75th percentile, `reference_peak` = median of 16 beats) |
-| **개방 결정** | `onset_fraction` / `min_peak_fraction` 파라미터 값 — 소음 환경에 적합한 값 확정 필요 |
+| **개방 결정** | Detector 파라미터 (`onset_fraction`, `min_peak_fraction`) 값 — 소음 환경에 적합한 값 확정 필요 |
 | **현재 기본값** | `onset_fraction` = 0.03, `min_peak_fraction` = 0.20 |
-| **결정 방법** | EX-04 — 소음 3조건 × 파라미터 후보 조합 Δ 비교 |
-| **제약** | 없음 — 파라미터 값은 상수이므로 연산량·SPS에 무관 / None — parameter values are constants, independent of compute load and SPS |
+| **결정 방법** | EX-04 — 소음 3조건 × Detector 파라미터 후보 조합 Δ 비교 |
+| **제약** | 없음 — Detector 파라미터 값은 상수이므로 연산량·SPS에 무관 / None — parameter values are constants, independent of compute load and SPS |
 
 **English**
 
-The DSP pipeline and adaptive threshold algorithm are fixed (`Detector.cpp`: `noise_floor` via 75th percentile of recent silence samples, `reference_peak` via median of last 16 beat peaks). The only open decision is the parameter values (`onset_fraction`, `min_peak_fraction`) that keep metrics within acceptable Δ across all noise conditions. EX-04 finds these values empirically.
+The DSP pipeline and adaptive threshold algorithm are fixed (`Detector.cpp`: `noise_floor` via 75th percentile of recent silence samples, `reference_peak` via median of last 16 beat peaks). The only open decision is Detector parameter (`onset_fraction`, `min_peak_fraction`) values that keep metrics within acceptable Δ across all noise conditions. EX-04 finds these values empirically.
 
 **설계가 드라이버를 지원하는 방식 / How the design supports the driver**
 
@@ -379,12 +395,12 @@ MeasurementEngine emits a single `Measurement` struct; all 11 graph tabs subscri
 
 | QA | 리스크 | 실험 | 아키텍처 어프로치 | 구현 충분성 |
 |----|-------|------|-----------------|-----------|
-| QA-C2 (소음 환경 beat 감지) | TR-C1 (파라미터 미최적화) | EX-04 → Δ 비교 (EX-01과 병렬) | AP-1: 최적 `onset_fraction` / `min_peak_fraction` 확정 | EX-04 후 확정 |
+| QA-C2 (소음 환경 beat 감지) | TR-C1 (Detector 파라미터 미최적화) | EX-04 → Δ 비교 (EX-01과 병렬) | AP-1: 최적 Detector 파라미터 (`onset_fraction`, `min_peak_fraction`) 확정 | EX-04 후 확정 |
 | QA-C1 (동일 데이터 소스) | — | — | AP-2: Observer 패턴 (구조적 보장) | ✅ 설계로 즉시 보장 |
 
 **English**
 
 | QA | Risk | Experiment | Architectural Approach | Implementation Soundness |
 |----|------|-----------|----------------------|-----------------|
-| QA-C2 (noise-robust beat detection) | TR-C1 (parameter not optimized) | EX-04 → Δ comparison (parallel with EX-01) | AP-1: confirms optimal `onset_fraction` / `min_peak_fraction` values | Confirmed after EX-04 |
+| QA-C2 (noise-robust beat detection) | TR-C1 (Detector parameters not optimized) | EX-04 → Δ comparison (parallel with EX-01) | AP-1: confirms optimal Detector parameter (`onset_fraction`, `min_peak_fraction`) values | Confirmed after EX-04 |
 | QA-C1 (same data source) | — | — | AP-2: Observer pattern (structural guarantee) | ✅ Immediately guaranteed by design |
