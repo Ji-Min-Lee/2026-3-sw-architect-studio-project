@@ -76,47 +76,47 @@ TimeGrapher analyzes acoustic signals (beat noise) from the escapement vibration
 
 | ID | 기능 요건 / Functional Requirement | 티어 | 우선순위 | 현재 구현 상태 |
 |----|----------------------------------|:----:|:------:|:----------:|
-| FR-01 | T1(A), T3(C) 음향 이벤트 감지 | — | HIGH | ✅ 구현됨 (`Detector.cpp`) |
-| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH 계산 | — | HIGH | ✅ 구현됨 |
-| FR-03 | Live / Playback / Sim 운영 모드 지원 | — | HIGH | ✅ 구현됨 |
-| FR-04 | 신호 필터링 (HPF + Envelope) | — | HIGH | ⚠️ 부분 구현 (HPF만) |
-| FR-05 | Trace Display (Rate + Amplitude 실시간 기록) | **Core** | HIGH | ❌ 미구현 |
-| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | **Core** | HIGH | ❌ 미구현 |
-| FR-07 | Beat Error Display & Diagnostic Trace | **Core** | HIGH | ❌ 미구현 |
-| FR-08 | 신호 품질 경고 표시 (No signal / Noisy signal) | — | MEDIUM | ❌ 미구현 |
-| FR-09 | Pause + 시간축 탐색 — 라이브 표시를 일시 정지하고 커서로 과거 beat 데이터를 앞뒤 탐색. 정지 중에도 백그라운드 수집은 계속 유지 | — | LOW | ❌ 미구현 |
-| FR-10 | Watch-Position Testing — 시계를 여러 자세(Dial-Up, Crown-Left 등)로 놓고 포지션별 Rate 편차 측정 | **Required** | MEDIUM | ❌ 미구현 |
-| FR-11 | Beat-Noise Scope Display — beat 파형을 오실로스코프 형태로 표시 (Scope 1: 원시 파형, Scope 2: 필터 후 파형) | **Required** | MEDIUM | ❌ 미구현 |
-| FR-12 | Multi-Position Sequence Display — 복수 포지션 측정 결과를 순차적으로 비교 표시 | **Required** | MEDIUM | ❌ 미구현 |
-| FR-13 | Long-Term Performance Graph — 수 시간~수 일에 걸친 Rate/Amplitude 장기 추이 기록 및 표시 | **Stretch** | LOW | ❌ 미구현 |
-| FR-14 | Escapement Analyzer & Marker-Line Display — 탈진기 동작 분석 및 마커라인 오버레이 | **Stretch** | LOW | ❌ 미구현 |
-| FR-15 | Time-Frequency Spectrogram Display — beat 신호의 시간-주파수 스펙트로그램 표시 | **Stretch** | LOW | ❌ 미구현 |
-| FR-16 | Waveform Comparison Display with Timing Markers — 기준 파형 대비 현재 파형 비교 및 타이밍 마커 표시 | **Stretch** | LOW | ❌ 미구현 |
-| FR-17 | Scope Mode with Synchronized Sweep — 트리거 동기화된 스윕 모드 스코프 표시 | **Stretch** | LOW | ❌ 미구현 |
-| FR-18 | Scope Function with Multiple Filter Views — 복수 필터 조합을 동시에 비교하는 스코프 뷰 | **Stretch** | LOW | ❌ 미구현 |
+| FR-01 | 시스템은 T1(A), T3(C) 음향 이벤트를 감지해야 한다 | — | HIGH | ✅ 구현됨 (`Detector.cpp`) |
+| FR-02 | 시스템은 Rate (s/d), Amplitude (°), Beat Error (ms), BPH를 계산해야 한다 | — | HIGH | ✅ 구현됨 |
+| FR-03 | 시스템은 Live / Playback / Sim 운영 모드를 지원해야 한다 | — | HIGH | ✅ 구현됨 |
+| FR-04 | 시스템은 신호 필터링 (HPF + Envelope)을 수행해야 한다 | — | HIGH | ⚠️ 부분 구현 (HPF만) |
+| FR-05 | 시스템은 Trace Display (Rate + Amplitude 실시간 기록)를 제공해야 한다 | **Core** | HIGH | ❌ 미구현 |
+| FR-06 | 시스템은 Rate & Amplitude Stability / Vario (Min/Max/Avg/σ)를 제공해야 한다 | **Core** | HIGH | ❌ 미구현 |
+| FR-07 | 시스템은 Beat Error Display & Diagnostic Trace를 제공해야 한다 | **Core** | HIGH | ❌ 미구현 |
+| FR-08 | 시스템은 신호 품질 경고 (No signal / Noisy signal)를 표시해야 한다 | — | MEDIUM | ❌ 미구현 |
+| FR-09 | 시스템은 Pause + 시간축 탐색 기능을 제공해야 한다 — 라이브 표시를 일시 정지하고 커서로 과거 beat 데이터를 앞뒤 탐색할 수 있어야 하며, 정지 중에도 백그라운드 수집은 계속 유지되어야 한다 | — | LOW | ❌ 미구현 |
+| FR-10 | 시스템은 여러 자세(Dial-Up, Crown-Left 등)에서 포지션별 Rate 편차를 측정해야 한다 | **Required** | MEDIUM | ❌ 미구현 |
+| FR-11 | 시스템은 beat 파형을 오실로스코프 형태로 표시해야 한다 (Scope 1: 원시 파형, Scope 2: 필터 후 파형) | **Required** | MEDIUM | ❌ 미구현 |
+| FR-12 | 시스템은 복수 포지션 측정 결과를 순차적으로 비교 표시해야 한다 | **Required** | MEDIUM | ❌ 미구현 |
+| FR-13 | 시스템은 수 시간~수 일에 걸친 Rate/Amplitude 장기 추이를 기록 및 표시해야 한다 | **Stretch** | LOW | ❌ 미구현 |
+| FR-14 | 시스템은 탈진기 동작 분석 및 마커라인 오버레이를 표시해야 한다 | **Stretch** | LOW | ❌ 미구현 |
+| FR-15 | 시스템은 beat 신호의 시간-주파수 스펙트로그램을 표시해야 한다 | **Stretch** | LOW | ❌ 미구현 |
+| FR-16 | 시스템은 기준 파형 대비 현재 파형을 타이밍 마커와 함께 비교 표시해야 한다 | **Stretch** | LOW | ❌ 미구현 |
+| FR-17 | 시스템은 트리거 동기화된 스윕 모드 스코프를 표시해야 한다 | **Stretch** | LOW | ❌ 미구현 |
+| FR-18 | 시스템은 복수 필터 조합을 동시에 비교하는 스코프 뷰를 제공해야 한다 | **Stretch** | LOW | ❌ 미구현 |
 
 **English**
 
 | ID | Functional Requirement | Tier | Priority | Status |
 |----|----------------------|:----:|:-------:|:------:|
-| FR-01 | T1(A), T3(C) acoustic event detection | — | HIGH | ✅ Implemented (`Detector.cpp`) |
-| FR-02 | Rate (s/d), Amplitude (°), Beat Error (ms), BPH computation | — | HIGH | ✅ Implemented |
-| FR-03 | Live / Playback / Sim mode support | — | HIGH | ✅ Implemented |
-| FR-04 | Signal filtering (HPF + Envelope) | — | HIGH | ⚠️ Partial (HPF only) |
-| FR-05 | Trace Display (real-time Rate + Amplitude recording) | **Core** | HIGH | ❌ Not implemented |
-| FR-06 | Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | **Core** | HIGH | ❌ Not implemented |
-| FR-07 | Beat Error Display & Diagnostic Trace | **Core** | HIGH | ❌ Not implemented |
-| FR-08 | Signal quality warning (No signal / Noisy signal) | — | MEDIUM | ❌ Not implemented |
-| FR-09 | Pause + timeline navigation — freeze the live display and use a cursor to move backward/forward through captured beat data; background data collection continues while paused | — | LOW | ❌ Not implemented |
-| FR-10 | Watch-Position Testing — measure Rate deviation across multiple watch positions (Dial-Up, Crown-Left, etc.) | **Required** | MEDIUM | ❌ Not implemented |
-| FR-11 | Beat-Noise Scope Display — display beat waveform in oscilloscope style (Scope 1: raw, Scope 2: filtered) | **Required** | MEDIUM | ❌ Not implemented |
-| FR-12 | Multi-Position Sequence Display — sequentially compare measurement results across multiple positions | **Required** | MEDIUM | ❌ Not implemented |
-| FR-13 | Long-Term Performance Graph — record and display Rate/Amplitude trends over hours to days | **Stretch** | LOW | ❌ Not implemented |
-| FR-14 | Escapement Analyzer & Marker-Line Display — analyze escapement action with marker-line overlay | **Stretch** | LOW | ❌ Not implemented |
-| FR-15 | Time-Frequency Spectrogram Display — display time-frequency spectrogram of the beat signal | **Stretch** | LOW | ❌ Not implemented |
-| FR-16 | Waveform Comparison Display with Timing Markers — overlay reference and current waveforms with timing markers | **Stretch** | LOW | ❌ Not implemented |
-| FR-17 | Scope Mode with Synchronized Sweep — trigger-synchronized sweep scope display | **Stretch** | LOW | ❌ Not implemented |
-| FR-18 | Scope Function with Multiple Filter Views — simultaneously compare multiple filter combinations in scope view | **Stretch** | LOW | ❌ Not implemented |
+| FR-01 | The system shall detect T1(A) and T3(C) acoustic events | — | HIGH | ✅ Implemented (`Detector.cpp`) |
+| FR-02 | The system shall compute Rate (s/d), Amplitude (°), Beat Error (ms), and BPH | — | HIGH | ✅ Implemented |
+| FR-03 | The system shall support Live / Playback / Sim operating modes | — | HIGH | ✅ Implemented |
+| FR-04 | The system shall apply signal filtering (HPF + Envelope) | — | HIGH | ⚠️ Partial (HPF only) |
+| FR-05 | The system shall provide Trace Display (real-time Rate + Amplitude recording) | **Core** | HIGH | ❌ Not implemented |
+| FR-06 | The system shall provide Rate & Amplitude Stability / Vario (Min/Max/Avg/σ) | **Core** | HIGH | ❌ Not implemented |
+| FR-07 | The system shall provide Beat Error Display & Diagnostic Trace | **Core** | HIGH | ❌ Not implemented |
+| FR-08 | The system shall display signal quality warnings (No signal / Noisy signal) | — | MEDIUM | ❌ Not implemented |
+| FR-09 | The system shall support Pause + timeline navigation — the user shall be able to freeze the live display and move backward/forward through captured beat data using a cursor; background data collection shall continue while paused | — | LOW | ❌ Not implemented |
+| FR-10 | The system shall measure Rate deviation across multiple watch positions (Dial-Up, Crown-Left, etc.) | **Required** | MEDIUM | ❌ Not implemented |
+| FR-11 | The system shall display the beat waveform in oscilloscope style (Scope 1: raw, Scope 2: filtered) | **Required** | MEDIUM | ❌ Not implemented |
+| FR-12 | The system shall sequentially compare and display measurement results across multiple positions | **Required** | MEDIUM | ❌ Not implemented |
+| FR-13 | The system shall record and display Rate/Amplitude trends over hours to days | **Stretch** | LOW | ❌ Not implemented |
+| FR-14 | The system shall display escapement action analysis with marker-line overlay | **Stretch** | LOW | ❌ Not implemented |
+| FR-15 | The system shall display a time-frequency spectrogram of the beat signal | **Stretch** | LOW | ❌ Not implemented |
+| FR-16 | The system shall overlay reference and current waveforms with timing markers for comparison | **Stretch** | LOW | ❌ Not implemented |
+| FR-17 | The system shall display a trigger-synchronized sweep mode scope | **Stretch** | LOW | ❌ Not implemented |
+| FR-18 | The system shall provide a scope view for simultaneously comparing multiple filter combinations | **Stretch** | LOW | ❌ Not implemented |
 
 ---
 
@@ -143,23 +143,23 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 **한국어**
 
-| 순위 / Rank | QA | Business Importance | Technical Difficulty / Risk | 한 줄 근거 / One-Line Rationale |
-|:-----------:|----| :------------------:| :-------------------------:|-------------------------------|
-| **1** | Real-Time Performance | H | H | 나머지 모든 QA의 선행 조건. Dropped Block 발생 시 T1/T3 타임스탬프 자체가 소실되어 측정 불가 |
-| **2** | Low Latency | H | H | Beat 주기라는 hard threshold 존재. 초과 시 실시간 표시 기능 붕괴. RPi + Qt 구조에서 달성 여부 미검증 |
-| **3** | Correctness | H | M | 팀 제1목표(정확한 데이터)와 직결. QA-C1은 Observer 패턴으로 구조적 보장, QA-C2(소음 환경 파라미터)만 미해결 |
-| **4** | Usability | M | M | 사용자가 잘못된 측정 상황을 즉시 인지하게 도와 정확한 데이터 수집을 간접 지원. 임계값 환경 의존적 |
-| **5** | Extensibility | M | M | 개발자 편의성이지만 11개 그래프 병렬 개발 일정 리스크를 직접 통제 |
+| 순위 / Rank | QA | 핵심 요건 | Business Importance | Technical Difficulty / Risk | 한 줄 근거 / One-Line Rationale |
+|:-----------:|----|---------| :------------------:| :-------------------------:|-------------------------------|
+| **1** | Real-Time Performance | 시스템은 Ring Buffer 오버플로가 발생하지 않도록 각 오디오 블록을 블록 주기 이내에 처리해야 한다 | H | H | 나머지 모든 QA의 선행 조건. Dropped Block 발생 시 T1/T3 타임스탬프 자체가 소실되어 측정 불가 |
+| **2** | Low Latency | 시스템은 오디오 캡처부터 GUI 표시까지 end-to-end 지연을 100ms 이내로 유지해야 한다 (28,800 BPH 기준) | H | H | Beat 주기라는 hard threshold 존재. 초과 시 실시간 표시 기능 붕괴. RPi + Qt 구조에서 달성 여부 미검증 |
+| **3** | Correctness | 시스템은 동일한 beat 데이터를 기반으로 모든 GUI 뷰에서 동일한 수치를 표시해야 한다 (뷰 간 편차 = 0) | H | M | 팀 제1목표(정확한 데이터)와 직결. QA-C1은 Observer 패턴으로 구조적 보장, QA-C2(소음 환경 파라미터)만 미해결 |
+| **4** | Usability | 시스템은 신호 없음(⚠ No signal) 및 노이즈 과다(⚠ Noisy signal) 상태를 구분하여 표시해야 한다 | M | M | 사용자가 잘못된 측정 상황을 즉시 인지하게 도와 정확한 데이터 수집을 간접 지원. 임계값 환경 의존적 |
+| **5** | Extensibility | 시스템은 새로운 표시 기능을 구현할 때, 기존 전처리 로직 수정 없이 최소의 파일 수정으로 가능해야 한다 | M | M | 개발자 편의성이지만 11개 그래프 병렬 개발 일정 리스크를 직접 통제 |
 
 **English**
 
-| Rank | QA | Business Importance | Technical Difficulty / Risk | One-Line Rationale |
-|:----:|----| :------------------:| :-------------------------:|-------------------|
-| **1** | Real-Time Performance | H | H | Prerequisite for all other QAs — Dropped Block destroys T1/T3 timestamps, making measurement impossible |
-| **2** | Low Latency | H | H | Hard threshold defined by beat period; exceeding it causes functional failure; unverified on RPi + Qt |
-| **3** | Correctness | H | M | Directly tied to team's primary goal (accurate data); QA-C1 structurally guaranteed by Observer pattern; only QA-C2 (noise-condition parameters) remains open |
-| **4** | Usability | M | M | Indirectly supports accurate data collection by alerting users to unreliable measurement conditions; threshold is environment-dependent |
-| **5** | Extensibility | M | M | Developer productivity; directly controls schedule risk for 11-graph parallel implementation |
+| Rank | QA | Key Requirement | Business Importance | Technical Difficulty / Risk | One-Line Rationale |
+|:----:|----|----------------| :------------------:| :-------------------------:|-------------------|
+| **1** | Real-Time Performance | The system shall process each audio block within the block period to prevent Ring Buffer overflow | H | H | Prerequisite for all other QAs — Dropped Block destroys T1/T3 timestamps, making measurement impossible |
+| **2** | Low Latency | The system shall maintain end-to-end latency from audio capture to GUI display within 100ms (based on 28,800 BPH) | H | H | Hard threshold defined by beat period; exceeding it causes functional failure; unverified on RPi + Qt |
+| **3** | Correctness | The system shall display identical values across all GUI views derived from the same beat data (inter-view deviation = 0) | H | M | Directly tied to team's primary goal (accurate data); QA-C1 structurally guaranteed by Observer pattern; only QA-C2 (noise-condition parameters) remains open |
+| **4** | Usability | The system shall distinguish and display ⚠ No signal and ⚠ Noisy signal states separately | M | M | Indirectly supports accurate data collection by alerting users to unreliable measurement conditions; threshold is environment-dependent |
+| **5** | Extensibility | The system shall allow new display features to be implemented with minimal file changes and without modifying existing preprocessing logic | M | M | Developer productivity; directly controls schedule risk for 11-graph parallel implementation |
 
 ---
 
