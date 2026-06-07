@@ -250,11 +250,11 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 **구간 분리 근거:**
 
-| 구간 | 측정 경계 | 병목 원인 |
-|------|---------|---------|
-| ① capture→process | ALSA 콜백 수신 → T1/T3 이벤트 타임스탬프 | OS 콜백 주기(~20ms), Ring Buffer 대기, DSP 처리 시간 |
-| ② process→display | T1/T3 이벤트 타임스탬프 → GUI `paintEvent()` 완료 | Qt 렌더링 시간, FPS, 렌더링 스레드 경합 |
-| ③ end-to-end | ALSA 콜백 수신 → GUI 화면 갱신 완료 | ①+② 합산 |
+| 구간 | 시간 유형 | 측정 경계 | 병목 원인 |
+|------|---------|---------|---------|
+| ① capture→process | **Wait** (OS 콜백 주기 ~20ms) + **Execute** (DSP 처리) | ALSA 콜백 수신 → T1/T3 이벤트 타임스탬프 | OS 콜백 주기(~20ms), Ring Buffer 대기, DSP 처리 시간 |
+| ② process→display | **Execute** (Qt 렌더링) | T1/T3 이벤트 타임스탬프 → GUI `paintEvent()` 완료 | Qt 렌더링 시간, FPS, 렌더링 스레드 경합 |
+| ③ end-to-end | Wait + Execute 합산 | ALSA 콜백 수신 → GUI 화면 갱신 완료 | ①+② 합산 |
 
 **actionability 평가:**
 

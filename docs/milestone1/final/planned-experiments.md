@@ -121,14 +121,14 @@ The results of this experiment directly inform:
 
 **한국어**
 
-- 48,000 / 96,000 / 192,000 sps 각 조건에서 10분 연속 실행 시 Dropped Block 수 측정값 표
+- 48,000 / 96,000 / 192,000 sps 각 조건에서 연속 실행 시 Dropped Block 수 측정값 표
 - 달성 가능한 최대 sps 결론 및 QAS-1 Response Measure 확정값
 - Graceful Degradation 폴백 기준 결정 (96k 달성 가능 여부 → 48k 폴백 여부)
 - Priority Scheduling(`SCHED_RR` / `SCHED_FIFO`) 적용 전·후 비교 결과
 
 **English**
 
-- Table of Dropped Block counts for each condition (48k / 96k / 192k sps, 10-minute continuous run)
+- Table of Dropped Block counts for each condition (48k / 96k / 192k sps, continuous run)
 - Conclusion on maximum achievable sps and finalized QAS-1 Response Measure
 - Graceful Degradation fallback decision (whether 96k is achievable → whether 48k fallback is needed)
 - Before/after comparison of Priority Scheduling (`SCHED_RR` / `SCHED_FIFO`) application
@@ -166,7 +166,7 @@ The results of this experiment directly inform:
 1. **환경 준비**: RPi 5에 Ubuntu 24.04 + Qt6 빌드 환경 구성. 28,800 BPH 시계를 USB 마이크 앞에 배치.
 2. **Ring Buffer 오버플로 카운터 삽입**: `AudioCapture` 모듈에 `dropped_block_count` 변수를 추가하여 오버플로 발생 시 증가.
 3. **sps 조건 설정**: `QAudioFormat::setSampleRate()`로 48,000 / 96,000 / 192,000 sps 순서로 설정.
-4. **10분 연속 실행**: 각 sps 조건에서 Qt GUI + DSP(필터링 + T1/T3 감지 + Rate·Amplitude·Beat Error 계산) 동시 실행 상태로 10분 유지.
+4. **연속 실행**: 각 sps 조건에서 Qt GUI + DSP(필터링 + T1/T3 감지 + Rate·Amplitude·Beat Error 계산) 동시 실행 상태로 Dropped Block 카운터가 안정될 때까지 연속 실행.
 5. **Priority Scheduling 비교**: `SCHED_RR` 적용 전·후 동일 조건 반복하여 스케줄러 지터 영향 측정(TR-02 검증).
 6. **결과 기록**: sps별 Dropped Block 수를 표로 정리. 96k 달성 가능 여부 → QAS-1 Response Measure 확정값 기록.
 7. **폴백 결정**: 96k 달성 불가 시 Graceful Degradation 폴백(48k sps 자동 전환) 구현 여부를 Architecture Committee에 보고.
@@ -176,7 +176,7 @@ The results of this experiment directly inform:
 1. **Environment setup**: Configure Ubuntu 24.04 + Qt6 build environment on RPi 5. Position 28,800 BPH watch in front of USB microphone.
 2. **Inject Ring Buffer overflow counter**: Add `dropped_block_count` variable to `AudioCapture` module; increment on overflow event.
 3. **Configure sps conditions**: Use `QAudioFormat::setSampleRate()` to set 48,000 / 96,000 / 192,000 sps in sequence.
-4. **10-minute continuous run**: For each sps condition, maintain Qt GUI + DSP (filtering + T1/T3 detection + Rate·Amplitude·Beat Error computation) running concurrently for 10 minutes.
+4. **Continuous run**: For each sps condition, maintain Qt GUI + DSP (filtering + T1/T3 detection + Rate·Amplitude·Beat Error computation) running concurrently until Dropped Block counter stabilizes.
 5. **Priority Scheduling comparison**: Repeat same conditions before and after applying `SCHED_RR` to measure Linux scheduler jitter effect (verifies TR-02).
 6. **Record results**: Tabulate Dropped Block counts per sps. Confirm whether 96k is achievable → record finalized QAS-1 Response Measure.
 7. **Fallback decision**: If 96k is not achievable, report Graceful Degradation fallback (automatic switch to 48k sps) decision to Architecture Committee.
@@ -333,10 +333,12 @@ The results of this experiment directly inform:
 | **TS2** | T1/T3 이벤트 타임스탬프 확정 직후 (DSP 처리 완료) | ① 끝 / ② 시작 |
 | **TS3** | Qt `paintEvent()` 종료 직후 (GUI 렌더링 완료) | ② 끝 = ③ 끝 |
 
+> **Wait / Execute time 매핑**: TS1 이전 구간(beat 발생 → 콜백 발화)이 **Wait time** (OS 콜백 주기 ~20ms). TS2−TS1이 **Execute time ①** (DSP 처리), TS3−TS2가 **Execute time ②** (Qt 렌더링). Wait time은 TS1 연속 간격(TS1[n+1]−TS1[n]) 히스토그램으로 간접 측정.
+
 **실험 절차**:
 
 1. **타임스탬프 코드 삽입**: TS1·TS2·TS3 위치에 `std::chrono::high_resolution_clock::now()` 기록 코드 삽입. 각 beat 이벤트마다 3개 값을 로그 파일에 기록.
-2. **1탭 구성 측정**: 탭 1개만 활성화한 빌드에서 sps 3단계(48k/96k/192k) × 28,800 BPH 시계 × 5분 연속 실행. 각 구간 평균·worst-case 수집.
+2. **1탭 구성 측정**: 탭 1개만 활성화한 빌드에서 sps 3단계(48k/96k/192k) × 28,800 BPH 시계 연속 실행. 각 구간 평균·worst-case 수집.
 3. **11탭 구성 측정**: 11개 탭이 모두 활성화된 빌드에서 동일 조건 반복. ② 구간(process→display)의 차이를 1탭 대비 비교.
 4. **콜백 주기 측정 (OI-L1)**: TS1 간격 히스토그램으로 QAudioSource 콜백 실제 주기 및 지터 분포 파악.
 5. **Lazy Rendering 판정 (OI-L2)**: 11탭 기준 ② 구간 > 30 ms 발생 빈도 계산. 기준 초과 시 Lazy Rendering 전술 적용 결정.
@@ -353,10 +355,12 @@ The results of this experiment directly inform:
 | **TS2** | Immediately after T1/T3 event timestamp is finalized (DSP processing complete) | ① end / ② start |
 | **TS3** | Immediately after Qt `paintEvent()` completes (GUI rendering done) | ② end = ③ end |
 
+> **Wait / Execute time mapping**: The interval before TS1 (beat occurrence → callback fires) is **Wait time** (OS callback period ~20ms). TS2−TS1 is **Execute time ①** (DSP processing); TS3−TS2 is **Execute time ②** (Qt rendering). Wait time is measured indirectly via consecutive TS1 interval histogram (TS1[n+1]−TS1[n]).
+
 **Experiment procedure**:
 
 1. **Inject timestamp code**: Insert `std::chrono::high_resolution_clock::now()` at TS1·TS2·TS3 positions. Log all three values per beat event to a log file.
-2. **1-tab configuration measurement**: Build with only one tab active; run for 5 minutes at each sps tier (48k/96k/192k) × 28,800 BPH watch. Collect mean and worst-case per segment.
+2. **1-tab configuration measurement**: Build with only one tab active; run continuously at each sps tier (48k/96k/192k) × 28,800 BPH watch. Collect mean and worst-case per segment.
 3. **11-tab configuration measurement**: Repeat identical conditions with all 11 tabs active. Compare ② segment (process→display) against 1-tab baseline.
 4. **Callback period measurement (OI-L1)**: Plot histogram of TS1 intervals to characterize actual QAudioSource callback period and jitter distribution.
 5. **Lazy Rendering decision (OI-L2)**: Calculate frequency of ② segment > 30 ms at 11 tabs. If threshold exceeded, trigger Lazy Rendering tactic application decision.
@@ -702,7 +706,7 @@ The results of this experiment directly inform:
 
 **Part B — `⚠ Noisy signal` 임계값 탐색 (OI-U2)**:
 
-1. 저/중/고 소음 3조건 하에서 noise/signal 비율을 실시간 로그로 수집 (10분 × 3조건).
+1. 저/중/고 소음 3조건 하에서 noise/signal 비율을 실시간 로그로 수집.
 2. 소음 조건별 비율 분포(히스토그램)에서 저소음 정상 범위의 99th percentile과 고소음 범위의 1st percentile 사이 간격 확인.
 3. 후보 임계값 3~5개를 적용하여 각 조건에서 오경보율(false alarm rate)과 미감지율(miss rate) 측정.
 4. 오경보율 + 미감지율의 가중합이 최소인 임계값을 최종 선정.
@@ -719,7 +723,7 @@ The results of this experiment directly inform:
 
 **Part B — `⚠ Noisy signal` threshold search (OI-U2)**:
 
-1. Collect real-time noise/signal ratio logs under 3 noise conditions (10 minutes × 3 conditions).
+1. Collect real-time noise/signal ratio logs under 3 noise conditions.
 2. Plot ratio distribution histogram per condition; check gap between 99th percentile of low-noise normal range and 1st percentile of high-noise range.
 3. Apply 3–5 candidate thresholds and measure false-alarm rate and miss rate per condition.
 4. Select final threshold with minimum weighted sum of false-alarm rate + miss rate.

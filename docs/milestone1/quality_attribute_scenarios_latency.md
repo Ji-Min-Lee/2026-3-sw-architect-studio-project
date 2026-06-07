@@ -38,11 +38,11 @@
 
 ## ③ 구간 분리 근거 / Rationale for Splitting Three Segments
 
-| 구간 | 측정 경계 | 병목 원인 | 제어 방법 |
-|------|---------|---------|---------|
-| ① capture→process | ALSA 콜백 수신 타임스탬프 → T1/T3 이벤트 타임스탬프 | OS 콜백 주기(~20ms), Ring Buffer 대기, DSP 처리 시간 | 스레드 우선순위, Lock-Free Ring Buffer |
-| ② process→display | T1/T3 이벤트 타임스탬프 → GUI `paintEvent()` 완료 | Qt 렌더링 시간, GUI 업데이트 빈도(FPS), 렌더링 스레드 경합 | Qt 렌더링 최적화, 필요 시 렌더링 스로틀링 |
-| ③ end-to-end | ALSA 콜백 수신 → GUI 화면 갱신 완료 | ①+② 합산 | ①, ② 각각 제어 |
+| 구간 | 시간 유형 | 측정 경계 | 병목 원인 | 제어 방법 |
+|------|---------|---------|---------|---------|
+| ① capture→process | **Wait** (OS 콜백 주기 ~20ms) + **Execute** (DSP 처리) | ALSA 콜백 수신 타임스탬프 → T1/T3 이벤트 타임스탬프 | OS 콜백 주기(~20ms), Ring Buffer 대기, DSP 처리 시간 | 스레드 우선순위, Lock-Free Ring Buffer |
+| ② process→display | **Execute** (Qt 렌더링) | T1/T3 이벤트 타임스탬프 → GUI `paintEvent()` 완료 | Qt 렌더링 시간, GUI 업데이트 빈도(FPS), 렌더링 스레드 경합 | Qt 렌더링 최적화, 필요 시 렌더링 스로틀링 |
+| ③ end-to-end | Wait + Execute 합산 | ALSA 콜백 수신 → GUI 화면 갱신 완료 | ①+② 합산 | ①, ② 각각 제어 |
 
 > 구간을 분리하는 이유: 병목이 ①에서 발생하는지 ②에서 발생하는지를 구별해야 올바른 전술을 선택할 수 있음. 합산 수치만 보면 원인을 알 수 없음.
 
