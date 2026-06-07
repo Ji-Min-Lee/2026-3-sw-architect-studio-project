@@ -326,10 +326,10 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 **관련 아키텍처 패턴:**
 
-| 패턴·전략 / Pattern·Strategy | 연결 QA | 적용 이유 |
-|---------------------------|:------:|---------|
-| Observer / Qt Signal-Slot | QA-C1 | MeasurementEngine이 단일 Measurement 구조체 발행 → 모든 탭이 동일 신호 구독 |
-| Pipeline Filtering + Adaptive Threshold (DSP 전략) | QA-C2 | Raw PCM → HPF → Envelope → Detector 파이프라인. noise_floor 기반 adaptive threshold로 소음 환경 beat 감지 품질 유지 |
+| 패턴 / Pattern | 연결 QA | 적용 이유 |
+|--------------|:------:|---------|
+| Observer / Qt Signal-Slot (GoF) | QA-C1 | MeasurementEngine이 단일 Measurement 구조체 발행 → 모든 탭이 동일 신호 구독 |
+| Pipes and Filters (POSA) | QA-C2 | Raw PCM → HPF → Envelope → Detector 단방향 파이프라인으로 beat 감지 품질 유지 |
 
 ---
 
@@ -440,7 +440,7 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 |----|:------:|---------|----------|
 | Real-Time Performance | 1 | Lock-Free Ring Buffer, Priority Scheduling, Graceful Degradation | EXP-01 (SPS별 Dropped Block) |
 | Low Latency | 2 | Thread 분리 (Concurrency), Lock-Free Ring Buffer, Lazy Rendering | EXP-02 (3구간 타임스탬프 측정) |
-| Correctness | 3 | Observer/Signal-Slot (QA-C1), Pipeline Filtering + Adaptive Threshold (QA-C2) | EXP-03 (소음 조건 × 파라미터 Δ) |
+| Correctness | 3 | Observer/Signal-Slot GoF (QA-C1), Pipes and Filters POSA (QA-C2) | EXP-03 (소음 조건 × 파라미터 Δ) |
 | Usability | 4 | Heartbeat 패턴 | 임계값 실험 (N·M 수치 확정) |
 | Extensibility | 5 | Split Module, Observer/Signal-Slot, Layered Architecture | ≤ 3파일 검증 실험 |
 
@@ -450,7 +450,7 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 |----|:-------:|---------------|----------------|
 | Real-Time Performance | 1 | Lock-Free Ring Buffer, Priority Scheduling, Graceful Degradation | EXP-01 (Dropped Block per SPS) |
 | Low Latency | 2 | Thread separation (Concurrency), Lock-Free Ring Buffer, Lazy Rendering | EXP-02 (3-segment timestamp measurement) |
-| Correctness | 3 | Observer/Signal-Slot (QA-C1), Pipeline Filtering + Adaptive Threshold (QA-C2) | EXP-03 (noise × parameter Δ) |
+| Correctness | 3 | Observer/Signal-Slot GoF (QA-C1), Pipes and Filters POSA (QA-C2) | EXP-03 (noise × parameter Δ) |
 | Usability | 4 | Heartbeat pattern | Threshold experiment (N·M values) |
 | Extensibility | 5 | Split Module, Observer/Signal-Slot, Layered Architecture | ≤ 3-file verification experiment |
 
