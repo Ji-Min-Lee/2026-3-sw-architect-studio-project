@@ -21,7 +21,7 @@ public slots:
 
 signals:
     // Signal to send captured audio data to the main thread (e.g., for processing/visualization)
-    void SimDataReady();
+    void SimDataReady(int64_t emitTimestampUs);
     void SimDone();
     void finished();
     void cancelled();

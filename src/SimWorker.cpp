@@ -3,6 +3,11 @@
 #include <QFile>
 #include <QThread>
 #include <QDebug>
+#include <chrono>
+static inline int64_t nowUs() {
+    return std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 #include "SimWorker.h"
 
 #if defined(Q_OS_WIN)
@@ -102,7 +107,7 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
         mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
         mRawAudio->TotalSamplesWritten+=NumberOfSamples;
         mRawAudio->Mutex.unlock();
-        emit SimDataReady(); // Emit data to the main thread
+        emit SimDataReady(nowUs()); // T0: pass emit time as signal argument
 
         ++mFrameCount;
         mSampleCount+=NumberOfSamples;

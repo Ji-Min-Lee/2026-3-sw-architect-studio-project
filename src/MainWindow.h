@@ -85,10 +85,10 @@ private slots:
     void on_ModeComboBox_currentTextChanged(const QString &arg1);
 
 public slots:
-    void HandleAudioInput();
-    void HandlePlaybackInput();
+    void HandleAudioInput(int64_t bg_event_audio_ready);
+    void HandlePlaybackInput(int64_t bg_event_audio_ready);
     void HandlePlaybackDoneReadingFile();
-    void HandleSimInput();
+    void HandleSimInput(int64_t bg_event_audio_ready);
     void HandleSimDone();
 
 signals:
@@ -120,7 +120,7 @@ private:
     void   AddText(QCustomPlot *Plot, double x,double height,QString text,const QColor color,Qt::Alignment alignment);
     void   RemoveMarkersAndText(QCustomPlot *Plot, double rangeMin,double rangeMax);
     bool   OpenFile(const QString &FileName);
-    void   HandleInputData(TMasterAudioDataRaw *SharedDataPtr);
+    void   HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t bg_event_audio_ready);
     void   CreateEvents(void);
     void   EventsReset(void);
     double WrapInToRange(double number, double lower_bound, double upper_bound);
@@ -131,7 +131,12 @@ private:
     void   GetAudioRate(int &Rate);
     void   GetAudioDevice(QString &Name);
     double Amplitude(double LiftAngle,double T1,double BPH);
-    void   ProcessSamples(TMasterAudioDataRaw *SharedDataPtr);
+    typedef struct {
+        int     samples;
+        int64_t copy_us, sound_us, tg_us, ui_us, purge_us, plot_us;
+        int64_t exec_us;   // sum of above
+    } TExecBreakdown;
+    void   ProcessSamples(TMasterAudioDataRaw *SharedDataPtr, TExecBreakdown &bd);
     void   PopulateSampleRates(QComboBox *comboBox, const QAudioDevice &device);
     void   A_Event(double A_EventTime,bool haveValidBPH, double BPH);
     void   C_Event(double C_EventTime,bool haveValidBPH, double BPH);

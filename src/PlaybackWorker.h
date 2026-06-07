@@ -20,7 +20,7 @@ public slots:
 
 signals:
     // Signal to send captured audio data to the main thread (e.g., for processing/visualization)
-    void PlaybackDataReady();
+    void PlaybackDataReady(int64_t emitTimestampUs);
     void PlaybackDoneReadingFile();
     void finished();
     void cancelled();

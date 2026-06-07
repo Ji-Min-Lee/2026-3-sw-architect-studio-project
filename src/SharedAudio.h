@@ -1,6 +1,7 @@
 #ifndef SHAREDAUDIO_H
 #define SHAREDAUDIO_H
 #include <QMutex>
+#include <cstdint>
 
 #define CHANNELS      1
 #define SAMPLE_FORMAT QAudioFormat::Float

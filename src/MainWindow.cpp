@@ -2,6 +2,14 @@
 #include "MainWindow.h"
 #include "./ui_MainWindow.h"
 #include "WaveHeader.h"
+#include <chrono>
+
+// ── E2E timing helpers ──────────────────────────────────────────────────────
+static inline int64_t nowUs() {
+    return std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+// ────────────────────────────────────────────────────────────────────────────
 
 #if defined(Q_OS_LINUX)
 #include "LinuxAudio.h"
@@ -829,14 +837,57 @@ void MainWindow::RemoveMarkersAndText(QCustomPlot *Plot,double rangeMin,double r
  }
 }
 
-void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
+void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t bg_event_audio_ready)
 {
+        // ── fg_handler_start: FG thread begins handling ─────────────────
+        // bg_event_audio_ready = BG emit time (signal argument, never overwritten by BG)
+        // wait_us = time in Qt event queue (OS scheduling + queue backlog)
+        int64_t fg_handler_start = nowUs();
+        int64_t wait_us = fg_handler_start - bg_event_audio_ready;
+        // ────────────────────────────────────────────────────────────────
+
         SharedDataPtr->Mutex.lock();
         mLocalWriteIndex=SharedDataPtr->WriteIndex;
         mLocalTotalSamplesWritten=SharedDataPtr->TotalSamplesWritten;
         SharedDataPtr->Mutex.unlock();
 
-        ProcessSamples(SharedDataPtr);
+        // SamplesToAdd: how many samples have accumulated since last frame
+        // = SPF(480)  → normal, 1:1 processing
+        // > SPF(480)  → FG is falling behind BG
+        int samplesToAddSnapshot = (int)(mLocalTotalSamplesWritten -
+                                         SharedDataPtr->MainThrd_LastTotalSamplesWritten);
+
+        TExecBreakdown bd;
+        ProcessSamples(SharedDataPtr, bd);
+
+        // ── fg_handler_end: FG processing complete ──────────────────────
+        int64_t fg_handler_end = nowUs();
+        int64_t exec_us = fg_handler_end - fg_handler_start;
+
+        // Only log frames where actual samples were processed (SamplesToAdd=0 frames are meaningless)
+        static int logCounter = 0;
+        if (samplesToAddSnapshot > 0) ++logCounter;
+        if (samplesToAddSnapshot > 0 && logCounter % 100 == 0) {
+            int64_t total_us = wait_us + exec_us;
+            // Line 1: frame stats + BG/FG throughput
+            qInfo("[%06d] samples=%-4d  BG: fps=%-6.1f sps=%-8.1f spf=%-6.1f  FG: fps=%-6.1f sps=%-8.1f spf=%-6.1f",
+                  logCounter, samplesToAddSnapshot,
+                  SharedDataPtr->FPS, SharedDataPtr->SPS, SharedDataPtr->SPF,
+                  mForegroundFPS,     mForegroundSPS,     mForegroundSPF);
+            // Line 2: total=wait+exec  exec=[breakdown] ms
+            qInfo("[%06d] total=%.2fms [wait=%.2f + exec=%.2f]  exec=[copy=%.3f sound=%.3f tg=%.3f ui=%.3f purge=%.3f plot=%.3f] ms",
+                  logCounter,
+                  total_us        / 1000.0,
+                  wait_us         / 1000.0,
+                  exec_us         / 1000.0,
+                  bd.copy_us      / 1000.0,
+                  bd.sound_us     / 1000.0,
+                  bd.tg_us        / 1000.0,
+                  bd.ui_us        / 1000.0,
+                  bd.purge_us     / 1000.0,
+                  bd.plot_us      / 1000.0);
+        }
+        // ────────────────────────────────────────────────────────────────
         if ((mBackgroundLastFPS!=SharedDataPtr->FPS) ||
             (mBackgroundLastSPS!=SharedDataPtr->SPS) ||
             (mBackgroundLastSPF!=SharedDataPtr->SPF) ||
@@ -864,17 +915,17 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
        // qDebug() << "Main thread: handleResults slot is running in thread" << QThread::currentThreadId()<<" "<<count;
 }
 
-void MainWindow::HandleAudioInput()
+void MainWindow::HandleAudioInput(int64_t bg_event_audio_ready)
 {
-HandleInputData(mAudioWorker->mRawAudio);
+    HandleInputData(mAudioWorker->mRawAudio, bg_event_audio_ready);
 }
-void MainWindow::HandlePlaybackInput()
+void MainWindow::HandlePlaybackInput(int64_t bg_event_audio_ready)
 {
- HandleInputData(mPlaybackWorker->mRawAudio);
+    HandleInputData(mPlaybackWorker->mRawAudio, bg_event_audio_ready);
 }
-void MainWindow::HandleSimInput()
+void MainWindow::HandleSimInput(int64_t bg_event_audio_ready)
 {
- HandleInputData(mSimWorker->mRawAudio);
+    HandleInputData(mSimWorker->mRawAudio, bg_event_audio_ready);
 }
 void MainWindow::HandlePlaybackDoneReadingFile()
 {
@@ -898,9 +949,11 @@ void MainWindow::HandleSimDone()
     AudioCloseCheck();
     statusBar()->showMessage("Stopped");
 }
-void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
+void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr, TExecBreakdown &bd)
 {
+    bd = {0,0,0,0,0,0,0,0};
     int    SamplesToAdd=mLocalTotalSamplesWritten-SharedDataPtr->MainThrd_LastTotalSamplesWritten;
+    bd.samples = SamplesToAdd;
 
     int slice;
     if (!mForegroundTimerStarted)
@@ -913,28 +966,39 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
     }
     if (SamplesToAdd>0)
     {
+        // ── per-ProcessSamples call accumulators ─────────────────────────
+        int64_t acc_copy=0, acc_sound=0, acc_tg=0, acc_ui=0;
+        int     sliceCount=0;
+        int64_t ts;
+        // ────────────────────────────────────────────────────────────────
         while (SamplesToAdd>0)
         {
          if ( SamplesToAdd>DETECTOR_NUMBER_OF_SAMPLES) slice= DETECTOR_NUMBER_OF_SAMPLES;
          else slice=SamplesToAdd;
 
+         ts = nowUs();
          for (int i=0;i<slice;i++)
           {
            mInputBlock[i]=SharedDataPtr->Samples[SharedDataPtr->MainThrd_LastWriteIndex];
            SharedDataPtr->MainThrd_LastWriteIndex=(SharedDataPtr->MainThrd_LastWriteIndex+1)%SharedDataPtr->NumberOfAudioSamples;
           }
+          acc_copy += nowUs() - ts;
+
           if (mWavWriter) mWavWriter->write(mInputBlock,slice);
 
-
+          ts = nowUs();
           mSoundRenderer.processSamples(mInputBlock,slice);
+          acc_sound += nowUs() - ts;
 
-
+          ts = nowUs();
           tg_result_t r;
           if (tg_process(mCtx,mInputBlock, slice, &r) != 0) {
               qInfo()<<"tg_process failed";
               return ;
           }
+          acc_tg += nowUs() - ts;
 
+          ts = nowUs();
           double threshhold=r.onset_threshold;
           for (int i=0;i<r.processed_pcm_len;i++)
            {
@@ -1014,17 +1078,34 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
                else qInfo()<< "Unkown Event Type";
 
              }
-        mForegroundSampleCount+=slice;
-        SamplesToAdd=SamplesToAdd-slice;
+          acc_ui += nowUs() - ts;
+          ++sliceCount;
+          mForegroundSampleCount+=slice;
+          SamplesToAdd=SamplesToAdd-slice;
         }
 
         SharedDataPtr->MainThrd_LastTotalSamplesWritten=mLocalTotalSamplesWritten;
+
+        ts = nowUs();
         PurgeHistory();
+        int64_t purgeUs = nowUs() - ts;
+
+        ts = nowUs();
         ui->ScopePlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
-        //ui->ScopePlot->xAxis->rescale();
         ui->ScopePlot->yAxis->rescale();
         ui->ScopePlot->replot(QCustomPlot::rpQueuedReplot);
         ui->SoundImage->DrawImage();
+        int64_t plotUs = nowUs() - ts;
+
+        // ── fill breakdown for caller ────────────────────────────────────
+        bd.copy_us  = acc_copy;
+        bd.sound_us = acc_sound;
+        bd.tg_us    = acc_tg;
+        bd.ui_us    = acc_ui;
+        bd.purge_us = purgeUs;
+        bd.plot_us  = plotUs;
+        bd.exec_us  = acc_copy + acc_sound + acc_tg + acc_ui + purgeUs + plotUs;
+        // ────────────────────────────────────────────────────────────────
 
         mForegroundFrameCount++;
         double CurrentTime;

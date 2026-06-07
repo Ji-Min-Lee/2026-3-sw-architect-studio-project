@@ -3,6 +3,11 @@
 #include <QFile>
 #include <QThread>
 #include <QDebug>
+#include <chrono>
+static inline int64_t nowUs() {
+    return std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 #include "PlaybackWorker.h"
 #include "WaveHeader.h"
 
@@ -161,7 +166,7 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
         mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
         mRawAudio->TotalSamplesWritten+=NumberOfSamples;
         mRawAudio->Mutex.unlock();
-        emit PlaybackDataReady(); // Emit data to the main thread
+        emit PlaybackDataReady(nowUs()); // T0: pass emit time as signal argument
 
         ++mFrameCount;
         mSampleCount+=NumberOfSamples;

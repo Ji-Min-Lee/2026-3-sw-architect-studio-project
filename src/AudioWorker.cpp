@@ -1,6 +1,12 @@
 // AudioWorker.cpp
 #include "AudioWorker.h"
 #include <QThread>
+#include <chrono>
+
+static inline int64_t nowUs() {
+    return std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 
 
 TAudioWorker::TAudioWorker(TMasterAudioDataRaw *RawAudio,QObject *parent) : QObject(parent)
@@ -102,7 +108,7 @@ void TAudioWorker::ProcessAudioInput()
         SampleCount=0;
     }
     //qDebug() << "worker thread: handleResults slot is running in thread" << QThread::currentThreadId()<<" "<<count;
-    emit AudioDataReady(); // Emit data to the main thread
+    emit AudioDataReady(nowUs()); // T0: pass emit time as signal argument (safe across threads)
 
 }
 

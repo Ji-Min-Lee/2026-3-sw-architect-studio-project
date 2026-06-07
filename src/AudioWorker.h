@@ -35,7 +35,7 @@ private slots:
 
 signals:
     // Signal to send captured audio data to the main thread (e.g., for processing/visualization)
-    void AudioDataReady();
+    void AudioDataReady(int64_t emitTimestampUs);
     void finished();
 
 private:
