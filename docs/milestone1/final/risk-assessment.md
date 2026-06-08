@@ -563,9 +563,9 @@ Execution order of experiments and design actions to resolve risks.
 | QA (Architectural Drivers 기준) | 우선순위 | 연결 기술 리스크 | 연결 비기술 리스크 | Overall 최고 등급 |
 |:-------------------------------|:-------:|:--------------:|:-----------------:|:----------------:|
 | Real-Time Performance (QAS-1) | 1 | TR-01 (**H**), TR-02 (**H**) | NTR-02, NTR-03, NTR-04 (**H**) | **H** |
-| Low Latency (QAS-2) | 2 | TR-03 (**H**), TR-04 (M) | NTR-02, NTR-03, NTR-04 (**H**) | **H** |
-| Correctness (QAS-3) | 3 | TR-05 (M) | NTR-03, NTR-04 (**H**) | **H** |
-| Usability (QAS-4) | 4 | TR-09 (M) | NTR-04 (**H**) | **H** |
+| Low Latency (QAS-2) | 2 | TR-03 (**H**), TR-04 (M) | NTR-02, NTR-03 | **H** |
+| Correctness (QAS-3) | 3 | TR-05 (M) | NTR-03 | **M** |
+| Usability (QAS-4) | 4 | TR-09 (M) | — | **M** |
 | Extensibility (QAS-5) | 5 | TR-06 (M), TR-07 (**H**), TR-08 (M) | NTR-01 (**H**), NTR-04 (**H**), NTR-05 (**H**) | **H** |
 | 전체 프로젝트 / All QAs | — | — | NTR-06 (**H**) | **H** |
 
