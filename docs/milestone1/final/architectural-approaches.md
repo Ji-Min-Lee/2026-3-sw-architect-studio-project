@@ -28,29 +28,17 @@
 
 ---
 
-### 1.2 아키텍처 개요 다이어그램 / Architecture Overview Diagrams
+### 1.2 아키텍처 개요 다이어그램 / Architecture Overview Diagram
 
 **한국어**
 
-두 개의 보완적인 뷰로 아키텍처를 표현한다. **C&C View**는 런타임 컴포넌트와 각 지점에 적용된 전술·패턴을, **Module View**는 정적 계층 구조와 의존 방향 규칙을 보여준다.
+C&C View(Pipe-and-Filter + Pub-Sub)로 런타임 구조를 표현한다. 스레드 경계·커넥터 종류별로 적용된 아키텍처 어프로치(AP)를 주석으로 표시하며, 입력 소스는 Live(USB Mic) / Playback / Sim 세 가지 모드를 지원한다.
 
 **English**
 
-Two complementary views describe the architecture. The **C&C View** shows runtime components annotated with the tactic or pattern applied at each point; the **Module View** shows the static layer structure and dependency direction rules.
+The C&C View (Pipe-and-Filter + Pub-Sub) describes the runtime structure. Each thread boundary and connector is annotated with the architectural approach (AP) applied at that point. Three input source modes are supported: Live (USB Mic), Playback, and Sim.
 
-> 소스 파일 / Source files: [`assets/cc-view.puml`](assets/cc-view.puml) · [`assets/module-view.puml`](assets/module-view.puml)
-
----
-
-#### View 1 — C&C View (Pipe-and-Filter + Pub-Sub): 런타임 구조 / Runtime Structure
-
-**한국어**
-
-런타임 스레드 경계·커넥터 종류별로 적용된 아키텍처 어프로치(AP)를 주석으로 표시한다. 입력 소스는 Live(USB Mic) / Playback / Sim 세 가지 모드를 지원한다.
-
-**English**
-
-Annotates each runtime thread boundary and connector with the architectural approach (AP) applied at that point. Three input source modes are supported: Live (USB Mic), Playback, and Sim.
+> 소스 파일 / Source file: [`assets/cc-view.puml`](assets/cc-view.puml)
 
 ![C&C View — TimeGrapher Runtime Structure](assets/cc-view.png)
 
@@ -65,31 +53,6 @@ Annotates each runtime thread boundary and connector with the architectural appr
 | 🟡 노랑 | 파라미터 미결 ⚠ — 전략 확정, 수치는 실험 후 확정 |
 
 > **커넥터 읽는 법 / Reading connectors**: 실선(→) = 데이터 흐름 (동기 파이프 또는 비동기 Qt Signal-Slot)
-
----
-
-#### View 2 — Module View (Layered): 정적 계층 구조 / Static Layer Structure
-
-**한국어**
-
-4개 계층의 정적 의존 방향을 정의한다. 화살표 방향이 곧 AP-3의 아키텍처 결정이며, 금지선(❌)이 QAS-5 Extensibility 보호선이다.
-
-**English**
-
-Defines the static dependency direction across 4 layers. Arrow direction is the AP-3 architectural decision; the forbidden edges (❌) are the protection boundary for QAS-5 Extensibility.
-
-![Module View — TimeGrapher Static Layer Structure](assets/module-view.png)
-
-| 색상 / Color | 계층 / Layer | 적용 어프로치 / Applied Approaches |
-|:---:|---|---|
-| 🔵 연파랑 | Presentation Layer | «AP-3: Restrict Dependencies» — 신규 탭 추가 시 ≤ 3파일 변경 |
-| 🟢 연초록 | Domain Layer | «AP-4: Observer» 단일 발행 소스, «AP-7b: Heartbeat» |
-| 🟡 연황색 | Signal Processing Layer | «AP-5: Pipes-and-Filters» HPF → Envelope → Detector |
-| 🔴 연분홍 | Acquisition Layer | «AP-1: Introduce Concurrency», «AP-2: Lock-Free Ring Buffer», «AP-6: Graceful Degradation», «AP-8: Increase Resources» |
-| 🔵 파랑 | Lock-Free Ring Buffer | «AP-2», «AP-8» 적용 지점 |
-| 🟡 노랑 | DSPPipeline (Detector) | 파라미터 미결 ⚠ — EXP-03 후 확정 |
-
-> **의존 방향 읽는 법 / Reading dependencies**: 실선(→) = 허용된 의존 방향 · 점선(❌) = 금지된 의존 — 위반 시 QAS-5(≤ 3파일) 달성 불가
 
 ---
 
