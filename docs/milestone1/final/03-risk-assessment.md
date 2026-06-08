@@ -141,45 +141,11 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 | ID | Risk | Prob | Impact | Overall | Linked QA |
 |----|------|:----:|:------:|:-------:|:---------:|
-| NTR-01 | Schedule overload for parallel implementation of 11 graphs in 5 weeks | H | H | **H** | QAS-5 |
-| NTR-02 | Single RPi 5 device creates experiment bottleneck | M | M | **M** | QAS-1, QAS-2 |
-| NTR-03 | Delayed experiments prevent finalizing provisional values | M | M | **M** | QAS-1, QAS-2, QAS-3 |
-| NTR-04 | Coding/architecture team boundary unclear — design decisions not reflected in implementation | H | H | **H** | All QAs |
+| NTR-04 | Coding/architecture team boundary unclear — design decisions not reflected in implementation | H | M | **H** | All QAs |
 | NTR-05 | Scope overextension — implementing all 11 graphs degrades core feature quality | H | M | **H** | QAS-5 |
 | NTR-06 | English communication overhead — risk of design decisions not reaching all team members | M | H | **H** | All QAs |
-
----
-
-### NTR-01 — Schedule Overload for Parallel Implementation of 11 Graphs in 5 Weeks
-
-| Item | Detail |
-|------|--------|
-| **Description** | Schedule requires 11 graphs to be divided among team members and developed in parallel during Weeks 3–4; under God Object structure, code conflicts and debugging costs escalate as development progresses |
-| **Probability: H** | 11 graphs × complex dependencies = conflicts inevitable in parallel work; occurs if QAS-5 Extensibility is not met |
-| **Impact: H** | Schedule overrun → incomplete graph demo → delivery threat; affects all subsequent milestones |
-| **Mitigation** | Achieving QAS-5 Extensibility (≤ 3-file structure) is the direct mitigation for this risk; independent graph addition eliminates parallel work conflicts |
-
----
-
-### NTR-02 — Single RPi 5 Device Creates Experiment Bottleneck
-
-| Item | Detail |
-|------|--------|
-| **Description** | EXP-01 (real-time performance), EXP-02 (latency), EXP-03 (Detector parameters) all require RPi 5; if the team owns only one device, experiments must run sequentially, creating a schedule bottleneck |
-| **Probability: M** | Sequential dependencies between experiments (e.g., EXP-01 → Observer refactoring → EXP-02) make full parallelization difficult; partially mitigated through shared device scheduling |
-| **Impact: M** | Experiment delays → design decisions deferred with provisional values → Architectural Drivers update delayed → subsequent milestone start delayed |
-| **Mitigation** | ① Prioritize experiments: EXP-01 (resolves TR-01) first, then EXP-02, then EXP-03 ② Develop RPi-independent work (GUI layout, Observer refactoring) on Windows PC in parallel |
-
----
-
-### NTR-03 — Delayed Experiments Prevent Finalizing Provisional Values
-
-| Item | Detail |
-|------|--------|
-| **Description** | Provisional values (⚠️) in Architectural Drivers — 96k sps target, 100 ms latency target, optimal Detector parameters — are not confirmed before M2 due to experiment delays |
-| **Probability: M** | Experiments depend on prerequisites (Observer refactoring, hardware setup) that can delay execution |
-| **Impact: M** | Designs based on provisional values → rework required if experiments contradict assumptions → M2 schedule pressure |
-| **Mitigation** | Execute EXP-01 as early as possible within M1; design conservatively (48k sps fallback, 100 ms upper bound) so minimum behavior is guaranteed regardless of experiment outcome |
+| NTR-02 | Single RPi 5 device creates experiment bottleneck | M | M | **M** | QAS-1, QAS-2 |
+| NTR-03 | Delayed experiments prevent finalizing provisional values | M | M | **M** | QAS-1, QAS-2, QAS-3 |
 
 ---
 
@@ -189,7 +155,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 |------|--------|
 | **Description** | Role boundary between coding team and architecture team is undefined; architecture decisions (module separation direction, QA tactic selection) may not be reflected in implementation |
 | **Probability: H** | Synchronization process is currently undefined; working independently causes immediate design–implementation divergence |
-| **Impact: H** | Unimplemented architecture decisions → full rework risk before M2; QA tactics (Lock-Free Ring Buffer, Observer pattern, etc.) not applied in code → all QA goals missed |
+| **Impact: M** | Unimplemented architecture decisions → full rework risk before M2; QA tactics (Lock-Free Ring Buffer, Observer pattern, etc.) not applied in code → all QA goals missed |
 | **Mitigation** | Fix daily afternoon sync meeting + communicate via Teams channel; confirm and document coding/architecture role boundaries in Project Plan |
 
 ---
@@ -213,4 +179,26 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 | **Probability: M** | Korean-dominant internal communication is natural, but Korean-only deliverables fall short of evaluation criteria |
 | **Impact: H** | English-speaking team member misses context → design–implementation mismatch; lower deliverable quality → direct impact on evaluation score |
 | **Mitigation** | Write all deliverables in **bilingual (KO/EN)** format (per CLAUDE.md documentation rule); milestone submissions and presentations in English; internal team communication in Korean is acceptable, but design decision summaries must be recorded bilingually in Teams |
+
+---
+
+### NTR-02 — Single RPi 5 Device Creates Experiment Bottleneck
+
+| Item | Detail |
+|------|--------|
+| **Description** | EXP-01 (real-time performance), EXP-02 (latency), EXP-03 (Detector parameters) all require RPi 5; if the team owns only one device, experiments must run sequentially, creating a schedule bottleneck |
+| **Probability: M** | Sequential dependencies between experiments (e.g., EXP-01 → Observer refactoring → EXP-02) make full parallelization difficult; partially mitigated through shared device scheduling |
+| **Impact: M** | Experiment delays → design decisions deferred with provisional values → Architectural Drivers update delayed → subsequent milestone start delayed |
+| **Mitigation** | ① Prioritize experiments: EXP-01 (resolves TR-01) first, then EXP-02, then EXP-03 ② Develop RPi-independent work (GUI layout, Observer refactoring) on Windows PC in parallel |
+
+---
+
+### NTR-03 — Delayed Experiments Prevent Finalizing Provisional Values
+
+| Item | Detail |
+|------|--------|
+| **Description** | Provisional values (⚠️) in Architectural Drivers — 96k sps target, 100 ms latency target, optimal Detector parameters — are not confirmed before M2 due to experiment delays |
+| **Probability: M** | Experiments depend on prerequisites (Observer refactoring, hardware setup) that can delay execution |
+| **Impact: M** | Designs based on provisional values → rework required if experiments contradict assumptions → M2 schedule pressure |
+| **Mitigation** | Execute EXP-01 as early as possible within M1; design conservatively (48k sps fallback, 100 ms upper bound) so minimum behavior is guaranteed regardless of experiment outcome |
 

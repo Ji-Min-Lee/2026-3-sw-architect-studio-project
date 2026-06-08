@@ -4,36 +4,15 @@
 
 ---
 
-## 0. Document Structure
-
-This document answers three questions in order:
-
-1. Are the technical experiments articulated concretely and following a template?
-2. Is it clear what question/issue is being addressed by each experiment?
-3. Will it be clear when the experiments are complete?
-
-**Data sources**: All experiments are derived directly from the following QA analyses and architecture documents.
-
-| File | Derived Experiments |
-|------|---------------------|
-| `docs/milestone1/m1-qa-redefine-performance.md` | EXP-01 |
-| `docs/milestone1/quality_attribute_scenarios_latency.md` | EXP-02 |
-| `docs/milestone1/correctness-analysis.md` | EXP-03 |
-| `docs/milestone1/quality_attribute_scenarios_usability.md` | EXP-04 |
-| `docs/milestone1/final/architectural-drivers.md` | All experiments — Open Issues (OI-*) and QAS linkage |
-| `docs/milestone1/final/risk-assessment.md` | All experiments — Risk (TR-*) and Action linkage |
-
----
-
 ## 1. Experiment Overview
 
-| ID | Experiment Name | Linked QA | Linked Risk | Resolved OI | Timing (Reference) |
-|----|----------------|:---------:|:-----------:|:-----------:|:------------------|
-| **EXP-01** | RPi Real-Time Performance — Dropped Block Measurement | QAS-1 | TR-01, TR-02 | OI-P1 | Sprint 1 (Week 1) |
-| **EXP-02** | End-to-End Latency — 3-Segment Timestamp Measurement | QAS-2 | TR-03, TR-04 | OI-L1, OI-L2 | Sprint 2–3 (Week 1–2) |
-| **EXP-03** | Detector Parameter Optimization Under Noise Conditions | QAS-3 | TR-05 | OI-C1 | Sprint 3–4 (Week 2) |
-| **EXP-04** | Signal Quality Warning Threshold Search | QAS-4 | TR-09 | OI-U1, OI-U2 | Sprint 3–4 (Week 2) |
-| **EXP-05** | BPH Escalation Verification — 36k/43k BPH Latency Measurement | QAS-2 (Stretch) | — | OI-L3 | After all 28,800 BPH QA targets confirmed (Week 3+) |
+| ID | Experiment Name | Linked QA | Linked Risk | Timing (Reference) |
+|----|----------------|:---------:|:-----------:|:------------------|
+| **EXP-01** | RPi Real-Time Performance — Dropped Block Measurement | QAS-1 | TR-01, TR-02 | Sprint 1 (Week 1) |
+| **EXP-02** | End-to-End Latency — 3-Segment Timestamp Measurement | QAS-2 | TR-03, TR-04 | Sprint 2–3 (Week 1–2) |
+| **EXP-03** | Detector Parameter Optimization Under Noise Conditions | QAS-3 | TR-05 | Sprint 3–4 (Week 2) |
+| **EXP-04** | Signal Quality Warning Threshold Search | QAS-4 | TR-09 | Sprint 3–4 (Week 2) |
+| **EXP-05** | BPH Escalation Verification — 36k/43k BPH Latency Measurement | QAS-2 (Stretch) | — | After all 28,800 BPH QA targets confirmed (Week 3+) |
 
 > **Note**: Timing references the draft project plan and is not final. Experiments with prerequisites (EXP-02, EXP-03, EXP-04) proceed after EXP-01 results are confirmed and Observer pattern refactoring is complete. **EXP-05** is conducted only after EXP-02 confirms that all 28,800 BPH QA targets are met.
 
@@ -111,16 +90,6 @@ The results of this experiment directly inform:
 
 ---
 
-### Links and references
-
-- `docs/milestone1/final/architectural-drivers.md` — QAS-1, OI-P1
-- `docs/milestone1/final/risk-assessment.md` — TR-01, TR-02, Action Plan step 1
-- `docs/milestone1/m1-qa-redefine-performance.md` — source QA analysis
-- Linux ALSA documentation — `snd_pcm_hw_params_set_rate`
-- Qt6 QAudioSource API — callback period behavior
-
----
-
 ## Experiment EXP-02: End-to-End Latency — 3-Segment Timestamp Measurement
 
 ---
@@ -136,14 +105,14 @@ The results of this experiment directly inform:
 Measure the end-to-end latency of the full TimeGrapher pipeline (audio capture → DSP → Qt GUI rendering) by breaking it into 3 segments. Identify the bottleneck in each segment and verify whether end-to-end < 100 ms at 28,800 BPH is achievable.
 
 **Technical questions this experiment must answer**:
-- "What is the actual QAudioSource live capture callback period? (OI-L1)"
-- "Does ② process→display exceed 30 ms when 11 tabs render simultaneously? (OI-L2)"
-- "After achieving 28,800 BPH, can the target be raised to 36,000 / 43,200 BPH? (OI-L3 — data collection only; final resolution deferred to EXP-05)"
+- "What is the actual QAudioSource live capture callback period?"
+- "Does ② process→display exceed 30 ms when 11 tabs render simultaneously?"
+- "After achieving 28,800 BPH, can the target be raised to 36,000 / 43,200 BPH?"
 
 The results of this experiment directly inform:
 - Finalizing QAS-2 Response Measure (BPH-based latency targets)
-- Decision on whether Lazy Rendering tactic is mandatory (based on OI-L2 result)
-- Preliminary data for BPH escalation feasibility (OI-L3 — final resolution in EXP-05)
+- Decision on whether Lazy Rendering tactic is mandatory
+- Preliminary data for BPH escalation feasibility
 
 ---
 
@@ -156,9 +125,9 @@ The results of this experiment directly inform:
 ### Expected outcomes
 
 - Latency measurement table: 3 segments × 3 sps tiers × 2 tab configurations (1-tab / 11-tab), mean + worst-case
-- QAudioSource callback period measured value (resolves OI-L1)
-- Lazy Rendering necessity decision (OI-L2: whether ② segment exceeds 30 ms at 11 tabs)
-- Figures for team report on BPH escalation feasibility (OI-L3)
+- QAudioSource callback period measured value
+- Lazy Rendering necessity decision (whether ② segment exceeds 30 ms at 11 tabs)
+- Figures for team report on BPH escalation feasibility
 - Finalized QAS-2 Response Measure
 
 ---
@@ -169,7 +138,7 @@ The results of this experiment directly inform:
 |----------|--------|
 | Hardware | Raspberry Pi 5 (16GB RAM), USB audio sensor, 8" touchscreen |
 | Software | Ubuntu 24.04, Qt6, `TimeGrapher_v10.5` codebase |
-| Mechanical watch | 28,800 BPH watch (primary target); additional BPH watches (if OI-L3 is explored) |
+| Mechanical watch | 28,800 BPH watch (primary target); additional BPH watches (if BPH escalation is explored) |
 | Measurement tools | `std::chrono::high_resolution_clock` timestamps at 3 points (TS1/TS2/TS3), Qt `QElapsedTimer` |
 | Tab configuration | 1-tab build vs. 11-tab complete build — two binaries or runtime tab count control |
 | Prerequisites | EXP-01 complete (SPS direction decided), Observer pattern refactoring complete |
@@ -194,9 +163,9 @@ The results of this experiment directly inform:
 1. **Inject timestamp code**: Insert `std::chrono::high_resolution_clock::now()` at TS1·TS2·TS3 positions. Log all three values per beat event to a log file.
 2. **1-tab configuration measurement**: Build with only one tab active; run continuously at each sps tier (48k/96k/192k) × 28,800 BPH watch. Collect mean and worst-case per segment.
 3. **11-tab configuration measurement**: Repeat identical conditions with all 11 tabs active. Compare ② segment (process→display) against 1-tab baseline.
-4. **Callback period measurement (OI-L1)**: Plot histogram of TS1 intervals to characterize actual QAudioSource callback period and jitter distribution.
-5. **Lazy Rendering decision (OI-L2)**: Calculate frequency of ② segment > 30 ms at 11 tabs. If threshold exceeded, trigger Lazy Rendering tactic application decision.
-6. **BPH escalation review (OI-L3)**: If 28,800 BPH end-to-end < 100 ms is achieved, repeat identical measurement with 36,000 / 43,200 BPH watches and report feasibility to team.
+4. **Callback period measurement**: Plot histogram of TS1 intervals to characterize actual QAudioSource callback period and jitter distribution.
+5. **Lazy Rendering decision**: Calculate frequency of ② segment > 30 ms at 11 tabs. If threshold exceeded, trigger Lazy Rendering tactic application decision.
+6. **BPH escalation review**: If 28,800 BPH end-to-end < 100 ms is achieved, repeat identical measurement with 36,000 / 43,200 BPH watches and report feasibility to team.
 7. **Finalize results**: Populate QAS-2 BPH-based latency target table with measured values; confirm Response Measure.
 
 ---
@@ -205,17 +174,7 @@ The results of this experiment directly inform:
 
 - **Target completion**: Within Sprint 2–3 (reference: ~2026-06-12)
 - **Prerequisites**: ① EXP-01 complete (SPS direction confirmed) ② Observer pattern refactoring complete (11-tab build needed for tab comparison)
-- **Completion criteria**: 3-segment × 2-tab-configuration measurement table complete + OI-L1·OI-L2 conclusions recorded + QAS-2 Response Measure finalized
-
----
-
-### Links and references
-
-- `docs/milestone1/final/architectural-drivers.md` — QAS-2, OI-L1, OI-L2, OI-L3
-- `docs/milestone1/final/risk-assessment.md` — TR-03, TR-04, Action Plan step 4
-- `docs/milestone1/quality_attribute_scenarios_latency.md` — source QA analysis
-- Qt6 QAudioSource API — callback period documentation
-- Linux `perf` tool documentation
+- **Completion criteria**: 3-segment × 2-tab-configuration measurement table complete + QAS-2 Response Measure finalized
 
 ---
 
@@ -233,7 +192,7 @@ The results of this experiment directly inform:
 
 Systematically search combinations of `onset_fraction` and `min_peak_fraction` parameters in `Detector.cpp` across three noise conditions (low / medium / high ambient noise) to identify the optimal combination that minimizes Δ Rate / Δ Amplitude / Δ Beat Error.
 
-**Technical question**: "Across low / medium / high noise environments, which combination of `onset_fraction` and `min_peak_fraction` minimizes measurement deviation (Δ) for Rate / Amplitude / Beat Error? (OI-C1)"
+**Technical question**: "Across low / medium / high noise environments, which combination of `onset_fraction` and `min_peak_fraction` minimizes measurement deviation (Δ) for Rate / Amplitude / Beat Error?"
 
 The results of this experiment directly inform:
 - Finalizing QAS-3 QA-C2 Response Measure (currently provisional, noted as "confirmed after EXP-03")
@@ -308,15 +267,6 @@ The results of this experiment directly inform:
 
 ---
 
-### Links and references
-
-- `docs/milestone1/final/architectural-drivers.md` — QAS-3, QA-C2, OI-C1
-- `docs/milestone1/final/risk-assessment.md` — TR-05, Action Plan step 5
-- `docs/milestone1/correctness-analysis.md` — source QA analysis
-- `TimeGrapher_v10.5/Detector.cpp` — `onset_fraction`, `min_peak_fraction` parameter implementation
-
----
-
 ## Experiment EXP-04: Signal Quality Warning Threshold Search
 
 ---
@@ -332,9 +282,9 @@ The results of this experiment directly inform:
 Measure the optimal onset/clear thresholds (N seconds, M seconds, noise/signal ratio) for `⚠ No signal` / `⚠ Noisy signal` warnings in real environments to minimize false alarms and missed warnings.
 
 **Technical questions**:
-- "After removing the watch from the microphone, within how many seconds should `⚠ No signal` appear for the user to notice immediately? (OI-U1 — N value)"
-- "After restoring the watch, within how many seconds should the warning clear to confirm stable signal recovery? (OI-U1 — M value)"
-- "What noise/signal ratio threshold triggers `⚠ Noisy signal` without false alarms in real environments? (OI-U2)"
+- "After removing the watch from the microphone, within how many seconds should `⚠ No signal` appear for the user to notice immediately?"
+- "After restoring the watch, within how many seconds should the warning clear to confirm stable signal recovery?"
+- "What noise/signal ratio threshold triggers `⚠ Noisy signal` without false alarms in real environments?"
 
 The results of this experiment directly inform:
 - Finalizing QAS-4 Response Measure (N·M values currently unresolved)
@@ -375,14 +325,14 @@ The results of this experiment directly inform:
 
 ### Experiment description
 
-**Part A — `⚠ No signal` N·M value search (OI-U1)**:
+**Part A — `⚠ No signal` N·M value search**:
 
 1. Prepare builds with Heartbeat N parameter set to 1 / 2 / 3 / 5 seconds.
 2. For each N setting, remove the 28,800 BPH watch from the microphone and measure time until warning appears (10 repetitions).
 3. Restore the watch and measure time M until warning clears (10 repetitions).
 4. Decide optimal N·M balancing "too slow (delayed user awareness)" vs. "too fast (false alarms from signal fluctuation)."
 
-**Part B — `⚠ Noisy signal` threshold search (OI-U2)**:
+**Part B — `⚠ Noisy signal` threshold search**:
 
 1. Collect real-time noise/signal ratio logs under 3 noise conditions.
 2. Plot ratio distribution histogram per condition; check gap between 99th percentile of low-noise normal range and 1st percentile of high-noise range.
@@ -400,15 +350,6 @@ The results of this experiment directly inform:
 
 ---
 
-### Links and references
-
-- `docs/milestone1/final/architectural-drivers.md` — QAS-4, OI-U1, OI-U2
-- `docs/milestone1/final/risk-assessment.md` — TR-09, Action Plan step 6
-- `docs/milestone1/quality_attribute_scenarios_usability.md` — source QA analysis
-- Heartbeat pattern description — QAS-4 related architecture tactic
-
----
-
 ## Experiment EXP-05: BPH Escalation Verification — 36k/43k BPH Latency Measurement
 
 ---
@@ -423,7 +364,7 @@ The results of this experiment directly inform:
 
 Assuming all 28,800 BPH QA targets (QAS-1~4) are confirmed, verify that end-to-end latency completes within 80% of each beat period for 36,000 / 43,200 BPH mechanical watches. Confirms whether the team's 2nd goal (wider BPH coverage) is achievable.
 
-**Technical question**: "Under the same 3-segment measurement conditions as EXP-02, can end-to-end latency targets be met for 36,000 / 43,200 BPH watches? (OI-L3)"
+**Technical question**: "Under the same 3-segment measurement conditions as EXP-02, can end-to-end latency targets be met for 36,000 / 43,200 BPH watches?"
 
 Results inform:
 - Confirming whether QAS-2 Stretch target is achieved
@@ -461,12 +402,4 @@ Results inform:
 
 - **Target completion**: As soon as possible after 28,800 BPH QA confirmation (Week 3+)
 - **Prerequisites**: EXP-02 complete + all QAS-1~4 passed at 28,800 BPH
-- **Completion criteria**: 36k/43k BPH measurement table complete + OI-L3 conclusion recorded + QAS-2 Stretch confirmed
-
----
-
-### Links and references
-
-- `docs/milestone1/final/architectural-drivers.md` — QAS-2 Stretch, OI-L3
-- `docs/milestone1/final/risk-assessment.md` — OI-L3
-- `docs/milestone1/final/planned-experiments.md` — EXP-02 (prerequisite experiment, setup reused)
+- **Completion criteria**: 36k/43k BPH measurement table complete + QAS-2 Stretch confirmed
