@@ -93,6 +93,7 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 | Tactic | Rationale |
 |--------|-----------|
 | Lock-Free Ring Buffer | Eliminates mutex between Audio Thread ↔ DSP Thread → prevents DSP delays from lock contention |
+| Increase Ring Buffer Size | Larger buffer capacity absorbs temporary DSP processing spikes → reduces Ring Buffer overflow risk without requiring lower sps |
 | Priority Scheduling | Elevates audio thread scheduling priority → absorbs Linux scheduler jitter |
 | Graceful Degradation | Auto-fallback to 48k sps if 96k is unachievable → guarantees Missed Beat = 0 |
 
@@ -150,7 +151,6 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 | Introduce Concurrency (Audio/DSP/GUI thread separation) | Prevents capture callback from being blocked by DSP/GUI |
 | Lock-Free Ring Buffer | Eliminates mutex between threads → prevents latency spikes in segment ① |
 | Reduce Computational Overhead | Remove unnecessary computation from the real-time path |
-| Lazy Rendering (active tab only) | Reduces Qt main thread rendering load → reduces latency in segment ② |
 
 ---
 
