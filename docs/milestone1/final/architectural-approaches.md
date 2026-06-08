@@ -118,25 +118,91 @@ There are 8 architectural approaches in total; each directly addresses one or mo
 
 ---
 
-### AP-3: Layered Architecture + Restrict Dependencies
+### AP-6: Graceful Degradation (SPS 폴백) / Graceful Degradation
 
 **한국어**
 
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
-| **패턴 / Pattern** | Layered Architecture + Restrict Dependencies (Bass13 Modifiability Tactic) |
-| **설명** | 기존 God Object 구조를 4-계층 (Acquisition → Signal Processing → Domain → Presentation)으로 분리. Presentation Layer는 Domain Layer(MeasurementEngine 인터페이스)만 참조 가능 |
-| **적용 근거** | God Object 구조에서는 그래프 1개 추가 시 여러 파일 수정 필요 → 병렬 개발 충돌. 레이어 분리 후 새 그래프는 Presentation Layer 내 파일 3개(위젯 신규 생성 + 탭 등록 + 구독 연결)만 변경 |
-| **연결 드라이버** | QAS-5 (Extensibility — ≤ 3파일 목표) |
+| **전술 / Tactic** | Graceful Degradation (Bass13 Performance Tactic) |
+| **설명** | EXP-01 결과 96k sps에서 Dropped Block > 0이 확인되면 48k sps로 자동 전환. 블록 주기를 ~10ms → ~20ms로 확장하여 DSP에 허용되는 처리 시간을 두 배로 늘림 |
+| **트레이드오프** | T1 감지 분해능: 96k 시 10.4 µs/sample → 48k 시 20.8 µs/sample. 분해능 저하 대신 Dropped Block = 0 보장 |
+| **잠정 상태** | ⚠️ 폴백 기준(96k 달성 가능 여부)은 **EXP-01** 결과로 확정 |
+| **연결 드라이버** | QAS-1 (Real-Time Performance — Dropped Block = 0 보장) |
 
 **English**
 
 | Item | Detail |
 |------|--------|
-| **Pattern** | Layered Architecture + Restrict Dependencies (Bass13 Modifiability Tactic) |
-| **Description** | Splits the existing God Object structure into 4 layers (Acquisition → Signal Processing → Domain → Presentation); Presentation Layer may only reference the Domain Layer (MeasurementEngine interface) |
-| **Rationale** | In the God Object structure, adding each graph requires modifying multiple files → parallel development conflicts. After layer separation, adding a new graph only touches 3 files in the Presentation Layer (new widget + tab registration + subscription wiring) |
-| **Linked drivers** | QAS-5 (Extensibility — ≤ 3-file target) |
+| **Tactic** | Graceful Degradation (Bass13 Performance Tactic) |
+| **Description** | If EXP-01 confirms Dropped Block > 0 at 96k sps, auto-switch to 48k sps; block period expands from ~10 ms to ~20 ms, doubling the DSP time budget |
+| **Trade-off** | T1 detection resolution degrades: 10.4 µs/sample at 96k → 20.8 µs/sample at 48k; resolution sacrificed to guarantee Dropped Block = 0 |
+| **Provisional** | ⚠️ Fallback threshold (whether 96k is achievable) confirmed by **EXP-01** |
+| **Linked drivers** | QAS-1 (Real-Time Performance — guarantees Dropped Block = 0) |
+
+**한국어**
+
+아래 상태 다이어그램은 폴백 결정 흐름을 보여준다. 96k sps → Dropped Block 감지 → 48k sps 전환은 단방향(비가역)이며, 세션 내 재전환 없이 안정성을 우선한다.
+
+**English**
+
+The state diagram below shows the fallback decision flow. The transition 96k sps → Dropped Block detected → 48k sps is one-way (non-reversible); stability is prioritised over peak resolution within a session.
+
+> 소스 파일 / Source file: [`assets/ap6-state.puml`](assets/ap6-state.puml)
+
+![AP-6: Graceful Degradation — Sample Rate Fallback Decision](assets/ap6-state.png)
+
+---
+
+### AP-8: Increase Resources (애플리케이션 Ring Buffer 크기 증설) / Increase Resources
+
+**한국어**
+
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| **전술 / Tactic** | Increase Resources (Bass13 Performance Tactic) |
+| **설명** | 애플리케이션 Ring Buffer(`SECONDS_OF_BUFFER`)를 늘려 포그라운드 처리 지연 허용 시간을 확보. 현재 30초(96k sps 기준 약 11.5 MB). 파라미터 한 줄 변경만으로 크기 조정 가능 |
+| **적용 근거** | Ring Buffer가 가득 차면 오래된 미처리 샘플이 덮어쓰여 Dropped Block 발생. 버퍼를 충분히 크게 유지하면 포그라운드가 일시적으로 지연되어도 샘플 손실 없이 따라잡을 수 있는 시간적 여유 제공 |
+| **트레이드오프** | 메모리 증가 (RPi 5 8 GB 기준 부담 없음). 단, 버퍼가 과도하게 크면 시스템이 지속적으로 과부하 상태일 때 감지가 늦어지고 AP-6 폴백 결정이 지연됨 |
+| **잠정 상태** | ⚠️ 최적 크기는 **EXP-01** 결과에서 실제 처리 지연 패턴을 확인한 후 결정. 현재 30초 기본값 유지 |
+| **연결 드라이버** | QAS-1 (Real-Time Performance — 일시적 처리 지연 흡수) |
+
+**English**
+
+| Item | Detail |
+|------|--------|
+| **Tactic** | Increase Resources (Bass13 Performance Tactic) |
+| **Description** | Increases the application Ring Buffer (`SECONDS_OF_BUFFER`) to provide more headroom for transient foreground processing delays. Currently 30 s (~11.5 MB at 96k sps). Size is adjustable by changing a single parameter |
+| **Rationale** | When the Ring Buffer fills up, unprocessed samples are overwritten, causing Dropped Blocks. A sufficiently large buffer gives the foreground time to catch up after a temporary stall without sample loss |
+| **Trade-off** | Memory increase (negligible on RPi 5 8 GB). However, an excessively large buffer delays detection of sustained overload and postpones the AP-6 fallback decision |
+| **Provisional** | ⚠️ Optimal size determined after **EXP-01** reveals actual processing delay patterns. Default of 30 s retained until then |
+| **Linked drivers** | QAS-1 (Real-Time Performance — absorbs transient processing delays) |
+
+---
+
+### AP-7a: Lazy Rendering
+
+**한국어**
+
+| 항목 / Item | 내용 / Detail |
+|------------|--------------|
+| **전술 / Tactic** | Manage Work Requests — 렌더링 스로틀링 (Bass13 Performance Tactic #3) |
+| **설명** | 11개 탭 중 현재 활성 탭만 `paintEvent()`를 실행. 비활성 탭은 데이터만 업데이트하고 렌더링 보류 |
+| **적용 근거** | 11탭 동시 렌더링 시 Qt 메인 스레드 부하로 ② process→display 구간이 30ms를 초과할 가능성 (TR-04). 비활성 탭을 스킵하면 렌더링 부하를 1탭 수준으로 감소 |
+| **트레이드오프** | 비활성 탭 전환 시 순간적으로 오래된 값이 보일 수 있음 → EXP-02로 허용 수준 확인 |
+| **잠정 상태** | ⚠️ Lazy Rendering 필수 여부는 **EXP-02** OI-L2 결과로 결정 |
+| **연결 드라이버** | QAS-2 (Low Latency — ② process→display < 30ms) |
+
+**English**
+
+| Item | Detail |
+|------|--------|
+| **Tactic** | Manage Work Requests — rendering throttling (Bass13 Performance Tactic #3) |
+| **Description** | Of 11 tabs, only the active tab executes `paintEvent()`; inactive tabs update data but defer rendering |
+| **Rationale** | Simultaneous rendering of 11 tabs may overload the Qt main thread, pushing segment ② process→display beyond 30 ms (TR-04); skipping inactive tabs reduces rendering load to single-tab level |
+| **Trade-off** | Momentarily stale values may appear on tab switch → EXP-02 confirms acceptable level |
+| **Provisional** | ⚠️ Whether Lazy Rendering is mandatory decided by **EXP-02** OI-L2 result |
+| **Linked drivers** | QAS-2 (Low Latency — process→display < 30 ms) |
 
 ---
 
@@ -188,58 +254,9 @@ There are 8 architectural approaches in total; each directly addresses one or mo
 
 ---
 
-### AP-6: Graceful Degradation (SPS 폴백) / Graceful Degradation
+### AP-7b: Heartbeat 패턴 / Heartbeat Pattern
 
 **한국어**
-
-| 항목 / Item | 내용 / Detail |
-|------------|--------------|
-| **전술 / Tactic** | Graceful Degradation (Bass13 Performance Tactic) |
-| **설명** | EXP-01 결과 96k sps에서 Dropped Block > 0이 확인되면 48k sps로 자동 전환. 블록 주기를 ~10ms → ~20ms로 확장하여 DSP에 허용되는 처리 시간을 두 배로 늘림 |
-| **트레이드오프** | T1 감지 분해능: 96k 시 10.4 µs/sample → 48k 시 20.8 µs/sample. 분해능 저하 대신 Dropped Block = 0 보장 |
-| **잠정 상태** | ⚠️ 폴백 기준(96k 달성 가능 여부)은 **EXP-01** 결과로 확정 |
-| **연결 드라이버** | QAS-1 (Real-Time Performance — Dropped Block = 0 보장) |
-
-**English**
-
-| Item | Detail |
-|------|--------|
-| **Tactic** | Graceful Degradation (Bass13 Performance Tactic) |
-| **Description** | If EXP-01 confirms Dropped Block > 0 at 96k sps, auto-switch to 48k sps; block period expands from ~10 ms to ~20 ms, doubling the DSP time budget |
-| **Trade-off** | T1 detection resolution degrades: 10.4 µs/sample at 96k → 20.8 µs/sample at 48k; resolution sacrificed to guarantee Dropped Block = 0 |
-| **Provisional** | ⚠️ Fallback threshold (whether 96k is achievable) confirmed by **EXP-01** |
-| **Linked drivers** | QAS-1 (Real-Time Performance — guarantees Dropped Block = 0) |
-
-**한국어**
-
-아래 상태 다이어그램은 폴백 결정 흐름을 보여준다. 96k sps → Dropped Block 감지 → 48k sps 전환은 단방향(비가역)이며, 세션 내 재전환 없이 안정성을 우선한다.
-
-**English**
-
-The state diagram below shows the fallback decision flow. The transition 96k sps → Dropped Block detected → 48k sps is one-way (non-reversible); stability is prioritised over peak resolution within a session.
-
-> 소스 파일 / Source file: [`assets/ap6-state.puml`](assets/ap6-state.puml)
-
-![AP-6: Graceful Degradation — Sample Rate Fallback Decision](assets/ap6-state.png)
-
----
-
-### AP-7: Lazy Rendering + Heartbeat 패턴 / Lazy Rendering + Heartbeat
-
-**한국어**
-
-#### AP-7a: Lazy Rendering
-
-| 항목 / Item | 내용 / Detail |
-|------------|--------------|
-| **전술 / Tactic** | Manage Work Requests — 렌더링 스로틀링 (Bass13 Performance Tactic #3) |
-| **설명** | 11개 탭 중 현재 활성 탭만 `paintEvent()`를 실행. 비활성 탭은 데이터만 업데이트하고 렌더링 보류 |
-| **적용 근거** | 11탭 동시 렌더링 시 Qt 메인 스레드 부하로 ② process→display 구간이 30ms를 초과할 가능성 (TR-04). 비활성 탭을 스킵하면 렌더링 부하를 1탭 수준으로 감소 |
-| **트레이드오프** | 비활성 탭 전환 시 순간적으로 오래된 값이 보일 수 있음 → EXP-02로 허용 수준 확인 |
-| **잠정 상태** | ⚠️ Lazy Rendering 필수 여부는 **EXP-02** OI-L2 결과로 결정 |
-| **연결 드라이버** | QAS-2 (Low Latency — ② process→display < 30ms) |
-
-#### AP-7b: Heartbeat 패턴
 
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
@@ -251,19 +268,6 @@ The state diagram below shows the fallback decision flow. The transition 96k sps
 
 **English**
 
-#### AP-7a: Lazy Rendering
-
-| Item | Detail |
-|------|--------|
-| **Tactic** | Manage Work Requests — rendering throttling (Bass13 Performance Tactic #3) |
-| **Description** | Of 11 tabs, only the active tab executes `paintEvent()`; inactive tabs update data but defer rendering |
-| **Rationale** | Simultaneous rendering of 11 tabs may overload the Qt main thread, pushing segment ② process→display beyond 30 ms (TR-04); skipping inactive tabs reduces rendering load to single-tab level |
-| **Trade-off** | Momentarily stale values may appear on tab switch → EXP-02 confirms acceptable level |
-| **Provisional** | ⚠️ Whether Lazy Rendering is mandatory decided by **EXP-02** OI-L2 result |
-| **Linked drivers** | QAS-2 (Low Latency — process→display < 30 ms) |
-
-#### AP-7b: Heartbeat Pattern
-
 | Item | Detail |
 |------|--------|
 | **Pattern** | Heartbeat (reuse) |
@@ -274,183 +278,125 @@ The state diagram below shows the fallback decision flow. The transition 96k sps
 
 ---
 
-### AP-8: Increase Resources (애플리케이션 Ring Buffer 크기 증설) / Increase Resources
+### AP-3: Layered Architecture + Restrict Dependencies
 
 **한국어**
 
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
-| **전술 / Tactic** | Increase Resources (Bass13 Performance Tactic) |
-| **설명** | 애플리케이션 Ring Buffer(`SECONDS_OF_BUFFER`)를 늘려 포그라운드 처리 지연 허용 시간을 확보. 현재 30초(96k sps 기준 약 11.5 MB). 파라미터 한 줄 변경만으로 크기 조정 가능 |
-| **적용 근거** | Ring Buffer가 가득 차면 오래된 미처리 샘플이 덮어쓰여 Dropped Block 발생. 버퍼를 충분히 크게 유지하면 포그라운드가 일시적으로 지연되어도 샘플 손실 없이 따라잡을 수 있는 시간적 여유 제공 |
-| **트레이드오프** | 메모리 증가 (RPi 5 8 GB 기준 부담 없음). 단, 버퍼가 과도하게 크면 시스템이 지속적으로 과부하 상태일 때 감지가 늦어지고 AP-6 폴백 결정이 지연됨 |
-| **잠정 상태** | ⚠️ 최적 크기는 **EXP-01** 결과에서 실제 처리 지연 패턴을 확인한 후 결정. 현재 30초 기본값 유지 |
-| **연결 드라이버** | QAS-1 (Real-Time Performance — 일시적 처리 지연 흡수) |
+| **패턴 / Pattern** | Layered Architecture + Restrict Dependencies (Bass13 Modifiability Tactic) |
+| **설명** | 기존 God Object 구조를 4-계층 (Acquisition → Signal Processing → Domain → Presentation)으로 분리. Presentation Layer는 Domain Layer(MeasurementEngine 인터페이스)만 참조 가능 |
+| **적용 근거** | God Object 구조에서는 그래프 1개 추가 시 여러 파일 수정 필요 → 병렬 개발 충돌. 레이어 분리 후 새 그래프는 Presentation Layer 내 파일 3개(위젯 신규 생성 + 탭 등록 + 구독 연결)만 변경 |
+| **연결 드라이버** | QAS-5 (Extensibility — ≤ 3파일 목표) |
 
 **English**
 
 | Item | Detail |
 |------|--------|
-| **Tactic** | Increase Resources (Bass13 Performance Tactic) |
-| **Description** | Increases the application Ring Buffer (`SECONDS_OF_BUFFER`) to provide more headroom for transient foreground processing delays. Currently 30 s (~11.5 MB at 96k sps). Size is adjustable by changing a single parameter |
-| **Rationale** | When the Ring Buffer fills up, unprocessed samples are overwritten, causing Dropped Blocks. A sufficiently large buffer gives the foreground time to catch up after a temporary stall without sample loss |
-| **Trade-off** | Memory increase (negligible on RPi 5 8 GB). However, an excessively large buffer delays detection of sustained overload and postpones the AP-6 fallback decision |
-| **Provisional** | ⚠️ Optimal size determined after **EXP-01** reveals actual processing delay patterns. Default of 30 s retained until then |
-| **Linked drivers** | QAS-1 (Real-Time Performance — absorbs transient processing delays) |
+| **Pattern** | Layered Architecture + Restrict Dependencies (Bass13 Modifiability Tactic) |
+| **Description** | Splits the existing God Object structure into 4 layers (Acquisition → Signal Processing → Domain → Presentation); Presentation Layer may only reference the Domain Layer (MeasurementEngine interface) |
+| **Rationale** | In the God Object structure, adding each graph requires modifying multiple files → parallel development conflicts. After layer separation, adding a new graph only touches 3 files in the Presentation Layer (new widget + tab registration + subscription wiring) |
+| **Linked drivers** | QAS-5 (Extensibility — ≤ 3-file target) |
 
 ---
 
-## 3. 드라이버 ↔ 어프로치 추적성 / Driver–Approach Traceability
+### 2.9 드라이버 지원 요약 및 평가 / Driver Support Summary & Assessment
 
 **한국어**
 
-QA 드라이버별로 지원하는 아키텍처 어프로치와 실험의 관계를 매핑한다.
+8개 어프로치가 5개 QA 드라이버를 어떻게, 얼마나 잘 지원하는지 아래 표와 평가로 정리한다. 각 어프로치의 구조적 결정은 설계 단계에서 완료되었으며, 미결 사항은 실험(EXP-01~04)으로 확정한다.
 
 **English**
 
-Maps each QA driver to the architectural approaches that support it and the experiments that validate them.
+The table and assessments below summarise how and how well the 8 approaches support the 5 QA drivers. Structural decisions are complete at design time; open items are resolved by experiments (EXP-01–04).
 
-### 3.1 QAS별 지원 요약 / QA-by-QA Support Summary
-
-**한국어**
-
-| QA | 우선순위 | 지원 어프로치 | 지원 방식 | 미결 실험 |
-|----|:------:|------------|---------|:--------:|
-| **QAS-1** Real-Time Performance | 1 | AP-1, AP-2, AP-6, AP-8 | 스레드 분리로 캡처 콜백 보호 + Lock-Free로 DSP 지연 방지 + 폴백으로 Dropped Block = 0 보장 + Ring Buffer 증설로 일시적 처리 지연 흡수 | EXP-01 |
-| **QAS-2** Low Latency | 2 | AP-1, AP-2, AP-7a | 3구간 분리 측정 가능 + ① 구간 하한 보호 + ② 구간 렌더링 부하 감소 | EXP-02 |
-| **QAS-3** Correctness | 3 | AP-4 (QA-C1), AP-5 (QA-C2) | Observer로 단일 소스 구조적 보장 + Adaptive Threshold로 소음 환경 beat 감지 | EXP-03 |
-| **QAS-4** Usability | 4 | AP-7b | Heartbeat 패턴으로 신호 소실/노이즈 즉시 감지 | EXP-04 |
-| **QAS-5** Extensibility | 5 | AP-3, AP-4 | Layered Architecture로 ≤ 3파일 목표 + Observer로 구독 추가만으로 확장 | — |
-
-**English**
-
-| QA | Priority | Supporting Approaches | How | Open Experiment |
-|----|:--------:|----------------------|-----|:--------------:|
-| **QAS-1** Real-Time Performance | 1 | AP-1, AP-2, AP-6, AP-8 | Thread separation protects capture callback + Lock-Free prevents DSP delay + fallback guarantees Dropped Block = 0 + Ring Buffer increase absorbs transient processing delays | EXP-01 |
-| **QAS-2** Low Latency | 2 | AP-1, AP-2, AP-7a | 3-segment measurability + segment ① lower bound protection + segment ② rendering load reduction | EXP-02 |
-| **QAS-3** Correctness | 3 | AP-4 (QA-C1), AP-5 (QA-C2) | Observer structurally guarantees single source + Adaptive Threshold maintains beat detection under noise | EXP-03 |
-| **QAS-4** Usability | 4 | AP-7b | Heartbeat pattern immediately detects signal loss / noise | EXP-04 |
-| **QAS-5** Extensibility | 5 | AP-3, AP-4 | Layered Architecture enables ≤ 3-file target + Observer allows extension by subscription only | — |
+| QA | 우선순위 / Priority | 지원 어프로치 / Supporting Approaches | 지원 방식 / How | 지원 수준 / Level | 미결 실험 / Open Exp. |
+|----|:-------------------:|--------------------------------------|----------------|:-----------------:|:---------------------:|
+| **QAS-1** Real-Time Performance | 1 | AP-1, AP-2, AP-6, AP-8 | 스레드 분리 → Lock-Free → Ring Buffer 증설 → 폴백: 3중 방어선으로 Dropped Block = 0 보장 / Thread separation → Lock-Free → Buffer increase → fallback: 3-layer defense guarantees Dropped Block = 0 | 구조적 충분 / Structurally sufficient | EXP-01 |
+| **QAS-2** Low Latency | 2 | AP-1, AP-2, AP-7a | 3구간 측정 구조 + ① 구간 하한 보호 + ② 구간 렌더링 부하 감소 / 3-segment measurement + segment ① lower-bound protection + segment ② render-load reduction | 구조적 충분 / Structurally sufficient | EXP-02 |
+| **QAS-3** Correctness | 3 | AP-4 (QA-C1), AP-5 (QA-C2) | Observer로 단일 소스 일관성 구조 보장 + Adaptive Threshold로 소음 beat 감지 / Observer structurally guarantees single-source consistency + Adaptive Threshold handles noisy beat detection | QA-C1 구조 완성 / C1 done; QA-C2 실험 후 완성 / C2 post-EXP | EXP-03 |
+| **QAS-4** Usability | 4 | AP-7b | Heartbeat 패턴으로 신호 소실·노이즈 즉시 감지 / Heartbeat immediately detects signal loss and noise | 구조 확정, 임계값 미결 / Structure confirmed; thresholds open | EXP-04 |
+| **QAS-5** Extensibility | 5 | AP-3, AP-4 | Layered Architecture로 변경 파일 ≤ 3 + Observer로 구독 추가만으로 확장 / Layered Architecture limits changes to ≤ 3 files + Observer extends by subscription only | 구조적 달성 가능, 리팩터링 후 검증 / Achievable; verify post-refactor | — |
 
 ---
 
-## 4. 드라이버 지원 평가 / Driver Support Assessment
+**QAS-1 / Real-Time Performance**
 
 **한국어**
 
-QA 드라이버별로 아키텍처가 얼마나 잘 지원하는지 평가한다.
+- AP-1(스레드 분리): 캡처 콜백을 DSP·GUI로부터 격리 → Dropped Block 1차 방어선.
+- AP-2(Lock-Free Ring Buffer): 뮤텍스 경합 제거 → DSP 처리 지연 2차 방어선.
+- AP-8(Ring Buffer 증설): 포그라운드 일시 지연 시 샘플 손실 없이 따라잡을 여유 제공. 최적 크기는 EXP-01 후 결정.
+- AP-6(Graceful Degradation): 96k sps 달성 불가 시 48k sps 폴백으로 Dropped Block = 0 최후 보장.
+- **미결**: EXP-01 없이는 96k sps 달성 가능 여부와 Ring Buffer 최적 크기 미확인. Conservative 기본값(48k 폴백, 30초 버퍼)으로 최소 목표 보장 가능.
 
 **English**
 
-Assesses how well the architecture supports each QA driver.
+- AP-1 (thread separation): isolates capture callback from DSP/GUI — first line of defense against Dropped Blocks.
+- AP-2 (Lock-Free Ring Buffer): eliminates mutex contention — second line of defense against DSP delays.
+- AP-8 (Ring Buffer increase): provides headroom to catch up after transient foreground stalls without sample loss. Optimal size determined after EXP-01.
+- AP-6 (Graceful Degradation): guarantees Dropped Block = 0 via 48k sps fallback if 96k sps is unachievable — last line of defense.
+- **Open**: Whether 96k sps is achievable and the optimal Ring Buffer size require EXP-01. Conservative defaults (48k fallback, 30 s buffer) guarantee minimum target.
 
 ---
 
-### QAS-1: Real-Time Performance
+**QAS-2 / Low Latency**
 
 **한국어**
 
-**지원 수준**: 구조적으로 충분, 실측 검증 필요
-
-- AP-1(스레드 분리)이 캡처 콜백을 DSP/GUI로부터 격리하여 Dropped Block의 1차 방어선을 형성한다.
-- AP-2(Lock-Free Ring Buffer)가 스레드 간 뮤텍스 경합을 제거하여 DSP 처리 지연의 2차 방어선을 형성한다.
-- AP-8(Ring Buffer 크기 증설)이 포그라운드 처리가 일시적으로 지연될 때 샘플 손실 없이 따라잡을 수 있는 시간적 여유를 제공한다. 최적 크기는 EXP-01 후 결정.
-- AP-6(Graceful Degradation)이 96k sps 달성 불가 시에도 48k sps 폴백으로 Dropped Block = 0을 보장하는 최후 방어선이 된다.
-
-**미결 사항**: EXP-01 결과 없이는 96k sps 달성 가능 여부 및 Ring Buffer 최적 크기가 미확인. Conservative 기본값(48k 폴백, 30초 버퍼)으로 최소 목표는 보장 가능.
+- AP-1(3-스레드 파이프라인): TS1/TS2/TS3 3구간 분리 측정으로 병목 구간 특정 가능.
+- AP-2(Lock-Free Ring Buffer): ① 구간(capture→process) 하한을 OS 콜백 주기(~20ms)로 유지.
+- AP-7a(Lazy Rendering): ② 구간(process→display) 렌더링 부하를 1탭 수준으로 감소.
+- **미결**: ① OI-L1(QAudioSource 실제 콜백 주기), ② OI-L2(11탭 렌더링 시 ② 구간 < 30ms) — 둘 다 EXP-02 해소. 28,800 / 36,000 / 43,200 BPH 시계 모두 보유하므로 Primary 달성 확인 후 Stretch도 동일 세션에서 검증 가능.
 
 **English**
 
-**Support level**: Structurally sufficient; empirical verification required
-
-- AP-1 (thread separation) isolates the capture callback from DSP/GUI, forming the first line of defense against Dropped Blocks.
-- AP-2 (Lock-Free Ring Buffer) eliminates mutex contention between threads, forming the second line of defense against DSP processing delays.
-- AP-8 (Ring Buffer size increase) provides temporal headroom for the foreground to catch up after a transient processing stall without sample loss. Optimal size determined after EXP-01.
-- AP-6 (Graceful Degradation) guarantees Dropped Block = 0 via 48k sps fallback even if 96k sps is unachievable — the last line of defense.
-
-**Open item**: Whether 96k sps is achievable and the optimal Ring Buffer size cannot be confirmed without EXP-01. Conservative defaults (48k fallback, 30 s buffer) guarantee minimum target.
+- AP-1 (3-thread pipeline): enables TS1/TS2/TS3 3-segment measurement to identify the bottleneck.
+- AP-2 (Lock-Free Ring Buffer): preserves segment ① (capture→process) lower bound at OS callback period (~20 ms).
+- AP-7a (Lazy Rendering): reduces segment ② (process→display) rendering load to single-tab equivalent.
+- **Open**: ① OI-L1 (actual QAudioSource callback period), ② OI-L2 (segment ② < 30 ms at 11 tabs) — both resolved by EXP-02. All three watches (28,800 / 36,000 / 43,200 BPH) are available; Stretch BPH can be verified in the same EXP-02 session after Primary is confirmed.
 
 ---
 
-### QAS-2: Low Latency
+**QAS-3 / Correctness**
 
 **한국어**
 
-**지원 수준**: 구조적으로 충분, 두 미결 사항 해소 필요
-
-- AP-1(3-스레드 파이프라인)이 3구간 분리 측정 구조(TS1/TS2/TS3)를 가능하게 하여 병목 구간을 특정할 수 있다.
-- AP-2(Lock-Free Ring Buffer)가 ① 구간(capture→process)의 하한을 OS 콜백 주기(~20ms)로 유지한다.
-- AP-7a(Lazy Rendering)가 ② 구간(process→display)의 11탭 렌더링 부하를 1탭 수준으로 감소시킨다.
-
-**미결 사항**: ① QAudioSource 라이브 캡처 콜백 주기(OI-L1), ② 11탭 렌더링 시 ② 구간이 30ms 이내인지(OI-L2) — 둘 다 EXP-02로 해소. 28,800 / 36,000 / 43,200 BPH 시계를 모두 보유하고 있으므로, EXP-02에서 28,800 BPH Primary 달성 확인 후 36,000 / 43,200 BPH Stretch 검증을 동일 세션에서 진행 가능.
+- **QA-C1 (동일 데이터 소스)**: AP-4(Observer/Signal-Slot) 구현 완료 시 모든 뷰가 동일 `Measurement` 구조체를 구독 → 뷰 간 일관성이 구조적으로 보장. 실험 불필요.
+- **QA-C2 (소음 beat 감지)**: AP-5(Adaptive Threshold DSP) 파이프라인 구조·알고리즘 확정. `onset_fraction`/`min_peak_fraction` 최적값은 EXP-03 후 확정.
 
 **English**
 
-**Support level**: Structurally sufficient; two open items need resolution
-
-- AP-1 (3-thread pipeline) enables 3-segment measurement (TS1/TS2/TS3) so the bottleneck segment can be identified.
-- AP-2 (Lock-Free Ring Buffer) preserves the lower bound of segment ① (capture→process) at the OS callback period (~20 ms).
-- AP-7a (Lazy Rendering) reduces the 11-tab rendering load on segment ② (process→display) to a single-tab equivalent.
-
-**Open items**: ① Actual QAudioSource live callback period (OI-L1), ② whether segment ② stays within 30 ms at 11 tabs (OI-L2) — both resolved by EXP-02. Since all three watches (28,800 / 36,000 / 43,200 BPH) are available, Stretch BPH verification can be run in the same EXP-02 session once the Primary (28,800 BPH) target is confirmed.
+- **QA-C1 (same data source)**: AP-4 (Observer/Signal-Slot) implementation makes all views subscribe to the same `Measurement` struct → inter-view consistency structurally guaranteed. No experiment needed.
+- **QA-C2 (noisy beat detection)**: AP-5 pipeline structure and algorithm confirmed. Optimal `onset_fraction`/`min_peak_fraction` values confirmed by EXP-03.
 
 ---
 
-### QAS-3: Correctness
+**QAS-4 / Usability**
 
 **한국어**
 
-**지원 수준**: QA-C1은 구조적 보장 완료 / QA-C2는 실험 후 완성
-
-- **QA-C1 (동일 데이터 소스)**: AP-4(Observer/Signal-Slot)로 MeasurementEngine 단일 발행 구조가 완성되면 모든 뷰 간 일관성이 구조적으로 보장됨. 실험 불필요.
-- **QA-C2 (소음 환경 beat 감지)**: AP-5(Adaptive Threshold DSP)의 파이프라인 구조와 알고리즘은 확정. `onset_fraction`/`min_peak_fraction` 최적값이 EXP-03 후 확정되면 완성.
+- AP-7b(Heartbeat): 기존 A/C 이벤트 재활용 → 별도 로직 없이 신호 소실·노이즈 감지, 구현 비용 최소.
+- N·M 수치 및 noise/signal 임계값은 EXP-04 후 확정. 임계값 미확정의 오경보·미경보는 사용자 경험에만 영향 (QAS-3과 독립).
 
 **English**
 
-**Support level**: QA-C1 structurally guaranteed; QA-C2 complete after experiment
-
-- **QA-C1 (same data source)**: Once AP-4 (Observer/Signal-Slot) is implemented, consistency across all views is structurally guaranteed — no experiment needed.
-- **QA-C2 (noise-robust beat detection)**: AP-5 pipeline structure and algorithm are confirmed. Complete once optimal `onset_fraction`/`min_peak_fraction` values are confirmed by EXP-03.
+- AP-7b (Heartbeat): reuses existing A/C events for signal loss and noise detection — minimal implementation cost.
+- N·M values and noise/signal threshold confirmed by EXP-04. Unconfirmed thresholds affect only user experience (independent of QAS-3).
 
 ---
 
-### QAS-4: Usability
+**QAS-5 / Extensibility**
 
 **한국어**
 
-**지원 수준**: 구조 확정, 임계값 실험 필요
-
-- AP-7b(Heartbeat)의 기존 A/C 이벤트 재활용 방식이 별도 로직 없이 신호 소실을 감지할 수 있어 구현 비용이 낮다.
-- N·M 수치 및 noise/signal 임계값이 EXP-04 후 확정되면 QAS-4 Response Measure가 완성된다.
-- 임계값 미확정으로 인한 오경보/미경보는 사용자 경험에만 영향 (QAS-3 Correctness와 독립).
+- AP-3(Layered Architecture): God Object를 4-계층으로 분리하면 신규 그래프 추가 시 변경 파일이 Presentation Layer 3개로 제한.
+- AP-4(Observer): 구독 추가만으로 기존 로직 수정 없이 확장 가능.
+- **리스크 TR-07**: God Object 분리 중 기존 그래프 회귀 위험 → 증분 리팩터링 + 단위 테스트 기준값으로 완화. 리팩터링 완료 후 `git diff --stat`으로 ≤ 3파일 검증.
 
 **English**
 
-**Support level**: Structure confirmed; threshold experiment needed
-
-- AP-7b (Heartbeat) reuses existing A/C events for signal loss detection — low implementation cost with no additional detection logic.
-- QAS-4 Response Measure is complete once N·M values and noise/signal threshold are confirmed by EXP-04.
-- False alarms / missed warnings from unconfirmed thresholds affect only user experience (independent of QAS-3 Correctness).
-
----
-
-### QAS-5: Extensibility
-
-**한국어**
-
-**지원 수준**: 구조적 완성 가능, 리팩터링 후 검증 필요
-
-- AP-3(Layered Architecture)이 God Object를 4-계층으로 분리하면 새 그래프 추가 시 변경 파일이 Presentation Layer의 3개로 제한된다.
-- AP-4(Observer)가 새 그래프의 구독 추가만으로 기존 로직 수정 없이 확장을 가능하게 한다.
-- **리스크 TR-07**: God Object 분리 중 기존 그래프 회귀 위험. 증분 리팩터링 + 단위 테스트 기준값 확보로 완화.
-- Observer 패턴 리팩터링 완료 후 신규 그래프 실제 추가 시 `git diff --stat`으로 ≤ 3파일 검증.
-
-**English**
-
-**Support level**: Structurally achievable; verification required after refactoring
-
-- AP-3 (Layered Architecture) limits file changes to 3 Presentation Layer files when adding a new graph after God Object is decomposed into 4 layers.
-- AP-4 (Observer) enables extension by subscription only — no modification of existing logic.
-- **Risk TR-07**: Regression in existing graphs during God Object decomposition. Mitigated by incremental refactoring + pre-refactoring unit test baseline.
-- Verified via `git diff --stat` showing ≤ 3 files changed when actually adding a new graph after Observer refactoring completes.
+- AP-3 (Layered Architecture): decomposing God Object into 4 layers limits new-graph changes to 3 Presentation Layer files.
+- AP-4 (Observer): extension by subscription only — no modification of existing logic.
+- **Risk TR-07**: regression in existing graphs during God Object decomposition → mitigated by incremental refactoring + unit test baseline. Verified via `git diff --stat` ≤ 3 files after refactoring.
 
