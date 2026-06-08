@@ -1,0 +1,90 @@
+@startuml cc-view
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+skinparam ArrowColor #444444
+skinparam ArrowFontSize 9
+skinparam ArrowThickness 1.8
+skinparam PackageBorderThickness 2
+skinparam ComponentBorderThickness 1.5
+skinparam Padding 6
+skinparam RoundCorner 4
+
+title <b>Pipe-and-Filter + Publish-Subscribe View of TimeGrapher</b>\n<i>View Type: C&C View Type  |  Styles: Pipe-and-Filter + Publish-Subscribe (Mixed)</i>
+
+' ── Input Sources ────────────────────────────────────
+package "Input Source" as SRC #EEF6FB {
+    component ": Live\n(USB Mic  28,800~43,200 BPH)" as LIVE
+    component ": Playback" as PB
+    component ": Sim" as SIM
+    LIVE -[hidden]right- PB
+    PB   -[hidden]right- SIM
+}
+
+' ── Audio Thread ──────────────────────────────────────
+package "«Process»  Audio Thread\n<color:crimson><b>AP-1: Introduce Concurrency</b></color>" as AT_PKG #FDEDEC {
+    component ": ALSACallback\n~20 ms period" as ALSA
+}
+
+note right of ALSA
+  <b><color:crimson>AP-6: Graceful Degradation</color></b>
+  96k sps  →  48k sps fallback
+  (block period ~10 ms → ~20 ms)
+  ⚠ EXP-01
+end note
+
+' ── Pipe Connector (Buffer) ───────────────────────────
+component ": LockFreeRingBuffer  «Buffer»\n<color:navy><b>AP-2</b>: Reduce Contention</color> (atomic, no mutex)    <color:navy><b>AP-8</b>: Increase Resources</color>  30 s  ⚠EXP-01" as RB #CCE5FF
+
+' ── DSP Thread ────────────────────────────────────────
+package "«Process»  DSP Thread\n<color:crimson><b>AP-1: Introduce Concurrency</b></color>" as DSP_PKG #FFF8E1 {
+    component ": HPF\n«Filter»\nDC blocker ≥ 200 Hz" as HPF
+    component ": Envelope\n«Filter»\none-pole LPF" as ENV
+    component ": AdaptiveDetector\n«Filter»\nonset / peak  ⚠EXP-03" as DET #FFFFCC
+    HPF -right-> ENV  : «pipe»
+    ENV -right-> DET  : «pipe»
+}
+
+' ── GUI Thread ────────────────────────────────────────
+package "«Process»  GUI Thread\n<color:crimson><b>AP-1: Introduce Concurrency</b></color>" as GUI_PKG #EAF7EA {
+    component ": MeasurementEngine\n«Publisher»" as ME #D4EDDA
+    component ": Tabs [1..11]  «Subscriber»\n<color:darkgreen><b>AP-7a: Lazy Rendering</b></color>  active tab only  ⚠EXP-02" as TABS
+    component ": SignalQualityMonitor\n«Publisher»  ⚠EXP-04" as SQ #FFF3CD
+    component ": WarningOverlay\n«Subscriber»" as WRN
+    ME  -right[#1B5E20,thickness=2]-> TABS : measurementReady()  «pub-sub»
+    SQ  -right[#856404,thickness=2]-> WRN  : warningChanged()  «pub-sub»
+    ME  -[hidden]down- SQ
+}
+
+' ═══════════════════════════════════════════════════
+'  CONNECTORS
+' ═══════════════════════════════════════════════════
+SRC  -down-> ALSA : PCM samples
+
+ALSA -down[#crimson,thickness=2]-> RB  : <b><color:crimson>① capture→enqueue</color></b>  «pipe/writer»  (non-blocking, atomic)
+RB   -down[#crimson,thickness=2]-> HPF : <b><color:crimson>① dequeue→process</color></b>  «pipe/reader»
+
+DET  -down[#1565C0,thickness=2]-> ME  : <b><color:#1565C0>② process→display</color></b>  T1·T3 timestamps
+DET  -down-> SQ  : beat events
+
+' ═══════════════════════════════════════════════════
+'  KEY
+' ═══════════════════════════════════════════════════
+legend bottom
+  <b>KEY — Latency Segments</b>
+  |= Segment |= Path |= Protected by |
+  | <color:crimson><b>①</b></color> capture→process | Audio Thread → Ring Buffer → DSP Thread | AP-1 (thread sep.), AP-2 (lock-free), AP-8 (buffer size) |
+  | <color:#1565C0><b>②</b></color> process→display | DSP Thread → GUI Thread (render) | AP-1 (thread sep.), AP-7a (lazy rendering) |
+
+  <b>KEY — Component Types</b>
+  |= Type |= Description |= Approaches |
+  | <#FDEDEC> «Process» | Thread-scoped runtime unit | AP-1, AP-6 |
+  | <#FFF8E1> «Filter» | DSP filter element | AP-5 |
+  | <#CCE5FF> «Buffer» | Lock-free ring buffer | AP-2, AP-8 |
+  | <#D4EDDA> «Publisher» | Qt Signal-Slot emitter | AP-4, AP-7b |
+  | <#EAF7EA> «Subscriber» | Qt Signal-Slot receiver | AP-7a |
+  | <#FFFFCC> ⚠ pending | Confirmed by experiment | — |
+endlegend
+
+@enduml

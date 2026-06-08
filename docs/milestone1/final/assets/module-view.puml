@@ -1,0 +1,79 @@
+@startuml module-view
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+skinparam ArrowColor #444444
+skinparam ArrowFontSize 10
+skinparam ArrowThickness 1.5
+skinparam PackageBorderThickness 1.5
+skinparam ComponentBorderThickness 1.5
+skinparam Padding 6
+skinparam RoundCorner 8
+
+title <b>Layered View of TimeGrapher</b>\n<i>View Type: Module View Type  |  Style: Layered Style</i>\n<i>«AP-3: Layered Architecture + Restrict Dependencies»</i>
+
+' ── Presentation Layer ──────────────────────────────────
+package "Presentation Layer\n<color:#1565C0>«AP-3: Restrict Dependencies»</color>\n  Adding a new tab requires <= 3-file change" as PL #EEF6FB {
+    [<b>TraceTab</b>] as T1
+    [<b>VarioTab</b>] as T2
+    [<b>BeatErrorTab</b>] as T3
+    [<b>... (11 tabs total)</b>] as TN
+    [<b>WarningOverlay</b>\n⚠ No signal  /  ⚠ Noisy signal] as WRN
+}
+
+' ── Domain Layer ────────────────────────────────────────
+package "Domain Layer\n<color:#1B5E20>«AP-4: Observer — single publication source»</color>" as DL #EAF7EA {
+    [<b>MeasurementEngine</b>\n  Rate . Amplitude . Beat Error] as ME #D4EDDA
+    [<b>SignalQualityMonitor</b>\n<color:#856404>«AP-7b: Heartbeat»</color>] as SQ #FFF3CD
+}
+
+' ── Signal Processing Layer ─────────────────────────────
+package "Signal Processing Layer\n<color:#E67E22>«AP-5: Pipes-and-Filters — HPF -> Envelope -> Detector»</color>\n🔒 Direct reference from Presentation layer forbidden" as SL #FFF8E1 {
+    [<b>DSPPipeline</b>\n  Adaptive Threshold\n<color:#E67E22>⚠ Parameters confirmed by EXP-03</color>] as DSP #FFFFCC
+}
+
+' ── Acquisition Layer ───────────────────────────────────
+package "Acquisition Layer\n<color:#C0392B>«AP-1: Introduce Concurrency — Audio Thread»</color>\n<color:#1565C0>«AP-2: Lock-Free Ring Buffer»</color>\n<color:#1565C0>«AP-8: Increase Resources — SECONDS_OF_BUFFER»</color>\n🔒 Direct reference to upper layers forbidden" as AL #FDEDEC {
+    [<b>AudioThread</b>\n<color:#C0392B>«AP-6: Graceful Degradation»</color>\n  96k -> 48k sps fallback\n<color:#E67E22>⚠ Threshold confirmed by EXP-01</color>] as AT
+    [<b>LockFreeRingBuffer</b>] as RB #CCE5FF
+}
+
+' ── Allowed dependencies ────────────────────────────────
+T1 -down-> ME  : Observer subscription\n(Qt Signal-Slot)
+T2 -down-> ME
+T3 -down-> ME
+TN -down-> ME
+WRN -down-> SQ : allowed-to-use
+
+ME  -down-> DSP : allowed-to-use
+SQ  -down-> DSP : allowed-to-use
+
+DSP -down-> RB  : dequeue only
+AT  -right-> RB : enqueue
+
+' ── Forbidden dependencies ──────────────────────────────
+T1 ..> DSP #red : <color:#C0392B>❌ Forbidden</color>
+T1 ..> AT  #red : <color:#C0392B>❌ Forbidden</color>
+
+' ── Legend ──────────────────────────────────────────────
+legend bottom
+  <b>KEY</b>
+  |= Layer (Module Type) |= Responsibility |= Applied Approaches |
+  | <#EEF6FB> Presentation Layer | GUI rendering, Observer subscription, warning display | «AP-3: Restrict Dependencies» — new tab ≤ 3-file change |
+  | <#EAF7EA> Domain Layer | Rate·Amplitude·Beat Error computation; single Measurement publication | «AP-4: Observer» single pub source, «AP-7b: Heartbeat» |
+  | <#FFF8E1> Signal Processing Layer | HPF→Envelope→AdaptiveDetector; T1·T3 extraction | «AP-5: Pipes-and-Filters», «AP-3: 🔒 forbidden from Presentation» |
+  | <#FDEDEC> Acquisition Layer | USB audio capture → PCM → Ring Buffer supply | «AP-1: Introduce Concurrency», «AP-6: Graceful Degradation» |
+  | <#CCE5FF> Lock-Free Ring Buffer | Decouples Audio/DSP threads; 30 s capacity | «AP-2: Reduce Contention», «AP-8: Increase Resources» |
+  | <#FFFFCC> DSPPipeline (Detector) | Adaptive threshold parameters ⚠ confirmed after EXP-03 | «AP-5» |
+
+  |= Relation |= Meaning |
+  | ——→  allowed-to-use | Upper layer may reference lower layer (Layered Style: top→bottom only) |
+  | - - → ❌ Forbidden | Dependency that violates layer rules — breaks QAS-5 (≤ 3-file extensibility target) |
+
+  <b>Core constraint (AP-3):</b>
+  Presentation Layer must NOT directly reference Signal Processing or Acquisition layers.
+  Violation makes QAS-5 target (adding a new graph in ≤ 3 files) structurally impossible.
+endlegend
+
+@enduml
