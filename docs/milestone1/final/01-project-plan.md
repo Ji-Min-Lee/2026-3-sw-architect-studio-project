@@ -6,7 +6,7 @@
 
 ## 1. Project Objectives
 
-The goal of TimeGrapher is to **provide accurate measurement data needed for watch repair** by analyzing acoustic signals (beat noise) from a mechanical watch's escapement in real time.
+The goal of TimeGrapher is to **analyze beat sounds from a mechanical watch** in real time, and provide accurate measurement data for watch repair.
 
 In watch repair, what matters is whether Rate (s/d), Amplitude (°), and Beat Error (ms) are correct. Rather than maximizing BPH coverage, the priority is to **achieve the level of accuracy required to make a repair decision** for the watches we support.
 
