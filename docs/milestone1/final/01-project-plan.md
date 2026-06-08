@@ -34,7 +34,7 @@ ADD is a methodology that **drives architecture decisions from Quality Attribute
 
 ![ADD Process](assets/add-process.png)
 
-Each sprint covers Steps 2–6 of ADD in one cycle: the team selects a QA driver (Step 2), determines the responsible architecture element (Step 3), chooses a tactic or pattern (Step 4), implements and runs experiments to validate the hypothesis (Step 5), and records the decision as an ADR (Step 6). Sprints then repeat, each iteration targeting the next priority driver.
+Each sprint covers Steps 2–6 of ADD in one cycle. Sprints then repeat, each iteration targeting the next priority driver.
 
 ---
 
