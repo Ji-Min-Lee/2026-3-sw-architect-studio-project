@@ -45,22 +45,18 @@ This document answers five questions in order:
 
 ### 1.1 시스템 목적과 구조적 제약 / System Purpose and Structural Constraints
 
-**한국어**
+> 프로젝트 목표 및 시스템 개요는 **[architectural-drivers.md §1 프로젝트 목표](architectural-drivers.md#1-프로젝트-목표--project-objectives)** 참조.
+>
+> Project objectives and system overview: see **[architectural-drivers.md §1 Project Objectives](architectural-drivers.md#1-프로젝트-목표--project-objectives)**.
 
-TimeGrapher는 기계식 시계의 음향 신호(beat noise)를 실시간으로 수집·처리하여 Rate / Amplitude / Beat Error를 계산하고 11개 그래프 탭에 표시하는 시스템이다.
-
-시스템의 구조적 결정은 아래 두 가지 제약에서 출발한다.
+**한국어** — 아키텍처 결정을 유발하는 구조적 제약:
 
 | 제약 | 내용 | 아키텍처 영향 |
 |------|------|------------|
 | **하드웨어 제약** | Raspberry Pi 5 (ARM64, 8GB RAM) + USB 오디오 센서 | 오디오 캡처·DSP·GUI가 단일 프로세스에서 공유 CPU를 경쟁 → 스레드 분리 필수 |
 | **개발 환경 제약** | Qt6 C++ 기반 (`TimeGrapher_v10.5` 코드베이스) | Qt Signal-Slot 메커니즘이 Observer 패턴의 자연스러운 구현 수단 |
 
-**English**
-
-TimeGrapher captures acoustic signals (beat noise) from a mechanical watch in real time, computes Rate / Amplitude / Beat Error, and renders the results across 11 graph tabs.
-
-Two structural constraints drive all architectural decisions:
+**English** — Structural constraints that drive architectural decisions:
 
 | Constraint | Detail | Architectural impact |
 |------------|--------|---------------------|
