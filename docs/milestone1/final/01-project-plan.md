@@ -30,8 +30,8 @@ Agile's core value of **"responding to change over following a plan"** is especi
 
 Satisfying all QAs simultaneously within 5 weeks is not feasible. Architecture decisions must be made and implemented starting from the most critical QA — that is the only way to achieve the core objectives within the schedule.
 
-ADD is a methodology that **drives architecture decisions from Quality Attributes**:
-
+ADD is a methodology that **drives architecture decisions from Quality Attributes**, and
+it has 7 steps, and we repeat these steps for each sprint.
 ![ADD Process](assets/add-process.png)
 
 Each sprint covers Steps 2–6 of ADD in one cycle. Sprints then repeat, each iteration targeting the next priority driver.
