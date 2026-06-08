@@ -32,69 +32,17 @@
 
 **한국어**
 
-두 개의 보완적인 뷰로 아키텍처를 표현한다. **Module View**는 정적 계층 구조와 의존 방향 규칙을, **C&C View**는 런타임 컴포넌트와 각 지점에 적용된 전술·패턴을 보여준다.
+두 개의 보완적인 뷰로 아키텍처를 표현한다. **C&C View**는 런타임 컴포넌트와 각 지점에 적용된 전술·패턴을, **Module View**는 정적 계층 구조와 의존 방향 규칙을 보여준다.
 
 **English**
 
-Two complementary views describe the architecture. The **Module View** shows the static layer structure and dependency direction rules; the **C&C View** shows runtime components annotated with the tactic or pattern applied at each point.
+Two complementary views describe the architecture. The **C&C View** shows runtime components annotated with the tactic or pattern applied at each point; the **Module View** shows the static layer structure and dependency direction rules.
+
+> 소스 파일 / Source files: [`assets/cc-view.puml`](assets/cc-view.puml) · [`assets/module-view.puml`](assets/module-view.puml)
 
 ---
 
-#### View 1 — Module View (Layered): 정적 계층 구조 / Static Layer Structure
-
-**한국어**
-
-4개 계층의 정적 의존 방향을 정의한다. 화살표 방향이 곧 AP-3의 아키텍처 결정이며, 금지선(❌)이 QAS-5 Extensibility 보호선이다.
-
-**English**
-
-Defines the static dependency direction across 4 layers. Arrow direction is the AP-3 architectural decision; the forbidden edges (❌) are the protection boundary for QAS-5 Extensibility.
-
-```mermaid
-graph TD
-    subgraph PL["Presentation Layer\n«AP-3: Restrict Dependencies»\n신규 탭 추가 시 ≤ 3파일 변경 / ≤ 3-file change per new tab"]
-        direction LR
-        T1[TraceTab] & T2[VarioTab] & T3[BeatErrorTab] & TN["... (총 11개 탭 / 11 tabs total)"]
-        WRN["WarningOverlay\n⚠ No signal / ⚠ Noisy signal"]
-    end
-
-    subgraph DL["Domain Layer\n«AP-4: Observer — 단일 발행 소스 / single publication source»"]
-        ME["MeasurementEngine\n(Rate · Amplitude · Beat Error)"]
-        SQ["SignalQualityMonitor\n«AP-7b: Heartbeat»"]
-    end
-
-    subgraph SL["Signal Processing Layer\n«AP-5: Pipes-and-Filters — HPF → Envelope → Detector»\n🔒 Presentation 직접 참조 금지 / direct reference from Presentation forbidden"]
-        DSP["DSPPipeline\n(Adaptive Threshold ⚠️ EXP-03)"]
-    end
-
-    subgraph AL["Acquisition Layer\n«AP-1: Introduce Concurrency — Audio Thread»\n«AP-2: Lock-Free Ring Buffer»\n«AP-8: Increase Resources — SECONDS_OF_BUFFER»\n🔒 상위 레이어 직접 참조 금지 / upper-layer direct reference forbidden"]
-        AT["AudioThread\n«AP-6: Graceful Degradation\n96k → 48k sps fallback»"]
-        RB["LockFreeRingBuffer"]
-    end
-
-    T1 & T2 & T3 & TN -->|"Observer 구독만 허용\n(Qt Signal-Slot)"| ME
-    WRN -->|"allowed-to-use"| SQ
-    ME & SQ -->|"allowed-to-use"| DSP
-    DSP -->|"dequeue only"| RB
-    AT -->|"enqueue"| RB
-
-    T1 -. "❌ 직접 참조 금지" .-> DSP
-    T1 -. "❌ 직접 참조 금지" .-> AT
-
-    style PL fill:#e8f4f8,stroke:#2196F3
-    style DL fill:#e8f8e8,stroke:#4CAF50
-    style SL fill:#fff8e1,stroke:#FF9800
-    style AL fill:#fce4ec,stroke:#E91E63
-    style DSP fill:#ffffcc,stroke:#cccc00
-```
-
-> **범례 / Legend**
-> - 실선(→): 허용된 의존 방향 / Solid: allowed dependency direction
-> - 점선(❌): 금지된 의존 — 위반 시 QAS-5 목표(≤ 3파일) 달성 불가 / Dashed: forbidden dependency — violation breaks QAS-5 target
-
----
-
-#### View 2 — C&C View (Pipe-and-Filter + Pub-Sub): 런타임 구조 / Runtime Structure
+#### View 1 — C&C View (Pipe-and-Filter + Pub-Sub): 런타임 구조 / Runtime Structure
 
 **한국어**
 
@@ -104,50 +52,44 @@ graph TD
 
 Annotates each runtime thread boundary and connector with the architectural approach (AP) applied at that point. Three input source modes are supported: Live (USB Mic), Playback, and Sim.
 
-```mermaid
-graph LR
-    subgraph SRC["입력 소스 / Input Source"]
-        LIVE["USB Mic\n(Live Mode)\n28,800~43,200 BPH"]
-        PB["Pre-recorded\n(Playback Mode)"]
-        SIM["Synthesized\n(Sim Mode)"]
-    end
+![C&C View — TimeGrapher Runtime Structure](assets/cc-view.png)
 
-    subgraph AT_BOX["Audio Thread\n«AP-1: Introduce Concurrency»\n«AP-6: Graceful Degradation\n96k sps → 48k sps fallback\n⚠️ 기준 EXP-01 확정»"]
-        ALSA["ALSA Callback\n~20ms period"]
-    end
+| 색상 / Color | 의미 / Meaning |
+|:---:|---|
+| 🔴 연분홍 | Audio Thread — «AP-1: Introduce Concurrency», «AP-6: Graceful Degradation (96k→48k sps)» |
+| 🟡 연황색 | DSP Thread — «AP-1: Introduce Concurrency», «AP-5: Pipes-and-Filters» |
+| 🟢 연초록 | GUI Thread |
+| 🔵 파랑 | Lock-Free Ring Buffer — «AP-2: Reduce Resource Contention», «AP-8: Increase Resources» |
+| 🟩 진초록 | MeasurementEngine — «AP-4: Observer» 단일 발행 소스 |
+| 🟠 주황 | SignalQualityMonitor — «AP-7b: Heartbeat» |
+| 🟡 노랑 | 파라미터 미결 ⚠ — 전략 확정, 수치는 실험 후 확정 |
 
-    RB["Lock-Free Ring Buffer\n«AP-2: Reduce Resource Contention»\n«AP-8: Increase Resources\nSECONDS_OF_BUFFER=30s\n⚠️ 최적값 EXP-01 후 결정»"]
+> **커넥터 읽는 법 / Reading connectors**: 실선(→) = 데이터 흐름 (동기 파이프 또는 비동기 Qt Signal-Slot)
 
-    subgraph DSP_BOX["DSP Thread\n«AP-1: Introduce Concurrency»\n«AP-5: Pipes-and-Filters»"]
-        HPF["HPF\nDC blocker ≥200Hz"] --> ENV["Envelope\none-pole LPF"] --> DET["Adaptive Threshold\nDetector\n⚠️ onset_fraction / min_peak_fraction\nEXP-03 후 확정"]
-    end
+---
 
-    subgraph GUI_BOX["GUI Thread"]
-        ME["MeasurementEngine\n«AP-4: Observer\n단일 Measurement 구조체 발행»"]
-        SQ["SignalQualityMonitor\n«AP-7b: Heartbeat\nA/C 이벤트 재사용\n⚠️ N·M값 EXP-04 후 확정»"]
-        TABS["11개 탭\n«AP-7a: Lazy Rendering\n활성 탭만 paintEvent()\n⚠️ 필수 여부 EXP-02 결정»"]
-        WRN["WarningOverlay\n⚠ No signal / ⚠ Noisy signal"]
-    end
+#### View 2 — Module View (Layered): 정적 계층 구조 / Static Layer Structure
 
-    LIVE & PB & SIM -->|"PCM samples"| ALSA
-    ALSA -->|"enqueue\n(non-blocking, atomic)"| RB
-    RB -->|"dequeue"| HPF
-    DET -->|"T1·T3 timestamps"| ME
-    DET -->|"beat events"| SQ
-    ME -->|"measurementReady()\n«Qt Signal-Slot / Pub-Sub»"| TABS
-    SQ -->|"warningChanged()\n«Qt Signal-Slot / Pub-Sub»"| WRN
+**한국어**
 
-    style RB fill:#cce5ff,stroke:#004085
-    style ME fill:#d4edda,stroke:#28a745
-    style SQ fill:#fff3cd,stroke:#856404
-    style DET fill:#ffffcc,stroke:#cccc00
-```
+4개 계층의 정적 의존 방향을 정의한다. 화살표 방향이 곧 AP-3의 아키텍처 결정이며, 금지선(❌)이 QAS-5 Extensibility 보호선이다.
 
-> **범례 / Legend**
-> - 🔵 파란 박스: Lock-Free Ring Buffer — AP-2·AP-8 적용 지점 / AP-2·AP-8 application point
-> - 🟢 초록 박스: Observer 패턴 — AP-4 단일 발행 소스 / AP-4 single publication source
-> - 🟡 노란 박스: 파라미터 미결 (⚠️) — 전략 확정, 수치만 실험 후 확정 / Strategy decided; values confirmed after experiment
-> - 🟠 주황 박스: Heartbeat 패턴 — AP-7b 적용 지점 / AP-7b application point
+**English**
+
+Defines the static dependency direction across 4 layers. Arrow direction is the AP-3 architectural decision; the forbidden edges (❌) are the protection boundary for QAS-5 Extensibility.
+
+![Module View — TimeGrapher Static Layer Structure](assets/module-view.png)
+
+| 색상 / Color | 계층 / Layer | 적용 어프로치 / Applied Approaches |
+|:---:|---|---|
+| 🔵 연파랑 | Presentation Layer | «AP-3: Restrict Dependencies» — 신규 탭 추가 시 ≤ 3파일 변경 |
+| 🟢 연초록 | Domain Layer | «AP-4: Observer» 단일 발행 소스, «AP-7b: Heartbeat» |
+| 🟡 연황색 | Signal Processing Layer | «AP-5: Pipes-and-Filters» HPF → Envelope → Detector |
+| 🔴 연분홍 | Acquisition Layer | «AP-1: Introduce Concurrency», «AP-2: Lock-Free Ring Buffer», «AP-6: Graceful Degradation», «AP-8: Increase Resources» |
+| 🔵 파랑 | Lock-Free Ring Buffer | «AP-2», «AP-8» 적용 지점 |
+| 🟡 노랑 | DSPPipeline (Detector) | 파라미터 미결 ⚠ — EXP-03 후 확정 |
+
+> **의존 방향 읽는 법 / Reading dependencies**: 실선(→) = 허용된 의존 방향 · 점선(❌) = 금지된 의존 — 위반 시 QAS-5(≤ 3파일) 달성 불가
 
 ---
 

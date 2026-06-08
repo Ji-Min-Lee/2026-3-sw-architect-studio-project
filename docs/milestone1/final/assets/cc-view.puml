@@ -1,0 +1,77 @@
+@startuml cc-view
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+skinparam ArrowColor #444444
+skinparam ArrowFontSize 10
+skinparam ArrowThickness 1.5
+skinparam PackageBorderThickness 1.5
+skinparam ComponentBorderThickness 1.5
+skinparam Padding 6
+skinparam RoundCorner 8
+
+title <b>C&C View — TimeGrapher Runtime Structure</b>\nPipe-and-Filter + Publish-Subscribe
+
+' ── Input Sources ──────────────────────────────────────
+package "Input Source" as SRC #EEF6FB {
+    [<b>USB Mic</b>\nLive Mode\n28,800 ~ 43,200 BPH] as LIVE
+    [<b>Pre-recorded</b>\nPlayback Mode] as PB
+    [<b>Synthesized</b>\nSim Mode] as SIM
+}
+
+' ── Audio Thread ────────────────────────────────────────
+package "Audio Thread\n<color:#C0392B>«AP-1: Introduce Concurrency»</color>\n<color:#C0392B>«AP-6: Graceful Degradation»</color>  96k -> 48k sps\n  <color:#E67E22>⚠ Fallback threshold confirmed by EXP-01</color>" as AT_PKG #FDEDEC {
+    [<b>ALSA Callback</b>\n~20 ms period] as ALSA
+}
+
+' ── Ring Buffer ─────────────────────────────────────────
+component "<b>Lock-Free Ring Buffer</b>\n<color:#1565C0>«AP-2: Reduce Resource Contention»</color>\n<color:#1565C0>«AP-8: Increase Resources»</color>  SECONDS_OF_BUFFER = 30 s\n<color:#E67E22>⚠ Optimal size confirmed by EXP-01</color>" as RB #CCE5FF
+
+' ── DSP Thread ──────────────────────────────────────────
+package "DSP Thread\n<color:#C0392B>«AP-1: Introduce Concurrency»</color>\n<color:#E67E22>«AP-5: Pipes-and-Filters»</color>" as DSP_PKG #FFF8E1 {
+    [<b>HPF</b>\nDC blocker >= 200 Hz] as HPF
+    [<b>Envelope</b>\none-pole LPF] as ENV
+    [<b>Adaptive Threshold Detector</b>\n<color:#E67E22>⚠ onset_fraction / min_peak_fraction</color>\n  confirmed by EXP-03] as DET #FFFFCC
+}
+
+' ── GUI Thread ──────────────────────────────────────────
+package "GUI Thread" as GUI_PKG #EAF7EA {
+    [<b>MeasurementEngine</b>\n<color:#1B5E20>«AP-4: Observer»</color>\n  Publishes single Measurement struct] as ME #D4EDDA
+    [<b>SignalQualityMonitor</b>\n<color:#856404>«AP-7b: Heartbeat»</color>\n  Reuses existing A/C events\n<color:#E67E22>⚠ N, M values confirmed by EXP-04</color>] as SQ #FFF3CD
+    [<b>11 Tabs (Subscribers)</b>\n  TraceTab . VarioTab . BeatErrorTab . ...\n<color:#1B5E20>«AP-7a: Lazy Rendering»</color>\n  paintEvent() on active tab only\n<color:#E67E22>⚠ Mandatory use confirmed by EXP-02</color>] as TABS
+    [<b>WarningOverlay</b>\n⚠ No signal  /  ⚠ Noisy signal] as WRN
+}
+
+' ── Connectors ──────────────────────────────────────────
+LIVE -right-> ALSA : PCM samples
+PB   -right-> ALSA : PCM samples
+SIM  -right-> ALSA : PCM samples
+
+ALSA -right-> RB : enqueue\n(non-blocking, atomic)
+RB   -right-> HPF : dequeue
+
+HPF  -right-> ENV  : filtered PCM
+ENV  -right-> DET  : envelope signal
+
+DET  -down-> ME  : T1 . T3\ntimestamps
+DET  -down-> SQ  : beat events
+
+ME  -right-> TABS : measurementReady()\n<<Qt Signal-Slot / Pub-Sub>>
+SQ  -right-> WRN  : warningChanged()\n<<Qt Signal-Slot / Pub-Sub>>
+
+' ── Legend ──────────────────────────────────────────────
+legend bottom
+  <b>Legend</b>
+  |= Color |= Meaning |
+  | <#FDEDEC> | Audio Thread — «AP-1: Introduce Concurrency», «AP-6: Graceful Degradation» |
+  | <#FFF8E1> | DSP Thread   — «AP-1: Introduce Concurrency», «AP-5: Pipes-and-Filters» |
+  | <#EAF7EA> | GUI Thread |
+  | <#CCE5FF> | Lock-Free Ring Buffer — «AP-2: Reduce Resource Contention», «AP-8: Increase Resources» |
+  | <#D4EDDA> | MeasurementEngine — «AP-4: Observer» single publication source |
+  | <#FFF3CD> | SignalQualityMonitor — «AP-7b: Heartbeat» |
+  | <#FFFFCC> | Parameters pending ⚠ — strategy decided, values confirmed after experiment |
+  Solid arrow (->): data flow (synchronous pipe / asynchronous Signal-Slot)
+endlegend
+
+@enduml
