@@ -141,7 +141,7 @@ The results of this experiment directly inform:
 
 | 자원 / Resource | 상세 / Detail |
 |----------------|-------------|
-| 하드웨어 | Raspberry Pi 5 (8GB RAM), USB 오디오 센서(마이크), 8" 터치스크린 |
+| 하드웨어 | Raspberry Pi 5 (16GB RAM), USB 오디오 센서(마이크), 8" 터치스크린 |
 | 소프트웨어 | Ubuntu 24.04, Qt6, ALSA, `TimeGrapher_v10.5` 코드베이스 |
 | 기계식 시계 | 28,800 BPH 시계 1종 (라이브 캡처 음원) |
 | 계측 도구 | Ring Buffer 오버플로 카운터 코드 삽입, `chrono` 타임스탬프, Linux `perf` |
@@ -151,7 +151,7 @@ The results of this experiment directly inform:
 
 | Resource | Detail |
 |----------|--------|
-| Hardware | Raspberry Pi 5 (8GB RAM), USB audio sensor (microphone), 8" touchscreen |
+| Hardware | Raspberry Pi 5 (16GB RAM), USB audio sensor (microphone), 8" touchscreen |
 | Software | Ubuntu 24.04, Qt6, ALSA, `TimeGrapher_v10.5` codebase |
 | Mechanical watch | One 28,800 BPH watch (live capture audio source) |
 | Measurement tools | Ring Buffer overflow counter injection, `chrono` timestamps, Linux `perf` |
@@ -299,7 +299,7 @@ The results of this experiment directly inform:
 
 | 자원 / Resource | 상세 / Detail |
 |----------------|-------------|
-| 하드웨어 | Raspberry Pi 5 (8GB RAM), USB 오디오 센서, 8" 터치스크린 |
+| 하드웨어 | Raspberry Pi 5 (16GB RAM), USB 오디오 센서, 8" 터치스크린 |
 | 소프트웨어 | Ubuntu 24.04, Qt6, `TimeGrapher_v10.5` 코드베이스 |
 | 기계식 시계 | 28,800 BPH 시계 (1차 목표), 추가 BPH 시계 (OI-L3 검토 시) |
 | 계측 도구 | `std::chrono::high_resolution_clock` 타임스탬프 3점(TS1/TS2/TS3), Qt `QElapsedTimer` |
@@ -311,7 +311,7 @@ The results of this experiment directly inform:
 
 | Resource | Detail |
 |----------|--------|
-| Hardware | Raspberry Pi 5 (8GB RAM), USB audio sensor, 8" touchscreen |
+| Hardware | Raspberry Pi 5 (16GB RAM), USB audio sensor, 8" touchscreen |
 | Software | Ubuntu 24.04, Qt6, `TimeGrapher_v10.5` codebase |
 | Mechanical watch | 28,800 BPH watch (primary target); additional BPH watches (if OI-L3 is explored) |
 | Measurement tools | `std::chrono::high_resolution_clock` timestamps at 3 points (TS1/TS2/TS3), Qt `QElapsedTimer` |
@@ -833,7 +833,7 @@ Results inform:
 
 | 자원 / Resource | 상세 / Detail |
 |----------------|-------------|
-| 하드웨어 | Raspberry Pi 5 (8GB RAM), USB 오디오 센서, 8" 터치스크린 |
+| 하드웨어 | Raspberry Pi 5 (16GB RAM), USB 오디오 센서, 8" 터치스크린 |
 | 소프트웨어 | EXP-02 완료 기준 빌드 (타임스탬프 삽입 코드 재활용) |
 | 기계식 시계 | 36,000 BPH 시계, 43,200 BPH 시계 |
 | 선행 조건 | EXP-02 완료 + 28,800 BPH 기준 QAS-1~4 전부 충족 확인 |
@@ -843,7 +843,7 @@ Results inform:
 
 | Resource | Detail |
 |----------|--------|
-| Hardware | Raspberry Pi 5 (8GB RAM), USB audio sensor, 8" touchscreen |
+| Hardware | Raspberry Pi 5 (16GB RAM), USB audio sensor, 8" touchscreen |
 | Software | EXP-02-complete build (reuse timestamp injection code) |
 | Mechanical watches | 36,000 BPH watch, 43,200 BPH watch |
 | Prerequisites | EXP-02 complete + QAS-1~4 all confirmed at 28,800 BPH |
