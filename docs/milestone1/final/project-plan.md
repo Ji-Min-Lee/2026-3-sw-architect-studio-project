@@ -156,66 +156,7 @@ QA 우선순위와 구현 의존성에 따라 5개 Period(각 2일)를 배분한
 
 5 Periods (2 days each) are allocated based on QA priority and implementation dependency.
 
-```plantuml
-@startgantt
-printscale daily zoom 2
-<style>
-ganttDiagram {
-  task {
-    FontName Arial
-    FontSize 11
-    BackGroundColor #AED6F1
-    FontColor black
-  }
-  milestone {
-    BackGroundColor #E74C3C
-    FontColor white
-    FontSize 11
-  }
-  separator {
-    BackGroundColor #2C3E50
-    FontColor white
-    FontSize 11
-  }
-}
-</style>
-
-Project starts 2026-06-09
-
-[M1] happens 2026-06-09
-[M2] happens 2026-06-22
-[M3 Final Demo] happens 2026-07-01
-
--- Team 1 --
-[Real-Time Performance]    lasts 2 days and starts 2026-06-10
-[Buffer W1]                lasts 3 days and starts 2026-06-12 and is colored in #BDC3C7/#BDC3C7
-[Graceful Degradation]     lasts 2 days and starts 2026-06-15
-[Low Latency]              lasts 2 days and starts 2026-06-17
-[Buffer W2]                lasts 3 days and starts 2026-06-19 and is colored in #BDC3C7/#BDC3C7
-[Usability + Core Graphs]  lasts 4 days and starts 2026-06-22
-[RPi Final Validation T1]  lasts 1 day  and starts 2026-06-26 and is colored in #E59866/#E59866
-
--- Team 2 --
-[Extensibility Foundation] lasts 2 days and starts 2026-06-10
-[Buffer W1 T2]             lasts 3 days and starts 2026-06-12 and is colored in #BDC3C7/#BDC3C7
-[Correctness Part 1]       lasts 2 days and starts 2026-06-15
-[Correctness Part 2]       lasts 2 days and starts 2026-06-17
-[Buffer W2 T2]             lasts 3 days and starts 2026-06-19 and is colored in #BDC3C7/#BDC3C7
-[Extensibility Graphs]     lasts 4 days and starts 2026-06-22
-[RPi Final Validation T2]  lasts 1 day  and starts 2026-06-26 and is colored in #E59866/#E59866
-
--- Both Teams --
-[Presentation Prep]        lasts 2 days and starts 2026-06-29
-
-legend
-| Color | Meaning |
-|<#AED6F1>| Sprint (QA Focus) |
-|<#BDC3C7>| Buffer (Fri – Sun) |
-|<#E59866>| RPi Final Validation |
-|<#E74C3C>| Milestone |
-endlegend
-@endgantt
-```
+![Sprint Schedule](assets/sprint-schedule.png)
 
 **스프린트 집중 배분 / Sprint QA Allocation**:
 
