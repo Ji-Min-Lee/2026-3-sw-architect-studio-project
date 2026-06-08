@@ -28,73 +28,126 @@
 
 ---
 
-### 1.2 아키텍처 개요 다이어그램 / Architecture Overview Diagram
+### 1.2 아키텍처 개요 다이어그램 / Architecture Overview Diagrams
 
 **한국어**
 
-TimeGrapher의 아키텍처는 **단방향 신호 처리 파이프라인**을 기반으로 한다. 물리 계층(오디오 하드웨어)에서 시작하여 Presentation 계층(GUI)으로 흐르는 단방향 데이터 흐름이며, 각 계층 간 결합은 인터페이스(Ring Buffer, Qt Signal-Slot)로만 이루어진다.
+두 개의 보완적인 뷰로 아키텍처를 표현한다. **Module View**는 정적 계층 구조와 의존 방향 규칙을, **C&C View**는 런타임 컴포넌트와 각 지점에 적용된 전술·패턴을 보여준다.
 
 **English**
 
-TimeGrapher's architecture is built on a **unidirectional signal processing pipeline**. Data flows in one direction from the physical layer (audio hardware) to the Presentation layer (GUI); inter-layer coupling is mediated solely through interfaces (Ring Buffer, Qt Signal-Slot).
+Two complementary views describe the architecture. The **Module View** shows the static layer structure and dependency direction rules; the **C&C View** shows runtime components annotated with the tactic or pattern applied at each point.
+
+---
+
+#### View 1 — Module View (Layered): 정적 계층 구조 / Static Layer Structure
+
+**한국어**
+
+4개 계층의 정적 의존 방향을 정의한다. 화살표 방향이 곧 AP-3의 아키텍처 결정이며, 금지선(❌)이 QAS-5 Extensibility 보호선이다.
+
+**English**
+
+Defines the static dependency direction across 4 layers. Arrow direction is the AP-3 architectural decision; the forbidden edges (❌) are the protection boundary for QAS-5 Extensibility.
 
 ```mermaid
 graph TD
-    subgraph HW["⚙️ Hardware / 하드웨어"]
-        MIC["USB Microphone\nUSB 마이크"]
-        WATCH["Mechanical Watch\n기계식 시계 28,800 BPH"]
-        WATCH -->|"tick-tock"| MIC
+    subgraph PL["Presentation Layer\n«AP-3: Restrict Dependencies»\n신규 탭 추가 시 ≤ 3파일 변경 / ≤ 3-file change per new tab"]
+        direction LR
+        T1[TraceTab] & T2[VarioTab] & T3[BeatErrorTab] & TN["... (총 11개 탭 / 11 tabs total)"]
+        WRN["WarningOverlay\n⚠ No signal / ⚠ Noisy signal"]
     end
 
-    subgraph ACQ["Layer 1: Acquisition / 수집 계층"]
-        ALSA["ALSA Driver\nALSA 드라이버"]
-        AT["Audio Thread\n오디오 스레드\n(Priority Scheduling)"]
-        RB["Lock-Free\nRing Buffer"]
-        MIC -->|"PCM samples"| ALSA
-        ALSA -->|"callback ~20ms"| AT
-        AT -->|"enqueue"| RB
+    subgraph DL["Domain Layer\n«AP-4: Observer — 단일 발행 소스 / single publication source»"]
+        ME["MeasurementEngine\n(Rate · Amplitude · Beat Error)"]
+        SQ["SignalQualityMonitor\n«AP-7b: Heartbeat»"]
     end
 
-    subgraph DSP["Layer 2: Signal Processing / 신호 처리 계층"]
-        DT["DSP Thread\nDSP 스레드"]
-        HPF["HPF\n(DC blocker ≥200 Hz)"]
-        ENV["Envelope\n(one-pole LPF)"]
-        DET["Detector\nAdaptive Threshold\n⚠️ EXP-03 후 파라미터 확정"]
-        RB -->|"dequeue"| DT
-        DT --> HPF --> ENV --> DET
+    subgraph SL["Signal Processing Layer\n«AP-5: Pipes-and-Filters — HPF → Envelope → Detector»\n🔒 Presentation 직접 참조 금지 / direct reference from Presentation forbidden"]
+        DSP["DSPPipeline\n(Adaptive Threshold ⚠️ EXP-03)"]
     end
 
-    subgraph DOM["Layer 3: Domain / 도메인 계층"]
-        ME["MeasurementEngine\n단일 Measurement 구조체 발행\n(Rate · Amplitude · Beat Error)"]
-        SQ["Signal Quality Monitor\n신호 품질 모니터\n(Heartbeat 패턴)"]
-        DET -->|"T1·T3 timestamps"| ME
-        DET -->|"beat events"| SQ
+    subgraph AL["Acquisition Layer\n«AP-1: Introduce Concurrency — Audio Thread»\n«AP-2: Lock-Free Ring Buffer»\n«AP-8: Increase Resources — SECONDS_OF_BUFFER»\n🔒 상위 레이어 직접 참조 금지 / upper-layer direct reference forbidden"]
+        AT["AudioThread\n«AP-6: Graceful Degradation\n96k → 48k sps fallback»"]
+        RB["LockFreeRingBuffer"]
     end
 
-    subgraph PL["Layer 4: Presentation / 표시 계층\n(Observer 구독, Lazy Rendering)"]
-        T1["TraceTab"]
-        T2["VarioTab"]
-        T3["BeatErrorTab"]
-        T4["... (총 11개 탭)"]
-        WRN["Warning Overlay\n⚠ No signal / ⚠ Noisy signal"]
-        ME -->|"measurementReady() Signal-Slot"| T1
-        ME -->|"measurementReady() Signal-Slot"| T2
-        ME -->|"measurementReady() Signal-Slot"| T3
-        ME -->|"measurementReady() Signal-Slot"| T4
-        SQ -->|"warningChanged() Signal-Slot"| WRN
-    end
+    T1 & T2 & T3 & TN -->|"Observer 구독만 허용\n(Qt Signal-Slot)"| ME
+    WRN -->|"allowed-to-use"| SQ
+    ME & SQ -->|"allowed-to-use"| DSP
+    DSP -->|"dequeue only"| RB
+    AT -->|"enqueue"| RB
 
-    style DET fill:#ffffcc,stroke:#cccc00
-    style ME fill:#d4edda,stroke:#28a745
-    style RB fill:#cce5ff,stroke:#004085
-    style SQ fill:#fff3cd,stroke:#856404
+    T1 -. "❌ 직접 참조 금지" .-> DSP
+    T1 -. "❌ 직접 참조 금지" .-> AT
+
+    style PL fill:#e8f4f8,stroke:#2196F3
+    style DL fill:#e8f8e8,stroke:#4CAF50
+    style SL fill:#fff8e1,stroke:#FF9800
+    style AL fill:#fce4ec,stroke:#E91E63
+    style DSP fill:#ffffcc,stroke:#cccc00
 ```
 
 > **범례 / Legend**
-> - 🟡 노란 박스: 파라미터 미결 — Adaptive Threshold 전략은 확정, `onset_fraction`/`min_peak_fraction` 최적값만 EXP-03 후 확정 / Parameters pending — Adaptive Threshold strategy is decided; only optimal `onset_fraction`/`min_peak_fraction` values confirmed after EXP-03
-> - 🟢 초록 박스: Observer 패턴 적용 지점 — 단일 데이터 소스 보장 / Observer pattern applied — single data source guaranteed
-> - 🔵 파란 박스: Lock-Free Ring Buffer — 스레드 간 결합 인터페이스 / Lock-Free Ring Buffer — inter-thread coupling interface
-> - 🟠 주황 박스: Heartbeat 패턴 적용 지점 / Heartbeat pattern applied
+> - 실선(→): 허용된 의존 방향 / Solid: allowed dependency direction
+> - 점선(❌): 금지된 의존 — 위반 시 QAS-5 목표(≤ 3파일) 달성 불가 / Dashed: forbidden dependency — violation breaks QAS-5 target
+
+---
+
+#### View 2 — C&C View (Pipe-and-Filter + Pub-Sub): 런타임 구조 / Runtime Structure
+
+**한국어**
+
+런타임 스레드 경계·커넥터 종류별로 적용된 아키텍처 어프로치(AP)를 주석으로 표시한다. 입력 소스는 Live(USB Mic) / Playback / Sim 세 가지 모드를 지원한다.
+
+**English**
+
+Annotates each runtime thread boundary and connector with the architectural approach (AP) applied at that point. Three input source modes are supported: Live (USB Mic), Playback, and Sim.
+
+```mermaid
+graph LR
+    subgraph SRC["입력 소스 / Input Source"]
+        LIVE["USB Mic\n(Live Mode)\n28,800~43,200 BPH"]
+        PB["Pre-recorded\n(Playback Mode)"]
+        SIM["Synthesized\n(Sim Mode)"]
+    end
+
+    subgraph AT_BOX["Audio Thread\n«AP-1: Introduce Concurrency»\n«AP-6: Graceful Degradation\n96k sps → 48k sps fallback\n⚠️ 기준 EXP-01 확정»"]
+        ALSA["ALSA Callback\n~20ms period"]
+    end
+
+    RB["Lock-Free Ring Buffer\n«AP-2: Reduce Resource Contention»\n«AP-8: Increase Resources\nSECONDS_OF_BUFFER=30s\n⚠️ 최적값 EXP-01 후 결정»"]
+
+    subgraph DSP_BOX["DSP Thread\n«AP-1: Introduce Concurrency»\n«AP-5: Pipes-and-Filters»"]
+        HPF["HPF\nDC blocker ≥200Hz"] --> ENV["Envelope\none-pole LPF"] --> DET["Adaptive Threshold\nDetector\n⚠️ onset_fraction / min_peak_fraction\nEXP-03 후 확정"]
+    end
+
+    subgraph GUI_BOX["GUI Thread"]
+        ME["MeasurementEngine\n«AP-4: Observer\n단일 Measurement 구조체 발행»"]
+        SQ["SignalQualityMonitor\n«AP-7b: Heartbeat\nA/C 이벤트 재사용\n⚠️ N·M값 EXP-04 후 확정»"]
+        TABS["11개 탭\n«AP-7a: Lazy Rendering\n활성 탭만 paintEvent()\n⚠️ 필수 여부 EXP-02 결정»"]
+        WRN["WarningOverlay\n⚠ No signal / ⚠ Noisy signal"]
+    end
+
+    LIVE & PB & SIM -->|"PCM samples"| ALSA
+    ALSA -->|"enqueue\n(non-blocking, atomic)"| RB
+    RB -->|"dequeue"| HPF
+    DET -->|"T1·T3 timestamps"| ME
+    DET -->|"beat events"| SQ
+    ME -->|"measurementReady()\n«Qt Signal-Slot / Pub-Sub»"| TABS
+    SQ -->|"warningChanged()\n«Qt Signal-Slot / Pub-Sub»"| WRN
+
+    style RB fill:#cce5ff,stroke:#004085
+    style ME fill:#d4edda,stroke:#28a745
+    style SQ fill:#fff3cd,stroke:#856404
+    style DET fill:#ffffcc,stroke:#cccc00
+```
+
+> **범례 / Legend**
+> - 🔵 파란 박스: Lock-Free Ring Buffer — AP-2·AP-8 적용 지점 / AP-2·AP-8 application point
+> - 🟢 초록 박스: Observer 패턴 — AP-4 단일 발행 소스 / AP-4 single publication source
+> - 🟡 노란 박스: 파라미터 미결 (⚠️) — 전략 확정, 수치만 실험 후 확정 / Strategy decided; values confirmed after experiment
+> - 🟠 주황 박스: Heartbeat 패턴 — AP-7b 적용 지점 / AP-7b application point
 
 ---
 
