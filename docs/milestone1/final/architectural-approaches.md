@@ -22,23 +22,7 @@ The C&C View (Pipe-and-Filter + Pub-Sub) describes the runtime structure. Each t
 
 ---
 
-### 1.2 배포 구조 다이어그램 / Deployment Structure Diagram
-
-**한국어**
-
-Allocation View(Deployment Style)로 스레드가 RPi5 하드웨어에 매핑되는 방식을 표현한다. AP-1(스레드 분리)·AP-2(Lock-Free Buffer)·AP-8(메모리 할당)의 하드웨어 제약 근거를 보여준다.
-
-**English**
-
-The Allocation View (Deployment Style) shows how threads map onto RPi5 hardware. It provides the hardware-constraint rationale for AP-1 (thread separation), AP-2 (Lock-Free Buffer), and AP-8 (memory allocation).
-
-> 소스 파일 / Source file: [`assets/allocation-view.puml`](assets/allocation-view.puml)
-
-![Allocation View — TimeGrapher Deployment Structure](assets/allocation-view.png)
-
----
-
-### 1.3 레이어 책임 정의 / Layer Responsibility Definition
+### 1.2 레이어 책임 정의 / Layer Responsibility Definition
 
 **한국어**
 
@@ -108,34 +92,6 @@ There are 8 architectural approaches in total; each directly addresses one or mo
 | **Rationale** | Running audio capture, DSP, and GUI rendering in the same thread on RPi 5 causes callback blocking → Dropped Blocks. Separating each concern into an independent thread protects the callback period (~20 ms) |
 | **Linked drivers** | QAS-1 (Real-Time Performance), QAS-2 (Low Latency) |
 
-```mermaid
-sequenceDiagram
-    participant HW as ALSA Driver
-    participant AT as Audio Thread
-    participant RB as Lock-Free Ring Buffer
-    participant DT as DSP Thread
-    participant ME as MeasurementEngine
-    participant GUI as GUI Thread
-
-    Note over AT: TS1 — 콜백 수신 / callback received
-    HW->>AT: audioDataAvailable(PCM block)
-    AT->>RB: enqueue(block)  ← non-blocking
-
-    RB->>DT: dequeue(block)
-    DT->>DT: HPF → Envelope → Detector
-    Note over DT: TS2 — T1/T3 이벤트 확정 / T1/T3 finalized
-    DT->>ME: processTimestamps(T1, T3)
-    ME->>ME: compute Rate·Amplitude·BeatError
-
-    ME-->>GUI: measurementReady() [Qt Signal-Slot]
-    GUI->>GUI: paintEvent()
-    Note over GUI: TS3 — 렌더링 완료 / render complete
-
-    Note over AT,GUI: ③ end-to-end = TS3 − TS1 < 100ms (28,800 BPH), < 80ms (36,000 BPH), < 66ms (43,200 BPH)
-```
-
-> **구간 정의 / Segment Definition**: ① = TS2−TS1 (capture→process, < 70ms), ② = TS3−TS2 (process→display, < 30ms), ③ = TS3−TS1 (end-to-end, < 100ms)
-
 ---
 
 ### AP-2: Lock-Free Ring Buffer
@@ -181,37 +137,6 @@ sequenceDiagram
 | **Description** | Splits the existing God Object structure into 4 layers (Acquisition → Signal Processing → Domain → Presentation); Presentation Layer may only reference the Domain Layer (MeasurementEngine interface) |
 | **Rationale** | In the God Object structure, adding each graph requires modifying multiple files → parallel development conflicts. After layer separation, adding a new graph only touches 3 files in the Presentation Layer (new widget + tab registration + subscription wiring) |
 | **Linked drivers** | QAS-5 (Extensibility — ≤ 3-file target) |
-
-```mermaid
-graph LR
-    subgraph BEFORE["❌ Before: God Object 구조"]
-        direction TB
-        GO["MainWindow\n(God Object)"]
-        GO --> G1["Graph 1"]
-        GO --> G2["Graph 2"]
-        GO --> GN["Graph N+1 🆕\n(3개 이상 파일 수정 필요)"]
-        GO --> DSPO["DSP Logic (mixed)"]
-        GO --> ACQO["Audio Capture (mixed)"]
-    end
-
-    subgraph AFTER["✅ After: Layered Architecture"]
-        direction TB
-        PL2["Presentation Layer"]
-        G1A["Graph 1"] & G2A["Graph 2"] & GNA["Graph N+1 🆕\n(≤ 3파일 변경)"]
-        DL["Domain Layer\nMeasurementEngine"]
-        SL["Signal Processing Layer\nHPF · Envelope · Detector 🔒"]
-        AL["Acquisition Layer\nAudio Capture 🔒"]
-        PL2 --> G1A & G2A & GNA
-        G1A & G2A & GNA -->|"subscribe only"| DL
-        DL --> SL --> AL
-        GNA -. "❌ 직접 참조 금지" .-> SL
-        GNA -. "❌ 직접 참조 금지" .-> AL
-    end
-```
-
-> **정적 구조 뷰**: 레이어 경계와 금지된 의존 관계의 전체 그림은 **[§1.4 Module View](assets/module-view.png)** 참조.
->
-> **Static structure view**: For the full picture of layer boundaries and forbidden dependencies, see **[§1.4 Module View](assets/module-view.png)**.
 
 ---
 
@@ -375,59 +300,7 @@ The state diagram below shows the fallback decision flow. The transition 96k sps
 
 ---
 
-## 3. 설계 건전성 평가 / Design Soundness Assessment
-
-**한국어**
-
-설계가 구현을 안내하기에 충분한가? 각 어프로치의 확정 여부와 구현 준비 상태를 아래 기준으로 평가한다.
-
-| 기준 / Criterion | 평가 / Assessment |
-|:---------------:|:----------------:|
-| ✅ **즉시 구현 가능** | 설계 결정이 확정되고 실험 의존성이 없음 |
-| ⚠️ **조건부 구현 가능** | 핵심 구조는 결정되었으나, 파라미터/임계값이 실험으로 확정 필요 |
-| 🔴 **구현 보류** | 실험 결과 없이 구현 방향 결정 불가 |
-
-| AP | 어프로치 / Approach | 상태 | 근거 / Rationale |
-|:--:|-------------------|:----:|----------------|
-| AP-1 | 3-스레드 파이프라인 | ✅ | 스레드 분리 방향 확정. 구현 가능 |
-| AP-2 | Lock-Free Ring Buffer | ✅ | 뮤텍스 제거 구조 확정. 구현 가능 |
-| AP-3 | Layered Architecture | ✅ | 4-계층 정의 + Restrict Dependencies 규칙 확정. 리팩터링 착수 가능 |
-| AP-4 | Observer / Signal-Slot | ✅ | MeasurementEngine 단일 발행 구조 확정. 구현 가능 |
-| AP-5 | Adaptive Threshold DSP | ⚠️ | 파이프라인 구조 확정. Detector 파라미터 최적값은 EXP-03 후 확정 |
-| AP-6 | Graceful Degradation | ⚠️ | 폴백 로직 설계 확정. 48k 폴백 발동 기준은 EXP-01 후 확정 |
-| AP-7a | Lazy Rendering | ⚠️ | 전술 방향 확정. 필수 적용 여부는 EXP-02 OI-L2 결과에 의존 |
-| AP-7b | Heartbeat 패턴 | ⚠️ | 감지 구조 확정. N·M 수치 + 임계값은 EXP-04 후 확정 |
-| AP-8 | Ring Buffer 크기 증설 | ⚠️ | 증설 방향 확정. 최적 크기는 EXP-01 처리 지연 실측 후 결정 |
-
-**설계 건전성 결론**: 8개 어프로치 모두 **구조적 방향은 확정**되어 구현 착수 가능. 파라미터/임계값만 실험으로 확정 필요하며, Conservative 기본값(48k sps 폴백, 100ms 상한)으로 최소 동작을 보장한다.
-
-**English**
-
-Is the design sound enough to guide construction? Each approach is assessed on confirmation status and implementation readiness.
-
-| Criterion | Assessment |
-|:---------:|:----------:|
-| ✅ **Immediately implementable** | Design decision confirmed, no experiment dependency |
-| ⚠️ **Conditionally implementable** | Core structure decided; parameters/thresholds require experiment confirmation |
-| 🔴 **Implementation on hold** | Implementation direction cannot be determined without experiment results |
-
-| AP | Approach | Status | Rationale |
-|:--:|----------|:------:|-----------|
-| AP-1 | 3-Thread Pipeline | ✅ | Thread separation direction confirmed |
-| AP-2 | Lock-Free Ring Buffer | ✅ | Mutex-free structure confirmed |
-| AP-3 | Layered Architecture | ✅ | 4-layer definition + Restrict Dependencies rule confirmed; refactoring can begin |
-| AP-4 | Observer / Signal-Slot | ✅ | Single MeasurementEngine publication structure confirmed |
-| AP-5 | Adaptive Threshold DSP | ⚠️ | Pipeline structure confirmed; optimal Detector parameters confirmed after EXP-03 |
-| AP-6 | Graceful Degradation | ⚠️ | Fallback logic design confirmed; 48k trigger threshold confirmed after EXP-01 |
-| AP-7a | Lazy Rendering | ⚠️ | Tactic direction confirmed; mandatory application depends on EXP-02 OI-L2 |
-| AP-7b | Heartbeat Pattern | ⚠️ | Detection structure confirmed; N·M values + thresholds confirmed after EXP-04 |
-| AP-8 | Ring Buffer Size Increase | ⚠️ | Increase direction confirmed; optimal size confirmed after EXP-01 processing delay measurement |
-
-**Soundness conclusion**: All 8 approaches have a **confirmed structural direction** — implementation can begin on all of them. Only parameters and thresholds require experimental confirmation; conservative defaults (48k sps fallback, 100 ms ceiling) guarantee minimum behavior regardless of experiment outcomes.
-
----
-
-## 4. 드라이버 ↔ 어프로치 추적성 / Driver–Approach Traceability
+## 3. 드라이버 ↔ 어프로치 추적성 / Driver–Approach Traceability
 
 **한국어**
 
@@ -437,52 +310,7 @@ QA 드라이버별로 지원하는 아키텍처 어프로치와 실험의 관계
 
 Maps each QA driver to the architectural approaches that support it and the experiments that validate them.
 
-```mermaid
-graph LR
-    subgraph QA["QA 드라이버 / QA Drivers"]
-        QAS1["QAS-1\nReal-Time Performance\n(Priority 1, H/H)"]
-        QAS2["QAS-2\nLow Latency\n(Priority 2, H/H)"]
-        QAS3["QAS-3\nCorrectness\n(Priority 3, H/M)"]
-        QAS4["QAS-4\nUsability\n(Priority 4, M/M)"]
-        QAS5["QAS-5\nExtensibility\n(Priority 5, M/M)"]
-    end
-
-    subgraph AP["아키텍처 어프로치 / Architectural Approaches"]
-        AP1["AP-1\n3-Thread Pipeline"]
-        AP2["AP-2\nLock-Free Ring Buffer"]
-        AP3["AP-3\nLayered Architecture"]
-        AP4["AP-4\nObserver / Signal-Slot"]
-        AP5["AP-5\nAdaptive Threshold DSP"]
-        AP6["AP-6\nGraceful Degradation"]
-        AP7a["AP-7a\nLazy Rendering"]
-        AP7b["AP-7b\nHeartbeat"]
-    end
-
-    subgraph EXP["실험 / Experiments"]
-        E1["EXP-01\nDropped Block"]
-        E2["EXP-02\nLatency"]
-        E3["EXP-03\nDetector Params"]
-        E4["EXP-04\nWarning Threshold"]
-    end
-
-    QAS1 --> AP1 & AP2 & AP6 & AP8["AP-8\nRing Buffer\nSize Increase"]
-    QAS2 --> AP1 & AP2 & AP7a
-    QAS3 --> AP4 & AP5
-    QAS4 --> AP7b
-    QAS5 --> AP3 & AP4
-
-    AP6 -.->|"폴백 기준 확정"| E1
-    AP7a -.->|"필수 여부 결정"| E2
-    AP5 -.->|"파라미터 확정"| E3
-    AP7b -.->|"N·M 확정"| E4
-    AP1 -.->|"콜백 주기 실측"| E2
-```
-
-**범례 / Legend**: 실선(→) = 드라이버를 지원하는 어프로치 / Solid: approach supports driver | 점선(-..->) = 실험이 어프로치 파라미터 확정 / Dashed: experiment confirms approach parameter
-
----
-
-### 4.1 QAS별 지원 요약 / QA-by-QA Support Summary
+### 3.1 QAS별 지원 요약 / QA-by-QA Support Summary
 
 **한국어**
 
@@ -506,7 +334,7 @@ graph LR
 
 ---
 
-## 5. 드라이버 지원 평가 / Driver Support Assessment
+## 4. 드라이버 지원 평가 / Driver Support Assessment
 
 **한국어**
 
