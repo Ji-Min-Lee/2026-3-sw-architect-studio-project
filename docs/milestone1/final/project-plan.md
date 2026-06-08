@@ -150,11 +150,11 @@ Two development teams run in parallel within the same sprint period, each focusi
 
 **한국어**
 
-QA 우선순위와 구현 의존성에 따라 5개 Period(각 2일)를 배분한다. Real-Time Performance를 먼저 해결해야 타임스탬프 기반 측정이 가능하고, 측정이 안정화된 후에야 Correctness를 검증할 수 있다.
+QA 우선순위와 구현 의존성에 따라 5개 Period(각 2일)를 배분한다.
 
 **English**
 
-5 Periods (2 days each) are allocated based on QA priority and implementation dependency. Real-Time Performance must be resolved first to enable timestamp-based measurement; Correctness can only be verified once the pipeline is stable.
+5 Periods (2 days each) are allocated based on QA priority and implementation dependency.
 
 ```plantuml
 @startgantt
