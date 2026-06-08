@@ -11,7 +11,7 @@ skinparam ComponentBorderThickness 1.5
 skinparam Padding 6
 skinparam RoundCorner 8
 
-title <b>Module View — TimeGrapher Static Layer Structure</b>\n<i>View Type: Module View Type  |  Style: Layered Style</i>\n<i>«AP-3: Layered Architecture + Restrict Dependencies»</i>
+title <b>Layered View of TimeGrapher</b>\n<i>View Type: Module View Type  |  Style: Layered Style</i>\n<i>«AP-3: Layered Architecture + Restrict Dependencies»</i>
 
 ' ── Presentation Layer ──────────────────────────────────
 package "Presentation Layer\n<color:#1565C0>«AP-3: Restrict Dependencies»</color>\n  Adding a new tab requires <= 3-file change" as PL #EEF6FB {

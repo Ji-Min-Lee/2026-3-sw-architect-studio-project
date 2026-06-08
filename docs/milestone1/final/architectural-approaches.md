@@ -6,23 +6,23 @@
 
 ## 1. 아키텍처 개요 / Architecture Overview
 
-### 1.1 아키텍처 개요 다이어그램 / Architecture Overview Diagram
+### 1.1 Pipe-and-Filter + Publish-Subscribe View of TimeGrapher
 
 **한국어**
 
-C&C View(Pipe-and-Filter + Pub-Sub)로 런타임 구조를 표현한다. 스레드 경계·커넥터 종류별로 적용된 아키텍처 어프로치(AP)를 주석으로 표시하며, 입력 소스는 Live(USB Mic) / Playback / Sim 세 가지 모드를 지원한다.
+Pipe-and-Filter + Pub-Sub 스타일의 C&C View로 런타임 구조를 표현한다. 스레드 경계·커넥터 종류별로 적용된 아키텍처 어프로치(AP)를 주석으로 표시하며, 입력 소스는 Live(USB Mic) / Playback / Sim 세 가지 모드를 지원한다.
 
 **English**
 
-The C&C View (Pipe-and-Filter + Pub-Sub) describes the runtime structure. Each thread boundary and connector is annotated with the architectural approach (AP) applied at that point. Three input source modes are supported: Live (USB Mic), Playback, and Sim.
+A C&C View in the Pipe-and-Filter + Publish-Subscribe style, describing the runtime structure. Each thread boundary and connector is annotated with the architectural approach (AP) applied at that point. Three input source modes are supported: Live (USB Mic), Playback, and Sim.
 
 > 소스 파일 / Source file: [`assets/cc-view.puml`](assets/cc-view.puml)
 
-![C&C View — TimeGrapher Runtime Structure](assets/cc-view.png)
+![Pipe-and-Filter + Publish-Subscribe View of TimeGrapher](assets/cc-view.png)
 
 ---
 
-### 1.2 레이어 책임 정의 / Layer Responsibility Definition
+### 1.2 Layered View of TimeGrapher
 
 **한국어**
 
@@ -56,7 +56,7 @@ The Module View (Layered Style) below visualises the rule above. Forbidden depen
 
 > 소스 파일 / Source file: [`assets/module-view.puml`](assets/module-view.puml)
 
-![Module View — TimeGrapher Static Layer Structure](assets/module-view.png)
+![Layered View of TimeGrapher](assets/module-view.png)
 
 ---
 

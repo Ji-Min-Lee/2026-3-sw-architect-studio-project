@@ -11,7 +11,7 @@ skinparam ComponentBorderThickness 1.5
 skinparam Padding 6
 skinparam RoundCorner 4
 
-title <b>C&C View — TimeGrapher Runtime Structure</b>\n<i>View Type: C&C View Type  |  Styles: Pipe-and-Filter + Publish-Subscribe (Mixed)</i>
+title <b>Pipe-and-Filter + Publish-Subscribe View of TimeGrapher</b>\n<i>View Type: C&C View Type  |  Styles: Pipe-and-Filter + Publish-Subscribe (Mixed)</i>
 
 ' ═══════════════════════════════════════════════════
 '  COMPONENT TYPES
