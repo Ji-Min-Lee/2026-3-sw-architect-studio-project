@@ -18,7 +18,7 @@ In watch repair, what matters is whether Rate (s/d), Amplitude (°), and Beat Er
 
 **Why Agile?**
 
-This project has a lot to cover **from technical research, architectural design, to implementation and final demo** all within 5 weeks. Key parameters — audio signal processing (SPS, Detector threshold) and hardware (RPi 5) performance — cannot be determined without actual measurement. So instead of planning everything upfront, **we chose Agile** so that we can adjust our plan based on what we learn from each sprint.
+This project has a lot to cover **from technical research, architectural design, to implementation and final demo** all within 5 weeks. Key parameters — audio signal processing (SPS, Detector threshold) and hardware (RPi 5) performance — cannot be determined without actual measurement. So instead of planning everything upfront(BDUF), **we chose Agile** so that we can adjust our plan based on what we learn from each sprint.
 
 Agile's core value of **"responding to change over following a plan"** is especially relevant here:
 
