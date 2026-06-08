@@ -14,7 +14,7 @@
 
 **핵심 원칙**: ADD(속성 기반 설계) 기반의 2일 스크럼 스프린트. 각 스프린트는 하나의 QA 드라이버에 집중하며, 팀 1과 팀 2는 동일한 QA 목표를 향해 서로 다른 작업을 병렬로 수행합니다.
 
-**프로젝트 목표**: `architectural-drivers_kr.md` §1 참조
+**프로젝트 목표**: [architectural-drivers_kr.md §1 프로젝트 목표](architectural-drivers_kr.md#1-프로젝트-목표) 참조
 
 **일정 개요**:
 

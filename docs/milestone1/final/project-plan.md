@@ -43,7 +43,7 @@ This document answers three requirements in order:
 
 **핵심 원칙**: ADD(Attribute-Driven Design) 기반 2일 스크럼 스프린트. 각 스프린트는 QA 드라이버 한 개에 집중하며, 팀 1 · 팀 2가 같은 QA 목표를 향해 서로 다른 태스크를 병렬로 수행한다.
 
-**프로젝트 목표**: `architectural-drivers.md` §1 참조
+**프로젝트 목표**: [architectural-drivers.md §1 프로젝트 목표](architectural-drivers.md#1-프로젝트-목표--project-objectives) 참조
 
 **일정 개요**:
 
@@ -57,7 +57,7 @@ This document defines the Milestone 1 project plan for the TimeGrapher project.
 
 **Core principle**: ADD (Attribute-Driven Design)-based 2-day Scrum sprints. Each sprint focuses on one QA driver; Team 1 and Team 2 run different tasks in parallel toward the same QA goal.
 
-**Project objectives**: See `architectural-drivers.md` §1
+**Project objectives**: See [architectural-drivers.md §1 Project Objectives](architectural-drivers.md#1-프로젝트-목표--project-objectives)
 
 ---
 
