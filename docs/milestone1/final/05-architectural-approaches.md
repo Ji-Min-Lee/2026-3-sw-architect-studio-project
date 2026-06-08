@@ -103,7 +103,7 @@ The state diagram below shows the fallback decision flow. The transition 96k sps
 | **Description** | Of 11 tabs, only the active tab executes `paintEvent()`; inactive tabs update data but defer rendering |
 | **Rationale** | Simultaneous rendering of 11 tabs may overload the Qt main thread, pushing segment ② process→display beyond 30 ms (TR-04); skipping inactive tabs reduces rendering load to single-tab level |
 | **Trade-off** | Momentarily stale values may appear on tab switch → EXP-02 confirms acceptable level |
-| **Provisional** | ⚠️ Whether Lazy Rendering is mandatory decided by **EXP-02** OI-L2 result |
+| **Provisional** | ⚠️ Whether Lazy Rendering is mandatory decided by **EXP-02** result |
 | **Linked drivers** | QAS-2 (Low Latency — process→display < 30 ms) |
 
 ---
@@ -184,7 +184,6 @@ The table and assessments below summarise how and how well the 8 approaches supp
 - AP-1 (3-thread pipeline): enables TS1/TS2/TS3 3-segment measurement to identify the bottleneck.
 - AP-2 (Lock-Free Ring Buffer): preserves segment ① (capture→process) lower bound at OS callback period (~20 ms).
 - AP-7a (Lazy Rendering): reduces segment ② (process→display) rendering load to single-tab equivalent.
-- **Open**: ① OI-L1 (actual QAudioSource callback period), ② OI-L2 (segment ② < 30 ms at 11 tabs) — both resolved by EXP-02. All three watches (28,800 / 36,000 / 43,200 BPH) are available; Stretch BPH can be verified in the same EXP-02 session after Primary is confirmed.
 
 ---
 
