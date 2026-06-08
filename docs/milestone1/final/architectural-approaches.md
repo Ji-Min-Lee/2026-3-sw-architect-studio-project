@@ -6,29 +6,7 @@
 
 ## 1. 아키텍처 개요 / Architecture Overview
 
-### 1.1 시스템 목적과 구조적 제약 / System Purpose and Structural Constraints
-
-> 프로젝트 목표 및 시스템 개요는 **[architectural-drivers.md §1 프로젝트 목표](architectural-drivers.md#1-프로젝트-목표--project-objectives)** 참조.
->
-> Project objectives and system overview: see **[architectural-drivers.md §1 Project Objectives](architectural-drivers.md#1-프로젝트-목표--project-objectives)**.
-
-**한국어** — 아키텍처 결정을 유발하는 구조적 제약:
-
-| 제약 | 내용 | 아키텍처 영향 |
-|------|------|------------|
-| **하드웨어 제약** | Raspberry Pi 5 (ARM64, 8GB RAM) + USB 오디오 센서 | 오디오 캡처·DSP·GUI가 단일 프로세스에서 공유 CPU를 경쟁 → 스레드 분리 필수 |
-| **개발 환경 제약** | Qt6 C++ 기반 (`TimeGrapher_v10.5` 코드베이스) | Qt Signal-Slot 메커니즘이 Observer 패턴의 자연스러운 구현 수단 |
-
-**English** — Structural constraints that drive architectural decisions:
-
-| Constraint | Detail | Architectural impact |
-|------------|--------|---------------------|
-| **Hardware constraint** | Raspberry Pi 5 (ARM64, 8GB RAM) + USB audio sensor | Audio capture, DSP, and GUI share CPU in a single process → thread separation is mandatory |
-| **Development constraint** | Qt6 C++ (`TimeGrapher_v10.5` codebase) | Qt Signal-Slot mechanism is the natural implementation vehicle for the Observer pattern |
-
----
-
-### 1.2 아키텍처 개요 다이어그램 / Architecture Overview Diagram
+### 1.1 아키텍처 개요 다이어그램 / Architecture Overview Diagram
 
 **한국어**
 
@@ -42,21 +20,9 @@ The C&C View (Pipe-and-Filter + Pub-Sub) describes the runtime structure. Each t
 
 ![C&C View — TimeGrapher Runtime Structure](assets/cc-view.png)
 
-| 색상 / Color | 의미 / Meaning |
-|:---:|---|
-| 🔴 연분홍 | Audio Thread — «AP-1: Introduce Concurrency», «AP-6: Graceful Degradation (96k→48k sps)» |
-| 🟡 연황색 | DSP Thread — «AP-1: Introduce Concurrency», «AP-5: Pipes-and-Filters» |
-| 🟢 연초록 | GUI Thread |
-| 🔵 파랑 | Lock-Free Ring Buffer — «AP-2: Reduce Resource Contention», «AP-8: Increase Resources» |
-| 🟩 진초록 | MeasurementEngine — «AP-4: Observer» 단일 발행 소스 |
-| 🟠 주황 | SignalQualityMonitor — «AP-7b: Heartbeat» |
-| 🟡 노랑 | 파라미터 미결 ⚠ — 전략 확정, 수치는 실험 후 확정 |
-
-> **커넥터 읽는 법 / Reading connectors**: 실선(→) = 데이터 흐름 (동기 파이프 또는 비동기 Qt Signal-Slot)
-
 ---
 
-### 1.3 배포 구조 다이어그램 / Deployment Structure Diagram
+### 1.2 배포 구조 다이어그램 / Deployment Structure Diagram
 
 **한국어**
 
@@ -72,7 +38,7 @@ The Allocation View (Deployment Style) shows how threads map onto RPi5 hardware.
 
 ---
 
-### 1.4 레이어 책임 정의 / Layer Responsibility Definition
+### 1.3 레이어 책임 정의 / Layer Responsibility Definition
 
 **한국어**
 
