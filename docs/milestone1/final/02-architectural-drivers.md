@@ -46,11 +46,11 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 | Rank | QA | Key Requirement | Business Importance | Technical Difficulty / Risk | One-Line Rationale |
 |:----:|----|----------------| :------------------:| :-------------------------:|-------------------|
-| **1** | Real-Time Performance | The system shall process each audio block within the block period to prevent Ring Buffer overflow | H | H | Prerequisite for all other QAs — Missed Beat destroys T1/T3 timestamps, making measurement impossible |
-| **2** | Low Latency | The system shall maintain end-to-end latency from audio capture to GUI display within 100ms (based on 28,800 BPH) | H | H | Hard threshold defined by beat period; exceeding it causes functional failure; unverified on RPi + Qt |
-| **3** | Correctness | The system shall display identical values across all GUI views derived from the same beat data (inter-view deviation = 0) | H | M | Directly tied to team's primary goal (accurate data); QA-C1 structurally guaranteed by Observer pattern; only QA-C2 (noise-condition parameters) remains open |
-| **4** | Usability | The system shall distinguish and display ⚠ No signal and ⚠ Noisy signal states separately | M | M | Indirectly supports accurate data collection by alerting users to unreliable measurement conditions; threshold is environment-dependent |
-| **5** | Extensibility | The system shall allow new display features to be implemented with minimal file changes and without modifying existing preprocessing logic | M | M | Developer productivity; directly controls schedule risk for 11-graph parallel implementation |
+| **1** | Real-Time Performance | Missed beat count = 0 over a 10-minute continuous session; no latency spikes | H | H | Missed Beat → T1/T3 timestamp lost → Rate/Amplitude/Beat Error computation fails → team primary goal collapses; prerequisite for all other QAs |
+| **2** | Low Latency | End-to-end latency from acoustic event to display update < 100ms (worst-case) at 28,800 BPH; missed beat count = 0 | H | H | End-to-end latency exceeding the beat period collapses real-time display → real-time feedback loop for accurate data fails; target unverified on RPi + Qt |
+| **3** | Correctness | QA-C1: inter-view value deviation = 0 across all GUI views from same beat data; QA-C2: Detector parameters (onset_fraction, min_peak_fraction) minimizing Δ across 3 noise conditions — confirmed by experiment | H | M | Directly tied to team primary goal (accurate data); QA-C1 structurally guaranteed by Observer pattern; QA-C2 confirms beat detection quality under noise by experiment |
+| **4** | Usability | Warning displayed within ≤ N seconds and auto-cleared within ≤ M seconds (N, M confirmed by experiment) for ⚠ No signal / ⚠ Noisy signal | M | M | Users immediately recognize unreliable conditions → corrective action → accurate data collection; N·M thresholds are environment-dependent (confirmed by experiment) |
+| **5** | Extensibility | Files changed when adding 1 new graph: ≤ 3 (confirmed after Observer pattern refactoring); Presentation Layer: 0 direct references to Signal Processing / Acquisition | M | M | Directly controls schedule risk of 11-graph parallel implementation in Weeks 3–4; ≤ 3-file structure enables each developer to implement and test independently |
 
 ---
 
