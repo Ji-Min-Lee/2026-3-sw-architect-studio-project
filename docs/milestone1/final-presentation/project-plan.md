@@ -12,8 +12,6 @@ This document answers three requirements in order:
 
 ## 1. Overview
 
-This document defines the Milestone 1 project plan for the TimeGrapher project.
-
 **Core principle**: ADD (Attribute-Driven Design)-based 2-day Scrum sprints. Each sprint focuses on one QA driver; Team 1 and Team 2 run different tasks in parallel toward the same QA goal.
 
 **Project objectives (in priority order)**:
@@ -37,7 +35,7 @@ M1 Submission (06/09) → Construction start (06/10) → M2 Submission (06/22) �
 
 | Role | Assignee | Responsibility |
 |------|----------|---------------|
-| Product Owner | Team 3 Lead | Prioritize requirements, approve sprint goals |
+| Product Owner | Jimin Lee | Prioritize requirements, approve sprint goals |
 | Scrum Master — Team 1 | Sungho Shin | Manage sprint progress, remove blockers, join Architecture Committee |
 | Scrum Master — Team 2 | Dong Ho Shin | Manage sprint progress, remove blockers, join Architecture Committee |
 | Dev Team 1 | Gyeongjin Shin, Hung Son Tong, Kyudae Bahn | Feature implementation and experiments |
@@ -45,34 +43,21 @@ M1 Submission (06/09) → Construction start (06/10) → M2 Submission (06/22) �
 
 ---
 
-## 3. Agile Ceremonies
+## 3. Agile Ceremonies & ADD–Agile Mapping
 
-| Event | Cadence | Participants | Duration |
-|-------|---------|-------------|---------|
-| Sprint Planning | Every sprint start (every 2 days) | Architecture Committee (both SMs + PO) | 1 hour |
-| Sprint (Development) | 2 days | Each team independently | 2 days |
-| Sprint Review & Retrospective | Every sprint end | Full team | 1 hour |
-| Buffer | Every Friday | Full team | 1 day |
+| Event | Cadence | Participants | Duration | ADD Step |
+|-------|---------|-------------|---------|---------|
+| Sprint Planning | Every sprint start (every 2 days) | Architecture Committee (both SMs + PO) | 1 hour | **Step 2–4**: Select QA driver → decomposition target → tactic/pattern |
+| Sprint (Development) | 2 days | Each team independently | 2 days | **Step 5**: Element instantiation + responsibility allocation (impl + experiment) |
+| Sprint Review & Retrospective | Every sprint end | Full team | 1 hour | **Step 6**: Views sketch + record design decisions (ADR) |
+| Buffer | Every Friday | Full team | 1 day | Next Iteration: return to Step 2 for next QA driver |
 
 **Architecture Committee role**: The 1-hour Sprint Planning performs ADD Steps 2–4:
 - **Step 2**: Select the QA driver to focus on this sprint
 - **Step 3**: Decide the architecture element to decompose for that QA
 - **Step 4**: Select and plan instantiation of tactics/patterns
 
-Both teams share the same QA sprint goal; task allocation is decided by the Architecture Committee.
-
----
-
-## 4. ADD–Agile Mapping
-
-```
-Sprint Planning (1h)    = ADD Step 2–4: Select QA driver → decomposition target → tactic/pattern
-Sprint development (2d)  = ADD Step 5:  Element instantiation + responsibility allocation (impl + experiment)
-Sprint Review (1h)      = ADD Step 6:  Views sketch + record design decisions (ADR)
-Next Sprint              = ADD "Next Iteration": return to Step 2 for next QA driver
-```
-
-**ADD QA focus principle**: Each sprint concentrates on one QA driver. The focus order is determined by implementation dependency (experiment prerequisites, cross-approach ordering), not importance alone.
+Both teams share the same QA sprint goal; task allocation is decided by the Architecture Committee. The focus order is determined by implementation dependency (experiment prerequisites, cross-approach ordering), not importance alone.
 
 ---
 
