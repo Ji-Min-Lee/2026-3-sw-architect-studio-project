@@ -171,12 +171,12 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 | 항목 | 내용 |
 |------|------|
-| **Source** | 기계식 시계 (음향 신호 발생원) |
-| **Stimulus** | USB 마이크를 통해 연속적인 음향 샘플 스트림 입력 |
-| **Artifact** | 오디오 캡처 파이프라인 — ALSA 드라이버 → Audio Thread → Ring Buffer |
-| **Environment** | Raspberry Pi 5 (8GB RAM), Ubuntu 24.04, Live 모드 실행 중, 28,800 BPH 기계식 시계, 연속 10분 이상, Qt GUI + DSP 동시 실행<br>• **Minimum**: 48,000 sps (이 이하면 프로젝트 실패)<br>• **Objective**: 96,000 sps *(잠정, EXP-01 확정)*<br>• **Stretch**: 192,000 sps |
-| **Response** | 각 오디오 블록을 블록 주기 이내에 처리하여 Ring Buffer 오버플로 방지 |
-| **Response Measure** | Dropped audio block: **0** (Ring Buffer 오버플로 없음) |
+| **Source** | 마이크 위에 놓인 기계식 시계 |
+| **Stimulus** | 28,800 BPH의 연속적인 음향 beat 신호 |
+| **Environment** | 96,000 sps로 구성된 Raspberry Pi에서 실행 중인 시스템 |
+| **Artifact** | 시스템 (오디오 캡처, 처리, 표시 파이프라인) |
+| **Response** | 시스템이 중단 없이 beat 측정값을 지속적으로 수집·처리·표시한다 |
+| **Measure** | 10분 세션 동안 누락된 beat 수 = 0; 지연 급증 없음 |
 
 > SPS가 높을수록 블록 주기가 짧아져 DSP에 허용되는 시간이 줄어든다. SPS는 Dropped Block의 **원인**(환경 조건)이고, Ring Buffer 오버플로 여부가 **측정 지점**이다.
 
@@ -201,12 +201,12 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 | Item | Detail |
 |------|--------|
-| **Source** | Mechanical watch (acoustic signal source) |
-| **Stimulus** | Continuous audio sample stream via USB microphone |
-| **Artifact** | Audio capture pipeline — ALSA driver → Audio Thread → Ring Buffer |
-| **Environment** | Raspberry Pi 5 (8GB RAM), Ubuntu 24.04, Live mode, 28,800 BPH mechanical watch, continuous ≥ 10 min, Qt GUI + DSP running concurrently<br>• **Minimum**: 48,000 sps (below this = project failure)<br>• **Objective**: 96,000 sps *(provisional, confirmed by EXP-01)*<br>• **Stretch**: 192,000 sps |
-| **Response** | Process each audio block within the block period to prevent Ring Buffer overflow |
-| **Response Measure** | Dropped audio block: **0** (no Ring Buffer overflow) |
+| **Source** | Mechanical watch placed on microphone |
+| **Stimulus** | Continuous acoustic beat signal at 28,800 BPH |
+| **Environment** | System running on Raspberry Pi configured at 96,000 sps |
+| **Artifact** | The system (audio capture, processing, and display pipeline) |
+| **Response** | The system continuously acquires, processes, and displays beat measurements without interruption |
+| **Measure** | Missed beat count = 0 over a 10-minute session; no latency spikes |
 
 **프로젝트 목표와의 연결:** Dropped Block 발생 → T1/T3 타임스탬프 소실 → Rate / Amplitude / Beat Error 계산 불가 → 팀 제1목표 완전 붕괴. **모든 QA의 선행 조건.**
 
@@ -228,12 +228,12 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 | 항목 | 내용 |
 |------|------|
-| **Source** | 기계식 시계 (beat 이벤트 발생원) |
-| **Stimulus** | 마이크에서 음향 샘플 블록 캡처 시작 |
-| **Artifact** | TimeGrapher 전체 — 오디오 캡처 → DSP 파이프라인 → Qt GUI 렌더링 |
-| **Environment** | Raspberry Pi 5 (8GB RAM), 정상 운영 상태 — Qt GUI 실행 중, 라이브 캡처 중 |
-| **Response** | 캡처된 샘플에 대응하는 파형, beat 마커, Rate·Amplitude·Beat Error가 GUI에 표시됨 |
-| **Response Measure** | 아래 BPH별 목표 참조 |
+| **Source** | 마이크 위에 놓인 기계식 시계 |
+| **Stimulus** | 마이크에서 단일 beat 이벤트(tick) 발생 |
+| **Environment** | 정상 운영 조건에서 Raspberry Pi에서 실행 중인 시스템 |
+| **Artifact** | 시스템 (오디오 캡처, 처리, 표시 파이프라인) |
+| **Response** | 해당 파형, 마커, 계산된 수치가 GUI에 표시된다 |
+| **Measure** | 음향 이벤트부터 화면 업데이트까지 end-to-end 지연 < 100ms (worst-case); 누락된 beat 수 = 0 |
 
 **BPH별 지연 목표:**
 
@@ -269,12 +269,12 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 | Item | Detail |
 |------|--------|
-| **Source** | Mechanical watch (beat event source) |
-| **Stimulus** | Audio sample block capture begins from microphone |
-| **Artifact** | Full TimeGrapher application — audio capture → DSP pipeline → Qt GUI rendering |
-| **Environment** | Raspberry Pi 5 (8GB RAM), normal operation — Qt GUI active, live capture running |
-| **Response** | Waveform, beat markers, and computed Rate·Amplitude·Beat Error displayed in GUI |
-| **Response Measure** | See BPH-based latency targets above |
+| **Source** | Mechanical watch placed on microphone |
+| **Stimulus** | A single beat event (tick) occurs at the microphone |
+| **Environment** | System running on Raspberry Pi under normal operating conditions |
+| **Artifact** | The system (audio capture, processing, and display pipeline) |
+| **Response** | The corresponding waveform, markers, and computed values appear on the GUI |
+| **Measure** | End-to-end latency from acoustic event to display update is < 100ms (worst-case); missed beat count = 0 |
 
 **프로젝트 목표와의 연결:** end-to-end 지연이 beat 주기를 초과하면 실시간 표시 불가 → 팀 제1목표(정확한 데이터)를 위한 실시간 피드백 루프 붕괴. 지연 누적은 T1/T3 타임스탬프 정확도에도 간접 영향.
 
