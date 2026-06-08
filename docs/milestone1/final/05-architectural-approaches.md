@@ -45,9 +45,9 @@ This document answers five questions in order:
 
 ### 1.1 시스템 목적과 구조적 제약 / System Purpose and Structural Constraints
 
-> 프로젝트 목표 및 시스템 개요는 **[architectural-drivers.md §1 프로젝트 목표](architectural-drivers.md#1-프로젝트-목표--project-objectives)** 참조.
+> 프로젝트 목표 및 시스템 개요는 **[02-architectural-drivers.md §1 프로젝트 목표](02-architectural-drivers.md#1-프로젝트-목표--project-objectives)** 참조.
 >
-> Project objectives and system overview: see **[architectural-drivers.md §1 Project Objectives](architectural-drivers.md#1-프로젝트-목표--project-objectives)**.
+> Project objectives and system overview: see **[02-architectural-drivers.md §1 Project Objectives](02-architectural-drivers.md#1-프로젝트-목표--project-objectives)**.
 
 **한국어** — 아키텍처 결정을 유발하는 구조적 제약:
 
