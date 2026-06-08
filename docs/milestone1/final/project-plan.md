@@ -43,14 +43,7 @@ This document answers three requirements in order:
 
 **핵심 원칙**: ADD(Attribute-Driven Design) 기반 2일 스크럼 스프린트. 각 스프린트는 QA 드라이버 한 개에 집중하며, 팀 1 · 팀 2가 같은 QA 목표를 향해 서로 다른 태스크를 병렬로 수행한다.
 
-**프로젝트 목표 (우선순위 순)**:
-
-| 순위 | 목표 | 설명 |
-|:---:|------|------|
-| **1st** | 정확한 측정 | Rate / Amplitude / Beat Error를 정확하게 제공 — 정확도를 희생하고 BPH를 확장하는 선택은 하지 않는다 |
-| **2nd** | 실시간 성능 | 모든 오디오 블록을 블록 주기 내에 처리하여 링 버퍼 오버플로 방지 — 측정 정확도의 전제 조건 |
-| **3rd** | 확장 가능한 구조 | 11개 그래프를 5주 내 병렬 개발 가능한 구조 |
-| **4th** | 아키텍처 원칙 실증 | CMU MSE 소프트웨어 아키텍처 설계 원칙 적용 |
+**프로젝트 목표**: `architectural-drivers.md` §1 참조
 
 **일정 개요**:
 
@@ -64,14 +57,7 @@ This document defines the Milestone 1 project plan for the TimeGrapher project.
 
 **Core principle**: ADD (Attribute-Driven Design)-based 2-day Scrum sprints. Each sprint focuses on one QA driver; Team 1 and Team 2 run different tasks in parallel toward the same QA goal.
 
-**Project objectives (in priority order)**:
-
-| Rank | Objective | Description |
-|:---:|-----------|-------------|
-| **1st** | Accurate Measurement | Provide Rate / Amplitude / Beat Error accurately — sacrificing accuracy to cover more BPH is not acceptable |
-| **2nd** | Real-Time Performance | Process every audio block within the block period to prevent Ring Buffer overflow — prerequisite for measurement accuracy |
-| **3rd** | Extensible Architecture | Enable parallel development of 11 graphs within 5 weeks |
-| **4th** | Architecture Principles** | Apply CMU MSE software architecture design principles |
+**Project objectives**: See `architectural-drivers.md` §1
 
 ---
 
