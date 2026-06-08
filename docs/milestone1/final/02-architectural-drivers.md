@@ -46,11 +46,11 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 
 | Rank | QA | Key Requirement | Business Importance | Technical Difficulty / Risk | One-Line Rationale |
 |:----:|----|----------------| :------------------:| :-------------------------:|-------------------|
-| **1** | Real-Time Performance | Missed beat count = 0 over a 10-minute continuous session; no latency spikes | H | H | Missed Beat → T1/T3 timestamp lost → Rate/Amplitude/Beat Error computation fails → team primary goal collapses; prerequisite for all other QAs |
-| **2** | Low Latency | End-to-end latency from acoustic event to display update < 100ms (worst-case) at 28,800 BPH; missed beat count = 0 | H | H | End-to-end latency exceeding the beat period collapses real-time display → real-time feedback loop for accurate data fails; target unverified on RPi + Qt |
-| **3** | Correctness | QA-C1: inter-view value deviation = 0 across all GUI views from same beat data; QA-C2: Detector parameters (onset_fraction, min_peak_fraction) minimizing Δ across 3 noise conditions — confirmed by experiment | H | M | Directly tied to team primary goal (accurate data); QA-C1 structurally guaranteed by Observer pattern; QA-C2 confirms beat detection quality under noise by experiment |
-| **4** | Usability | Warning displayed within ≤ N seconds and auto-cleared within ≤ M seconds (N, M confirmed by experiment) for ⚠ No signal / ⚠ Noisy signal | M | M | Users immediately recognize unreliable conditions → corrective action → accurate data collection; N·M thresholds are environment-dependent (confirmed by experiment) |
-| **5** | Extensibility | Files changed when adding 1 new graph: ≤ 3 (confirmed after Observer pattern refactoring); Presentation Layer: 0 direct references to Signal Processing / Acquisition | M | M | Directly controls schedule risk of 11-graph parallel implementation in Weeks 3–4; ≤ 3-file structure enables each developer to implement and test independently |
+| **1** | Real-Time Performance | The system shall detect and process every beat without interruption | H | H | Any missed beat breaks the measurement chain — this is the foundation all other QAs depend on |
+| **2** | Low Latency | The system shall display beat data in real-time without perceptible delay | H | H | If display lags behind the beat, real-time feedback is lost and accurate data collection becomes impossible |
+| **3** | Correctness | The system shall deliver consistent and accurate measurement values across all views and noise conditions | H | M | Accurate data requires both consistent values across views and reliable detection under noise |
+| **4** | Usability | The system shall alert users to signal quality issues promptly and clearly | M | M | Timely warnings let users correct poor measurement conditions before data quality degrades |
+| **5** | Extensibility | The system shall support independent addition of new graph features without modifying existing modules | M | M | A modular architecture is the only way to sustain parallel development of 11 graphs within the project timeline |
 
 ---
 
