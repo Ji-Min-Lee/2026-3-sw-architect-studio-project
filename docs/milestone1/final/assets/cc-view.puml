@@ -4,74 +4,95 @@ skinparam backgroundColor #FFFFFF
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 11
 skinparam ArrowColor #444444
-skinparam ArrowFontSize 10
-skinparam ArrowThickness 1.5
+skinparam ArrowFontSize 9
+skinparam ArrowThickness 1.8
 skinparam PackageBorderThickness 1.5
 skinparam ComponentBorderThickness 1.5
 skinparam Padding 6
-skinparam RoundCorner 8
+skinparam RoundCorner 4
 
-title <b>C&C View — TimeGrapher Runtime Structure</b>\nPipe-and-Filter + Publish-Subscribe
+title <b>C&C View — TimeGrapher Runtime Structure</b>\n<i>View Type: C&C View Type  |  Styles: Pipe-and-Filter + Publish-Subscribe (Mixed)</i>
 
-' ── Input Sources ──────────────────────────────────────
+' ═══════════════════════════════════════════════════
+'  COMPONENT TYPES
+'    «Filter»   — DSP processing element (input/output ports)
+'    «Process»  — Thread-scoped runtime execution unit
+'    «Buffer»   — Decoupling data store between threads
+'    «Publisher»  / «Subscriber»  — Pub-Sub participants
+' ═══════════════════════════════════════════════════
+
+' ── Input Sources ────────────────────────────────────
 package "Input Source" as SRC #EEF6FB {
-    [<b>USB Mic</b>\nLive Mode\n28,800 ~ 43,200 BPH] as LIVE
-    [<b>Pre-recorded</b>\nPlayback Mode] as PB
-    [<b>Synthesized</b>\nSim Mode] as SIM
+    component ": Live\n(USB Mic  28,800~43,200 BPH)" as LIVE
+    component ": Playback" as PB
+    component ": Sim" as SIM
 }
 
-' ── Audio Thread ────────────────────────────────────────
-package "Audio Thread\n<color:#C0392B>«AP-1: Introduce Concurrency»</color>\n<color:#C0392B>«AP-6: Graceful Degradation»</color>  96k -> 48k sps\n  <color:#E67E22>⚠ Fallback threshold confirmed by EXP-01</color>" as AT_PKG #FDEDEC {
-    [<b>ALSA Callback</b>\n~20 ms period] as ALSA
+' ── Audio Thread ──────────────────────────────────────
+package "«Process»  Audio Thread\n«AP-1: Introduce Concurrency»" as AT_PKG #FDEDEC {
+    component ": ALSACallback\n~20 ms period\n«AP-6: Graceful Degradation»\n  96k→48k sps fallback  ⚠EXP-01" as ALSA
 }
 
-' ── Ring Buffer ─────────────────────────────────────────
-component "<b>Lock-Free Ring Buffer</b>\n<color:#1565C0>«AP-2: Reduce Resource Contention»</color>\n<color:#1565C0>«AP-8: Increase Resources»</color>  SECONDS_OF_BUFFER = 30 s\n<color:#E67E22>⚠ Optimal size confirmed by EXP-01</color>" as RB #CCE5FF
+' ── Pipe Connector (Buffer) ───────────────────────────
+component ": LockFreeRingBuffer\n«Buffer»  30 s capacity\n«AP-2: Reduce Contention»  «AP-8: Increase Resources»\n  Optimal size confirmed by ⚠EXP-01" as RB #CCE5FF
 
-' ── DSP Thread ──────────────────────────────────────────
-package "DSP Thread\n<color:#C0392B>«AP-1: Introduce Concurrency»</color>\n<color:#E67E22>«AP-5: Pipes-and-Filters»</color>" as DSP_PKG #FFF8E1 {
-    [<b>HPF</b>\nDC blocker >= 200 Hz] as HPF
-    [<b>Envelope</b>\none-pole LPF] as ENV
-    [<b>Adaptive Threshold Detector</b>\n<color:#E67E22>⚠ onset_fraction / min_peak_fraction</color>\n  confirmed by EXP-03] as DET #FFFFCC
+' ── DSP Thread ────────────────────────────────────────
+package "«Process»  DSP Thread\n«AP-1: Introduce Concurrency»  «AP-5: Pipes-and-Filters»" as DSP_PKG #FFF8E1 {
+    component ": HPF\n«Filter»\n  DC blocker  ≥ 200 Hz" as HPF
+    component ": Envelope\n«Filter»\n  one-pole LPF" as ENV
+    component ": AdaptiveDetector\n«Filter»\n«AP-3: Adaptive Threshold DSP»\n  ⚠onset_fraction / min_peak_fraction — ⚠EXP-03" as DET #FFFFCC
 }
 
-' ── GUI Thread ──────────────────────────────────────────
-package "GUI Thread" as GUI_PKG #EAF7EA {
-    [<b>MeasurementEngine</b>\n<color:#1B5E20>«AP-4: Observer»</color>\n  Publishes single Measurement struct] as ME #D4EDDA
-    [<b>SignalQualityMonitor</b>\n<color:#856404>«AP-7b: Heartbeat»</color>\n  Reuses existing A/C events\n<color:#E67E22>⚠ N, M values confirmed by EXP-04</color>] as SQ #FFF3CD
-    [<b>11 Tabs (Subscribers)</b>\n  TraceTab . VarioTab . BeatErrorTab . ...\n<color:#1B5E20>«AP-7a: Lazy Rendering»</color>\n  paintEvent() on active tab only\n<color:#E67E22>⚠ Mandatory use confirmed by EXP-02</color>] as TABS
-    [<b>WarningOverlay</b>\n⚠ No signal  /  ⚠ Noisy signal] as WRN
+' ── GUI Thread ────────────────────────────────────────
+package "«Process»  GUI Thread" as GUI_PKG #EAF7EA {
+    component ": MeasurementEngine\n«Publisher»\n«AP-4: Observer»  single Measurement struct" as ME #D4EDDA
+    component ": SignalQualityMonitor\n«Publisher»\n«AP-7b: Heartbeat»  reuses A/C events  ⚠EXP-04" as SQ #FFF3CD
+    component ": Tabs [1..11]\n«Subscriber»\n«AP-7a: Lazy Rendering»\n  paintEvent() on active tab only  ⚠EXP-02" as TABS
+    component ": WarningOverlay\n«Subscriber»" as WRN
 }
 
-' ── Connectors ──────────────────────────────────────────
+' ═══════════════════════════════════════════════════
+'  CONNECTOR TYPE 1 — Pipe  (data-in → data-out)
+'    roles: writer (src), reader (snk)
+' ═══════════════════════════════════════════════════
 LIVE -right-> ALSA : PCM samples
 PB   -right-> ALSA : PCM samples
 SIM  -right-> ALSA : PCM samples
 
-ALSA -right-> RB : enqueue\n(non-blocking, atomic)
-RB   -right-> HPF : dequeue
+ALSA -right-> RB : enqueue\n«pipe / writer»\n(non-blocking, atomic)
+RB   -right-> HPF : dequeue\n«pipe / reader»
 
-HPF  -right-> ENV  : filtered PCM
-ENV  -right-> DET  : envelope signal
+HPF  -right-> ENV  : filtered PCM\n«pipe»
+ENV  -right-> DET  : envelope\n«pipe»
 
-DET  -down-> ME  : T1 . T3\ntimestamps
+' ── Transition: Pipe → Pub-Sub ───────────────────────
+DET  -down-> ME  : T1·T3 timestamps
 DET  -down-> SQ  : beat events
 
-ME  -right-> TABS : measurementReady()\n<<Qt Signal-Slot / Pub-Sub>>
-SQ  -right-> WRN  : warningChanged()\n<<Qt Signal-Slot / Pub-Sub>>
+' ═══════════════════════════════════════════════════
+'  CONNECTOR TYPE 2 — Publish-Subscribe
+'    roles: publisher (pub), subscriber (sub)
+'    mechanism: Qt Signal-Slot (Implicit Invocation)
+' ═══════════════════════════════════════════════════
+ME  -right[#1B5E20,thickness=2]-> TABS : measurementReady()\n«pub-sub / publisher»\n«pub-sub / subscriber»
+SQ  -right[#856404,thickness=2]-> WRN  : warningChanged()\n«pub-sub / publisher»\n«pub-sub / subscriber»
 
-' ── Legend ──────────────────────────────────────────────
+' ═══════════════════════════════════════════════════
+'  KEY  (교재 표기법 준수)
+' ═══════════════════════════════════════════════════
 legend bottom
-  <b>Legend</b>
-  |= Color |= Meaning |
-  | <#FDEDEC> | Audio Thread — «AP-1: Introduce Concurrency», «AP-6: Graceful Degradation» |
-  | <#FFF8E1> | DSP Thread   — «AP-1: Introduce Concurrency», «AP-5: Pipes-and-Filters» |
-  | <#EAF7EA> | GUI Thread |
-  | <#CCE5FF> | Lock-Free Ring Buffer — «AP-2: Reduce Resource Contention», «AP-8: Increase Resources» |
-  | <#D4EDDA> | MeasurementEngine — «AP-4: Observer» single publication source |
-  | <#FFF3CD> | SignalQualityMonitor — «AP-7b: Heartbeat» |
-  | <#FFFFCC> | Parameters pending ⚠ — strategy decided, values confirmed after experiment |
-  Solid arrow (->): data flow (synchronous pipe / asynchronous Signal-Slot)
+  <b>KEY</b>
+  |= Component Type |= Description |= Applied Approaches |
+  | <#FDEDEC> «Process» | Thread-scoped runtime execution unit | AP-1 (Introduce Concurrency), AP-6 (Graceful Degradation) |
+  | <#FFF8E1> «Filter» | DSP filter element with input/output ports | AP-5 (Pipes-and-Filters), AP-3 (Adaptive Threshold) |
+  | <#CCE5FF> «Buffer» | Lock-free ring buffer — decouples Audio/DSP threads | AP-2 (Reduce Contention), AP-8 (Increase Resources) |
+  | <#D4EDDA> «Publisher» | Emits events via Qt Signal-Slot | AP-4 (Observer), AP-7b (Heartbeat) |
+  | <#EAF7EA> «Subscriber» | Receives events via Qt Signal-Slot | AP-7a (Lazy Rendering) |
+  | <#FFFFCC> ⚠ pending | Parameter values to be confirmed by experiment | — |
+
+  |= Connector Type |= Roles |= Mechanism |
+  | ——→ (gray) «pipe» | writer (enqueue) / reader (dequeue) | Synchronous stream or lock-free async handoff |
+  | ——→ (green/orange) «pub-sub» | publisher (pub) / subscriber (sub) | Qt Signal-Slot — Implicit Invocation Pub-Sub |
 endlegend
 
 @enduml
