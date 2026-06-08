@@ -56,7 +56,23 @@ The C&C View (Pipe-and-Filter + Pub-Sub) describes the runtime structure. Each t
 
 ---
 
-### 1.3 레이어 책임 정의 / Layer Responsibility Definition
+### 1.3 배포 구조 다이어그램 / Deployment Structure Diagram
+
+**한국어**
+
+Allocation View(Deployment Style)로 스레드가 RPi5 하드웨어에 매핑되는 방식을 표현한다. AP-1(스레드 분리)·AP-2(Lock-Free Buffer)·AP-8(메모리 할당)의 하드웨어 제약 근거를 보여준다.
+
+**English**
+
+The Allocation View (Deployment Style) shows how threads map onto RPi5 hardware. It provides the hardware-constraint rationale for AP-1 (thread separation), AP-2 (Lock-Free Buffer), and AP-8 (memory allocation).
+
+> 소스 파일 / Source file: [`assets/allocation-view.puml`](assets/allocation-view.puml)
+
+![Allocation View — TimeGrapher Deployment Structure](assets/allocation-view.png)
+
+---
+
+### 1.4 레이어 책임 정의 / Layer Responsibility Definition
 
 **한국어**
 
@@ -79,6 +95,18 @@ The C&C View (Pipe-and-Filter + Pub-Sub) describes the runtime structure. Each t
 | **Presentation** | GUI rendering, Observer subscription, warning display | **Domain Layer only** (MeasurementEngine interface) |
 
 > **Core rule**: Presentation Layer **must not directly reference** Signal Processing / Acquisition layers. Violating this rule makes QAS-5 Extensibility target (≤ 3-file change) unachievable.
+
+**한국어**
+
+아래 Module View(Layered Style)는 위 규칙을 시각화한다. 금지된 의존(❌ Forbidden)이 실선으로 표시되며, 이 의존이 존재할 경우 QAS-5 목표 달성 불가가 구조적으로 증명된다.
+
+**English**
+
+The Module View (Layered Style) below visualises the rule above. Forbidden dependencies (❌) are shown explicitly; their presence structurally prevents the QAS-5 ≤ 3-file target.
+
+> 소스 파일 / Source file: [`assets/module-view.puml`](assets/module-view.puml)
+
+![Module View — TimeGrapher Static Layer Structure](assets/module-view.png)
 
 ---
 
@@ -215,6 +243,10 @@ graph LR
     end
 ```
 
+> **정적 구조 뷰**: 레이어 경계와 금지된 의존 관계의 전체 그림은 **[§1.4 Module View](assets/module-view.png)** 참조.
+>
+> **Static structure view**: For the full picture of layer boundaries and forbidden dependencies, see **[§1.4 Module View](assets/module-view.png)**.
+
 ---
 
 ### AP-4: Observer 패턴 / Qt Signal-Slot (단일 데이터 소스) / Observer Pattern
@@ -286,6 +318,18 @@ graph LR
 | **Trade-off** | T1 detection resolution degrades: 10.4 µs/sample at 96k → 20.8 µs/sample at 48k; resolution sacrificed to guarantee Dropped Block = 0 |
 | **Provisional** | ⚠️ Fallback threshold (whether 96k is achievable) confirmed by **EXP-01** |
 | **Linked drivers** | QAS-1 (Real-Time Performance — guarantees Dropped Block = 0) |
+
+**한국어**
+
+아래 상태 다이어그램은 폴백 결정 흐름을 보여준다. 96k sps → Dropped Block 감지 → 48k sps 전환은 단방향(비가역)이며, 세션 내 재전환 없이 안정성을 우선한다.
+
+**English**
+
+The state diagram below shows the fallback decision flow. The transition 96k sps → Dropped Block detected → 48k sps is one-way (non-reversible); stability is prioritised over peak resolution within a session.
+
+> 소스 파일 / Source file: [`assets/ap6-state.puml`](assets/ap6-state.puml)
+
+![AP-6: Graceful Degradation — Sample Rate Fallback Decision](assets/ap6-state.png)
 
 ---
 

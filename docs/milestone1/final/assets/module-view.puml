@@ -11,7 +11,7 @@ skinparam ComponentBorderThickness 1.5
 skinparam Padding 6
 skinparam RoundCorner 8
 
-title <b>Module View — TimeGrapher Static Layer Structure</b>\nLayered Architecture + Restrict Dependencies
+title <b>Module View — TimeGrapher Static Layer Structure</b>\n<i>View Type: Module View Type  |  Style: Layered Style</i>\n<i>«AP-3: Layered Architecture + Restrict Dependencies»</i>
 
 ' ── Presentation Layer ──────────────────────────────────
 package "Presentation Layer\n<color:#1565C0>«AP-3: Restrict Dependencies»</color>\n  Adding a new tab requires <= 3-file change" as PL #EEF6FB {
@@ -58,16 +58,22 @@ T1 ..> AT  #red : <color:#C0392B>❌ Forbidden</color>
 
 ' ── Legend ──────────────────────────────────────────────
 legend bottom
-  <b>Legend</b>
-  |= Color |= Layer |= Applied Approaches |
-  | <#EEF6FB> | Presentation Layer | «AP-3: Restrict Dependencies» — new tab <= 3-file change |
-  | <#EAF7EA> | Domain Layer       | «AP-4: Observer» single publication source |
-  | <#FFF8E1> | Signal Processing Layer | «AP-5: Pipes-and-Filters» |
-  | <#FDEDEC> | Acquisition Layer  | «AP-1: Introduce Concurrency», «AP-6: Graceful Degradation» |
-  | <#CCE5FF> | Lock-Free Ring Buffer | «AP-2: Reduce Resource Contention», «AP-8: Increase Resources» |
-  | <#FFFFCC> | DSPPipeline (Detector) | Parameters pending ⚠ — confirmed after EXP-03 |
-  Solid arrow (->): allowed dependency direction
-  Dashed arrow (..> ❌): forbidden dependency — violation breaks QAS-5 (<= 3-file target)
+  <b>KEY</b>
+  |= Layer (Module Type) |= Responsibility |= Applied Approaches |
+  | <#EEF6FB> Presentation Layer | GUI rendering, Observer subscription, warning display | «AP-3: Restrict Dependencies» — new tab ≤ 3-file change |
+  | <#EAF7EA> Domain Layer | Rate·Amplitude·Beat Error computation; single Measurement publication | «AP-4: Observer» single pub source, «AP-7b: Heartbeat» |
+  | <#FFF8E1> Signal Processing Layer | HPF→Envelope→AdaptiveDetector; T1·T3 extraction | «AP-5: Pipes-and-Filters», «AP-3: 🔒 forbidden from Presentation» |
+  | <#FDEDEC> Acquisition Layer | USB audio capture → PCM → Ring Buffer supply | «AP-1: Introduce Concurrency», «AP-6: Graceful Degradation» |
+  | <#CCE5FF> Lock-Free Ring Buffer | Decouples Audio/DSP threads; 30 s capacity | «AP-2: Reduce Contention», «AP-8: Increase Resources» |
+  | <#FFFFCC> DSPPipeline (Detector) | Adaptive threshold parameters ⚠ confirmed after EXP-03 | «AP-5» |
+
+  |= Relation |= Meaning |
+  | ——→  allowed-to-use | Upper layer may reference lower layer (Layered Style: top→bottom only) |
+  | - - → ❌ Forbidden | Dependency that violates layer rules — breaks QAS-5 (≤ 3-file extensibility target) |
+
+  <b>Core constraint (AP-3):</b>
+  Presentation Layer must NOT directly reference Signal Processing or Acquisition layers.
+  Violation makes QAS-5 target (adding a new graph in ≤ 3 files) structurally impossible.
 endlegend
 
 @enduml

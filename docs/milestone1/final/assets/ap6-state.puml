@@ -1,0 +1,95 @@
+@startuml ap6-state
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+skinparam ArrowColor #444444
+skinparam ArrowFontSize 10
+skinparam ArrowThickness 1.8
+skinparam StateBorderThickness 1.5
+skinparam StateBorderColor #555555
+skinparam StateBackgroundColor #FAFAFA
+skinparam Padding 8
+skinparam RoundCorner 10
+
+title <b>AP-6: Graceful Degradation — Sample Rate Fallback Decision</b>\n<i>Tactic: Graceful Degradation (Bass13 Performance Tactic)</i>\n<i>Linked driver: QAS-1 Real-Time Performance — guarantees Dropped Block = 0</i>
+
+' ═══════════════════════════════════════════════════
+'  STATES
+' ═══════════════════════════════════════════════════
+
+[*] --> Startup : system init
+
+state "Startup\n«transient»" as Startup #F2F3F4 {
+    state "Initialize ALSA\nat 96k sps (target)" as INIT
+}
+
+state "Running @ 96k sps\n«AP-8: 30 s ring buffer active»\n10.4 µs/sample resolution" as S96 #D5F5E3 {
+    state "EXP-01: measure\nDropped Block count\nover observation window" as MEASURE
+}
+
+state "Running @ 48k sps\n«fallback — permanent once triggered»\n20.8 µs/sample resolution" as S48 #FDEDEC {
+    state "Halved sample rate\nblock period: ~10 ms → ~20 ms\nDSP time budget doubled" as FALLBACK
+}
+
+state "⚠ Dropped Block\nDetected" as DROPPED #FFF3CD
+
+' ═══════════════════════════════════════════════════
+'  TRANSITIONS
+' ═══════════════════════════════════════════════════
+
+Startup      --> S96      : ALSA init success at 96k sps
+
+S96          --> DROPPED  : Dropped Block > 0\n(Ring Buffer overflow detected)
+S96          --> S96      : [Dropped Block == 0]\nkeep 96k sps ✅
+
+DROPPED      --> S48      : reinitialize ALSA at 48k sps\n(non-reversible — permanent fallback)
+
+S48          --> S48      : [Dropped Block == 0]\nkeep 48k sps ✅\n(normal operating state after fallback)
+
+note right of S96
+  <b>Preferred state</b>
+  T1 resolution: 10.4 µs/sample
+  Block period: ~10 ms
+  Confirmed feasible if RPi5
+  can sustain 96k sps load
+  → <color:#C0392B>⚠ EXP-01 validates this</color>
+end note
+
+note right of S48
+  <b>Fallback state (permanent)</b>
+  T1 resolution: 20.8 µs/sample
+  Block period: ~20 ms
+  DSP processing budget doubled
+  Dropped Block = 0 guaranteed
+  Trade-off: 2× resolution loss
+  → acceptable per QAS-1 target
+end note
+
+note bottom of DROPPED
+  <b>Trigger condition</b>
+  Ring Buffer writer (Audio Thread) detects
+  that reader (DSP Thread) has not consumed
+  stale blocks → overflow → Dropped Block++
+  Detection is immediate per-block
+end note
+
+' ═══════════════════════════════════════════════════
+'  KEY
+' ═══════════════════════════════════════════════════
+legend bottom
+  <b>KEY</b>
+  |= Symbol |= Meaning |
+  | <#D5F5E3> Running @ 96k | Target operating state — preferred, higher T1 resolution |
+  | <#FDEDEC> Running @ 48k | Fallback state — permanent once triggered, guarantees Dropped Block = 0 |
+  | <#FFF3CD> ⚠ Dropped Block | Transient detection state — triggers irreversible fallback |
+  | [Dropped Block == 0] | Guard condition — loop-back transition (system remains in current state) |
+  | reinitialize ALSA at 48k | One-way transition — no return to 96k during session |
+
+  <b>Design rationale (AP-6):</b>
+  The fallback is intentionally one-way per session. Oscillating between 96k and 48k
+  would cause measurement discontinuities. Stability is prioritized over peak resolution.
+  ⚠ Whether 96k is achievable on RPi5 at all is confirmed by EXP-01.
+endlegend
+
+@enduml
