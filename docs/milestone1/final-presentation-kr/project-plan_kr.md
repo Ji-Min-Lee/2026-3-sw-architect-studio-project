@@ -149,16 +149,20 @@ graph TD
 
 ```mermaid
 gantt
-    title TimeGrapher 스프린트 일정 — ADD 기반 (06/10 ~ 07/01)
+    title TimeGrapher 스프린트 일정 — ADD 기반 (06/02 ~ 07/01)
     dateFormat  YYYY-MM-DD
     axisFormat  %m/%d
-    excludes weekends
 
     section 마일스톤
     M1 제출         :milestone, m1, 2026-06-09, 0d
     M2 제출         :milestone, m2, 2026-06-22, 0d
     RPi 최종 검증  :milestone, rpidone, 2026-06-26, 0d
-    M3 최종 데모   :milestone, m3, 2026-07-01, 0d
+    M3 최종 데모   :crit, milestone, m3, 2026-07-01, 0d
+
+    section M1 준비 (06/02~09)
+    아키텍처 드라이버 · QAS 작성          :m1a, 2026-06-02, 4d
+    실험 계획 · 접근 방식 · 리스크 작성   :m1b, 2026-06-05, 3d
+    프로젝트 계획 작성 · 최종 검토        :m1c, 2026-06-07, 2d
 
     section P1 (06/10~12)
     T1: QAS-1 실시간 (AP-1+AP-2+EXP-01)  :s1t1, 2026-06-10, 2d
