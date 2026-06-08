@@ -32,13 +32,9 @@ Satisfying all QAs simultaneously within 5 weeks is not feasible. Architecture d
 
 ADD is a methodology that **drives architecture decisions from Quality Attributes**:
 
-- **Step 2**: Select the QA driver to focus on for this sprint
-- **Step 3**: Determine the architecture element responsible for satisfying that QA
-- **Step 4**: Select and plan the instantiation of a specific tactic/pattern
-- **Step 5**: Implement and run experiments to validate the hypothesis
-- **Step 6**: Record the decision as an Architecture Decision Record (ADR)
+![ADD Process](assets/add-process.png)
 
-This approach lets us first resolve real-time processing (the prerequisite for accuracy), then layer in correctness, low latency, and extensibility in dependency order.
+Each sprint covers Steps 2–6 of ADD in one cycle: the team selects a QA driver (Step 2), determines the responsible architecture element (Step 3), chooses a tactic or pattern (Step 4), implements and runs experiments to validate the hypothesis (Step 5), and records the decision as an ADR (Step 6). Sprints then repeat, each iteration targeting the next priority driver.
 
 ---
 
