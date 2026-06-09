@@ -159,11 +159,11 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 | ID | Risk | Prob | Impact | Overall | Linked QA | Open Issue |
 |----|------|:----:|:------:|:-------:|:---------:|:----------:|
 | NTR-01 | Schedule overload for parallel implementation of 11 graphs in 5 weeks | H | H | **H** | QAS-5 | — |
-| NTR-02 | Single RPi 5 device creates experiment bottleneck | M | M | **M** | QAS-1, QAS-2 | — |
-| NTR-03 | Delayed experiments prevent finalizing provisional values | M | M | **M** | QAS-1, QAS-2, QAS-3 | — |
-| NTR-04 | Coding/architecture team boundary unclear — design decisions not reflected in implementation | H | H | **H** | All QAs | OI-06 |
-| NTR-05 | Scope overextension — implementing all 11 graphs degrades core feature quality | H | M | **H** | QAS-5 | OI-07 |
-| NTR-06 | English communication overhead — risk of design decisions not reaching all team members | M | H | **H** | All QAs | OI-08 |
+| NTR-02 | Coding/architecture team boundary unclear — design decisions not reflected in implementation | H | H | **H** | All QAs | OI-06 |
+| NTR-03 | Scope overextension — implementing all 11 graphs degrades core feature quality | H | M | **H** | QAS-5 | OI-07 |
+| NTR-04 | English communication overhead — risk of design decisions not reaching all team members | M | H | **H** | All QAs | OI-08 |
+| NTR-05 | Single RPi 5 device creates experiment bottleneck | M | M | **M** | QAS-1, QAS-2 | — |
+| NTR-06 | Delayed experiments prevent finalizing provisional values | M | M | **M** | QAS-1, QAS-2, QAS-3 | — |
 
 ---
 
@@ -179,31 +179,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-02 — Single RPi 5 Device Creates Experiment Bottleneck
-
-| Item | Detail |
-|------|--------|
-| **Description** | EXP-01 (real-time performance), EXP-02 (latency), EXP-03 (Detector parameters) all require RPi 5; if the team owns only one device, experiments must run sequentially, creating a schedule bottleneck |
-| **Probability: M** | Sequential dependencies between experiments (e.g., EXP-01 → Observer refactoring → EXP-02) make full parallelization difficult; partially mitigated through shared device scheduling |
-| **Impact: M** | Experiment delays → design decisions deferred with provisional values → Architectural Drivers update delayed → subsequent milestone start delayed |
-| **Mitigation** | ① Prioritize experiments: EXP-01 (resolves TR-01) first, then EXP-02, then EXP-03 ② Develop RPi-independent work (GUI layout, Observer refactoring) on Windows PC in parallel |
-| **Linked issues** | Affects OI-P1, OI-L1, OI-L2, OI-C1 broadly |
-
----
-
-### NTR-03 — Delayed Experiments Prevent Finalizing Provisional Values
-
-| Item | Detail |
-|------|--------|
-| **Description** | Provisional values (⚠️) in Architectural Drivers — 96k sps target, 100 ms latency target, optimal Detector parameters — are not confirmed before M2 due to experiment delays |
-| **Probability: M** | Experiments depend on prerequisites (Observer refactoring, hardware setup) that can delay execution |
-| **Impact: M** | Designs based on provisional values → rework required if experiments contradict assumptions → M2 schedule pressure |
-| **Mitigation** | Execute EXP-01 as early as possible within M1; design conservatively (48k sps fallback, 100 ms upper bound) so minimum behavior is guaranteed regardless of experiment outcome |
-| **Linked issues** | OI-P1, OI-L1, OI-L2, OI-L3, OI-C1 — directly linked to Open Issues section of Architectural Drivers |
-
----
-
-### NTR-04 — Coding/Architecture Team Boundary Unclear
+### NTR-02 — Coding/Architecture Team Boundary Unclear
 
 | Item | Detail |
 |------|--------|
@@ -215,7 +191,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-05 — Scope Overextension — Implementing All 11 Graphs Degrades Core Quality
+### NTR-03 — Scope Overextension — Implementing All 11 Graphs Degrades Core Quality
 
 | Item | Detail |
 |------|--------|
@@ -227,7 +203,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-06 — English Communication Overhead
+### NTR-04 — English Communication Overhead
 
 | Item | Detail |
 |------|--------|
@@ -236,6 +212,30 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 | **Impact: H** | English-speaking team member misses context → design–implementation mismatch; lower deliverable quality → direct impact on evaluation score |
 | **Mitigation** | Write all deliverables in **bilingual (KO/EN)** format; milestone submissions and presentations in English; internal team communication in Korean is acceptable, but design decision summaries must be recorded bilingually in Teams |
 | **Linked issue** | OI-08 → resolved by agreeing on writing standard and verifying all M1 deliverables comply with bilingual rule |
+
+---
+
+### NTR-05 — Single RPi 5 Device Creates Experiment Bottleneck
+
+| Item | Detail |
+|------|--------|
+| **Description** | EXP-01 (real-time performance), EXP-02 (latency), EXP-03 (Detector parameters) all require RPi 5; if the team owns only one device, experiments must run sequentially, creating a schedule bottleneck |
+| **Probability: M** | Sequential dependencies between experiments (e.g., EXP-01 → Observer refactoring → EXP-02) make full parallelization difficult; partially mitigated through shared device scheduling |
+| **Impact: M** | Experiment delays → design decisions deferred with provisional values → Architectural Drivers update delayed → subsequent milestone start delayed |
+| **Mitigation** | ① Prioritize experiments: EXP-01 (resolves TR-01) first, then EXP-02, then EXP-03 ② Develop RPi-independent work (GUI layout, Observer refactoring) on Windows PC in parallel |
+| **Linked issues** | Affects OI-P1, OI-L1, OI-L2, OI-C1 broadly |
+
+---
+
+### NTR-06 — Delayed Experiments Prevent Finalizing Provisional Values
+
+| Item | Detail |
+|------|--------|
+| **Description** | Provisional values (⚠️) in Architectural Drivers — 96k sps target, 100 ms latency target, optimal Detector parameters — are not confirmed before M2 due to experiment delays |
+| **Probability: M** | Experiments depend on prerequisites (Observer refactoring, hardware setup) that can delay execution |
+| **Impact: M** | Designs based on provisional values → rework required if experiments contradict assumptions → M2 schedule pressure |
+| **Mitigation** | Execute EXP-01 as early as possible within M1; design conservatively (48k sps fallback, 100 ms upper bound) so minimum behavior is guaranteed regardless of experiment outcome |
+| **Linked issues** | OI-P1, OI-L1, OI-L2, OI-L3, OI-C1 — directly linked to Open Issues section of Architectural Drivers |
 
 ---
 
@@ -252,9 +252,9 @@ The following table maps all Architectural Drivers open issues (OI-*) to risks a
 | **OI-C1** | What Detector parameters minimize Δ across 3 noise conditions? | Unresolved → accuracy degrades under noise → QAS-3 Response Measure unconfirmed | TR-05 | Run **EXP-03** |
 | **OI-U1** | What are the N·M second values for warning onset/clear? | Unresolved → QAS-4 Response Measure unconfirmed → Usability goal unverifiable | TR-09 | Watch removal/restore experiment |
 | **OI-U2** | What are No signal / Noisy signal thresholds? | Unresolved → false alarms or missed warnings → user trust degraded | TR-09 | Multi-environment threshold search |
-| **OI-06** | Team structure undefined | Design decisions not implemented → rework risk before M2 | NTR-04 | ✅ Resolved by forming Team 1 + Team 2 parallel Agile structure (ADD-based 2-day Scrum) per project-plan.md |
-| **OI-07** | Graph priority not classified | Core features incomplete at demo | NTR-05 | ✅ Classified in project-plan.md Section 6: Core (3) / Required (3) / Stretch (2+) |
-| **OI-08** | No standard for deliverable writing language | English-speaking member misses context + milestone quality degraded | NTR-06 | ✅ Agreed: team communication and deliverables in bilingual (KO/EN); presentations and submissions in English |
+| **OI-06** | Team structure undefined | Design decisions not implemented → rework risk before M2 | NTR-02 | ✅ Resolved by forming Team 1 + Team 2 parallel Agile structure (ADD-based 2-day Scrum) per project-plan.md |
+| **OI-07** | Graph priority not classified | Core features incomplete at demo | NTR-03 | ✅ Classified in project-plan.md Section 6: Core (3) / Required (3) / Stretch (2+) |
+| **OI-08** | No standard for deliverable writing language | English-speaking member misses context + milestone quality degraded | NTR-04 | ✅ Agreed: team communication and deliverables in bilingual (KO/EN); presentations and submissions in English |
 
 ---
 
@@ -270,9 +270,9 @@ Execution order of experiments and design actions to resolve risks.
 | **4** | **EXP-02**: 3-segment timestamps × 1-tab/11-tab × 3 SPS tiers | TR-03, TR-04 | Observer refactoring complete | OI-L1, OI-L2, OI-L3 |
 | **5** | **EXP-03**: 3 noise conditions × Detector parameter combinations | TR-05 | EXP-01 complete (SPS decided) | OI-C1 |
 | **6** | **Warning threshold experiment**: watch removal/restore + multi-environment search | TR-09 | Observer refactoring complete | OI-U1, OI-U2 |
-| ~~**Immediate**~~ **✅ Done** | **Team structure definition**: Team 1 + Team 2 parallel Agile structure per project-plan.md | NTR-04 | — | OI-06 |
-| ~~**Immediate**~~ **✅ Done** | **Graph priority classification**: Core (3) / Required (3) / Stretch (2+) finalized in project-plan.md Section 6 | NTR-05 | — | OI-07 |
-| ~~**Immediate**~~ **✅ Done** | **Writing standard agreement**: bilingual (KO/EN) for all deliverables; English for presentations and submissions | NTR-06 | — | OI-08 |
+| ~~**Immediate**~~ **✅ Done** | **Team structure definition**: Team 1 + Team 2 parallel Agile structure per project-plan.md | NTR-02 | — | OI-06 |
+| ~~**Immediate**~~ **✅ Done** | **Graph priority classification**: Core (3) / Required (3) / Stretch (2+) finalized in project-plan.md Section 6 | NTR-03 | — | OI-07 |
+| ~~**Immediate**~~ **✅ Done** | **Writing standard agreement**: bilingual (KO/EN) for all deliverables; English for presentations and submissions | NTR-04 | — | OI-08 |
 
 ---
 
@@ -280,9 +280,9 @@ Execution order of experiments and design actions to resolve risks.
 
 | QA (per Architectural Drivers) | Priority | Linked Technical Risk | Linked Non-Technical Risk | Highest Overall |
 |:------------------------------|:-------:|:--------------------:|:-------------------------:|:---------------:|
-| Real-Time Performance (QAS-1) | 1 | TR-01 (**H**), TR-02 (**H**) | NTR-02, NTR-03, NTR-04 (**H**) | **H** |
-| Low Latency (QAS-2) | 2 | TR-03 (**H**), TR-04 (M) | NTR-02, NTR-03 | **H** |
-| Correctness (QAS-3) | 3 | TR-05 (M) | NTR-03 | **M** |
+| Real-Time Performance (QAS-1) | 1 | TR-01 (**H**), TR-02 (**H**) | NTR-05, NTR-06, NTR-02 (**H**) | **H** |
+| Low Latency (QAS-2) | 2 | TR-03 (**H**), TR-04 (M) | NTR-05, NTR-06 | **H** |
+| Correctness (QAS-3) | 3 | TR-05 (M) | NTR-06 | **M** |
 | Usability (QAS-4) | 4 | TR-09 (M) | — | **M** |
-| Extensibility (QAS-5) | 5 | TR-06 (M), TR-07 (**H**), TR-08 (M) | NTR-01 (**H**), NTR-04 (**H**), NTR-05 (**H**) | **H** |
-| All QAs | — | — | NTR-06 (**H**) | **H** |
+| Extensibility (QAS-5) | 5 | TR-06 (M), TR-07 (**H**), TR-08 (M) | NTR-01 (**H**), NTR-02 (**H**), NTR-03 (**H**) | **H** |
+| All QAs | — | — | NTR-04 (**H**) | **H** |
