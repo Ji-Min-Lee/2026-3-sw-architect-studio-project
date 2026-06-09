@@ -13,8 +13,6 @@
 #include "SoundImageRenderer.h"
 #include "RollingAverage.h"
 #include "WatchSynthStream.h"
-#include <vector>
-#include <QVector>
 
 
 QT_BEGIN_NAMESPACE
@@ -104,7 +102,7 @@ signals:
 
 private:
     Ui::MainWindow *ui;
-    void   StartAudioThread(bool reset=true);
+    void   StartAudioThread(void);
     void   ConfigureSoundCard(void);
     void   Reset(void);
     void   PurgeHistory(void);
@@ -113,9 +111,9 @@ private:
     void   DeleteDectectors(void);
     void   LoadAudioDevices(void);
     void   StopAudioThread(void);
-    void   StartPlaybackThread(const QString &FileName, bool reset=true);
+    void   StartPlaybackThread(const QString &FileName);
     void   StopPlaybackThread(void);
-    void   StartSimThread(WatchSynthStreamConfig cfg, bool reset=true);
+    void   StartSimThread(WatchSynthStreamConfig cfg);
     void   StopSimThread(void);
     void   AddOrOverwrite(QVector<double>& xvec,QVector<double>& yvec, double value, int maxS, int& index);
     void   AddVerticalMarker(QCustomPlot *Plot, double x,double height,const QColor color);
@@ -148,32 +146,10 @@ private:
     void   LoadMode(void);
     void   LoadAverageingPeriod(void);
     void   SetGuiRunMode(void);
-    void   SetGuiPauseMode(void);
     void   SetGuiStopMode(void);
-    void   PauseCurrentMode(void);
-    void   ResumeCurrentMode(void);
-    void   StopCurrentMode(void);
-    void   onAudioThreadFinished(void);
-    void   onPlaybackThreadFinished(void);
-    void   onSimThreadFinished(void);
-    double sampleToTimeSec(double sampleIndex) const;
-    double visibleTimeWindowSec() const;
-    double currentPlotTimeSec() const;
-    double markerOffsetTimeSec() const;
-    void   configureTimeAxis(QCustomPlot *plot);
-    void   addPlotTitle(QCustomPlot *plot, const QString &title);
-    void   setupLinePlot(QCustomPlot *plot, const QString &title, const QString &yLabel,
-                         double yMin, double yMax, const QColor &color, bool autoRescaleY);
-    void   clearPlot(QCustomPlot *plot);
-    void   purgePlotHistory(QCustomPlot *plot);
-    void   replotAllTimeSeriesPlots(void);
-    void   updateScrollingTimeAxes(void);
     void   LiveStart(void);
     void   PlaybackStart(void);
     void   SimStart(void);
-    void   InitSpectrogram(void);
-    void   ResetSpectrogram(void);
-    void   UpdateSpectrogram(const float *samples, size_t count);
 
 
     WavStreamWriter           *mWavWriter= nullptr;
@@ -219,19 +195,6 @@ private:
     double                     mForegroundLastTime=0.0;
     uint64_t                   mForegroundFrameCount=0;
     uint64_t                   mForegroundSampleCount=0;
-
-    QCPColorMap               *mSpectrogramColorMap= nullptr;
-    QCPColorScale             *mSpectrogramColorScale= nullptr;
-    std::vector<float>         mSpectrogramPcmBuffer;
-    int                        mSpectrogramFreqBins=0;
-
-    bool                       mIsRunning=false;
-    bool                       mIsPaused=false;
-    int                        mCurrentRunMode=0;
-    QString                    mActivePlaybackPath;
-    WatchSynthStreamConfig     mActiveSimConfig{};
-    QVector<QCustomPlot*>      mTimeSeriesPlots;
-    QVector<QCustomPlot*>      mMarkerPlots;
 
 };
 #endif
