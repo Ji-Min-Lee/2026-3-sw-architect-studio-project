@@ -352,11 +352,6 @@ int tg_process(tg_context_t *ctx,
     result->processed_pcm_len          = env_out_len;
     result->processed_pcm_start_sample = output_start;
 
-    // hungsont
-    result->raw_pcm_after_hpf          = ctx->buf_filt;
-    result->raw_pcm_len                = env_out_len;
-    result->raw_pcm_start_sample       = output_start;
-
     /* Detector reads the un-delayed envelope. Events emitted have
      * timing in the caller's absolute stream (in seconds since the
      * first input sample given to tg_init). */
