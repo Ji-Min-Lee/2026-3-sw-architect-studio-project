@@ -116,7 +116,7 @@ Each quality attribute is rated as High, Medium, or Low, and prioritized accordi
 
 > Core constraint: if end-to-end latency > beat period, real-time display function collapses. 80% safety margin applied (to absorb OS scheduler jitter and Qt rendering variability).
 
-| BPH | Beat Period | end-to-end Target (80%) | ① capture→process (70%) | ② process→display (30%) |
+| BPH | Beat Period | end-to-end Target | ① capture→process  | ② process→display  |
 |-----|:-------:|:-------------------:|:----------------------:|:----------------------:|
 | **28,800** | **125 ms** | **< 100 ms** *(Primary target)* | **< 70 ms** | **< 30 ms** |
 | 36,000 | 100 ms | 80 ms | 56 ms | 24 ms |
