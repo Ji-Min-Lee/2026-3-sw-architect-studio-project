@@ -141,15 +141,27 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 | ID | Risk | Prob | Impact | Overall | Linked QA |
 |----|------|:----:|:------:|:-------:|:---------:|
-| NTR-01 | Coding/architecture team boundary unclear — design decisions not reflected in implementation | H | M | **H** | All QAs |
-| NTR-02 | Scope overextension — implementing all 11 graphs degrades core feature quality | H | M | **H** | QAS-5 |
-| NTR-03 | English communication overhead — risk of design decisions not reaching all team members | M | H | **H** | All QAs |
-| NTR-04 | Single RPi 5 device creates experiment bottleneck | M | M | **M** | QAS-1, QAS-2 |
-| NTR-05 | Delayed experiments prevent finalizing provisional values | M | M | **M** | QAS-1, QAS-2, QAS-3 |
+| NTR-01 | Schedule overload for parallel implementation of 11 graphs in 5 weeks | H | H | **H** | QAS-5 |
+| NTR-02 | Coding/architecture team boundary unclear — design decisions not reflected in implementation | H | M | **H** | All QAs |
+| NTR-03 | Scope overextension — implementing all 11 graphs degrades core feature quality | H | M | **H** | QAS-5 |
+| NTR-04 | English communication overhead — risk of design decisions not reaching all team members | M | H | **H** | All QAs |
+| NTR-05 | Single RPi 5 device creates experiment bottleneck | M | M | **M** | QAS-1, QAS-2 |
+| NTR-06 | Delayed experiments prevent finalizing provisional values | M | M | **M** | QAS-1, QAS-2, QAS-3 |
 
 ---
 
-### NTR-01 — Coding/Architecture Team Boundary Unclear
+### NTR-01 — Schedule Overload for Parallel Implementation of 11 Graphs in 5 Weeks
+
+| Item | Detail |
+|------|--------|
+| **Description** | Schedule requires 11 graphs to be divided among team members and developed in parallel during Weeks 3–4; under God Object structure, code conflicts and debugging costs escalate as development progresses |
+| **Probability: H** | 11 graphs × complex dependencies = conflicts inevitable in parallel work; occurs if QAS-5 Extensibility is not met |
+| **Impact: H** | Schedule overrun → incomplete graph demo → delivery threat; affects all subsequent milestones |
+| **Mitigation** | Achieving QAS-5 Extensibility (≤ 3-file structure) is the direct mitigation for this risk; independent graph addition eliminates parallel work conflicts |
+
+---
+
+### NTR-02 — Coding/Architecture Team Boundary Unclear
 
 | Item | Detail |
 |------|--------|
@@ -160,7 +172,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-02 — Scope Overextension — Implementing All 11 Graphs Degrades Core Feature Quality
+### NTR-03 — Scope Overextension — Implementing All 11 Graphs Degrades Core Feature Quality
 
 | Item | Detail |
 |------|--------|
@@ -171,7 +183,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-03 — English Communication Overhead
+### NTR-04 — English Communication Overhead
 
 | Item | Detail |
 |------|--------|
@@ -182,7 +194,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-04 — Single RPi 5 Device Creates Experiment Bottleneck
+### NTR-05 — Single RPi 5 Device Creates Experiment Bottleneck
 
 | Item | Detail |
 |------|--------|
@@ -193,7 +205,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-05 — Delayed Experiments Prevent Finalizing Provisional Values
+### NTR-06 — Delayed Experiments Prevent Finalizing Provisional Values
 
 | Item | Detail |
 |------|--------|
