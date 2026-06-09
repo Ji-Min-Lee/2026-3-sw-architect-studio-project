@@ -141,15 +141,15 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 | ID | Risk | Prob | Impact | Overall | Linked QA |
 |----|------|:----:|:------:|:-------:|:---------:|
-| NTR-04 | Coding/architecture team boundary unclear — design decisions not reflected in implementation | H | M | **H** | All QAs |
-| NTR-05 | Scope overextension — implementing all 11 graphs degrades core feature quality | H | M | **H** | QAS-5 |
-| NTR-06 | English communication overhead — risk of design decisions not reaching all team members | M | H | **H** | All QAs |
-| NTR-02 | Single RPi 5 device creates experiment bottleneck | M | M | **M** | QAS-1, QAS-2 |
-| NTR-03 | Delayed experiments prevent finalizing provisional values | M | M | **M** | QAS-1, QAS-2, QAS-3 |
+| NTR-01 | Coding/architecture team boundary unclear — design decisions not reflected in implementation | H | M | **H** | All QAs |
+| NTR-02 | Scope overextension — implementing all 11 graphs degrades core feature quality | H | M | **H** | QAS-5 |
+| NTR-03 | English communication overhead — risk of design decisions not reaching all team members | M | H | **H** | All QAs |
+| NTR-04 | Single RPi 5 device creates experiment bottleneck | M | M | **M** | QAS-1, QAS-2 |
+| NTR-05 | Delayed experiments prevent finalizing provisional values | M | M | **M** | QAS-1, QAS-2, QAS-3 |
 
 ---
 
-### NTR-04 — Coding/Architecture Team Boundary Unclear
+### NTR-01 — Coding/Architecture Team Boundary Unclear
 
 | Item | Detail |
 |------|--------|
@@ -160,7 +160,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-05 — Scope Overextension — Implementing All 11 Graphs Degrades Core Feature Quality
+### NTR-02 — Scope Overextension — Implementing All 11 Graphs Degrades Core Feature Quality
 
 | Item | Detail |
 |------|--------|
@@ -171,7 +171,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-06 — English Communication Overhead
+### NTR-03 — English Communication Overhead
 
 | Item | Detail |
 |------|--------|
@@ -182,7 +182,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-02 — Single RPi 5 Device Creates Experiment Bottleneck
+### NTR-04 — Single RPi 5 Device Creates Experiment Bottleneck
 
 | Item | Detail |
 |------|--------|
@@ -193,7 +193,7 @@ Each risk is rated on Probability and Impact on a three-point scale: H / M / L.
 
 ---
 
-### NTR-03 — Delayed Experiments Prevent Finalizing Provisional Values
+### NTR-05 — Delayed Experiments Prevent Finalizing Provisional Values
 
 | Item | Detail |
 |------|--------|
