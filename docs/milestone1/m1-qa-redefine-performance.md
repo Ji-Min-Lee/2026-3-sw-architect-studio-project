@@ -50,8 +50,8 @@
 | 항목 / Item | 내용 / Detail |
 |------------|--------------|
 | **목적 / Goal** | SPS별로 Ring Buffer 오버플로(Dropped Block) 발생 여부를 측정하여 96k sps 목표 달성 가능 여부 결정 / Measure Ring Buffer overflow (Dropped Block) per SPS tier to determine whether 96k sps target is achievable |
-| **방법 / Method** | 48k / 96k / 192k sps 각각 10분 연속 실행. Dropped Block 수·Background FPS 기록. GUI 표시 지연(end-to-end latency)은 QAS-3 실험에서 별도 측정 / Run each SPS tier for 10 min. Record Dropped Block count and Background FPS. GUI display latency (end-to-end) is measured separately in QAS-3 experiment |
-| **측정 항목 / Metrics** | SPS \| 블록 주기 / Block period \| Dropped Blocks \| Background FPS |
+| **방법 / Method** | 48k / 96k / 192k sps 각각 10분 연속 실행. Dropped Block 수·CPU% 기록. GUI 표시 지연(end-to-end latency)은 QAS-3 실험에서 별도 측정 / Run each SPS tier for 10 min. Record Dropped Block count and CPU%. GUI display latency (end-to-end) is measured separately in QAS-3 experiment |
+| **측정 항목 / Metrics** | SPS \| 블록 주기 / Block period \| Dropped Blocks \| CPU% |
 | **완료 기준 / Done** | 96k sps에서 Dropped Block = 0 달성 확인. 미달 시 48k 폴백 결정 / Confirm Dropped Block = 0 at 96k sps; decide 48k fallback if not met |
 
 ---

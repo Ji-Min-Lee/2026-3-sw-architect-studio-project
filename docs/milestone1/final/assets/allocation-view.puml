@@ -1,0 +1,96 @@
+@startuml allocation-view
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+skinparam ArrowColor #444444
+skinparam ArrowFontSize 9
+skinparam ArrowThickness 1.8
+skinparam NodeBorderThickness 1.5
+skinparam ComponentBorderThickness 1.5
+skinparam PackageBorderThickness 2
+skinparam Padding 6
+skinparam RoundCorner 6
+
+title <b>Allocation View — TimeGrapher Deployment Structure</b>\n<i>View Type: Allocation View Type  |  Style: Deployment Style</i>
+
+' ═══════════════════════════════════════════════════
+'  HARDWARE NODES
+' ═══════════════════════════════════════════════════
+
+node "USB Audio Sensor\n«hardware device»\nWeishi-style contact pickup" as MIC #D6EAF8 {
+    component ": PCM Stream\n28,800~43,200 BPH\n«AP-6» 96k sps target / 48k sps fallback" as PCM_HW
+}
+
+node "Raspberry Pi 5\n«execution environment»\nARM64  8 GB RAM  128 GB microSD" as RPI #FDFEFE {
+
+    node "ALSA Driver\n«OS kernel»\nUSB audio device driver" as ALSA_DRV #F2F3F4 {
+        component ": ALSABuffer\n~20 ms period\n«AP-1» callback triggers Audio Thread" as ALSA_BUF
+    }
+
+    node "Application Process\n«Qt6 C++ single process»\nTimeGrapher" as APP #EAF7EA {
+
+        node "Audio Thread\n«OS thread»\n«AP-1: Introduce Concurrency»\n«AP-6: Graceful Degradation»" as AT #FDEDEC {
+            component ": ALSACallback\nenqueue PCM blocks" as ATC
+        }
+
+        component ": LockFreeRingBuffer\n«shared memory»\n«AP-2: Reduce Contention»\n«AP-8: Increase Resources»\n30 s × 96k sps × 2 ch × 4 B ≈ 23 MB\n(48k sps: ~11.5 MB)" as RB #CCE5FF
+
+        node "DSP Thread\n«OS thread»\n«AP-1: Introduce Concurrency»\n«AP-5: Pipes-and-Filters»" as DT #FFF8E1 {
+            component ": HPF → Envelope → AdaptiveDetector\nT1·T3 timestamp extraction\n«AP-3: Signal Processing Layer»  «AP-5»" as DSP
+        }
+
+        node "GUI Thread  (Qt Main Thread)\n«OS thread»\n«AP-4: Observer»  «AP-7a: Lazy Rendering»" as GT #EAF7EA {
+            component ": MeasurementEngine\n«AP-4» pub measurementReady()" as ME #D4EDDA
+            component ": SignalQualityMonitor\n«AP-7b: Heartbeat»" as SQ #FFF3CD
+            component ": Tabs [1..11]\n«AP-7a» paintEvent() on active tab only" as TABS
+            component ": WarningOverlay" as WRN
+        }
+    }
+}
+
+node "8\" Touchscreen\n«display device»\n1280×800 IPS" as SCREEN #FEF9E7 {
+    component ": Qt Framebuffer\nrendered output" as FB
+}
+
+' ═══════════════════════════════════════════════════
+'  CONNECTIONS
+' ═══════════════════════════════════════════════════
+MIC      -right-> ALSA_DRV : USB (analog→digital PCM)
+ALSA_BUF -down->  ATC       : audioDataAvailable()\n«callback»
+ATC      -right-> RB        : enqueue(block)\n«pipe / writer»\n(non-blocking, atomic)
+RB       -right-> DSP       : dequeue(block)\n«pipe / reader»
+DSP      -down->  ME        : T1·T3 timestamps
+DSP      -down->  SQ        : beat events
+ME       -right-> TABS      : measurementReady()\n«pub-sub»
+SQ       -right-> WRN       : warningChanged()\n«pub-sub»
+GT       -down->  SCREEN    : Qt framebuffer\nrender output
+
+' ═══════════════════════════════════════════════════
+'  KEY
+' ═══════════════════════════════════════════════════
+legend bottom
+  <b>KEY</b>
+  |= Symbol |= Meaning |
+  | «hardware device» | Physical peripheral — USB audio sensor or display |
+  | «OS kernel» | Kernel-space driver layer (ALSA) |
+  | «Qt6 C++ single process» | Single OS process hosting all threads |
+  | <#FDEDEC> «OS thread» Audio | Producer thread — ALSA callback, enqueues PCM blocks |
+  | <#FFF8E1> «OS thread» DSP | Consumer thread — HPF→Envelope→Detector pipeline |
+  | <#EAF7EA> «OS thread» GUI | Qt main thread — Observer subscribers + rendering |
+  | <#CCE5FF> «shared memory» | Lock-free ring buffer shared across Audio/DSP threads |
+
+  |= Connector |= Mechanism |
+  | USB → ALSA | Hardware bus; kernel driver delivers PCM at ~20 ms periods |
+  | callback → enqueue | ALSA callback (kernel→app boundary); non-blocking atomic write |
+  | dequeue → DSP | Lock-free read; DSP thread spins or sleeps until data available |
+  | pub-sub → GUI | Qt Signal-Slot cross-thread queued connection |
+  | GUI → Framebuffer | Qt paint engine → display |
+
+  <b>Memory allocation note (AP-8):</b>
+  Ring Buffer = SECONDS_OF_BUFFER × sample_rate × channels × bytes_per_sample
+    96k sps: 30 × 96000 × 2 × 4 = ~22.5 MB  (negligible on RPi5 8 GB)
+    48k sps: 30 × 48000 × 2 × 4 = ~11.5 MB
+endlegend
+
+@enduml
