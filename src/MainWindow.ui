@@ -718,7 +718,7 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="RateTab">
      <property name="font">
@@ -777,21 +777,11 @@
      <attribute name="title">
       <string>Spectrogram</string>
      </attribute>
-     <widget class="QCustomPlot" name="RawTimePlot" native="true">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1019</width>
-        <height>327</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QCustomPlot" name="SpectrogramPlot" native="true">
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>330</y>
+        <y>0</y>
         <width>1019</width>
         <height>327</height>
        </rect>

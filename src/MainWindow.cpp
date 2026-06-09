@@ -595,28 +595,11 @@ void MainWindow::CreateGraphs(void)
     ui->RatePlot->legend->setVisible(true);
 
     //hungsont
-    QCPTextElement *realAmplitudeTitle = new QCPTextElement(ui->RawTimePlot, "Real amplitude over time", QFont("sans-serif", 10, QFont::Bold));
-    ui->RawTimePlot->plotLayout()->insertRow(0);
-    ui->RawTimePlot->plotLayout()->addElement(0, 0, realAmplitudeTitle);
-    ui->RawTimePlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    ui->RawTimePlot->yAxis->setLabel("Real amplitude");
-    ui->RawTimePlot->yAxis->setTickLabels(true);
-    ui->RawTimePlot->xAxis->setLabel("Time (ms)");
-    ui->RawTimePlot->yAxis->setRange(-ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
-    ui->RawTimePlot->xAxis->setRange(0, mRateErrorEvents.MaxTicTocDataPoints);
-    ui->RawTimePlot->xAxis->setTickLabels(false);
-    ui->RawTimePlot->clearGraphs();
-    ui->RawTimePlot->addGraph();
-    ui->RawTimePlot->graph(0)->setScatterStyle(QCPScatterStyle::ssDisc);
-    ui->RawTimePlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 3));
-    ui->RawTimePlot->graph(0)->setLineStyle(QCPGraph::lsNone);
-    ui->RawTimePlot->graph(0)->setPen(QPen(Qt::blue));
-
-    //hungsont
-    QCPTextElement *spectrogramTitle = new QCPTextElement(ui->SpectrogramPlot, "Spectrogram over time", QFont("sans-serif", 10, QFont::Bold));
-    ui->SpectrogramPlot->plotLayout()->insertRow(0);
-    ui->SpectrogramPlot->plotLayout()->addElement(0, 0, spectrogramTitle);
     ui->SpectrogramPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    ui->SpectrogramPlot->legend->setVisible(true);
+    ui->SpectrogramPlot->legend->setFont(legendFont);
+    ui->SpectrogramPlot->legend->setSelectedFont(legendFont);
+    ui->SpectrogramPlot->legend->setSelectableParts(QCPLegend::spItems);
     ui->SpectrogramPlot->yAxis->setLabel("Frequency (Hz)");
     ui->SpectrogramPlot->yAxis->setTickLabels(true);
     ui->SpectrogramPlot->xAxis->setLabel("Time (ms)");
@@ -631,9 +614,6 @@ void MainWindow::CreateGraphs(void)
     ui->SpectrogramPlot->graph(0)->setPen(QPen(Qt::blue));
 
     //hungsont
-    QCPTextElement *rateDeviationTitle = new QCPTextElement(ui->RateDeviationPlot, "Rate deviation over time", QFont("sans-serif", 10, QFont::Bold));
-    ui->RateDeviationPlot->plotLayout()->insertRow(0);
-    ui->RateDeviationPlot->plotLayout()->addElement(0, 0, rateDeviationTitle);
     ui->RateDeviationPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     ui->RateDeviationPlot->yAxis->setLabel("Rate deviation (s/d)");
     ui->RateDeviationPlot->yAxis->setTickLabels(true);
@@ -649,9 +629,6 @@ void MainWindow::CreateGraphs(void)
     ui->RateDeviationPlot->graph(0)->setPen(QPen(Qt::blue));
 
     //hungsont
-    QCPTextElement *amplitudeTitle = new QCPTextElement(ui->AmplitudePlot, "Amplitude degree over time", QFont("sans-serif", 10, QFont::Bold));
-    ui->AmplitudePlot->plotLayout()->insertRow(0);
-    ui->AmplitudePlot->plotLayout()->addElement(0, 0, amplitudeTitle);
     ui->AmplitudePlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     ui->AmplitudePlot->yAxis->setLabel("Amplitude (Degree)");
     ui->AmplitudePlot->yAxis->setTickLabels(true);
@@ -1017,13 +994,13 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
             ui->ScopePlot->graph(1)->addData(mLocalGraphTicks, threshhold);
             //hungsont
             double pcm_raw=r.raw_pcm_after_hpf[i];
-            ui->RawTimePlot->graph (0)->addData(mLocalGraphTicks, pcm_raw);
+            ui->SpectrogramPlot->graph (0)->addData(mLocalGraphTicks, pcm_raw);
 
             mLocalGraphTicks++;
            }
 
            //hungsont
-           //process fft here
+           // process fft here
 
 
           if ((!mSoundRenderHasBPH) &&(r.sync_status==TG_SYNC_SYNCED))
@@ -1114,10 +1091,10 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
         ui->ScopePlot->yAxis->rescale();
         ui->ScopePlot->replot(QCustomPlot::rpQueuedReplot);
         //hungsont
-        ui->RawTimePlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
+        ui->SpectrogramPlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
         //ui->SpectrogramPlot->xAxis->rescale();
-        ui->RawTimePlot->yAxis->rescale();
-        ui->RawTimePlot->replot(QCustomPlot::rpQueuedReplot);
+        ui->SpectrogramPlot->yAxis->rescale();
+        ui->SpectrogramPlot->replot(QCustomPlot::rpQueuedReplot);
 
         //hungsont
         ui->RateDeviationPlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
@@ -1177,13 +1154,13 @@ void MainWindow::PurgeHistory(void)
         }
     }
     //hungsont
-    for (int i=0;i<ui->RawTimePlot->graphCount();i++)
+    for (int i=0;i<ui->SpectrogramPlot->graphCount();i++)
     {
-        if (ui->RawTimePlot->graph(i)->data()->size()>(GRAPH_HISTORY_IN_SECONDS*mCurrentSamplesPerSecond))
+        if (ui->SpectrogramPlot->graph(i)->data()->size()>(GRAPH_HISTORY_IN_SECONDS*mCurrentSamplesPerSecond))
         {
             //qInfo()<<"Data Size 1 -"<<ui->Scope->graph(i)->data()->size();
             bool foundRange;
-            QCPRange keyRange = ui->RawTimePlot->graph(i)->getKeyRange(foundRange, QCP::sdBoth);
+            QCPRange keyRange = ui->SpectrogramPlot->graph(i)->getKeyRange(foundRange, QCP::sdBoth);
             if (foundRange)
             {
                 double minKey = keyRange.lower;
@@ -1195,8 +1172,8 @@ void MainWindow::PurgeHistory(void)
                 double RemoveStart=minKey;
                 double RemoveEnd=minKey+NumToRemove;
                 // qInfo()<<"Remove "<< RemoveStart<<"  "<<RemoveEnd;
-                RemoveMarkersAndText(ui->RawTimePlot,RemoveStart, RemoveEnd);
-                ui->RawTimePlot->graph(i)->data()->remove(RemoveStart, RemoveEnd);
+                RemoveMarkersAndText(ui->SpectrogramPlot,RemoveStart, RemoveEnd);
+                ui->SpectrogramPlot->graph(i)->data()->remove(RemoveStart, RemoveEnd);
             }
             else  qInfo()<<"getKeyRange not found";
         }
@@ -1262,12 +1239,12 @@ void MainWindow::Reset(void)
     ui->ScopePlot->replot();
 
     //hungsont
-    for (int i=0;i<ui->RawTimePlot->graphCount();i++)
+    for (int i=0;i<ui->SpectrogramPlot->graphCount();i++)
     {
-        ui->RawTimePlot->graph(i)->data()->clear();
+        ui->SpectrogramPlot->graph(i)->data()->clear();
     }
-    ui->RawTimePlot->clearItems();
-    ui->RawTimePlot->replot();
+    ui->SpectrogramPlot->clearItems();
+    ui->SpectrogramPlot->replot();
 
     //hungsont
     for (int i=0;i<ui->AmplitudePlot->graphCount();i++)
