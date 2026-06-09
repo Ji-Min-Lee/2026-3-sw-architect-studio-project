@@ -50,7 +50,7 @@ Each quality attribute is rated as High, Medium, or Low, and prioritized accordi
 | **2** | Low Latency | The system shall display beat data in real-time without perceptible delay | H | H | If display lags behind the beat, real-time feedback is lost and accurate data collection becomes impossible |
 | **3** | Correctness | The system shall deliver consistent and accurate measurement values across all views and noise conditions | H | M | Accurate data requires both consistent values across views and reliable detection under noise |
 | **4** | Usability | The system shall alert users to signal quality issues promptly and clearly | M | M | Timely warnings let users correct poor measurement conditions before data quality degrades |
-| **5** | Extensibility | The system shall support independent addition of new graph features without modifying existing modules | M | M | A modular architecture is the only way to sustain parallel development of 11 graphs within the project timeline |
+| **5** | Extensibility | The system shall support independent addition of new graph features without modifying existing modules | L | L | A modular architecture is the only way to sustain parallel development of 11 graphs within the project timeline |
 
 ---
 
