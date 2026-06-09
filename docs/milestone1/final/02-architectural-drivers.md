@@ -43,7 +43,7 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 ---
 
 ### 2.2 Priority Summary
-
+Each quality attribute is rated as High, Medium, or Low, and prioritized accordingly.
 | Rank | QA | Key Requirement | Business Importance | Technical Difficulty / Risk | One-Line Rationale |
 |:----:|----|----------------| :------------------:| :-------------------------:|-------------------|
 | **1** | Real-Time Performance | The system shall detect and process every beat without interruption | H | H | Any missed beat breaks the measurement chain — this is the foundation all other QAs depend on |
