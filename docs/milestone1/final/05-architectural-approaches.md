@@ -8,11 +8,11 @@
 
 ### 1.1 Pipe-and-Filter + Publish-Subscribe View of TimeGrapher
 
-This is our C&C View — it shows how data flows through the system at runtime. There are 3 threads: **Audio Thread**, **DSP Thread**, and **GUI Thread**. Data flows from top to bottom: the Audio Thread captures sound and passes it through the Ring Buffer to the DSP Thread, which processes the signal and sends the results to the GUI Thread for display.
-
-The top part uses **Pipe-and-Filter** style — data flows one way through filters. The bottom part uses **Publish-Subscribe** style — MeasurementEngine publishes data, and all 11 tabs receive it.
-
-Each thread boundary and connector is annotated with the architectural approach (AP) applied at that point. Three input source modes are supported: Live (USB Mic), Playback, and Sim.
+- C&C View — shows how data flows through the system at runtime
+- 3 threads: **Audio Thread** → **DSP Thread** → **GUI Thread** (top to bottom)
+- Top: **Pipe-and-Filter** style — one-way data flow through filters
+- Bottom: **Publish-Subscribe** style — MeasurementEngine publishes, all 11 tabs receive
+- Input modes: Live (USB Mic), Playback, Sim
 
 > Source file: [`assets/cc-view.puml`](assets/cc-view.puml)
 
