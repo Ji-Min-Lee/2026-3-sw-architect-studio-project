@@ -46,11 +46,11 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 Each quality attribute is rated as High, Medium, or Low, and prioritized accordingly.
 | Rank | QA | Key Requirement | Business Importance | Technical Difficulty / Risk | One-Line Rationale |
 |:----:|----|----------------| :------------------:| :-------------------------:|-------------------|
-| **1** | Real-Time Performance | The system shall detect and process every beat without interruption | H | H | Any missed beat breaks the measurement chain — this is the foundation all other QAs depend on |
-| **2** | Low Latency | The system shall display beat data in real-time without perceptible delay | H | H | If display lags behind the beat, real-time feedback is lost and accurate data collection becomes impossible |
-| **3** | Correctness | The system shall deliver consistent and accurate measurement values across all views and noise conditions | H | M | Accurate data requires both consistent values across views and reliable detection under noise |
-| **4** | Usability | The system shall alert users to signal quality issues promptly and clearly | M | M | Timely warnings let users correct poor measurement conditions before data quality degrades |
-| **5** | Extensibility | The system shall support independent addition of new graph features without modifying existing modules | L | L | A modular architecture is the only way to sustain parallel development of 11 graphs within the project timeline |
+| **1** | Real-Time Performance | The system shall acquire, process, analyze, and display watch acoustic data in real time on the Raspberry Pi while maintaining a responsive GUI | H | H | If any audio block is dropped, beat timestamps are lost and nothing can be measured — every other QA depends on this |
+| **2** | Low Latency | The system shall minimize end-to-end latency between acoustic capture at the microphone and presentation of the corresponding waveform, markers, and computed values in the GUI | H | H | If the display falls behind the beat, users lose real-time feedback and cannot trust what they see |
+| **3** | Correctness | The system shall deliver consistent and accurate measurement values across all views and noise conditions | H | M | Users must see the same accurate values no matter which graph they look at |
+| **4** | Usability | The system shall alert users to signal quality issues promptly and clearly | M | M | Users need to know right away when the signal is bad, so they can fix it before the measurement is ruined |
+| **5** | Extensibility | The system shall support independent addition of new graph features without modifying existing modules | L | L | 11 graphs must be built in parallel — without a clean structure, developers will constantly block each other |
 
 ---
 
