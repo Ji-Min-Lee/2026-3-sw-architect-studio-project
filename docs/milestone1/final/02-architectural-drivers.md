@@ -46,7 +46,7 @@ Priority is determined by two axes aligned with the team goal ("accurate data fi
 Each quality attribute is rated as High, Medium, or Low, and prioritized accordingly.
 | Rank | QA | Key Requirement | Business Importance | Technical Difficulty / Risk | One-Line Rationale |
 |:----:|----|----------------| :------------------:| :-------------------------:|-------------------|
-| **1** | Real-Time Performance | The system shall acquire, process, analyze, and display watch acoustic data in real time on the Raspberry Pi while maintaining a responsive GUI | H | H | If any audio block is dropped, beat timestamps are lost and nothing can be measured — every other QA depends on this |
+| **1** | Real-Time Performance | The system shall acquire, process, analyze, and display watch acoustic data in real time while maintaining a responsive GUI | H | H | If any audio block is dropped, beat timestamps are lost and nothing can be measured — every other QA depends on this |
 | **2** | Low Latency | The system shall minimize end-to-end latency between acoustic capture at the microphone and presentation of the corresponding waveform, markers, and computed values in the GUI | H | H | If the display lags more than one beat behind, users see stale data and cannot make accurate repair decisions |
 | **3** | Correctness | The system shall deliver consistent and accurate measurement values across all views and noise conditions | H | M | Users must see the same accurate values no matter which graph they look at |
 | **4** | Usability | The system shall alert users to signal quality issues promptly and clearly | M | M | Users need to know right away when the signal is bad, so they can fix it before the measurement is ruined |
