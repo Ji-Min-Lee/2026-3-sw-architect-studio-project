@@ -154,54 +154,61 @@ private slots:
         QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
     }
 
-    // ── VarioTab ─────────────────────────────────────────────────────────────
+    // ── VarioTab (Vario statistics display: Min / X̄ / σ / Max) ──────────────
 
-    void varioTab_ticToc_splitIntoTwoGraphs()
+    void varioTab_stats_trackMinMeanMax()
     {
         VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, true, 270.0, 265.0));
+        tab.onMeasurement(makeMeasurement(+5.0, 0, true, 270.0, 265.0)); // amp 267.5
+        tab.onMeasurement(makeMeasurement(-3.0, 0, true, 268.0, 263.0)); // amp 265.5
 
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 1); // Tic
-        QCOMPARE(tab.plot()->graph(1)->data()->size(), 1); // Toc
-        QCOMPARE(tab.plot()->graph(0)->data()->at(0)->value, 270.0);
-        QCOMPARE(tab.plot()->graph(1)->data()->at(0)->value, 265.0);
+        QCOMPARE((int)tab.rateStats().n, 2);
+        QCOMPARE(tab.rateStats().min, -3.0);
+        QCOMPARE(tab.rateStats().max, +5.0);
+        QCOMPARE(tab.rateStats().mean(), 1.0);
+
+        QCOMPARE((int)tab.ampStats().n, 2);
+        QCOMPARE(tab.ampStats().min, 265.5);
+        QCOMPARE(tab.ampStats().max, 267.5);
+        QCOMPARE(tab.ampStats().mean(), 266.5);
     }
 
-    void varioTab_noAmpSplit_notDrawn()
+    void varioTab_sigma_matchesSampleStdDev()
     {
         VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, false, 0, 0));
-
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
-        QCOMPARE(tab.plot()->graph(1)->data()->size(), 0);
+        tab.onMeasurement(makeMeasurement(+2.0, 0, false, 0, 0));
+        tab.onMeasurement(makeMeasurement(+4.0, 0, false, 0, 0));
+        // sample std-dev of {2,4} = sqrt(2)
+        QVERIFY(qAbs(tab.rateStats().sigma() - std::sqrt(2.0)) < 1e-9);
     }
 
-    void varioTab_multipleBeats_xAxisIncreases()
+    void varioTab_invalidRate_notCounted()
     {
         VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, true, 270.0, 265.0));
-        tab.onMeasurement(makeMeasurement(0, 0, true, 268.0, 263.0));
-
-        auto d0 = tab.plot()->graph(0)->data();
-        QCOMPARE(d0->size(), 2);
-        // x축 beat index가 순서대로 증가해야 함
-        QVERIFY(d0->at(1)->key > d0->at(0)->key);
+        Measurement m = makeMeasurement(+5.0, 0, false, 0, 0);
+        m.rateValid = false;
+        m.amplitudeValid = false;
+        tab.onMeasurement(m);
+        QCOMPARE((int)tab.rateStats().n, 0);
+        QCOMPARE((int)tab.ampStats().n, 0);
     }
 
-    void varioTab_reset_clearsData()
+    void varioTab_elapsedTime_accumulates()
     {
         VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, true, 270.0, 265.0));
+        tab.onMeasurement(makeMeasurement(1.0, 0, false, 0, 0)); // 4096/48000 s
+        tab.onMeasurement(makeMeasurement(1.0, 0, false, 0, 0));
+        QVERIFY(qAbs(tab.elapsedSec() - 2 * 4096.0 / 48000.0) < 1e-9);
+    }
+
+    void varioTab_reset_clearsStats()
+    {
+        VarioTab tab;
+        tab.onMeasurement(makeMeasurement(+5.0, 0, true, 270.0, 265.0));
         tab.reset();
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
-        QCOMPARE(tab.plot()->graph(1)->data()->size(), 0);
-    }
-
-    void varioTab_ticEqualsInputValue()
-    {
-        VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, true, 315.5, 300.0));
-        QCOMPARE(tab.plot()->graph(0)->data()->at(0)->value, 315.5);
+        QCOMPARE((int)tab.rateStats().n, 0);
+        QCOMPARE((int)tab.ampStats().n, 0);
+        QCOMPARE(tab.elapsedSec(), 0.0);
     }
 };
 
