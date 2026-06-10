@@ -11,12 +11,13 @@
 1. [한눈에 보기 — 전체 그림](#1-한눈에-보기--big-picture)
 2. [레이어 뷰 — 4계층 구조](#2-레이어-뷰--layered-view)
 3. [파이프-필터 뷰 — 신호 처리 흐름](#3-파이프-필터-뷰--pipe-and-filter-view)
-4. [컴포넌트 뷰 — 모듈별 역할](#4-컴포넌트-뷰--component-view)
-5. [클래스 뷰 — Observer 패턴](#5-클래스-뷰--observer-pattern-class-view)
-6. [데이터 뷰 — Measurement DTO](#6-데이터-뷰--measurement-dto)
-7. [11개 탭 상세](#7-11개-탭-상세--11-graph-tabs-detail)
-8. [QAS 대응 전술](#8-qas-대응-전술--qas-tactics)
-9. [디렉토리 구조](#9-디렉토리-구조--directory-structure)
+4. [시퀀스 뷰 — 레이어 간 제어 흐름](#4-시퀀스-뷰--sequence-view)
+5. [컴포넌트 뷰 — 모듈별 역할](#5-컴포넌트-뷰--component-view)
+6. [클래스 뷰 — Observer 패턴](#6-클래스-뷰--observer-pattern-class-view)
+7. [데이터 뷰 — Measurement DTO](#7-데이터-뷰--measurement-dto)
+8. [11개 탭 상세](#8-11개-탭-상세--11-graph-tabs-detail)
+9. [QAS 대응 전술](#9-qas-대응-전술--qas-tactics)
+10. [디렉토리 구조](#10-디렉토리-구조--directory-structure)
 
 ---
 
@@ -169,7 +170,111 @@ graph LR
 
 ---
 
-## 4. 컴포넌트 뷰 / Component View
+## 4. 시퀀스 뷰 / Sequence View
+
+**한국어**
+
+시퀀스 다이어그램은 두 가지 주요 흐름을 보여줍니다.
+
+- **정상 측정 흐름**: 마이크 PCM이 레이어를 순서대로 통과해 그래프까지 도달하는 경로
+- **리셋 흐름**: 사용자가 리셋 버튼을 누를 때 각 레이어가 순서대로 초기화되는 경로
+
+각 참여자(participant)에는 소속 레이어가 명시되어 있어 레이어 경계에서 어떤 인터페이스가 사용되는지 한눈에 확인할 수 있습니다.
+
+**English**
+
+The sequence diagrams show two major flows:
+
+- **Normal measurement flow**: how raw PCM from the microphone passes through each layer in order and arrives at the graph tabs
+- **Reset flow**: how each layer is cleared in sequence when the user presses Reset
+
+Each participant is annotated with its layer so that the interface crossing each layer boundary is visible at a glance.
+
+### 4.1 정상 측정 흐름 / Normal Measurement Flow
+
+```mermaid
+sequenceDiagram
+    box Layer 1 — Acquisition
+        participant HW as 🎤 Hardware<br/>(Mic / File / Sim)
+        participant AW as AudioWorker
+        participant SA as SharedAudio<br/>(Ring Buffer)
+    end
+    box Layer 3 — Domain
+        participant ME as MeasurementEngine
+    end
+    box Layer 2 — Signal Processing
+        participant TG as Timegrapher<br/>(tg_process)
+        participant DET as Detector
+        participant DSP as Dsp (HPF·Env)
+    end
+    box Layer 4 — Presentation
+        participant MW as MainWindow
+        participant TAB as GraphTab (×11)
+    end
+
+    HW->>AW: PCM samples (interrupt / callback)
+    AW->>SA: write float[] to ring buffer
+    SA-->>ME: processBlock(pcm, n) [QThread → engine]
+
+    ME->>TG: tg_process(ctx, pcm, n, &result)
+    TG->>DSP: hpf(pcm) → filtered
+    DSP-->>TG: filtered[]
+    TG->>DSP: envelope(filtered) → env
+    DSP-->>TG: env[]
+    TG->>DET: detect(env) → events
+    DET-->>TG: tg_event_t[] (A/C timestamps)
+    TG-->>ME: tg_result_t {events, processed_pcm, sync_status}
+
+    ME->>ME: computeRateError() → AcousticEvent.wrappedRateError
+    ME->>ME: computeBeatError() → beatErrorMs
+    ME->>ME: computeAmplitude() → ticAmpDeg / tocAmpDeg
+    ME-->>MW: emit measurementReady(Measurement) [QueuedConnection]
+
+    MW->>TAB: onMeasurement(m) [×11, same Measurement copy]
+    TAB->>TAB: addData() → QCustomPlot replot
+```
+
+### 4.2 리셋 흐름 / Reset Flow
+
+```mermaid
+sequenceDiagram
+    box Layer 4 — Presentation
+        participant USER as 👤 User
+        participant MW as MainWindow
+        participant TAB as GraphTab (×11)
+    end
+    box Layer 3 — Domain
+        participant ME as MeasurementEngine
+    end
+    box Layer 1 — Acquisition
+        participant AM as AudioManager
+        participant AW as AudioWorker
+    end
+
+    USER->>MW: Reset 버튼 클릭 / Reset button click
+    MW->>TAB: reset() [×11 — clears QCustomPlot data]
+    MW->>ME: reset() [clears RLS, RollingAverage, beat state]
+    MW->>AM: stop() → restart()
+    AM->>AW: stop QThread
+    AM->>AW: start QThread (fresh ring buffer)
+    AW-->>ME: processBlock() resumes with fresh PCM
+    ME-->>MW: emit measurementReady() [new measurement cycle]
+```
+
+> **Legend (범례)**
+>
+> | 표기 / Notation | 의미 / Meaning |
+> |---|---|
+> | `box Layer N` | 해당 레이어에 소속된 참여자 그룹 |
+> | `->>` | 동기 호출 / Synchronous call |
+> | `-->>` | 반환값 또는 시그널 / Return value or Qt signal |
+> | `[QueuedConnection]` | Qt 이벤트 루프를 통한 스레드 경계 전달 |
+> | `×11` | 11개 탭 모두 동일하게 호출됨 |
+> | `computeXxx()` | MeasurementEngine 내부 private 메서드 (레이어 외부 미노출) |
+
+---
+
+## 5. 컴포넌트 뷰 / Component View
 
 **한국어**
 
@@ -226,7 +331,7 @@ Responsibilities, dependencies, and key interfaces for each component.
 
 ---
 
-## 5. 클래스 뷰 / Observer Pattern Class View
+## 6. 클래스 뷰 / Observer Pattern Class View
 
 **한국어**
 
@@ -314,7 +419,7 @@ connectTab(mRateScopeTab);  // 11개 탭 모두 동일 방식
 
 ---
 
-## 6. 데이터 뷰 / Measurement DTO
+## 7. 데이터 뷰 / Measurement DTO
 
 **한국어**
 
@@ -362,7 +467,7 @@ The `Measurement` struct is the **sole data channel** conveying one block's resu
 
 ---
 
-## 7. 11개 탭 상세 / 11 Graph Tabs Detail
+## 8. 11개 탭 상세 / 11 Graph Tabs Detail
 
 **한국어**
 
@@ -397,7 +502,7 @@ Every tab only needs to implement `BaseGraphTab::onMeasurement(const Measurement
 
 ---
 
-## 8. QAS 대응 전술 / QAS Tactics
+## 9. QAS 대응 전술 / QAS Tactics
 
 **한국어**
 
@@ -422,7 +527,7 @@ Traces how each Quality Attribute Scenario is implemented in code.
 
 ---
 
-## 9. 디렉토리 구조 / Directory Structure
+## 10. 디렉토리 구조 / Directory Structure
 
 **한국어**
 
