@@ -183,18 +183,12 @@ void MainWindow::onMeasurementReady(const Measurement &m)
 
 void MainWindow::DisplayResults(const Measurement &m)
 {
-    // QAS-4 Heartbeat: A-event가 오면 타이머 재시작, 3초 무음이면 경고
-    for (const AcousticEvent &ev : m.events) {
-        if (ev.isA) { mLastBeatTimer.restart(); mLastBeatTimerStarted = true; break; }
-    }
-    QString warning;
-    if (mLastBeatTimerStarted && mLastBeatTimer.elapsed() > kNoSignalThresholdMs)
-        warning = "⚠ No signal   ";
-
-    QString bphStr     = m.synced ? QString("%1").arg(m.detectedBph, 5, 10, QChar(' ')) : "-----";
-    QString rateStr    = m.rateValid ? QString::asprintf("%+6.1f", m.rateErrorSpd) : "------";
-    QString beatStr    = m.beatErrorValid ? QString("%1").arg(m.beatErrorMs, 4, 'f', 1) : "----";
-    QString ampStr     = m.amplitudeValid ? QString("%1°").arg(qRound64(m.amplitudeDeg), 3, 10, QChar(' ')) : "---";
+    // View: format values for display — no domain logic here
+    QString warning  = m.noSignal ? "⚠ No signal   " : "";
+    QString bphStr   = m.synced ? QString("%1").arg(m.detectedBph, 5, 10, QChar(' ')) : "-----";
+    QString rateStr  = m.rateValid ? QString::asprintf("%+6.1f", m.rateErrorSpd) : "------";
+    QString beatStr  = m.beatErrorValid ? QString("%1").arg(m.beatErrorMs, 4, 'f', 1) : "----";
+    QString ampStr   = m.amplitudeValid ? QString("%1°").arg(qRound64(m.amplitudeDeg), 3, 10, QChar(' ')) : "---";
     ui->Results->setText(warning + "RATE " + rateStr + " s/d   AMPLITUDE " + ampStr +
                          "   BEAT ERROR " + beatStr + " ms   BEAT " + bphStr + " bph");
 }

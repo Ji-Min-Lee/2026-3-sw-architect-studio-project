@@ -170,9 +170,5 @@ private:
     uint64_t mForegroundFrameCount = 0;
     uint64_t mForegroundSampleCount = 0;
 
-    // QAS-4 Heartbeat: A-event 기반 신호 감지
-    QElapsedTimer mLastBeatTimer;
-    bool          mLastBeatTimerStarted = false;
-    static constexpr qint64 kNoSignalThresholdMs = 3000; // 3초 무음 → No signal
 };
 #endif

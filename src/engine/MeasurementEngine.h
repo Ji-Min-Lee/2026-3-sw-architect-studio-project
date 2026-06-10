@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <QElapsedTimer>
 #include "Timegrapher.h"
 #include "RollingLeastSquares.h"
 #include "RollingAverage.h"
@@ -88,4 +89,9 @@ private:
 
     double mLastA     = 0.0;
     bool   mHaveLastA = false;
+
+    // QAS-4: no-signal detection (owned by Model, not Controller)
+    QElapsedTimer mNoSignalTimer;
+    bool          mNoSignalTimerStarted = false;
+    static constexpr qint64 kNoSignalThresholdMs = 3000;
 };

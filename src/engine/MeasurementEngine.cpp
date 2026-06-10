@@ -77,6 +77,8 @@ void MeasurementEngine::reset()
     mAmp.haveA    = false;
     mAmp.ticValid = false;
     mAmp.roll->Reset();
+
+    mNoSignalTimerStarted = false;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -131,6 +133,10 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
             ae.samplePos = ev.sample_index + ev.sub_sample_offset;
             ae.peakValue = ev.peak_value;
 
+            // QAS-4: reset no-signal timer on each A-event
+            mNoSignalTimer.restart();
+            mNoSignalTimerStarted = true;
+
             computeRateError(ae.samplePos, m.synced, r.detected_bph, ae);
             computeBeatError(ae.samplePos, m.synced, r.detected_bph);
 
@@ -169,6 +175,7 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     m.beatErrorMs    = m.beatErrorValid ? mBeat.roll->GetAverage() : 0.0;
     m.amplitudeValid = (mAmp.roll->CurrentSize() > 0);
     m.amplitudeDeg   = m.amplitudeValid ? mAmp.roll->GetAverage() : 0.0;
+    m.noSignal       = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
 
     emit measurementReady(m);
 }

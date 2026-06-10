@@ -55,5 +55,8 @@ struct Measurement {
     bool    amplitudeValid = false;
     double  amplitudeDeg   = 0.0; // degrees (rolling average)
 
+    // QAS-4: true when no A-event received for >= 3 s (set by MeasurementEngine)
+    bool    noSignal = false;
+
     int     samplesPerSecond = 48000;
 };
