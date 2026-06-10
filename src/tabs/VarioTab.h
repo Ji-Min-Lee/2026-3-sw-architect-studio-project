@@ -11,6 +11,8 @@ class VarioTab : public BaseGraphTab
 public:
     explicit VarioTab(QWidget *parent = nullptr);
     void reset() override;
+public:
+    QCustomPlot *plot() const { return mPlot; }
 public slots:
     void onMeasurement(const Measurement &m) override;
 private:

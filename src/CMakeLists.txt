@@ -171,3 +171,32 @@ install(TARGETS TimeGrapher
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(TimeGrapher)
 endif()
+
+# ── Unit Tests ────────────────────────────────────────────────────────────────
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test REQUIRED)
+enable_testing()
+
+set(TEST_SOURCES
+    tests/test_graph_tabs.cpp
+    tabs/TraceTab.cpp
+    tabs/BeatErrorTab.cpp
+    tabs/VarioTab.cpp
+    tabs/BaseGraphTab.h   # MOC 생성 트리거용 (no .cpp)
+    external/qcustomplot.cpp
+)
+
+add_executable(TestGraphTabs ${TEST_SOURCES})
+set_target_properties(TestGraphTabs PROPERTIES AUTOMOC ON)
+target_include_directories(TestGraphTabs PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/tabs
+    ${CMAKE_CURRENT_SOURCE_DIR}/ui
+)
+target_link_libraries(TestGraphTabs PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+)
+add_test(NAME GraphTabs COMMAND TestGraphTabs)

@@ -10,6 +10,8 @@ class TraceTab : public BaseGraphTab
 public:
     explicit TraceTab(QWidget *parent = nullptr);
     void reset() override;
+public:
+    QCustomPlot *plot() const { return mPlot; }
 public slots:
     void onMeasurement(const Measurement &m) override;
 private:
