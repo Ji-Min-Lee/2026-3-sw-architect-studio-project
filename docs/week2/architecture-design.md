@@ -1,6 +1,7 @@
 # God Object 분해 설계 (Week 2 갱신) / God Object Decomposition Design (Week 2 Update)
 
-> **작성일 / Date**: 2026-06-10
+> **작성일 / Date**: 2026-06-10  
+> **최종 갱신 / Last Updated**: 2026-06-11 — MVC 역할 경계 리팩토링 반영  
 > **브랜치 / Branch**: `feature/layer`
 > **출처 / Source**: `src/` 실제 구현 코드 기준
 
@@ -228,6 +229,8 @@ sequenceDiagram
     ME->>ME: computeRateError() → AcousticEvent.wrappedRateError
     ME->>ME: computeBeatError() → beatErrorMs
     ME->>ME: computeAmplitude() → ticAmpDeg / tocAmpDeg
+    ME->>ME: noSignal = (elapsed > 3s) → Measurement.noSignal
+    Note right of ME: QAS-4 판단은 Model 책임<br/>View는 noSignal 필드만 읽음
     ME-->>MW: emit measurementReady(Measurement) [QueuedConnection]
 
     MW->>TAB: onMeasurement(m) [×11, same Measurement copy]
@@ -308,7 +311,7 @@ Responsibilities, dependencies, and key interfaces for each component.
 
 | 컴포넌트 / Component | 역할 / Role | 핵심 API | 패턴 |
 |---|---|---|---|
-| `MeasurementEngine` | Model + Observer Subject | `processBlock()` → `emit measurementReady()` | MVC Model, Observer Subject |
+| `MeasurementEngine` | Model + Observer Subject — Rate·Beat·Amplitude 계산 및 QAS-4 noSignal 판단 포함 | `processBlock()` → `emit measurementReady()` | MVC Model, Observer Subject |
 | `Measurement` | 측정 결과 DTO | 데이터 구조체 (메서드 없음) | DTO (Data Transfer Object) |
 | `AcousticEvent` | 단일 A/C 이벤트 정보 | 데이터 구조체 | DTO |
 | `RollingLeastSquares` | Rate 계산용 슬라이딩 회귀 | `Add()` `GetSlope()` | Strategy |
@@ -328,6 +331,30 @@ Responsibilities, dependencies, and key interfaces for each component.
 > - **MVC**: Model-View-Controller 패턴
 > - **Observer Subject**: 상태 변경을 구독자에게 통보하는 역할
 > - **Observer ConcreteObserver**: Subject의 통보를 받아 화면 갱신
+
+### 5.5 MVC 역할 경계 / MVC Role Boundaries
+
+**한국어**
+
+MVC 세 역할이 이 프로젝트에서 어떻게 대응되는지, 그리고 각 역할이 **하면 안 되는 것**을 명시합니다.
+
+**English**
+
+Shows how MVC roles map to this project and what each role must **not** do.
+
+| MVC 역할 / Role | 이 프로젝트 구현체 / Implementation | 해야 할 것 / Must Do | 하면 안 되는 것 / Must NOT Do |
+|:---:|---|---|---|
+| **Model** | `MeasurementEngine` + `Measurement` DTO | Rate·Beat·Amplitude 계산, `noSignal` 판단, 상태 관리 | `QLabel`, `setText()` 등 UI 코드 참조 |
+| **View** | 11개 `GraphTab` + `MainWindow::DisplayResults()` | `Measurement` 필드를 읽어 화면에 표시, 문자열 포맷 | `elapsed > 3000` 같은 도메인 판단, 계산 |
+| **Controller** | `MainWindow` (탭 연결·생성·리셋) | 사용자 입력 → `mEngine` 호출, 탭 등록 | 비즈니스 로직, 렌더링 코드 |
+
+**리팩토링 전후 비교 / Before vs After**
+
+| 항목 / Item | Before (위반) | After (수정) |
+|---|---|---|
+| noSignal 판단 위치 | `MainWindow::DisplayResults()` — Controller | `MeasurementEngine::processBlock()` — Model ✅ |
+| noSignal 전달 방식 | Controller가 직접 `QElapsedTimer` 보유·판단 | `Measurement.noSignal` 필드로 발행, View가 읽기만 함 ✅ |
+| DisplayResults() 책임 | 판단 + 포맷 혼재 | 포맷(View 로직)만 담당 ✅ |
 
 ---
 
@@ -365,6 +392,7 @@ classDiagram
         +double beatErrorMs
         +bool amplitudeValid
         +double amplitudeDeg
+        +bool noSignal
         +int samplesPerSecond
         <<DTO>>
     }
@@ -447,6 +475,7 @@ The `Measurement` struct is the **sole data channel** conveying one block's resu
 | `beatErrorMs` | `double` | Beat Error 롤링 평균 (ms) | BeatErrorTab |
 | `amplitudeValid` | `bool` | Amplitude 유효 여부 | VarioTab |
 | `amplitudeDeg` | `double` | Amplitude 롤링 평균 (°) | VarioTab (참고용) |
+| `noSignal` | `bool` | A-event 3초 이상 미수신 (QAS-4) — **Engine이 판단, View가 읽기만 함** | MainWindow (ResultsLabel) |
 | `samplesPerSecond` | `int` | 현재 샘플레이트 (Hz) | 모든 탭 (시간 환산) |
 
 ### AcousticEvent 필드 / Fields
@@ -520,7 +549,7 @@ Traces how each Quality Attribute Scenario is implemented in code.
 | **QAS-2** | Low Latency | Reduce Overhead | `rpQueuedReplot` — 프레임당 1회만 replot |
 | **QAS-3** | Correctness | Observer Pattern | `MeasurementEngine::emit measurementReady()` 단일 발행 |
 | **QAS-3** | Correctness | Pipe-and-Filter | `Dsp` → `Detector` → `MeasurementEngine` 단방향 |
-| **QAS-4** | Usability | Heartbeat | `MainWindow::DisplayResults()` — A-event 3초 미수신 → `⚠ No signal` |
+| **QAS-4** | Usability | Heartbeat | `MeasurementEngine::processBlock()` — A-event 3초 미수신 시 `Measurement.noSignal = true` 세팅; View는 필드만 읽어 표시 |
 | **QAS-5** | Extensibility | Split Module | God Object → 4계층, 20+ 클래스 분리 |
 | **QAS-5** | Extensibility | Observer/Signal-Slot | 새 탭 = BaseGraphTab 상속 + 3줄 등록 |
 | **QAS-5** | Extensibility | Restrict Dependencies | Presentation → Domain 단방향 (Signal Processing 직접 참조 금지) |
