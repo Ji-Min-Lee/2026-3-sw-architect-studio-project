@@ -22,6 +22,9 @@
 #include "EscapementTab.h"
 #include "SpectrogramTab.h"
 #include "WaveformCompTab.h"
+#include "SweepScopeTab.h"
+#include "FilterScopeTab.h"
+#include <QPushButton>
 
 
 QT_BEGIN_NAMESPACE
@@ -128,6 +131,14 @@ private:
     EscapementTab    *mEscapementTab    = nullptr;
     SpectrogramTab   *mSpectrogramTab   = nullptr;
     WaveformCompTab  *mWaveformCompTab  = nullptr;
+    SweepScopeTab    *mSweepScopeTab    = nullptr;
+    FilterScopeTab   *mFilterScopeTab   = nullptr;
+    QList<BaseGraphTab *> mAllTabs;     // for global pause + reset
+
+    // Watch-position testing (NIHS 95-10/ISO 3158) + global display pause
+    QComboBox   *mPositionCombo = nullptr;
+    QPushButton *mPauseButton   = nullptr;
+    QString      mActivePosition = "CH";
 
     // Audio threads
     WavStreamWriter       *mWavWriter            = nullptr;

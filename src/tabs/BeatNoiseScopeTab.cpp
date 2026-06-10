@@ -1,283 +1,271 @@
 #include "BeatNoiseScopeTab.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QLabel>
-#include <QSplitter>
-#include <cmath>
+
+namespace {
+constexpr double kBufSeconds   = 1.0;   // rolling buffer length
+constexpr double kPreEventMs   = 2.0;   // window starts this much before A
+constexpr double kScope2Ms     = 20.0;  // fixed Scope 2 range
+} // namespace
 
 BeatNoiseScopeTab::BeatNoiseScopeTab(QWidget *parent) : BaseGraphTab(parent)
 {
-    auto *root = new QVBoxLayout(this);
-    root->setContentsMargins(4, 4, 4, 4);
-    root->setSpacing(4);
+    auto *lay = new QVBoxLayout(this);
 
-    // ── control bar ──────────────────────────────────────────
-    auto *bar = new QHBoxLayout;
-    bar->addWidget(new QLabel("Scope 1 range:"));
-    mRangeCombo = new QComboBox;
-    mRangeCombo->addItem("20 ms");
-    mRangeCombo->addItem("200 ms");
-    mRangeCombo->addItem("400 ms");
-    bar->addWidget(mRangeCombo);
-    bar->addSpacing(16);
-    mAvgCheck = new QCheckBox("Σ Avg");
-    mAvgCheck->setChecked(true);
-    bar->addWidget(mAvgCheck);
-    bar->addStretch();
-    root->addLayout(bar);
+    auto *controls = new QHBoxLayout;
+    mViewCombo  = new QComboBox(this);
+    mViewCombo->addItems({"Scope 1", "Scope 2"});
+    mRangeCombo = new QComboBox(this);
+    mRangeCombo->addItems({"20 ms", "200 ms", "400 ms"});
+    mBeatCombo  = new QComboBox(this);
+    mBeatCombo->addItem("Latest beat");
+    mAvgCheck   = new QCheckBox("Σ averaging (50 tic / 50 tac)", this);
+    mInfoLabel  = new QLabel(this);
+    controls->addWidget(mViewCombo);
+    controls->addWidget(mRangeCombo);
+    controls->addWidget(mBeatCombo);
+    controls->addWidget(mAvgCheck);
+    controls->addWidget(mInfoLabel, 1);
+    lay->addLayout(controls);
 
-    // ── plots in a vertical splitter ─────────────────────────
-    auto *splitter = new QSplitter(Qt::Vertical, this);
+    mStack = new QStackedWidget(this);
 
-    mScope1Plot = new QCustomPlot;
-    setupScope1();
-    splitter->addWidget(mScope1Plot);
-
-    mScope2Plot = new QCustomPlot;
-    setupScope2();
-    splitter->addWidget(mScope2Plot);
-
-    splitter->setStretchFactor(0, 1);
-    splitter->setStretchFactor(1, 1);
-    root->addWidget(splitter, 1);
-}
-
-void BeatNoiseScopeTab::setupScope1()
-{
-    mScope1Plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    mScope1Plot->addGraph();
-    QPen wpen; wpen.setColor(QColor(80, 80, 80)); wpen.setWidth(1);
-    mScope1Plot->graph(0)->setPen(wpen);
-    mScope1Plot->graph(0)->setName("Waveform");
-    mScope1Plot->xAxis->setLabel("Time (ms)");
-    mScope1Plot->yAxis->setLabel("Amplitude");
-    mScope1Plot->legend->setVisible(false);
-
-    // A-event marker (green dashed, at x=0 initially)
-    mAMarker = new QCPItemLine(mScope1Plot);
-    QPen ap; ap.setColor(Qt::darkGreen); ap.setStyle(Qt::DashLine); ap.setWidth(2);
-    mAMarker->setPen(ap);
-    mAMarker->start->setType(QCPItemPosition::ptPlotCoords);
-    mAMarker->end->setType(QCPItemPosition::ptPlotCoords);
-    mAMarker->start->setCoords(0, -1); mAMarker->end->setCoords(0, 1);
-
-    // C-event marker (red dashed)
-    mCMarker = new QCPItemLine(mScope1Plot);
-    QPen cp; cp.setColor(Qt::red); cp.setStyle(Qt::DashLine); cp.setWidth(2);
-    mCMarker->setPen(cp);
-    mCMarker->start->setType(QCPItemPosition::ptPlotCoords);
-    mCMarker->end->setType(QCPItemPosition::ptPlotCoords);
-    mCMarker->start->setCoords(0, -1); mCMarker->end->setCoords(0, 1);
-    mCMarker->setVisible(false);
-}
-
-void BeatNoiseScopeTab::setupScope2()
-{
-    mScope2Plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-
-    // graph 0: tic (red), offset to upper half
-    mScope2Plot->addGraph();
-    mScope2Plot->graph(0)->setPen(QPen(Qt::red));
-    mScope2Plot->graph(0)->setName("Tic");
-
-    // graph 1: tac (blue), offset to lower half
-    mScope2Plot->addGraph();
-    mScope2Plot->graph(1)->setPen(QPen(Qt::blue));
-    mScope2Plot->graph(1)->setName("Tac");
-
-    // separator line at y = 0
-    QCPItemLine *sep = new QCPItemLine(mScope2Plot);
-    QPen sp; sp.setColor(QColor(180, 180, 180)); sp.setStyle(Qt::DotLine);
-    sep->setPen(sp);
-    sep->start->setType(QCPItemPosition::ptAxisRectRatio);
-    sep->end->setType(QCPItemPosition::ptAxisRectRatio);
-    sep->start->setCoords(0, 0.5); sep->end->setCoords(1, 0.5);
-
-    mScope2Plot->xAxis->setLabel("Time (ms)");
-    mScope2Plot->yAxis->setLabel("Tic / Tac");
-    mScope2Plot->yAxis->setTickLabels(false);
-    mScope2Plot->yAxis->setRange(-2, 2);
-    mScope2Plot->xAxis->setRange(0, kScope2Ms);
-    mScope2Plot->legend->setVisible(true);
-}
-
-// ── reset ────────────────────────────────────────────────────
-
-void BeatNoiseScopeTab::reset()
-{
-    mHavePendingA  = false;
-    mPendingRawPcm.clear();
-    mTicCount = mTacCount = 0;
-    mScopeWin2 = 0;
-    mTicAccum.clear(); mTacAccum.clear();
-    mTicAvg.clear();   mTacAvg.clear();
-
-    mScope1Plot->graph(0)->data()->clear();
-    mCMarker->setVisible(false);
-    mScope1Plot->replot();
-
-    mScope2Plot->graph(0)->data()->clear();
-    mScope2Plot->graph(1)->data()->clear();
-    mScope2Plot->replot();
-}
-
-// ── helpers ──────────────────────────────────────────────────
-
-int BeatNoiseScopeTab::scope1HalfSamples(int sps) const
-{
-    int msVal = 20;
-    if (mRangeCombo) {
-        int idx = mRangeCombo->currentIndex();
-        if (idx == 1) msVal = 200;
-        else if (idx == 2) msVal = 400;
+    mPlot1 = new QCustomPlot(this);
+    mPlot1->addGraph();
+    mPlot1->graph(0)->setPen(QPen(QColor(180, 140, 0)));
+    mPlot1->graph(0)->setBrush(QBrush(QColor(240, 200, 60, 120)));
+    mPlot1->xAxis->setLabel("Time (ms)");
+    mPlot1->yAxis->setLabel("|Amplitude|");
+    mPlot1->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    mAMarker = new QCPItemLine(mPlot1);
+    mCMarker = new QCPItemLine(mPlot1);
+    for (auto *mk : {mAMarker, mCMarker}) {
+        mk->start->setTypeY(QCPItemPosition::ptAxisRectRatio);
+        mk->end->setTypeY(QCPItemPosition::ptAxisRectRatio);
+        mk->setVisible(false);
     }
-    return sps * msVal / 1000;
+    mAMarker->setPen(QPen(Qt::darkGreen, 1.5, Qt::DashLine));
+    mCMarker->setPen(QPen(Qt::red, 1.5, Qt::DashLine));
+    mStack->addWidget(mPlot1);
+
+    mPlot2 = new QCustomPlot(this);
+    mPlot2->plotLayout()->clear();
+    auto *ticRect = new QCPAxisRect(mPlot2);
+    auto *tocRect = new QCPAxisRect(mPlot2);
+    mPlot2->plotLayout()->addElement(0, 0, ticRect);
+    mPlot2->plotLayout()->addElement(1, 0, tocRect);
+    mTicGraph2 = mPlot2->addGraph(ticRect->axis(QCPAxis::atBottom), ticRect->axis(QCPAxis::atLeft));
+    mTocGraph2 = mPlot2->addGraph(tocRect->axis(QCPAxis::atBottom), tocRect->axis(QCPAxis::atLeft));
+    mTicGraph2->setPen(QPen(QColor(180, 140, 0)));
+    mTicGraph2->setBrush(QBrush(QColor(240, 200, 60, 120)));
+    mTocGraph2->setPen(QPen(QColor(180, 140, 0)));
+    mTocGraph2->setBrush(QBrush(QColor(240, 200, 60, 120)));
+    tocRect->axis(QCPAxis::atBottom)->setLabel("Time (ms)");
+    mStack->addWidget(mPlot2);
+
+    lay->addWidget(mStack, 1);
+
+    connect(mViewCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
+        mStack->setCurrentIndex(i);
+        mRangeCombo->setEnabled(i == 0);
+        mBeatCombo->setEnabled(i == 0);
+        mAvgCheck->setEnabled(i == 1);
+        if (i == 0) redrawScope1(); else redrawScope2();
+    });
+    connect(mRangeCombo, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, [this](int) { redrawScope1(); });
+    connect(mBeatCombo, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, [this](int) { redrawScope1(); });
+    connect(mAvgCheck, &QCheckBox::toggled, this, [this](bool) { redrawScope2(); });
+
+    mRangeCombo->setEnabled(true);
+    mAvgCheck->setEnabled(false);
+    setLiftAngle(mLiftAngle);
 }
 
-void BeatNoiseScopeTab::ensureScope2Buffers(int sps)
+void BeatNoiseScopeTab::setLiftAngle(double deg)
 {
-    int win = sps * kScope2Ms / 1000;
-    if (mScopeWin2 == win) return;
-    mScopeWin2 = win;
-    mTicAccum.assign(win, 0.0); mTacAccum.assign(win, 0.0);
-    mTicAvg.assign(win, 0.0);   mTacAvg.assign(win, 0.0);
-    mTicCount = mTacCount = 0;
+    mLiftAngle = deg;
+    mInfoLabel->setText(QString("Lift angle %1°").arg(mLiftAngle, 0, 'f', 1));
 }
 
-QVector<double> BeatNoiseScopeTab::extractWindow(const QVector<float> &rawPcm,
-                                                  uint64_t tickStart,
-                                                  double eventPosAbs,
-                                                  int halfSamples, int sps) const
+int BeatNoiseScopeTab::rangeSamples() const
 {
-    int center = (int)(eventPosAbs - (double)tickStart);
-    QVector<double> out(halfSamples, 0.0);
-    for (int i = 0; i < halfSamples; i++) {
-        int idx = center + i;
-        if (idx >= 0 && idx < rawPcm.size())
-            out[i] = rawPcm[idx];
-    }
-    return out;
+    static const double ms[] = {20.0, 200.0, 400.0};
+    int idx = qBound(0, mRangeCombo->currentIndex(), 2);
+    return (int)(ms[idx] / 1000.0 * mSps);
 }
 
-// ── Scope 1 update ───────────────────────────────────────────
-
-void BeatNoiseScopeTab::updateScope1(const QVector<float> &rawPcm,
-                                      uint64_t tickStart,
-                                      double aPosAbs, double cPosAbs, int sps)
+void BeatNoiseScopeTab::appendSamples(const Measurement &m)
 {
-    int half = scope1HalfSamples(sps);
-    double msPerSample = 1000.0 / sps;
-
-    // Align window: A event sits at t = 0; show [0, range_ms)
-    int aIdx = (int)(aPosAbs - (double)tickStart);
-    QVector<double> xs, ys;
-    xs.reserve(half); ys.reserve(half);
-    for (int i = 0; i < half; i++) {
-        int idx = aIdx + i;
-        xs.append(i * msPerSample);
-        ys.append((idx >= 0 && idx < rawPcm.size()) ? (double)rawPcm[idx] : 0.0);
-    }
-    mScope1Plot->graph(0)->setData(xs, ys);
-
-    // A marker always at x = 0
-    double yRange = 1.0;
-    mAMarker->start->setCoords(0, -yRange);
-    mAMarker->end->setCoords(0,  yRange);
-
-    // C marker at offset from A
-    double cOffsetMs = (cPosAbs - aPosAbs) * msPerSample;
-    mCMarker->start->setCoords(cOffsetMs, -yRange);
-    mCMarker->end->setCoords(cOffsetMs,  yRange);
-    mCMarker->setVisible(true);
-
-    mScope1Plot->xAxis->setRange(0, half * msPerSample);
-    mScope1Plot->yAxis->rescale();
-    mScope1Plot->replot(QCustomPlot::rpQueuedReplot);
-}
-
-// ── Scope 2 accumulation ─────────────────────────────────────
-
-void BeatNoiseScopeTab::accumulateScope2(const QVector<float> &rawPcm,
-                                          uint64_t tickStart,
-                                          double eventPosAbs, int sps,
-                                          QVector<double> &accum, int &count,
-                                          QVector<double> &avg, int graphIdx)
-{
-    if (!mAvgCheck || !mAvgCheck->isChecked()) {
-        // No averaging: just show the raw window
-        QVector<double> win = extractWindow(rawPcm, tickStart, eventPosAbs,
-                                            mScopeWin2, sps);
-        double msPerSample = 1000.0 / sps;
-        double yOff = (graphIdx == 0) ? 1.0 : -1.0;
-        QVector<double> xs(mScopeWin2), ys(mScopeWin2);
-        for (int i = 0; i < mScopeWin2; i++) {
-            xs[i] = i * msPerSample;
-            ys[i] = win[i] + yOff;
-        }
-        mScope2Plot->graph(graphIdx)->setData(xs, ys);
-        mScope2Plot->replot(QCustomPlot::rpQueuedReplot);
-        return;
-    }
-
-    // Accumulate
-    QVector<double> win = extractWindow(rawPcm, tickStart, eventPosAbs,
-                                        mScopeWin2, sps);
-    for (int i = 0; i < mScopeWin2; i++)
-        accum[i] += win[i];
-    count++;
-
-    // Show running average
-    double msPerSample = 1000.0 / sps;
-    double yOff = (graphIdx == 0) ? 1.0 : -1.0;
-    QVector<double> xs(mScopeWin2), ys(mScopeWin2);
-    for (int i = 0; i < mScopeWin2; i++) {
-        xs[i] = i * msPerSample;
-        ys[i] = (accum[i] / count) + yOff;
-        avg[i] = accum[i] / count;
-    }
-    mScope2Plot->graph(graphIdx)->setData(xs, ys);
-    mScope2Plot->replot(QCustomPlot::rpQueuedReplot);
-
-    // Cycle complete: reset accumulation for next cycle
-    if (count >= kAvgCycle) {
-        accum.fill(0.0);
-        count = 0;
+    mSps = m.samplesPerSecond;
+    if (mBuf.isEmpty()) mBufStartAbs = (double)m.graphTickStart;
+    for (double v : m.pcm) mBuf.append(std::abs(v));
+    int maxLen = (int)(kBufSeconds * mSps);
+    if (mBuf.size() > maxLen) {
+        int drop = mBuf.size() - maxLen;
+        mBuf.remove(0, drop);
+        mBufStartAbs += drop;
     }
 }
-
-// ── onMeasurement ────────────────────────────────────────────
 
 void BeatNoiseScopeTab::onMeasurement(const Measurement &m)
 {
-    if (m.rawPcm.isEmpty()) return;
-
-    ensureScope2Buffers(m.samplesPerSecond);
+    appendSamples(m);
 
     for (const AcousticEvent &ev : m.events) {
         if (ev.isA) {
-            // Save this A event; wait for the paired C
-            mHavePendingA    = true;
-            mPendingAPos     = ev.samplePos;
-            mPendingRawPcm   = m.rawPcm;
-            mPendingTickStart = m.graphTickStart;
-        } else if (mHavePendingA) {
-            // Paired C event arrived
-            double aPosAbs = mPendingAPos;
-            double cPosAbs = ev.samplePos;
-
-            // Scope 1: use the block that contains the A event
-            updateScope1(mPendingRawPcm, mPendingTickStart,
-                         aPosAbs, cPosAbs, m.samplesPerSecond);
-
-            // Scope 2: accumulate tic (channel 0) aligned on A, tac (channel 1) aligned on C
-            accumulateScope2(mPendingRawPcm, mPendingTickStart,
-                             aPosAbs, m.samplesPerSecond,
-                             mTicAccum, mTicCount, mTicAvg, 0);
-            accumulateScope2(m.rawPcm, m.graphTickStart,
-                             cPosAbs, m.samplesPerSecond,
-                             mTacAccum, mTacCount, mTacAvg, 1);
-
-            mHavePendingA = false;
+            Beat b;
+            b.aPos  = ev.samplePos;
+            b.isTic = ev.hasRatePoint ? ev.isTic : (mParity == 0);
+            mParity ^= 1;
+            mPending.append(b);
+            if (mPending.size() > 4) mPending.removeFirst();
+        } else if (!mPending.isEmpty() && mPending.last().cPos < 0) {
+            mPending.last().cPos = ev.samplePos;
         }
     }
+    fulfillPending();
+
+    if (mPaused) return;
+    if (mStack->currentIndex() == 0) redrawScope1();
+    else                             redrawScope2();
+}
+
+void BeatNoiseScopeTab::fulfillPending()
+{
+    const int pre  = (int)(kPreEventMs / 1000.0 * mSps);
+    const int len  = rangeSamples();
+    const int len2 = (int)(kScope2Ms / 1000.0 * mSps);
+    const double bufEndAbs = mBufStartAbs + mBuf.size();
+
+    for (int i = mPending.size() - 1; i >= 0; i--) {
+        Beat &b = mPending[i];
+        double start = b.aPos - pre;
+        int    need  = qMax(len, len2);
+        if (start < mBufStartAbs) { mPending.removeAt(i); continue; }
+        if (start + need > bufEndAbs) continue;        // wait for more samples
+
+        b.startAbs = start;
+        int s0 = (int)(start - mBufStartAbs);
+        b.ys.resize(need);
+        for (int k = 0; k < need; k++) b.ys[k] = mBuf[s0 + k];
+
+        // Scope 2 accumulation (first 20 ms of the window)
+        QVector<double> *sum = b.isTic ? &mTicSum : &mTocSum;
+        int *cnt = b.isTic ? &mTicCount : &mTocCount;
+        if (*cnt < kAvgCycle) {
+            if (sum->size() != len2) { sum->fill(0.0, len2); *cnt = 0; }
+            for (int k = 0; k < len2; k++) (*sum)[k] += b.ys[k];
+            (*cnt)++;
+        }
+
+        mBeats.prepend(b);
+        if (mBeats.size() > 10) mBeats.removeLast();
+        mPending.removeAt(i);
+    }
+
+    // Beat selector: latest + up to 9 prior strips
+    while (mBeatCombo->count() < qMin(mBeats.size(), 10))
+        mBeatCombo->addItem(QString("Beat −%1").arg(mBeatCombo->count()));
+}
+
+void BeatNoiseScopeTab::redrawScope1()
+{
+    if (mBeats.isEmpty()) return;
+    int idx = qBound(0, mBeatCombo->currentIndex(), mBeats.size() - 1);
+    const Beat &b = mBeats[idx];
+
+    const int len = qMin(rangeSamples(), (int)b.ys.size());
+    if (len <= 0) return;
+    QVector<double> xs(len), ys(len);
+    for (int i = 0; i < len; i++) {
+        xs[i] = (double)i / mSps * 1000.0;
+        ys[i] = b.ys[i];
+    }
+    mPlot1->graph(0)->setData(xs, ys, true);
+    mPlot1->xAxis->setRange(0, xs.last());
+    mPlot1->yAxis->rescale();
+
+    auto place = [&](QCPItemLine *mk, double absPos) {
+        if (absPos < 0) { mk->setVisible(false); return; }
+        double xMs = (absPos - b.startAbs) / mSps * 1000.0;
+        mk->start->setCoords(xMs, 0.0);
+        mk->end->setCoords(xMs, 1.0);
+        mk->setVisible(xMs >= 0 && xMs <= xs.last());
+    };
+    place(mAMarker, b.aPos);
+    place(mCMarker, b.cPos);
+
+    mInfoLabel->setText(QString("Lift angle %1°   A=green C=red markers   beat %2 (%3)")
+                            .arg(mLiftAngle, 0, 'f', 1)
+                            .arg(idx == 0 ? "latest" : QString("−%1").arg(idx))
+                            .arg(b.isTic ? "tic" : "tac"));
+    mPlot1->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void BeatNoiseScopeTab::redrawScope2()
+{
+    const int len2 = (int)(kScope2Ms / 1000.0 * mSps);
+    auto trace = [&](bool tic) -> QVector<double> {
+        if (mAvgCheck->isChecked()) {
+            const QVector<double> &sum = tic ? mTicSum : mTocSum;
+            int cnt = tic ? mTicCount : mTocCount;
+            QVector<double> out(sum.size());
+            for (int i = 0; i < sum.size(); i++) out[i] = cnt ? sum[i] / cnt : 0.0;
+            return out;
+        }
+        for (const Beat &b : mBeats)
+            if (b.isTic == tic)
+                return b.ys.mid(0, qMin(len2, (int)b.ys.size()));
+        return {};
+    };
+
+    double avgAmp[2] = {0, 0};
+    QCPGraph *graphs[2] = {mTicGraph2, mTocGraph2};
+    for (int t = 0; t < 2; t++) {
+        QVector<double> ys = trace(t == 0);
+        QVector<double> xs(ys.size());
+        double peak = 0;
+        for (int i = 0; i < ys.size(); i++) {
+            xs[i] = (double)i / mSps * 1000.0;
+            peak  = qMax(peak, ys[i]);
+        }
+        avgAmp[t] = peak;
+        graphs[t]->setData(xs, ys, true);
+        graphs[t]->keyAxis()->setRange(0, kScope2Ms);
+        graphs[t]->valueAxis()->rescale();
+    }
+
+    QString cycle = (mTicCount >= kAvgCycle && mTocCount >= kAvgCycle)
+                        ? "cycle complete"
+                        : QString("averaging %1/%2 + %3/%4")
+                              .arg(mTicCount).arg(kAvgCycle).arg(mTocCount).arg(kAvgCycle);
+    mInfoLabel->setText(QString("Lift angle %1°   trace A avg ➜ %2   trace B avg ➜ %3   (%4)")
+                            .arg(mLiftAngle, 0, 'f', 1)
+                            .arg(avgAmp[0], 0, 'f', 3).arg(avgAmp[1], 0, 'f', 3)
+                            .arg(mAvgCheck->isChecked() ? cycle : "Σ off"));
+    mPlot2->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void BeatNoiseScopeTab::reset()
+{
+    mBuf.clear();
+    mPending.clear();
+    mBeats.clear();
+    mParity = 0;
+    mTicSum.clear(); mTocSum.clear();
+    mTicCount = mTocCount = 0;
+    mBeatCombo->blockSignals(true);
+    mBeatCombo->clear();
+    mBeatCombo->addItem("Latest beat");
+    mBeatCombo->blockSignals(false);
+    mPlot1->graph(0)->data()->clear();
+    mAMarker->setVisible(false);
+    mCMarker->setVisible(false);
+    mTicGraph2->data()->clear();
+    mTocGraph2->data()->clear();
+    mPlot1->replot();
+    mPlot2->replot();
+    setLiftAngle(mLiftAngle);
 }

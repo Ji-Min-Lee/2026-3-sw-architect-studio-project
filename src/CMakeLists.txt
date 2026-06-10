@@ -74,6 +74,10 @@ set(TABS_SOURCES
     tabs/SpectrogramTab.cpp
     tabs/WaveformCompTab.h
     tabs/WaveformCompTab.cpp
+    tabs/SweepScopeTab.h
+    tabs/SweepScopeTab.cpp
+    tabs/FilterScopeTab.h
+    tabs/FilterScopeTab.cpp
 )
 
 set(EXTERNAL_SOURCES
@@ -200,3 +204,52 @@ target_link_libraries(TestGraphTabs PRIVATE
     Qt${QT_VERSION_MAJOR}::PrintSupport
 )
 add_test(NAME GraphTabs COMMAND TestGraphTabs)
+
+# ── Added-tab value-fidelity tests ───────────────────────────────────────────
+add_executable(TestAddedTabs
+    tests/test_added_tabs.cpp
+    tabs/SequenceTab.cpp
+    tabs/EscapementTab.cpp
+    tabs/LongTermTab.cpp
+    tabs/BeatNoiseScopeTab.cpp
+    tabs/WaveformCompTab.cpp
+    tabs/SpectrogramTab.cpp
+    tabs/BaseGraphTab.h
+    external/qcustomplot.cpp
+)
+set_target_properties(TestAddedTabs PROPERTIES AUTOMOC ON)
+target_include_directories(TestAddedTabs PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/tabs
+    ${CMAKE_CURRENT_SOURCE_DIR}/ui
+)
+target_link_libraries(TestAddedTabs PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+    kissfft
+)
+add_test(NAME AddedTabs COMMAND TestAddedTabs)
+
+# ── Engine file-verification harness (wav → MeasurementEngine → ground truth) ─
+add_executable(EngineFileCheck
+    tests/engine_file_check.cpp
+    ${ENGINE_SOURCES}
+    external/Timegrapher.cpp
+    external/Bph.cpp
+    external/Detector.cpp
+    external/Dsp.cpp
+)
+set_target_properties(EngineFileCheck PROPERTIES AUTOMOC ON)
+target_include_directories(EngineFileCheck PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio
+)
+target_link_libraries(EngineFileCheck PRIVATE
+    Qt${QT_VERSION_MAJOR}::Core
+    kissfft
+)

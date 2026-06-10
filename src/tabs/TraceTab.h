@@ -1,30 +1,46 @@
 #pragma once
 #include "BaseGraphTab.h"
 #include "qcustomplot.h"
+#include <QLabel>
 
-// Trace Display (Spec p.14, Figure 8)
+// Graph 2: Trace Display (Witschi Chronoscope X1 G3 manual p.14, Figure 8).
 //
-// Composite view: rate (top) + amplitude (bottom) as two stacked plots.
-// Rolling window policy: shows the most recent kWindowSecs seconds.
-// Both axes share the same rolling x-range so the user can correlate
-// rate and amplitude behaviour at the same point in time.
+// Two stacked graphs recorded continuously in real time:
+//   top    — rate deviation (s/d): raw samples + smoothed line
+//   bottom — amplitude (°) with the normal operating band 270–300° marked
+// Alerts the user when the smoothed rate indicates the watch is running late
+// or when amplitude falls outside the normal band, and shows long-term
+// session averages for both measures.
 class TraceTab : public BaseGraphTab
 {
     Q_OBJECT
 public:
     explicit TraceTab(QWidget *parent = nullptr);
     void reset() override;
-    QCustomPlot *plot() const { return mRatePlot; }
+public:
+    QCustomPlot *plot() const { return mPlot; }
 public slots:
     void onMeasurement(const Measurement &m) override;
-
 private:
-    static constexpr double kWindowSecs = 600.0; // 10-minute rolling window
+    void updateAlerts();
 
-    QCustomPlot *mRatePlot = nullptr;  // top:    rate error (s/day)
-    QCustomPlot *mAmpPlot  = nullptr;  // bottom: amplitude (°)
+    QLabel      *mAlertLabel;
+    QLabel      *mSummaryLabel;
+    QCustomPlot *mPlot;
+    QCPGraph    *mSmoothedGraph = nullptr;  // smoothed s/d (top rect)
+    QCPGraph    *mAmpGraph      = nullptr;  // amplitude (bottom rect)
+    QCPAxisRect *mAmpRect       = nullptr;
 
     double mTimeElapsed = 0.0;
 
-    void applyRollingWindow();
+    // Smoothing (rolling mean of recent rate samples)
+    QVector<double> mRateWindow;
+    static constexpr int kSmoothWindow = 15;
+
+    // Long-term session averages
+    double  mRateSum = 0; quint64 mRateN = 0;
+    double  mAmpSum  = 0; quint64 mAmpN  = 0;
+    double  mLastSmoothed = 0;
+    bool    mHaveAmp = false;
+    double  mLastAmp = 0;
 };

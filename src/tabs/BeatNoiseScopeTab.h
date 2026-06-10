@@ -1,78 +1,77 @@
 #pragma once
 #include "BaseGraphTab.h"
 #include "qcustomplot.h"
-#include <QVector>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QLabel>
+#include <QStackedWidget>
 
-// Beat-Noise Scope Display (Spec p.17, Figure 11)
+// Graph 7: Beat-Noise Scope Display — Scope 1 & Scope 2
+// (Witschi Chronoscope X1 G3 manual p.19, project plan Figure 11).
 //
-// Scope 1 (top): live waveform of the most recent beat, centred on the A event.
-//   - Selectable time window: 20 / 200 / 400 ms
-//   - Green dashed line = A event position (x = 0)
-//   - Red  dashed line  = C event position
+// Scope 1: waveform of the alternating tick/tock beat noises with a
+//   selectable time range (20 / 200 / 400 ms), |signal| display, A (green)
+//   and C (red) markers, lift angle readout, and a selector to bring one of
+//   the last 10 captured beats back for enlarged inspection.
 //
-// Scope 2 (bottom): averaged tic / tac waveforms over a 50-beat cycle.
-//   - Fixed 20 ms window, centred on the triggering event
-//   - When averaging is ON, waveforms accumulate until 50 tic + 50 tac,
-//     then the cycle resets and starts again.
-//   - Tic trace (red) plotted at y-offset +1, Tac trace (blue) at y-offset -1.
-//   - The system does not assign tic/tac to a fixed channel; it collects
-//     alternating A/C pairs as-is (per spec: "no fixed assignment").
+// Scope 2: tic and tac noises on two horizontal axes over a fixed 20 ms
+//   range, with a Σ control that averages up to 50 tic and 50 tac noises to
+//   reduce random noise; the average amplitude of each trace is reported.
 class BeatNoiseScopeTab : public BaseGraphTab
 {
     Q_OBJECT
 public:
     explicit BeatNoiseScopeTab(QWidget *parent = nullptr);
     void reset() override;
+    void setLiftAngle(double deg);
+
+    int capturedBeats() const { return mBeats.size(); }
+    QCustomPlot *scope1Plot() const { return mPlot1; }
 
 public slots:
     void onMeasurement(const Measurement &m) override;
 
 private:
-    // ── controls ──────────────────────────────────────────────
-    QComboBox   *mRangeCombo  = nullptr;  // 20 / 200 / 400 ms
-    QCheckBox   *mAvgCheck    = nullptr;  // Σ averaging toggle
+    struct Beat {
+        QVector<double> ys;       // |processed pcm| window
+        double startAbs = 0;      // absolute sample index of ys[0]
+        double aPos = -1, cPos = -1;
+        bool   isTic = true;
+    };
 
-    // ── Scope 1 ───────────────────────────────────────────────
-    QCustomPlot *mScope1Plot  = nullptr;
-    QCPItemLine *mAMarker     = nullptr;  // green vertical at x=0
-    QCPItemLine *mCMarker     = nullptr;  // red   vertical at C offset
+    void appendSamples(const Measurement &m);
+    void fulfillPending();
+    void redrawScope1();
+    void redrawScope2();
+    int  rangeSamples() const;
 
-    // ── Scope 2 ───────────────────────────────────────────────
-    QCustomPlot *mScope2Plot  = nullptr;
+    // Controls
+    QComboBox *mViewCombo;
+    QComboBox *mRangeCombo;
+    QComboBox *mBeatCombo;
+    QCheckBox *mAvgCheck;
+    QLabel    *mInfoLabel;
 
-    // ── internal state ────────────────────────────────────────
-    static constexpr int kAvgCycle   = 50;   // beats per channel per cycle
-    static constexpr int kScope2Ms   = 20;   // fixed 20 ms window for Scope 2
+    // Scope 1 plot (single rect) / Scope 2 plot (two stacked rects)
+    QStackedWidget *mStack;
+    QCustomPlot    *mPlot1;
+    QCustomPlot    *mPlot2;
+    QCPGraph       *mTicGraph2, *mTocGraph2;
+    QCPItemLine    *mAMarker, *mCMarker;
 
-    bool   mHavePendingA      = false;
-    double mPendingAPos       = 0.0;
-    QVector<float> mPendingRawPcm;
-    uint64_t mPendingTickStart = 0;
+    // Rolling |processed| buffer (~1 s)
+    QVector<double> mBuf;
+    double          mBufStartAbs = 0;
+    int             mSps = 48000;
 
-    // Scope 2 accumulation buffers (allocated on first use)
-    int     mScopeWin2        = 0;    // kScope2Ms * sps / 1000
-    QVector<double> mTicAccum;
-    QVector<double> mTacAccum;
-    int     mTicCount         = 0;
-    int     mTacCount         = 0;
-    QVector<double> mTicAvg;
-    QVector<double> mTacAvg;
+    QList<Beat> mPending;       // waiting for enough samples
+    QList<Beat> mBeats;         // fulfilled, newest first (max 10)
+    int         mParity = 0;
 
-    // helpers
-    void setupScope1();
-    void setupScope2();
-    void updateScope1(const QVector<float> &rawPcm, uint64_t tickStart,
-                      double aPosAbs, double cPosAbs, int sps);
-    void accumulateScope2(const QVector<float> &rawPcm, uint64_t tickStart,
-                          double eventPosAbs, int sps,
-                          QVector<double> &accum, int &count,
-                          QVector<double> &avg, int graphIdx);
-    QVector<double> extractWindow(const QVector<float> &rawPcm,
-                                  uint64_t tickStart,
-                                  double eventPosAbs,
-                                  int halfSamples, int sps) const;
-    void ensureScope2Buffers(int sps);
-    int  scope1HalfSamples(int sps) const;
+    // Scope 2 averaging state (20 ms windows)
+    QVector<double> mTicSum, mTocSum;
+    int mTicCount = 0, mTocCount = 0;
+    static constexpr int kAvgCycle = 50;
+
+    double mLiftAngle = 52.0;
 };

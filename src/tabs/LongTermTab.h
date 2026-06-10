@@ -1,18 +1,15 @@
 #pragma once
 #include "BaseGraphTab.h"
 #include "qcustomplot.h"
-#include <QVector>
 
-// Long-Term Performance Graph (Spec p.19, Figure 14)
+// Graph 8: Long-Term Performance Graph (project plan Figure 14).
 //
-// Three stacked plots: rate (s/day) / amplitude (°) / beat error (ms).
-// AllTime policy: shows all accumulated data from session start.
-//
-// DownsamplingBuffer: time-bucket averaging that coarsens automatically
-// as elapsed time grows, keeping the plot readable without unbounded memory.
-//   elapsed < 10 min  → 1 s buckets
-//   elapsed < 1 hr    → 10 s buckets
-//   elapsed >= 1 hr   → 60 s buckets
+// Three stacked series recorded over an extended period:
+//   rate (s/d), amplitude (°), beat error (ms)
+// Each series shows its running average (dotted line) and a ±σ typical-
+// variation band. To stay readable and efficient over many hours, the
+// update granularity is reduced as elapsed time grows (points are
+// aggregated into progressively larger buckets).
 class LongTermTab : public BaseGraphTab
 {
     Q_OBJECT
@@ -21,58 +18,32 @@ public:
     void reset() override;
 public slots:
     void onMeasurement(const Measurement &m) override;
-
 private:
-    // ── DownsamplingBuffer ────────────────────────────────────
-    struct DownsampledSeries {
-        QVector<double> xs, ys;
-        double bucketSum   = 0.0;
-        int    bucketN     = 0;
-        double bucketStart = -1.0;
-
-        static double interval(double elapsed) {
-            if (elapsed < 600.0)  return 1.0;
-            if (elapsed < 3600.0) return 10.0;
-            return 60.0;
-        }
-
-        // Feed a new (t, v) sample. Returns true when a bucket is committed.
-        bool feed(double t, double v) {
-            double iv = interval(t);
-            if (bucketStart < 0) bucketStart = t;
-
-            if (t - bucketStart >= iv && bucketN > 0) {
-                xs.append(bucketStart + iv / 2.0);
-                ys.append(bucketSum / bucketN);
-                bucketSum   = v;
-                bucketN     = 1;
-                bucketStart = t;
-                return true;
-            }
-            bucketSum += v;
-            bucketN++;
-            return false;
-        }
-
-        void clear() {
-            xs.clear(); ys.clear();
-            bucketSum = 0.0; bucketN = 0; bucketStart = -1.0;
-        }
-
-        void applyTo(QCustomPlot *plot, int graphIdx) const {
-            plot->graph(graphIdx)->setData(xs, ys, true);
+    struct Series {
+        QCPGraph    *graph    = nullptr;
+        QCPItemLine *meanLine = nullptr;
+        QCPItemRect *band     = nullptr;
+        QCPAxisRect *rect     = nullptr;
+        double sum = 0, sumSq = 0; quint64 n = 0;
+        // bucket aggregation
+        double bucketSum = 0; int bucketN = 0;
+        void addRunning(double v) { sum += v; sumSq += v * v; n++; }
+        double mean()  const { return n ? sum / n : 0.0; }
+        double sigma() const {
+            if (n < 2) return 0.0;
+            double var = (sumSq - sum * sum / n) / (n - 1);
+            return var > 0 ? std::sqrt(var) : 0.0;
         }
     };
+    Series makeSeries(int row, const QString &name, const QColor &c,
+                      bool firstUsesDefaultRect);
+    void   addPoint(Series &s, double t, double v);
+    void   updateOverlay(Series &s);
 
-    // ── plots ─────────────────────────────────────────────────
-    QCustomPlot *mRatePlot  = nullptr;
-    QCustomPlot *mAmpPlot   = nullptr;
-    QCustomPlot *mBeatPlot  = nullptr;
-
-    // ── series ────────────────────────────────────────────────
-    DownsampledSeries mRateSeries;
-    DownsampledSeries mAmpSeries;
-    DownsampledSeries mBeatSeries;
-
+    QCustomPlot *mPlot;
+    Series mRate, mAmp, mBeat;
     double mTimeElapsed = 0.0;
+    int    mBucketSize  = 1;     // measurements per plotted point
+    qint64 mTotalPoints = 0;
+    static constexpr int kMaxPointsBeforeCoarsen = 1800;
 };

@@ -21,6 +21,8 @@
 #include <QtMath>
 #include <QRandomGenerator>
 #include <QMessageBox>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <stdexcept>
 
 #define  LIVE     0
@@ -127,33 +129,56 @@ MainWindow::MainWindow(QWidget *parent)
     mEscapementTab     = new EscapementTab(this);
     mSpectrogramTab    = new SpectrogramTab(this);
     mWaveformCompTab   = new WaveformCompTab(this);
+    mSweepScopeTab     = new SweepScopeTab(this);
+    mFilterScopeTab    = new FilterScopeTab(this);
 
-    ui->GraphicsTabWidget->addTab(mTraceTab,          "Rate Trace");
+    mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
+
+    ui->GraphicsTabWidget->addTab(mTraceTab,          "Trace");
     ui->GraphicsTabWidget->addTab(mBeatErrorTab,      "Beat Error");
-    ui->GraphicsTabWidget->addTab(mVarioTab,          "Amplitude");
+    ui->GraphicsTabWidget->addTab(mVarioTab,          "Vario");
     ui->GraphicsTabWidget->addTab(mSequenceTab,       "Sequence");
     ui->GraphicsTabWidget->addTab(mBeatNoiseScopeTab, "Beat Noise");
     ui->GraphicsTabWidget->addTab(mLongTermTab,       "Long Term");
     ui->GraphicsTabWidget->addTab(mEscapementTab,     "Escapement");
     ui->GraphicsTabWidget->addTab(mSpectrogramTab,    "Spectrum");
     ui->GraphicsTabWidget->addTab(mWaveformCompTab,   "Waveform");
+    ui->GraphicsTabWidget->addTab(mSweepScopeTab,     "Sweep");
+    ui->GraphicsTabWidget->addTab(mFilterScopeTab,    "Filters");
+
+    // ── Watch-position selector + global display pause (tab-bar corner) ──────
+    auto *corner = new QWidget(this);
+    auto *cornerLay = new QHBoxLayout(corner);
+    cornerLay->setContentsMargins(0, 0, 4, 0);
+    cornerLay->addWidget(new QLabel("Position:", corner));
+    mPositionCombo = new QComboBox(corner);
+    mPositionCombo->addItems(SequenceTab::positions());
+    cornerLay->addWidget(mPositionCombo);
+    mPauseButton = new QPushButton("⏸ Pause display", corner);
+    mPauseButton->setCheckable(true);
+    cornerLay->addWidget(mPauseButton);
+    ui->GraphicsTabWidget->setCornerWidget(corner, Qt::TopRightCorner);
 
     // ── Observer: register() — connect Model → Views (AP-4) ──────────────────
-    auto connectTab = [&](BaseGraphTab *tab) {
+    mAllTabs = {mRateScopeTab, mTraceTab, mSoundPrintTab, mBeatErrorTab,
+                mVarioTab, mSequenceTab, mBeatNoiseScopeTab, mLongTermTab,
+                mEscapementTab, mSpectrogramTab, mWaveformCompTab,
+                mSweepScopeTab, mFilterScopeTab};
+    for (BaseGraphTab *tab : mAllTabs)
         QObject::connect(mEngine, &MeasurementEngine::measurementReady,
                          tab, &BaseGraphTab::onMeasurement, Qt::QueuedConnection);
-    };
-    connectTab(mRateScopeTab);
-    connectTab(mTraceTab);
-    connectTab(mSoundPrintTab);
-    connectTab(mBeatErrorTab);
-    connectTab(mVarioTab);
-    connectTab(mSequenceTab);
-    connectTab(mBeatNoiseScopeTab);
-    connectTab(mLongTermTab);
-    connectTab(mEscapementTab);
-    connectTab(mSpectrogramTab);
-    connectTab(mWaveformCompTab);
+
+    QObject::connect(mPositionCombo, &QComboBox::currentTextChanged,
+                     this, [this](const QString &pos) {
+                         mActivePosition = pos;
+                         mSequenceTab->setActivePosition(pos);
+                     });
+    // Pause freezes axis rescaling/replots only; data keeps accumulating, so
+    // the user can drag/zoom (cursor-navigate) recorded data without loss.
+    QObject::connect(mPauseButton, &QPushButton::toggled, this, [this](bool on) {
+        for (BaseGraphTab *tab : mAllTabs) tab->setPaused(on);
+        mPauseButton->setText(on ? "▶ Resume display" : "⏸ Pause display");
+    });
 
     // Controller also subscribes to update Results label
     QObject::connect(mEngine, &MeasurementEngine::measurementReady,
@@ -189,8 +214,13 @@ void MainWindow::DisplayResults(const Measurement &m)
     QString rateStr  = m.rateValid ? QString::asprintf("%+6.1f", m.rateErrorSpd) : "------";
     QString beatStr  = m.beatErrorValid ? QString("%1").arg(m.beatErrorMs, 4, 'f', 1) : "----";
     QString ampStr   = m.amplitudeValid ? QString("%1°").arg(qRound64(m.amplitudeDeg), 3, 10, QChar(' ')) : "---";
-    ui->Results->setText(warning + "RATE " + rateStr + " s/d   AMPLITUDE " + ampStr +
-                         "   BEAT ERROR " + beatStr + " ms   BEAT " + bphStr + " bph");
+    QString derived;
+    if (m.derivedValid)
+        derived = QString::asprintf("   |   DiffTicTac %+.2f ms   DiffPeriod %+.2f ms   AvgPeriod %+.2f ms",
+                                    m.diffTicTacMs, m.diffPeriodMs, m.avgPeriodMs);
+    ui->Results->setText(warning + "POS " + mActivePosition + "   RATE " + rateStr +
+                         " s/d   AMPLITUDE " + ampStr +
+                         "   BEAT ERROR " + beatStr + " ms   BEAT " + bphStr + " bph" + derived);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -294,18 +324,11 @@ void MainWindow::Reset(void)
     mEngine->setUseOnset(ui->UseConsetCheckBox->isChecked());
     mEngine->reset();
 
-    // Reset Presentation layer (MVC Views) — all 11 tabs
-    mRateScopeTab->reset();
-    mTraceTab->reset();
-    mSoundPrintTab->reset();
-    mBeatErrorTab->reset();
-    mVarioTab->reset();
-    mSequenceTab->reset();
-    mBeatNoiseScopeTab->reset();
-    mLongTermTab->reset();
-    mEscapementTab->reset();
-    mSpectrogramTab->reset();
-    mWaveformCompTab->reset();
+    // Reset Presentation layer (MVC Views) — all tabs except the position
+    // sequence, which must survive Stop/Start while repositioning the watch
+    // (it has its own "Clear sequence" button).
+    for (BaseGraphTab *tab : mAllTabs)
+        if (tab != mSequenceTab) tab->reset();
 
     DisplayResults(Measurement{});
 
@@ -726,7 +749,11 @@ void MainWindow::SimStart(void)
 // UI signal handlers
 // ─────────────────────────────────────────────────────────────────────────────
 void MainWindow::on_RefreshPushButton_clicked()       { LoadAudioDevices(); }
-void MainWindow::on_LiftAngleSpinBox_valueChanged(int) { mLiftAngle = ui->LiftAngleSpinBox->value(); }
+void MainWindow::on_LiftAngleSpinBox_valueChanged(int)
+{
+    mLiftAngle = ui->LiftAngleSpinBox->value();
+    if (mBeatNoiseScopeTab) mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
+}
 void MainWindow::on_ScopeScaleSpinBox_valueChanged(int value) { mRateScopeTab->setScopeScale(value); }
 void MainWindow::on_UseConsetCheckBox_toggled(bool checked)
 {
