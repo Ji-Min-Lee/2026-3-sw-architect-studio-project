@@ -8,48 +8,48 @@
 #   ./run_timegrapher.sh run       # run only (skip build)
 #   ./run_timegrapher.sh rebuild   # clean build dir + build + run
 # ──────────────────────────────────────────────────────────────
-set -e  # 에러 발생 시 즉시 중단
+set -e  # exit immediately on error
 
-# ── 설정 (경로 바뀌면 여기만 수정) ────────────────────────────
+# ── Config (edit here if paths change) ────────────────────────
 QT_PREFIX=/home/lg/Qt/6.11.1/gcc_arm64
 JOBS=4
 
-# src 디렉토리 = 이 스크립트(src/tools/)의 한 단계 위
-# 실행 위치(pwd)와 무관하게 항상 정확
+# src dir = one level up from this script (src/tools/),
+# always correct regardless of the current working directory
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-SRC_DIR=$(dirname "$SCRIPT_DIR")     # src/  (CMakeLists.txt 위치)
+SRC_DIR=$(dirname "$SCRIPT_DIR")     # src/  (location of CMakeLists.txt)
 
 BUILD_DIR=$SRC_DIR/build
 BIN=$BUILD_DIR/TimeGrapher
 
-# ── 실행 환경변수 (GUI) ───────────────────────────────────────
+# ── Runtime env vars (GUI) ────────────────────────────────────
 export DISPLAY=:0
 export XAUTHORITY=/home/lg/.Xauthority
 export XDG_RUNTIME_DIR=/run/user/1000
 export QT_QPA_PLATFORM=xcb
 
-MODE=${1:-all}   # 인자 없으면 all (build + run)
+MODE=${1:-all}   # default to all (build + run) when no arg
 
-# ── 충돌 체크 ─────────────────────────────────────────────────
-# 이미 빌드 중인지 확인 (make / cmake 프로세스)
+# ── Conflict check ────────────────────────────────────────────
+# Check if a build is already in progress (make / cmake process)
 if pgrep -f "make.*-j" > /dev/null 2>&1 || pgrep -x cmake > /dev/null 2>&1; then
-    echo "[error] 현재 빌드가 진행 중입니다. 완료 후 다시 실행하세요."
+    echo "[error] A build is already in progress. Try again after it finishes."
     exit 1
 fi
 
-# 이미 TimeGrapher가 실행 중인지 확인
+# Check if TimeGrapher is already running
 if pgrep -x TimeGrapher > /dev/null 2>&1; then
-    echo "[error] TimeGrapher가 이미 실행 중입니다. 종료 후 다시 실행하세요."
+    echo "[error] TimeGrapher is already running. Quit it before running again."
     exit 1
 fi
 
-# ── 함수 ──────────────────────────────────────────────────────
+# ── Functions ─────────────────────────────────────────────────
 do_build() {
     echo "[build] SRC_DIR=$SRC_DIR"
     mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
 
-    # 캐시가 옛 경로(폴더 이동 전)를 가리키면 stale → 재configure
+    # If cache points to an old path (after folder move), reconfigure
     cached_src=""
     if [ -f CMakeCache.txt ]; then
         cached_src=$(grep '^CMAKE_HOME_DIRECTORY' CMakeCache.txt | cut -d= -f2)
@@ -79,7 +79,7 @@ do_run() {
     sudo DISPLAY=:0 XAUTHORITY=/home/lg/.Xauthority "$BIN"
 }
 
-# ── 분기 ──────────────────────────────────────────────────────
+# ── Dispatch ──────────────────────────────────────────────────
 case "$MODE" in
     build)
         do_build
