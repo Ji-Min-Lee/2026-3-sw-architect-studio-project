@@ -1,7 +1,7 @@
 # God Object 분해 설계 (Week 2 갱신) / God Object Decomposition Design (Week 2 Update)
 
 > **작성일 / Date**: 2026-06-10  
-> **최종 갱신 / Last Updated**: 2026-06-11 — MVC 역할 경계 리팩토링 반영  
+> **최종 갱신 / Last Updated**: 2026-06-11 — TraceTab·LongTermTab 재설계, BeatNoiseScopeTab 스펙 기반 재구현, 시간 추적 버그 수정  
 > **브랜치 / Branch**: `feature/layer`
 > **출처 / Source**: `src/` 실제 구현 코드 기준
 
@@ -509,25 +509,28 @@ Every tab only needs to implement `BaseGraphTab::onMeasurement(const Measurement
 | # | 탭 클래스 / Tab Class | 그래프 이름 / Graph Name | X축 / X-Axis | Y축 / Y-Axis | 핵심 데이터 / Key Data | FR |
 |:---:|---|---|---|---|---|---|
 | 1 | `RateScopeTab` | Rate Error + Scope | 절대 샘플 인덱스 | Rate(ms) · Amplitude | `pcm`, `threshold`, `events`, `wrappedRateError` | FR-01/02 |
-| 2 | `TraceTab` | Rate 시계열 | 경과 시간(s) | Rate Error(s/day) | `rateErrorSpd` | FR-05 |
+| 2 | `TraceTab` | Rate + Amplitude 단기 추이 | 경과 시간(s), 10분 롤링 | Rate(s/day) / Amplitude(°) 스택 2개 | `rateErrorSpd`, `amplitudeDeg` | FR-05 |
 | 3 | `SoundPrintTab` | Sound Print (비트맵) | 열(beat 주기) | 행(샘플) | `rawPcm` + A/C 마커 | — |
 | 4 | `BeatErrorTab` | Beat Error 시계열 | 경과 시간(s) | Beat Error(ms) | `beatErrorMs` | FR-07 |
 | 5 | `VarioTab` | Amplitude Tic/Toc | Beat # | Amplitude(°) | `ticAmpDeg`, `tocAmpDeg` | FR-06 |
 | 6 | `SequenceTab` | Beat 간격 scatter | Beat # | A-A 간격(ms) | `events[isA].samplePos` | FR-12 |
-| 7 | `BeatNoiseScopeTab` | 피크 진폭 scatter | Beat # | Peak Amplitude | `events[].peakValue` | FR-11 |
-| 8 | `LongTermTab` | 장기 Rate 추이 | 경과 시간(s) | Rate Error(s/day) | `rateErrorSpd` | FR-13 |
+| 7 | `BeatNoiseScopeTab` | Beat Noise Scope (파형) | Time(ms), A/C 정렬 | Amplitude (Scope1 파형 / Scope2 평균) | `rawPcm` 윈도우 추출 | FR-11 |
+| 8 | `LongTermTab` | 장기 Rate·Amplitude·BeatError 추이 | 경과 시간(s), 전체 누적 | Rate(s/day) / Amplitude(°) / BeatError(ms) 스택 3개 | `rateErrorSpd`, `amplitudeDeg`, `beatErrorMs` | FR-13 |
 | 9 | `EscapementTab` | T1→T3 간격 | Beat # | Escapement(ms) | `escapementMs` | FR-14 |
-| 10 | `SpectrogramTab` | 주파수 스펙트럼 | 주파수(Hz) | 정규화 Magnitude | `rawPcm` + Kiss FFT | FR-15 |
+| 10 | `SpectrogramTab` | 주파수 스펙트럼 (Spectrum) | 주파수(Hz) | 정규화 Magnitude | `rawPcm` + Kiss FFT | FR-15 |
 | 11 | `WaveformCompTab` | Tic vs Toc 파형 비교 | 샘플 오프셋 | Amplitude | `rawPcm` 윈도우 추출 | FR-16 |
 
 ### 탭별 구현 특이사항 / Implementation Notes
 
 | 탭 / Tab | 핵심 설계 결정 / Key Design Decision | 해결한 문제 / Problem Solved |
 |---|---|---|
+| `TraceTab` | **Template Method** — `applyRollingWindow()` 훅으로 10분 rolling window 적용; QSplitter로 rate·amplitude 스택 2개 | LongTermTab과 동일 그래프 중복 제거, 스펙(p.14) 준수 |
+| `LongTermTab` | **DownsamplingBuffer** — 경과 시간에 따라 버킷 크기 자동 조정 (1s→10s→60s); rate·amplitude·beat error 스택 3개 | 장시간 측정 시 메모리·성능 문제 방지, 스펙(p.19) 준수 |
+| `BeatNoiseScopeTab` | **Composite View** — Scope 1(라이브 파형, 시간범위 선택) + Scope 2(50beat 평균, Σ 토글); rawPcm 윈도우 추출로 실제 파형 표시 | peak scatter → waveform scope로 스펙(p.17) 기반 재구현 |
 | `SoundPrintTab` | `SoundImageRenderer`를 탭이 직접 소유 (Ownership Transfer) | MainWindow God Object에서 렌더러 분리 |
-| `SpectrogramTab` | Lazy Pull — `isVisible()` 시에만 FFT 계산 | FFT를 실시간 경로에 넣으면 QAS-1/2 위반 |
+| `SpectrogramTab` | Lazy Pull — `isVisible()` 시에만 FFT 계산; 탭 레이블 "Spectrum"으로 수정 | FFT를 실시간 경로에 넣으면 QAS-1/2 위반; 명칭 오류 수정 |
 | `WaveformCompTab` | A-event 파형을 멤버에 복사 (블록 경계 fix) | A/C가 다른 블록에 있을 때 파형 손실 방지 |
-| `VarioTab` | C-event의 `hasAmpSplit`으로 Tic/Toc 분리 | `amplitudeDeg`(롤링 평균)는 Tic/Toc 구분 불가 |
+| `VarioTab` | C-event의 `!ev.isA && hasAmpSplit`으로 Tic/Toc 분리 | `amplitudeDeg`(롤링 평균)는 Tic/Toc 구분 불가; 암묵적 의존 명시화 |
 
 ---
 
@@ -553,6 +556,9 @@ Traces how each Quality Attribute Scenario is implemented in code.
 | **QAS-5** | Extensibility | Split Module | God Object → 4계층, 20+ 클래스 분리 |
 | **QAS-5** | Extensibility | Observer/Signal-Slot | 새 탭 = BaseGraphTab 상속 + 3줄 등록 |
 | **QAS-5** | Extensibility | Restrict Dependencies | Presentation → Domain 단방향 (Signal Processing 직접 참조 금지) |
+| **QAS-5** | Extensibility | **Template Method** | `TraceTab::applyRollingWindow()` — 창 정책만 훅으로 교체 가능 (창 크기 변경 = 1줄) |
+| **QAS-1** | Real-Time Performance | **DownsamplingBuffer** | `LongTermTab` — 경과 시간에 따라 버킷 자동 조정, 장시간 측정에서 O(1) 메모리 유지 |
+| **QAS-3** | Correctness | **rawPcm 시간 추적** | `TraceTab·BeatErrorTab·LongTermTab` — `pcm.size()` 대신 `rawPcm.size()` 사용, DSP 버퍼링에 의한 시간 drift 방지 |
 
 ---
 
