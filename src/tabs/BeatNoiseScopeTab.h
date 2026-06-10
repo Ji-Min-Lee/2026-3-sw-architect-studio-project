@@ -13,5 +13,7 @@ public slots:
     void onMeasurement(const Measurement &m) override;
 private:
     QCustomPlot *mPlot;
-    int          mIdx = 0;
+    int          mBeatIdx      = 0;
+    bool         mHavePendingA = false;
+    double       mPendingAPeak = 0.0;
 };
