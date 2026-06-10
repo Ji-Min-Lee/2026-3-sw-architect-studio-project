@@ -102,7 +102,7 @@ graph TD
 
 EXP-01은 모든 실험의 블로커이므로 6/10(월) 첫 번째 작업으로 즉시 착수한다.
 
-| 날짜 / Date | 코드 개발팀 (신성호·홍손통·이지민) | 실험팀 (경진신·반규대·송태준) | 완료 기준 / Done Criteria |
+| 날짜 / Date | 코드 개발팀 (신성호·홍손통·이지민) | 실험팀 (경진신·반규대·송태준·신동호) | 완료 기준 / Done Criteria |
 |:-----------:|-------------------------------------|------------------------------|--------------------------|
 | **6/10 (Mon)** | **Observer 리팩토링 착수**: 기존 God Object에서 Signal-Slot 구조로 분리 시작. *목적 이중: ① FR-05~08 기본 구현 가능 상태 확보 ② QAS-5 tactic(Layered Architecture + Restrict Dependencies + Observer) 실현 가능성 검증* | **EXP-01 착수**: RPi 환경 세팅 + `dropped_block_count` 주입 + 48k/96k/192k sps 측정 시작 | EXP-01 측정 데이터 수집 시작 |
 | **6/11 (Tue)** | **Observer 리팩토링 완료**: ≤3-file 제약 충족 여부 수동 검증 (기존 Rate·Amplitude·Beat Error 값 비교). *Tactic feasibility 판정: "실제로 ≤3-file 안에서 신규 탭 추가가 가능한가?" → 가능하면 QAS-5 tactic 채택, 불가능하면 아키텍처 재검토* | **EXP-01 완료**: Priority Scheduling(`SCHED_RR`) 전후 비교 완료 → SPS 방향 결정 + QAS-1 Response Measure 확정 | EXP-01 결과 테이블 작성 완료, SPS 확정 |
@@ -114,7 +114,7 @@ EXP-01은 모든 실험의 블로커이므로 6/10(월) 첫 번째 작업으로 
 
 EXP-01 blocks all other experiments — start immediately as the first task on 6/10 (Mon).
 
-| Date | Code Dev Team (Sungho·HungSon·Jimin) | Experiment Team (Gyeongjin·Kyudae·Taejoon) | Done Criteria |
+| Date | Code Dev Team (Sungho·HungSon·Jimin) | Experiment Team (Gyeongjin·Kyudae·Taejoon·DongHo) | Done Criteria |
 |:----:|---------------------------------------|---------------------------------------------|---------------|
 | **6/10 (Mon)** | **Observer refactoring start**: Begin decomposing God Object into Signal-Slot structure. *Dual purpose: ① Prepare FR-05~08 baseline implementation ② Verify tactic feasibility for QAS-5 (Layered Architecture + Restrict Dependencies + Observer)* | **EXP-01 start**: RPi env setup + inject `dropped_block_count` + begin 48k/96k/192k sps measurement | EXP-01 data collection started |
 | **6/11 (Tue)** | **Observer refactoring complete**: Verify ≤3-file constraint manually (compare Rate·Amplitude·Beat Error values). *Tactic feasibility verdict: "Can a new tab actually be added within ≤3 files?" → Yes: QAS-5 tactic adopted; No: architecture re-examined* | **EXP-01 complete**: Priority Scheduling (`SCHED_RR`) before/after comparison done → SPS direction decided + QAS-1 Response Measure finalized | EXP-01 result table written, SPS confirmed |
