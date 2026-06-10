@@ -25,6 +25,8 @@ class BeatNoiseScopeTab : public BaseGraphTab
 public:
     explicit BeatNoiseScopeTab(QWidget *parent = nullptr);
     void reset() override;
+    QCustomPlot *scope1Plot() const { return mScope1Plot; }
+    QCustomPlot *scope2Plot() const { return mScope2Plot; }
 
 public slots:
     void onMeasurement(const Measurement &m) override;

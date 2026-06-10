@@ -1,4 +1,5 @@
 #include "MeasurementEngine.h"
+#include "WatchMath.h"
 #include <QtMath>
 #include <QDebug>
 #include <cmath>
@@ -158,7 +159,7 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
             // Escapement: T1→T3 interval
             if (mHaveLastA) {
                 ae.hasEscapementMs = true;
-                ae.escapementMs    = (ae.samplePos - mLastA) / mSamplesPerSecond * 1000.0;
+                ae.escapementMs    = WatchMath::escapementMs(mLastA, ae.samplePos, mSamplesPerSecond);
             }
 
             computeAmplitude(ae.samplePos, m.synced, r.detected_bph, m, ae);
@@ -185,10 +186,7 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
 // ──────────────────────────────────────────────────────────────────────────────
 double MeasurementEngine::wrapInRange(double n, double lo, double hi) const
 {
-    double range  = hi - lo;
-    double shifted = fmod(n - lo, range);
-    if (shifted < 0) shifted += range;
-    return shifted + lo;
+    return WatchMath::wrapInRange(n, lo, hi);
 }
 
 void MeasurementEngine::addOrOverwrite(QVector<double> &xv, QVector<double> &yv,
@@ -237,9 +235,9 @@ void MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
 
     if (!mRate.haveZeroOffset) {
         mRate.haveZeroOffset = true;
-        mRate.zeroOffset     = -instErrorMs;
+        mRate.zeroOffset     = instErrorMs;  // first error becomes the anchor
     }
-    instErrorMs += mRate.zeroOffset;
+    instErrorMs = WatchMath::applyZeroOffset(mRate.zeroOffset, instErrorMs);
 
     double wrapped = wrapInRange(instErrorMs, -ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
     ae.hasRatePoint     = true;
@@ -270,9 +268,8 @@ void MeasurementEngine::computeBeatError(double evTime, bool, int)
     mBeat.times[mBeat.idx] = evTime;
     mBeat.idx++;
     if (mBeat.idx == 3) {
-        double t1 = (mBeat.times[1] - mBeat.times[0]) / mSamplesPerSecond;
-        double t2 = (mBeat.times[2] - mBeat.times[1]) / mSamplesPerSecond;
-        mBeat.roll->Add(qAbs(((t1 - t2) / 2.0) * 1000.0));
+        mBeat.roll->Add(WatchMath::beatErrorMs(
+            mBeat.times[0], mBeat.times[1], mBeat.times[2], mSamplesPerSecond));
         mBeat.times[0] = mBeat.times[2];
         mBeat.idx       = 1;
     }
@@ -281,10 +278,8 @@ void MeasurementEngine::computeBeatError(double evTime, bool, int)
 void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, Measurement &m, AcousticEvent &ae)
 {
     if (!mAmp.haveA || !mRate.bphValid) return;
-    double T1     = (cTime - mAmp.lastA) / mSamplesPerSecond;
-    double period = 7200.0 / bph;
-    double amp    = mLiftAngle / sin((2.0 * M_PI * T1) / period);
-    if (amp >= 360.0) {
+    double amp = WatchMath::amplitudeDeg(mAmp.lastA, cTime, mSamplesPerSecond, mLiftAngle, bph);
+    if (amp < 0) {
         if ((int)((mRate.beatNumber - 1) & 1) == TIC) mAmp.ticValid = false;
         return;
     }

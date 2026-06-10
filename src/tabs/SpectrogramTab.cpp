@@ -49,6 +49,8 @@ QVector<double> SpectrogramTab::computeSpectrum(const QVector<float> &rawPcm,
                                                   int sampleRate,
                                                   double &outFreqStep)
 {
+    if (rawPcm.isEmpty()) return {};
+
     // Kiss FFT는 임의 크기를 지원하지만 2의 거듭제곱이 가장 빠름
     int n = 1;
     while (n * 2 <= rawPcm.size()) n <<= 1;

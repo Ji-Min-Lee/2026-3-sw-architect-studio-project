@@ -48,6 +48,8 @@ set(ENGINE_SOURCES
     engine/RollingLeastSquares.cpp
     engine/RollingAverage.h
     engine/RollingAverage.cpp
+    engine/WatchMath.h
+    engine/WatchMath.cpp
 )
 
 set(TABS_SOURCES
@@ -200,3 +202,93 @@ target_link_libraries(TestGraphTabs PRIVATE
     Qt${QT_VERSION_MAJOR}::PrintSupport
 )
 add_test(NAME GraphTabs COMMAND TestGraphTabs)
+
+# ── TestRollingAverage ────────────────────────────────────────────────────────
+add_executable(TestRollingAverage
+    tests/test_rolling_average.cpp
+    engine/RollingAverage.h
+    engine/RollingAverage.cpp
+)
+set_target_properties(TestRollingAverage PROPERTIES AUTOMOC ON)
+target_include_directories(TestRollingAverage PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+)
+target_link_libraries(TestRollingAverage PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+)
+add_test(NAME RollingAverage COMMAND TestRollingAverage)
+
+# ── TestRollingLeastSquares ───────────────────────────────────────────────────
+add_executable(TestRollingLeastSquares
+    tests/test_rolling_least_squares.cpp
+    engine/RollingLeastSquares.h
+    engine/RollingLeastSquares.cpp
+)
+set_target_properties(TestRollingLeastSquares PROPERTIES AUTOMOC ON)
+target_include_directories(TestRollingLeastSquares PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+)
+target_link_libraries(TestRollingLeastSquares PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+)
+add_test(NAME RollingLeastSquares COMMAND TestRollingLeastSquares)
+
+# ── TestWatchMath ─────────────────────────────────────────────────────────────
+add_executable(TestWatchMath
+    tests/test_watch_math.cpp
+    engine/WatchMath.h
+    engine/WatchMath.cpp
+)
+set_target_properties(TestWatchMath PROPERTIES AUTOMOC ON)
+target_include_directories(TestWatchMath PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+)
+target_link_libraries(TestWatchMath PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+)
+add_test(NAME WatchMath COMMAND TestWatchMath)
+
+# ── TestRemainingTabs ─────────────────────────────────────────────────────────
+add_executable(TestRemainingTabs
+    tests/test_remaining_tabs.cpp
+    tabs/EscapementTab.h
+    tabs/EscapementTab.cpp
+    tabs/LongTermTab.h
+    tabs/LongTermTab.cpp
+    tabs/SequenceTab.h
+    tabs/SequenceTab.cpp
+    tabs/BeatNoiseScopeTab.h
+    tabs/BeatNoiseScopeTab.cpp
+    tabs/SpectrogramTab.h
+    tabs/SpectrogramTab.cpp
+    tabs/WaveformCompTab.h
+    tabs/WaveformCompTab.cpp
+    tabs/SoundPrintTab.h
+    tabs/SoundPrintTab.cpp
+    tabs/RateScopeTab.h
+    tabs/RateScopeTab.cpp
+    tabs/BaseGraphTab.h
+    external/qcustomplot.cpp
+    external/SoundImageWidget.h
+    external/SoundImageWidget.cpp
+    external/SoundImageRenderer.h
+    external/SoundImageRenderer.cpp
+    external/kiss_fft.h
+    external/kiss_fft.c
+    external/_kiss_fft_guts.h
+)
+set_target_properties(TestRemainingTabs PROPERTIES AUTOMOC ON AUTORCC OFF)
+set_source_files_properties(external/kiss_fft.c PROPERTIES LANGUAGE C)
+target_include_directories(TestRemainingTabs PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/tabs
+    ${CMAKE_CURRENT_SOURCE_DIR}/ui
+)
+target_link_libraries(TestRemainingTabs PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+)
+add_test(NAME RemainingTabs COMMAND TestRemainingTabs)

@@ -9,6 +9,7 @@ class SequenceTab : public BaseGraphTab
 public:
     explicit SequenceTab(QWidget *parent = nullptr);
     void reset() override;
+    QCustomPlot *plot() const { return mPlot; }
 public slots:
     void onMeasurement(const Measurement &m) override;
 private:

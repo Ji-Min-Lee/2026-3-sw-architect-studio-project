@@ -14,6 +14,10 @@ public:
     explicit SpectrogramTab(QWidget *parent = nullptr);
     ~SpectrogramTab() override;
     void reset() override;
+    // rawPcm → magnitude spectrum [0,1], freqStep(Hz/bin) 반환. 테스트에서 직접 호출 가능.
+    QVector<double> computeSpectrum(const QVector<float> &rawPcm,
+                                    int sampleRate,
+                                    double &outFreqStep);
 public slots:
     void onMeasurement(const Measurement &m) override;
 private:
@@ -23,9 +27,4 @@ private:
 
     // Kiss FFT 플랜을 nfft 크기로 (재)생성
     void prepareFft(int nfft);
-
-    // rawPcm → magnitude spectrum, freqStep(Hz/bin) 반환
-    QVector<double> computeSpectrum(const QVector<float> &rawPcm,
-                                    int sampleRate,
-                                    double &outFreqStep);
 };

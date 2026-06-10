@@ -17,8 +17,9 @@ static Measurement makeMeasurement(double rateSpd,
     Measurement m;
     m.samplesPerSecond = 48000;
 
-    // pcm 블록이 있어야 시간 계산이 진행됨
+    // pcm/rawPcm 블록이 있어야 시간 계산이 진행됨 (TraceTab은 rawPcm.size() 사용)
     m.pcm.fill(0.0, 4096);
+    m.rawPcm.fill(0.0f, 4096);
 
     m.rateValid      = true;
     m.rateErrorSpd   = rateSpd;

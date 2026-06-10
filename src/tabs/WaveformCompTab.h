@@ -17,6 +17,7 @@ class WaveformCompTab : public BaseGraphTab
 public:
     explicit WaveformCompTab(QWidget *parent = nullptr);
     void reset() override;
+    QCustomPlot *plot() const { return mPlot; }
 public slots:
     void onMeasurement(const Measurement &m) override;
 private:

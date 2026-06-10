@@ -19,6 +19,9 @@ class LongTermTab : public BaseGraphTab
 public:
     explicit LongTermTab(QWidget *parent = nullptr);
     void reset() override;
+    QCustomPlot *ratePlot()  const { return mRatePlot; }
+    QCustomPlot *ampPlot()   const { return mAmpPlot; }
+    QCustomPlot *beatPlot()  const { return mBeatPlot; }
 public slots:
     void onMeasurement(const Measurement &m) override;
 
