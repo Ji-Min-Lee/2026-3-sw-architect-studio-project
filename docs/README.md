@@ -2,6 +2,8 @@
 
 LG SW Architect Training Program × CMU MSE | 2026-05-27 ~ 2026-07-01
 
+> Build & run: [Build & Run Scripts](../src/tools/README.md)
+
 ---
 
 ## Milestone 1 — `2026-06-09 (Tue)`
