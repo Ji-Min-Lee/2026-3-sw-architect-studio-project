@@ -19,6 +19,11 @@ struct AcousticEvent {
     // Escapement: A→C interval in ms (filled on C-events)
     bool   hasEscapementMs;
     double escapementMs;     // T1→T3 interval
+
+    // Per-beat amplitude for Tic/Toc split display (filled on C-events)
+    bool   hasAmpSplit;
+    double ticAmpDeg;
+    double tocAmpDeg;
 };
 
 // Single Measurement emitted by MeasurementEngine after each tg_process call.

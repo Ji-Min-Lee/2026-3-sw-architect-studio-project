@@ -122,6 +122,9 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
         ae.isTic             = false;
         ae.hasEscapementMs   = false;
         ae.escapementMs      = 0.0;
+        ae.hasAmpSplit       = false;
+        ae.ticAmpDeg         = 0.0;
+        ae.tocAmpDeg         = 0.0;
 
         if (ev.type == TG_EVENT_A) {
             ae.isA       = true;
@@ -152,7 +155,7 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
                 ae.escapementMs    = (ae.samplePos - mLastA) / mSamplesPerSecond * 1000.0;
             }
 
-            computeAmplitude(ae.samplePos, m.synced, r.detected_bph, m);
+            computeAmplitude(ae.samplePos, m.synced, r.detected_bph, m, ae);
         } else {
             qWarning() << "MeasurementEngine: unknown event type";
             continue;
@@ -268,7 +271,7 @@ void MeasurementEngine::computeBeatError(double evTime, bool, int)
     }
 }
 
-void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, Measurement &m)
+void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, Measurement &m, AcousticEvent &ae)
 {
     if (!mAmp.haveA || !mRate.bphValid) return;
     double T1     = (cTime - mAmp.lastA) / mSamplesPerSecond;
@@ -285,6 +288,10 @@ void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, Mea
     } else {
         if (mAmp.ticValid) {
             mAmp.roll->Add((mAmp.ticAmp + amp) / 2.0);
+            // Expose Tic/Toc amplitude on this C-event for VarioTab
+            ae.hasAmpSplit = true;
+            ae.ticAmpDeg   = mAmp.ticAmp;
+            ae.tocAmpDeg   = amp;
             mAmp.ticValid = false;
         }
     }

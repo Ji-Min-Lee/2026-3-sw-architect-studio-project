@@ -118,7 +118,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // AP-3: remaining 10 tabs — each ≤3-file change, added as new tab pages
     mTraceTab          = new TraceTab(this);
-    mSoundPrintTab     = new SoundPrintTab(ui->SoundImage, this);
+    mSoundPrintTab     = new SoundPrintTab(ui->SoundImage, mCurrentSamplesPerSecond, this);
     mBeatErrorTab      = new BeatErrorTab(this);
     mVarioTab          = new VarioTab(this);
     mSequenceTab       = new SequenceTab(this);
@@ -179,19 +179,23 @@ MainWindow::~MainWindow()
 void MainWindow::onMeasurementReady(const Measurement &m)
 {
     DisplayResults(m);
-    if (!mSoundRenderHasBPH && m.synced) {
-        mSoundRenderHasBPH = true;
-        mSoundRenderer.setBph(m.detectedBph);
-    }
 }
 
 void MainWindow::DisplayResults(const Measurement &m)
 {
+    // QAS-4 Heartbeat: A-event가 오면 타이머 재시작, 3초 무음이면 경고
+    for (const AcousticEvent &ev : m.events) {
+        if (ev.isA) { mLastBeatTimer.restart(); mLastBeatTimerStarted = true; break; }
+    }
+    QString warning;
+    if (mLastBeatTimerStarted && mLastBeatTimer.elapsed() > kNoSignalThresholdMs)
+        warning = "⚠ No signal   ";
+
     QString bphStr     = m.synced ? QString("%1").arg(m.detectedBph, 5, 10, QChar(' ')) : "-----";
     QString rateStr    = m.rateValid ? QString::asprintf("%+6.1f", m.rateErrorSpd) : "------";
     QString beatStr    = m.beatErrorValid ? QString("%1").arg(m.beatErrorMs, 4, 'f', 1) : "----";
     QString ampStr     = m.amplitudeValid ? QString("%1°").arg(qRound64(m.amplitudeDeg), 3, 10, QChar(' ')) : "---";
-    ui->Results->setText("RATE " + rateStr + " s/d   AMPLITUDE " + ampStr +
+    ui->Results->setText(warning + "RATE " + rateStr + " s/d   AMPLITUDE " + ampStr +
                          "   BEAT ERROR " + beatStr + " ms   BEAT " + bphStr + " bph");
 }
 
@@ -229,7 +233,6 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
             }
 
             if (mWavWriter) mWavWriter->write(mInputBlock, slice);
-            mSoundRenderer.processSamples(mInputBlock, slice);
 
             // Pipeline Stage 4: Domain layer processes the block
             mEngine->processBlock(mInputBlock, slice);
@@ -239,7 +242,7 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
         }
 
         SharedDataPtr->MainThrd_LastTotalSamplesWritten = mLocalTotalSamplesWritten;
-        ui->SoundImage->DrawImage();
+        // SoundImage는 SoundPrintTab::onMeasurement()에서 그림
 
         mForegroundFrameCount++;
         double now = mForegroundTimer.elapsed() / 1000.0;
@@ -283,21 +286,7 @@ void MainWindow::HandleSimInput()      { HandleInputData(mSimWorker->mRawAudio);
 void MainWindow::Reset(void)
 {
     qInfo() << "RESET";
-    // Reinitialise SoundImage
-    SoundImageRenderer::Config cfg;
-    cfg.bph                     = 0.0;
-    cfg.sample_rate_hz          = mCurrentSamplesPerSecond;
-    cfg.sound_color             = qRgba(255, 0, 0, 255);
-    cfg.background_color        = qRgba(255, 255, 255, 255);
-    cfg.vertical_time_direction = SoundImageRenderer::TimeStartsAtTopMovesDown;
-    cfg.warmup_columns          = 2;
-    cfg.anchor_columns          = 12;
-    cfg.gamma                   = 0.5f;
-    cfg.live_preview_current_column = true;
-    mSoundRenderHasBPH = false;
-    if (!mSoundRenderer.initialize(ui->SoundImage->GetImage(), cfg))
-        throw std::runtime_error("Failed to initialize SoundImageRenderer.");
-    mSoundRenderer.reset();
+    // SoundImage 초기화는 SoundPrintTab::reset()에서 처리
 
     // Allocate block buffer
     if (mInputBlock) { free(mInputBlock); mInputBlock = nullptr; }

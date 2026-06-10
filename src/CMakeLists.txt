@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(TimeGrapher VERSION 0.1 LANGUAGES CXX)
+project(TimeGrapher VERSION 0.1 LANGUAGES CXX C)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -101,6 +101,9 @@ set(EXTERNAL_SOURCES
     external/WindowsAudio.h
     external/WindowsAudio.cpp
     external/Splash.qrc
+    external/kiss_fft.h
+    external/kiss_fft.c
+    external/_kiss_fft_guts.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -122,6 +125,12 @@ endif()
 
 # All subdirectories are in the include path so every file can use
 # #include "File.h" without relative-path prefixes.
+# Kiss FFT: 순수 C 파일을 별도 정적 라이브러리로 빌드 후 링크
+# CMAKE_AUTOMOC/AUTORCC 가 C 라이브러리에 붙으면 kiss_fft.c 가 빌드되지 않으므로 명시적으로 OFF
+add_library(kissfft STATIC ${CMAKE_CURRENT_SOURCE_DIR}/external/kiss_fft.c)
+set_target_properties(kissfft PROPERTIES AUTOMOC OFF AUTORCC OFF AUTOUIC OFF)
+target_include_directories(kissfft PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external)
+
 target_include_directories(TimeGrapher PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/audio
@@ -131,6 +140,7 @@ target_include_directories(TimeGrapher PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
 )
 
+target_link_libraries(TimeGrapher PRIVATE kissfft)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::PrintSupport)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)

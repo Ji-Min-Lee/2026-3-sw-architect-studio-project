@@ -7,7 +7,6 @@
 #include "PlaybackWorker.h"
 #include "SimWorker.h"
 #include "WavStreamWriter.h"
-#include "SoundImageRenderer.h"
 #include "WatchSynthStream.h"
 #include "MeasurementEngine.h"
 #include "SettingsManager.h"
@@ -143,9 +142,6 @@ private:
     // Persistent input block buffer (owned by MainWindow, fed to MeasurementEngine)
     float *mInputBlock = nullptr;
 
-    // SoundImage renderer (stays in MainWindow — feeds SoundPrintTab indirectly)
-    SoundImageRenderer  mSoundRenderer;
-    bool                mSoundRenderHasBPH = false;
 
     int       mAvalableRates[5];
     int       mNumberofRates        = 0;
@@ -173,5 +169,10 @@ private:
     double mForegroundLastTime    = 0.0;
     uint64_t mForegroundFrameCount = 0;
     uint64_t mForegroundSampleCount = 0;
+
+    // QAS-4 Heartbeat: A-event 기반 신호 감지
+    QElapsedTimer mLastBeatTimer;
+    bool          mLastBeatTimerStarted = false;
+    static constexpr qint64 kNoSignalThresholdMs = 3000; // 3초 무음 → No signal
 };
 #endif
