@@ -67,7 +67,7 @@ void TraceTab::applyRollingWindow()
 
 void TraceTab::onMeasurement(const Measurement &m)
 {
-    mTimeElapsed += (double)m.rawPcm.size() / m.samplesPerSecond;
+    mTimeElapsed += (double)m.pcm.size() / m.samplesPerSecond;
 
     if (m.rateValid)
         mRatePlot->graph(0)->addData(mTimeElapsed, m.rateErrorSpd);
