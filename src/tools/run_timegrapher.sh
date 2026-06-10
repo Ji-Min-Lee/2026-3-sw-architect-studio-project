@@ -30,6 +30,19 @@ export QT_QPA_PLATFORM=xcb
 
 MODE=${1:-all}   # 인자 없으면 all (build + run)
 
+# ── 충돌 체크 ─────────────────────────────────────────────────
+# 이미 빌드 중인지 확인 (make / cmake 프로세스)
+if pgrep -f "make.*-j" > /dev/null 2>&1 || pgrep -x cmake > /dev/null 2>&1; then
+    echo "[error] 현재 빌드가 진행 중입니다. 완료 후 다시 실행하세요."
+    exit 1
+fi
+
+# 이미 TimeGrapher가 실행 중인지 확인
+if pgrep -x TimeGrapher > /dev/null 2>&1; then
+    echo "[error] TimeGrapher가 이미 실행 중입니다. 종료 후 다시 실행하세요."
+    exit 1
+fi
+
 # ── 함수 ──────────────────────────────────────────────────────
 do_build() {
     echo "[build] SRC_DIR=$SRC_DIR"
