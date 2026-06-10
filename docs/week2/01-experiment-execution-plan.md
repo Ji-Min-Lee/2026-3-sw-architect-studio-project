@@ -102,25 +102,25 @@ graph TD
 
 EXP-01은 모든 실험의 블로커이므로 6/10(월) 첫 번째 작업으로 즉시 착수한다.
 
-| 날짜 / Date | Team 1 (신성호·홍손통·반규대) | Team 2 (송태준·이지민) | 완료 기준 / Done Criteria |
-|:-----------:|-------------------------------|----------------------|--------------------------|
-| **6/10 (Mon)** | **EXP-01 착수**: RPi 환경 세팅 + `dropped_block_count` 주입 + 48k/96k/192k sps 측정 시작 | **Observer 리팩토링 착수**: 기존 God Object에서 Signal-Slot 구조로 분리 시작. *목적 이중: ① FR-05~08 기본 구현 가능 상태 확보 ② QAS-5 tactic(Layered Architecture + Restrict Dependencies + Observer) 실현 가능성 검증* | EXP-01 측정 데이터 수집 시작 |
-| **6/11 (Tue)** | **EXP-01 완료**: Priority Scheduling(`SCHED_RR`) 전후 비교 완료 → SPS 방향 결정 + QAS-1 Response Measure 확정 | **Observer 리팩토링 완료**: ≤3-file 제약 충족 여부 수동 검증 (기존 Rate·Amplitude·Beat Error 값 비교). *Tactic feasibility 판정: "실제로 ≤3-file 안에서 신규 탭 추가가 가능한가?" → 가능하면 QAS-5 tactic 채택, 불가능하면 아키텍처 재검토* | EXP-01 결과 테이블 작성 완료, SPS 확정 |
-| **6/12 (Wed)** | **EXP-02 착수**: TS1/TS2/TS3 timestamp 주입 + 1-tab 구성 측정 시작 | **EXP-03 착수**: `onset_fraction` × `min_peak_fraction` grid search 시작 (Low noise 조건) | EXP-02 1-tab 측정 진행 중, EXP-03 Low noise 완료 |
-| **6/13 (Thu)** | **EXP-02 계속**: 11-tab 구성 측정 + Lazy Rendering 필요성 판단 | **EXP-03 계속**: Medium/High noise 조건 완료 → 최적 파라미터 도출. **EXP-04 착수**: Warning threshold 탐색 Part A(N·M 값) | EXP-02 결과 테이블 완료, EXP-03 최적 파라미터 확정 |
-| **6/14 (Fri)** | **EXP-02 결과 통합**: QAS-2 Response Measure 확정, Lazy Rendering 결정 문서화 | **EXP-04 완료**: Part B(Noisy signal 임계값) 완료 → QAS-4 Response Measure 확정 | 모든 EXP 완료, Provisional 값 전부 확정 |
+| 날짜 / Date | 코드 개발팀 (신성호·홍손통·이지민) | 실험팀 (경진신·반규대·송태준) | 완료 기준 / Done Criteria |
+|:-----------:|-------------------------------------|------------------------------|--------------------------|
+| **6/10 (Mon)** | **Observer 리팩토링 착수**: 기존 God Object에서 Signal-Slot 구조로 분리 시작. *목적 이중: ① FR-05~08 기본 구현 가능 상태 확보 ② QAS-5 tactic(Layered Architecture + Restrict Dependencies + Observer) 실현 가능성 검증* | **EXP-01 착수**: RPi 환경 세팅 + `dropped_block_count` 주입 + 48k/96k/192k sps 측정 시작 | EXP-01 측정 데이터 수집 시작 |
+| **6/11 (Tue)** | **Observer 리팩토링 완료**: ≤3-file 제약 충족 여부 수동 검증 (기존 Rate·Amplitude·Beat Error 값 비교). *Tactic feasibility 판정: "실제로 ≤3-file 안에서 신규 탭 추가가 가능한가?" → 가능하면 QAS-5 tactic 채택, 불가능하면 아키텍처 재검토* | **EXP-01 완료**: Priority Scheduling(`SCHED_RR`) 전후 비교 완료 → SPS 방향 결정 + QAS-1 Response Measure 확정 | EXP-01 결과 테이블 작성 완료, SPS 확정 |
+| **6/12 (Wed)** | **FR 기본 구현 계속**: EXP-02 timestamp 주입 코드 작성 지원 + 11-tab 빌드 준비 | **EXP-02 착수**: TS1/TS2/TS3 timestamp 주입 + 1-tab 구성 측정 시작. **EXP-03 착수**: `onset_fraction` × `min_peak_fraction` grid search 시작 (Low noise 조건) | EXP-02 1-tab 측정 진행 중, EXP-03 Low noise 완료 |
+| **6/13 (Thu)** | **FR-08 Warning UI 구현**: EXP-04 착수를 위한 `⚠ No signal` / `⚠ Noisy signal` 표시 구현 | **EXP-02 계속**: 11-tab 구성 측정 + Lazy Rendering 필요성 판단. **EXP-03 계속**: Medium/High noise 조건 완료 → 최적 파라미터 도출 | EXP-02 결과 테이블 완료, EXP-03 최적 파라미터 확정 |
+| **6/14 (Fri)** | **코드 통합**: EXP 결과 반영, ADR 초안 작성 지원 | **EXP-04 완료**: Warning threshold Part A·B 완료 → QAS-4 Response Measure 확정. EXP-02 결과 통합 + QAS-2 Response Measure 확정 | 모든 EXP 완료, Provisional 값 전부 확정 |
 
 **English**
 
 EXP-01 blocks all other experiments — start immediately as the first task on 6/10 (Mon).
 
-| Date | Team 1 (Sungho·HungSon·Kyudae) | Team 2 (Taejoon·Jimin) | Done Criteria |
-|:----:|--------------------------------|------------------------|---------------|
-| **6/10 (Mon)** | **EXP-01 start**: RPi env setup + inject `dropped_block_count` + begin 48k/96k/192k sps measurement | **Observer refactoring start**: Begin decomposing God Object into Signal-Slot structure. *Dual purpose: ① Prepare FR-05~08 baseline implementation ② Verify tactic feasibility for QAS-5 (Layered Architecture + Restrict Dependencies + Observer)* | EXP-01 data collection started |
-| **6/11 (Tue)** | **EXP-01 complete**: Priority Scheduling (`SCHED_RR`) before/after comparison done → SPS direction decided + QAS-1 Response Measure finalized | **Observer refactoring complete**: Verify ≤3-file constraint manually (compare Rate·Amplitude·Beat Error values). *Tactic feasibility verdict: "Can a new tab actually be added within ≤3 files?" → Yes: QAS-5 tactic adopted; No: architecture re-examined* | EXP-01 result table written, SPS confirmed |
-| **6/12 (Wed)** | **EXP-02 start**: Inject TS1/TS2/TS3 timestamps + begin 1-tab configuration measurement | **EXP-03 start**: Begin `onset_fraction` × `min_peak_fraction` grid search (Low noise condition) | EXP-02 1-tab measurement in progress, EXP-03 Low noise complete |
-| **6/13 (Thu)** | **EXP-02 continue**: 11-tab configuration measurement + Lazy Rendering necessity decision | **EXP-03 continue**: Complete Medium/High noise → derive optimal params. **EXP-04 start**: Warning threshold search Part A (N·M values) | EXP-02 result table complete, EXP-03 optimal params confirmed |
-| **6/14 (Fri)** | **EXP-02 integration**: Finalize QAS-2 Response Measure, document Lazy Rendering decision | **EXP-04 complete**: Part B (Noisy signal threshold) done → QAS-4 Response Measure finalized | All EXP complete, all Provisional values resolved |
+| Date | Code Dev Team (Sungho·HungSon·Jimin) | Experiment Team (Gyeongjin·Kyudae·Taejoon) | Done Criteria |
+|:----:|---------------------------------------|---------------------------------------------|---------------|
+| **6/10 (Mon)** | **Observer refactoring start**: Begin decomposing God Object into Signal-Slot structure. *Dual purpose: ① Prepare FR-05~08 baseline implementation ② Verify tactic feasibility for QAS-5 (Layered Architecture + Restrict Dependencies + Observer)* | **EXP-01 start**: RPi env setup + inject `dropped_block_count` + begin 48k/96k/192k sps measurement | EXP-01 data collection started |
+| **6/11 (Tue)** | **Observer refactoring complete**: Verify ≤3-file constraint manually (compare Rate·Amplitude·Beat Error values). *Tactic feasibility verdict: "Can a new tab actually be added within ≤3 files?" → Yes: QAS-5 tactic adopted; No: architecture re-examined* | **EXP-01 complete**: Priority Scheduling (`SCHED_RR`) before/after comparison done → SPS direction decided + QAS-1 Response Measure finalized | EXP-01 result table written, SPS confirmed |
+| **6/12 (Wed)** | **FR baseline continues**: Assist with EXP-02 timestamp injection code + prepare 11-tab build | **EXP-02 start**: Inject TS1/TS2/TS3 timestamps + begin 1-tab configuration measurement. **EXP-03 start**: Begin `onset_fraction` × `min_peak_fraction` grid search (Low noise condition) | EXP-02 1-tab measurement in progress, EXP-03 Low noise complete |
+| **6/13 (Thu)** | **FR-08 Warning UI implementation**: Implement `⚠ No signal` / `⚠ Noisy signal` display to unblock EXP-04 | **EXP-02 continue**: 11-tab configuration measurement + Lazy Rendering necessity decision. **EXP-03 continue**: Complete Medium/High noise → derive optimal params | EXP-02 result table complete, EXP-03 optimal params confirmed |
+| **6/14 (Fri)** | **Code integration**: Incorporate EXP results, assist with ADR drafting | **EXP-04 complete**: Warning threshold Part A·B done → QAS-4 Response Measure finalized. EXP-02 integration + QAS-2 Response Measure finalized | All EXP complete, all Provisional values resolved |
 
 ---
 
