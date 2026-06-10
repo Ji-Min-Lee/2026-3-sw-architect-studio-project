@@ -19,108 +19,129 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS PrintSupport REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Multimedia Widgets)
 
-#DP REMOVED NOT NEED IN THIS VERSION
-#IF(WIN32)
-#add_library(fftw SHARED IMPORTED)
-#set_property(TARGET fftw PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/fftw/libfftw3f-3.dll")
-#set_property(TARGET fftw PROPERTY IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/fftw/libfftw3f-3.lib")
-#ENDIF()
-#DP-END
-
 set(PROJECT_SOURCES
     Main.cpp
-        MainWindow.cpp
-        MainWindow.h
-        MainWindow.ui
+    ui/MainWindow.cpp
+    ui/MainWindow.h
+    ui/MainWindow.ui
+    ui/SettingsManager.h
+    ui/SettingsManager.cpp
+)
+
+set(AUDIO_SOURCES
+    audio/AudioWorker.h
+    audio/AudioWorker.cpp
+    audio/PlaybackWorker.h
+    audio/PlaybackWorker.cpp
+    audio/SimWorker.h
+    audio/SimWorker.cpp
+    audio/SharedAudio.h
+    audio/AudioManager.h
+    audio/AudioManager.cpp
+)
+
+set(ENGINE_SOURCES
+    engine/Measurement.h
+    engine/MeasurementEngine.h
+    engine/MeasurementEngine.cpp
+    engine/RollingLeastSquares.h
+    engine/RollingLeastSquares.cpp
+    engine/RollingAverage.h
+    engine/RollingAverage.cpp
+)
+
+set(TABS_SOURCES
+    tabs/BaseGraphTab.h
+    tabs/RateScopeTab.h
+    tabs/RateScopeTab.cpp
+    tabs/TraceTab.h
+    tabs/TraceTab.cpp
+    tabs/SoundPrintTab.h
+    tabs/SoundPrintTab.cpp
+    tabs/BeatErrorTab.h
+    tabs/BeatErrorTab.cpp
+    tabs/VarioTab.h
+    tabs/VarioTab.cpp
+    tabs/SequenceTab.h
+    tabs/SequenceTab.cpp
+    tabs/BeatNoiseScopeTab.h
+    tabs/BeatNoiseScopeTab.cpp
+    tabs/LongTermTab.h
+    tabs/LongTermTab.cpp
+    tabs/EscapementTab.h
+    tabs/EscapementTab.cpp
+    tabs/SpectrogramTab.h
+    tabs/SpectrogramTab.cpp
+    tabs/WaveformCompTab.h
+    tabs/WaveformCompTab.cpp
+)
+
+set(EXTERNAL_SOURCES
+    external/qcustomplot.h
+    external/qcustomplot.cpp
+    external/Timegrapher.h
+    external/Timegrapher.cpp
+    external/Bph.h
+    external/Bph.cpp
+    external/Detector.h
+    external/Detector.cpp
+    external/Dsp.h
+    external/Dsp.cpp
+    external/SoundImageWidget.h
+    external/SoundImageWidget.cpp
+    external/SoundImageRenderer.h
+    external/SoundImageRenderer.cpp
+    external/WaveHeader.h
+    external/WavStreamWriter.h
+    external/WavStreamWriter.cpp
+    external/WatchSynthStream.h
+    external/WatchSynthStream.cpp
+    external/LinuxAudio.cpp
+    external/LinuxAudio.h
+    external/WindowsAudio.h
+    external/WindowsAudio.cpp
+    external/Splash.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(TimeGrapher
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        qcustomplot.h
-        qcustomplot.cpp
-        AudioWorker.h
-        AudioWorker.cpp
-        SharedAudio.h
-        PlaybackWorker.h
-        PlaybackWorker.cpp
-        WaveHeader.h
-        WavStreamWriter.h
-        WavStreamWriter.cpp
-        Timegrapher.h
-        Timegrapher.cpp
-        Bph.h
-        Bph.cpp
-        Detector.h
-        Detector.cpp
-        Dsp.h
-        Dsp.cpp
-        RollingLeastSquares.h
-        RollingLeastSquares.cpp
-        SoundImageWidget.h
-        SoundImageWidget.cpp
-        SoundImageRenderer.h
-        SoundImageRenderer.cpp
-        RollingAverage.h
-        RollingAverage.cpp
-        SimWorker.cpp
-        SimWorker.h
-        WatchSynthStream.cpp
-        WatchSynthStream.h
-        Splash.qrc
-        LinuxAudio.cpp
-        LinuxAudio.h
-        WindowsAudio.h
-        WindowsAudio.cpp
+        ${AUDIO_SOURCES}
+        ${ENGINE_SOURCES}
+        ${TABS_SOURCES}
+        ${EXTERNAL_SOURCES}
     )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET TimeGrapher APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
-        add_library(TimeGrapher SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+        add_library(TimeGrapher SHARED ${PROJECT_SOURCES})
     else()
-        add_executable(TimeGrapher
-            ${PROJECT_SOURCES}
-        )
+        add_executable(TimeGrapher ${PROJECT_SOURCES})
     endif()
 endif()
 
-#DP-START REMOVED NOT NEED IN THIS VERSION
-#target_include_directories(TimeGrapher PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/fftw")
-#DP-END
+# All subdirectories are in the include path so every file can use
+# #include "File.h" without relative-path prefixes.
+target_include_directories(TimeGrapher PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/tabs
+    ${CMAKE_CURRENT_SOURCE_DIR}/ui
+)
 
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::PrintSupport)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
 IF(WIN32)
-#DP REMOVED NOT NEED IN THIS VERSION
-#target_link_libraries(TimeGrapher PRIVATE fftw)
-#DP-END
-target_link_libraries(TimeGrapher PRIVATE winmm)
-target_link_libraries(TimeGrapher PRIVATE Ole32)
-target_link_libraries(TimeGrapher PRIVATE Uuid)
-target_link_libraries(TimeGrapher PRIVATE Propsys)
+    target_link_libraries(TimeGrapher PRIVATE winmm Ole32 Uuid Propsys)
 ELSEIF(LINUX)
-target_link_libraries(TimeGrapher PRIVATE asound)
-#DP REMOVED NOT NEED IN THIS VERSION
-#target_link_libraries(TimeGrapher PRIVATE fftw3f)
-#DP-END
-ELSE()
-
+    target_link_libraries(TimeGrapher PRIVATE asound)
 ENDIF()
 
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.TimeGrapher)
+    set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.TimeGrapher)
 endif()
 set_target_properties(TimeGrapher PROPERTIES
     ${BUNDLE_ID_OPTION}
