@@ -42,7 +42,7 @@ void VarioTab::onMeasurement(const Measurement &m)
 {
     bool changed = false;
     for (const AcousticEvent &ev : m.events) {
-        if (!ev.hasAmpSplit) continue;
+        if (ev.isA || !ev.hasAmpSplit) continue;
         mPlot->graph(0)->addData(mBeatIdx, ev.ticAmpDeg);
         mPlot->graph(1)->addData(mBeatIdx, ev.tocAmpDeg);
         mBeatIdx++;

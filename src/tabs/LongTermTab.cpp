@@ -30,7 +30,7 @@ void LongTermTab::reset()
 void LongTermTab::onMeasurement(const Measurement &m)
 {
     if (!m.rateValid) return;
-    mTimeElapsed += (double)m.pcm.size() / m.samplesPerSecond;
+    mTimeElapsed += (double)m.rawPcm.size() / m.samplesPerSecond;
     mPlot->graph(0)->addData(mTimeElapsed, m.rateErrorSpd);
     // Long-term: show all data, don't clip x-axis
     mPlot->xAxis->rescale();

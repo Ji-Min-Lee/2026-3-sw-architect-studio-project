@@ -33,7 +33,7 @@ void TraceTab::onMeasurement(const Measurement &m)
     if (!m.rateValid) return;
 
     // Advance time by the number of PCM samples in this block
-    mTimeElapsed += (double)m.pcm.size() / m.samplesPerSecond;
+    mTimeElapsed += (double)m.rawPcm.size() / m.samplesPerSecond;
 
     mPlot->graph(0)->addData(mTimeElapsed, m.rateErrorSpd);
     mPlot->xAxis->rescale();

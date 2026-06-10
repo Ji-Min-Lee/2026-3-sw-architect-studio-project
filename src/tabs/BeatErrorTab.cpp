@@ -30,7 +30,7 @@ void BeatErrorTab::reset()
 void BeatErrorTab::onMeasurement(const Measurement &m)
 {
     if (!m.beatErrorValid) return;
-    mTimeElapsed += (double)m.pcm.size() / m.samplesPerSecond;
+    mTimeElapsed += (double)m.rawPcm.size() / m.samplesPerSecond;
     mPlot->graph(0)->addData(mTimeElapsed, m.beatErrorMs);
     mPlot->xAxis->rescale();
     mPlot->yAxis->rescale();

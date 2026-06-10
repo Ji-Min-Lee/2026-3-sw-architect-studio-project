@@ -135,7 +135,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->GraphicsTabWidget->addTab(mBeatNoiseScopeTab, "Beat Noise");
     ui->GraphicsTabWidget->addTab(mLongTermTab,       "Long Term");
     ui->GraphicsTabWidget->addTab(mEscapementTab,     "Escapement");
-    ui->GraphicsTabWidget->addTab(mSpectrogramTab,    "Spectrogram");
+    ui->GraphicsTabWidget->addTab(mSpectrogramTab,    "Spectrum");
     ui->GraphicsTabWidget->addTab(mWaveformCompTab,   "Waveform");
 
     // ── Observer: register() — connect Model → Views (AP-4) ──────────────────
