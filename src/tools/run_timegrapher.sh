@@ -34,11 +34,22 @@ do_build() {
     echo "[build] SRC_DIR=$SRC_DIR"
     mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
-    # CMakeCache 없으면 configure
-    if [ ! -f CMakeCache.txt ]; then
+
+    # 캐시가 옛 경로(폴더 이동 전)를 가리키면 stale → 재configure
+    cached_src=""
+    if [ -f CMakeCache.txt ]; then
+        cached_src=$(grep '^CMAKE_HOME_DIRECTORY' CMakeCache.txt | cut -d= -f2)
+    fi
+
+    if [ ! -f CMakeCache.txt ] || [ "$cached_src" != "$SRC_DIR" ]; then
+        if [ -n "$cached_src" ] && [ "$cached_src" != "$SRC_DIR" ]; then
+            echo "[build] stale cache ($cached_src != $SRC_DIR) -> reconfigure"
+            rm -f CMakeCache.txt
+        fi
         echo "[build] configuring..."
         cmake .. -DCMAKE_PREFIX_PATH="$QT_PREFIX"
     fi
+
     echo "[build] compiling (-j$JOBS)..."
     make -j"$JOBS"
     echo "[build] done -> $BIN"
