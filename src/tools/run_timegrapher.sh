@@ -14,11 +14,12 @@ set -e  # 에러 발생 시 즉시 중단
 QT_PREFIX=/home/lg/Qt/6.11.1/gcc_arm64
 JOBS=4
 
-# 프로젝트 루트: git 루트 자동 탐지 (실패 시 고정 경로 fallback)
-PROJ=$(git rev-parse --show-toplevel 2>/dev/null \
-       || echo /home/lg/Experiments/2026-3-sw-architect-studio-project)
+# src 디렉토리 = 이 스크립트(src/tools/)의 한 단계 위
+# 실행 위치(pwd)와 무관하게 항상 정확
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SRC_DIR=$(dirname "$SCRIPT_DIR")     # src/  (CMakeLists.txt 위치)
 
-BUILD_DIR=$PROJ/src/build
+BUILD_DIR=$SRC_DIR/build
 BIN=$BUILD_DIR/TimeGrapher
 
 # ── 실행 환경변수 (GUI) ───────────────────────────────────────
@@ -30,7 +31,7 @@ MODE=${1:-all}   # 인자 없으면 all (build + run)
 
 # ── 함수 ──────────────────────────────────────────────────────
 do_build() {
-    echo "[build] PROJ=$PROJ"
+    echo "[build] SRC_DIR=$SRC_DIR"
     mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
     # CMakeCache 없으면 configure
