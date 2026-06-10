@@ -24,6 +24,7 @@ BIN=$BUILD_DIR/TimeGrapher
 
 # ── 실행 환경변수 (GUI) ───────────────────────────────────────
 export DISPLAY=:0
+export XAUTHORITY=/home/lg/.Xauthority
 export XDG_RUNTIME_DIR=/run/user/1000
 export QT_QPA_PLATFORM=xcb
 
@@ -62,7 +63,7 @@ do_run() {
         exit 1
     fi
     echo "[run] launching TimeGrapher..."
-    "$BIN"
+    sudo DISPLAY=:0 XAUTHORITY=/home/lg/.Xauthority "$BIN"
 }
 
 # ── 분기 ──────────────────────────────────────────────────────
