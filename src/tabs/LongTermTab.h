@@ -37,6 +37,7 @@ private:
     };
     Series makeSeries(int row, const QString &name, const QColor &c,
                       bool firstUsesDefaultRect);
+    void   addTolLine(Series &s, double yVal);
     void   addPoint(Series &s, double t, double v);
     void   updateOverlay(Series &s);
 
@@ -44,6 +45,4 @@ private:
     Series mRate, mAmp, mBeat;
     double mTimeElapsed = 0.0;
     int    mBucketSize  = 1;     // measurements per plotted point
-    qint64 mTotalPoints = 0;
-    static constexpr int kMaxPointsBeforeCoarsen = 1800;
 };
