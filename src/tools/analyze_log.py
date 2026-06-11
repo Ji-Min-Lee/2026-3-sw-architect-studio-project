@@ -186,3 +186,63 @@ plt.tight_layout(rect=[0, 0, 1, 0.97])
 out_png = os.path.splitext(csv_path)[0] + ".png"
 plt.savefig(out_png, dpi=120)
 print(f"\nSaved plot: {out_png}")
+
+# ── system metrics (RPi): separate figure if *_sys.csv exists ─
+sys_path = os.path.splitext(csv_path)[0] + "_sys.csv"
+if os.path.exists(sys_path):
+    scols = {}
+    with open(sys_path, newline="") as f:
+        rdr = csv.DictReader(f)
+        sys_fields = rdr.fieldnames or []
+        for row in rdr:
+            for k, v in row.items():
+                try: scols.setdefault(k, []).append(float(v))
+                except (ValueError, TypeError): pass
+    sx = scols.get("frame", [])
+    if sx:
+        core_keys = [k for k in sys_fields if k.startswith("cpu") and k != "cpu_total"]
+        print(f"\n=== System (RPi) — {len(sx)} samples, {len(core_keys)} cores ===")
+        for k in ["cpu_total"] + core_keys + ["mem_used_mb", "temp_c", "freq_mhz"]:
+            if k in scols and scols[k]:
+                print(f"  {k:13s} avg={statistics.mean(scols[k]):8.1f}  max={max(scols[k]):8.1f}")
+        thr = [t for t in scols.get("throttled", []) if t != 0]
+        if thr:
+            print(f"  ** throttled events: {len(thr)} (bitmask != 0) **")
+
+        sfig, sax = plt.subplots(4, 1, figsize=(13, 12))
+        sfig.suptitle(f"TimeGrapher System Metrics (RPi)\n{os.path.basename(sys_path)}",
+                      fontsize=12)
+        # 1) per-core + total CPU
+        sax[0].plot(sx, scols["cpu_total"], label="total", color="black", linewidth=1.5)
+        for k in core_keys:
+            sax[0].plot(sx, scols[k], label=k, linewidth=0.9, alpha=0.8)
+        sax[0].set_ylabel("CPU %"); sax[0].set_ylim(0, 105)
+        sax[0].set_title("CPU utilization (total + per core)")
+        sax[0].legend(loc="upper left", fontsize=8, ncol=6); sax[0].grid(True, alpha=0.3)
+        # 2) memory
+        sax[1].plot(sx, scols["mem_used_mb"], label="used", color="purple", linewidth=1.2)
+        if "mem_total_mb" in scols:
+            sax[1].plot(sx, scols["mem_total_mb"], label="total", color="gray",
+                        linestyle="--", linewidth=0.8)
+        sax[1].set_ylabel("MB"); sax[1].set_title("Memory (used / total)")
+        sax[1].legend(loc="upper left", fontsize=8); sax[1].grid(True, alpha=0.3)
+        # 3) temperature
+        sax[2].plot(sx, scols["temp_c"], label="temp", color="red", linewidth=1.2)
+        sax[2].axhline(y=80, color="red", linestyle="--", alpha=0.5, linewidth=0.8,
+                       label="80C throttle")
+        sax[2].set_ylabel("C"); sax[2].set_title("CPU temperature")
+        sax[2].legend(loc="upper left", fontsize=8); sax[2].grid(True, alpha=0.3)
+        # 4) frequency + throttled markers
+        sax[3].plot(sx, scols["freq_mhz"], label="freq", color="blue", linewidth=1.2)
+        if any(t != 0 for t in scols.get("throttled", [])):
+            for i, t in enumerate(scols["throttled"]):
+                if t != 0:
+                    sax[3].axvline(x=sx[i], color="red", alpha=0.3, linewidth=0.8)
+        sax[3].set_ylabel("MHz"); sax[3].set_xlabel("frame")
+        sax[3].set_title("CPU frequency (red lines = throttled)")
+        sax[3].legend(loc="upper left", fontsize=8); sax[3].grid(True, alpha=0.3)
+
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        sys_png = os.path.splitext(sys_path)[0] + ".png"
+        plt.savefig(sys_png, dpi=120)
+        print(f"Saved system plot: {sys_png}")

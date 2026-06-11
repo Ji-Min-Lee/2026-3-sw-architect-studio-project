@@ -10,18 +10,24 @@ Logger::Logger(const QString &csvPath, int consoleEvery)
     qInfo("[Logger] per-frame logging -> %s (console every %d frames)",
           qPrintable(mPath), mConsoleEvery);
     mFrames.reserve(1 << 16);   // ~65k frames up front to avoid early reallocs
+    mSys.sample();              // seed CPU delta baseline
 }
 
 Logger::~Logger()
 {
     writeCsv();
+    writeSysCsv();
 }
 
 void Logger::record(const Frame &f)
 {
     mFrames.push_back(f);   // cheap: memory only, no per-frame disk I/O
-    if ((int)(mFrames.size() % mConsoleEvery) == 0)
+    if ((int)(mFrames.size() % mConsoleEvery) == 0) {
         consoleSummary();
+        SysSample s = mSys.sample();          // ~1x/window system snapshot
+        if (s.valid)
+            mSysSamples.emplace_back(mFrames.size(), s);
+    }
 }
 
 void Logger::consoleSummary()
@@ -94,4 +100,44 @@ void Logger::writeCsv()
     file.close();
     qInfo("[Logger] wrote %llu frames -> %s",
           (unsigned long long)mFrames.size(), qPrintable(mPath));
+}
+
+void Logger::writeSysCsv()
+{
+    if (mSysSamples.empty()) return;   // e.g. non-Linux: nothing collected
+
+    QString sysPath = mPath.endsWith(".csv", Qt::CaseInsensitive)
+                          ? mPath.left(mPath.length() - 4) + "_sys.csv"
+                          : mPath + "_sys.csv";
+    QFile file(sysPath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+        qWarning("[Logger] failed to open sys CSV: %s", qPrintable(sysPath));
+        return;
+    }
+    // dynamic core count from the first sample
+    const int cores = (int)mSysSamples.front().second.cpu_cores.size();
+
+    QTextStream out(&file);
+    out << "frame,cpu_total";
+    for (int c = 0; c < cores; ++c) out << ",cpu" << c;
+    out << ",mem_used_mb,mem_total_mb,temp_c,freq_mhz,throttled\n";
+
+    for (const auto &pr : mSysSamples) {
+        const SysSample &s = pr.second;
+        out << pr.first << ','
+            << QString::number(s.cpu_total, 'f', 1);
+        for (int c = 0; c < cores; ++c) {
+            double v = (c < (int)s.cpu_cores.size()) ? s.cpu_cores[c] : 0.0;
+            out << ',' << QString::number(v, 'f', 1);
+        }
+        out << ',' << QString::number(s.mem_used_mb, 'f', 1)
+            << ',' << QString::number(s.mem_total_mb, 'f', 1)
+            << ',' << QString::number(s.temp_c, 'f', 1)
+            << ',' << QString::number(s.freq_mhz, 'f', 1)
+            << ',' << QString::number((double)s.throttled, 'f', 0) << '\n';
+    }
+    out.flush();
+    file.close();
+    qInfo("[Logger] wrote %llu system samples -> %s",
+          (unsigned long long)mSysSamples.size(), qPrintable(sysPath));
 }

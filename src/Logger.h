@@ -19,7 +19,9 @@
 #include <cstdint>
 #include <chrono>
 #include <vector>
+#include <utility>
 #include <QString>
+#include "SysStats.h"
 
 // Monotonic microsecond clock shared across worker/main threads.
 // Same steady_clock source on both sides, so timestamps are directly comparable.
@@ -63,10 +65,15 @@ public:
 private:
     void consoleSummary();   // average the last consoleEvery frames -> qInfo
     void writeCsv();         // dump all buffered frames -> csvPath
+    void writeSysCsv();      // dump system samples -> *_sys.csv
 
     QString            mPath;
     int                mConsoleEvery;
     std::vector<Frame> mFrames;   // per-frame buffer (written once at shutdown)
+
+    // System metrics, sampled once per console window (~1s), written separately.
+    SysStats                              mSys;
+    std::vector<std::pair<uint64_t, SysSample>> mSysSamples;  // (frame index, sample)
 };
 
 #endif // LOGGER_H

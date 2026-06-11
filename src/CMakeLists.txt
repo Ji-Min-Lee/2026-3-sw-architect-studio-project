@@ -71,6 +71,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         RollingAverage.cpp
         Logger.h
         Logger.cpp
+        SysStats.h
+        SysStats.cpp
         SimWorker.cpp
         SimWorker.h
         WatchSynthStream.cpp
