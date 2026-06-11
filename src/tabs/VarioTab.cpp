@@ -1,11 +1,14 @@
 #include "VarioTab.h"
 #include <QVBoxLayout>
 
-// Acceptable ranges (project plan: amplitude 270–300° normal; rate ±10 s/d)
+// Acceptable (green) ranges fixed to the Witschi reference figure (Fig 9):
+// rate −5..+15 s/d (asymmetric — slight gain preferred over loss),
+// amplitude 195..300°. Witschi stores these per watch program; a per-watch
+// tolerance UI can replace these constants later.
 static constexpr double kRateLo = -20,  kRateHi = 20;
-static constexpr double kRateBandLo = -10, kRateBandHi = 10;
+static constexpr double kRateBandLo = -5,  kRateBandHi = 15;
 static constexpr double kAmpLo  = 180, kAmpHi  = 330;
-static constexpr double kAmpBandLo = 270, kAmpBandHi = 300;
+static constexpr double kAmpBandLo = 195, kAmpBandHi = 300;
 
 VarioTab::VarioTab(QWidget *parent) : BaseGraphTab(parent)
 {
