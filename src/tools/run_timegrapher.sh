@@ -3,10 +3,13 @@
 # TimeGrapher build & run script (Raspberry Pi)
 #
 # Usage:
-#   ./run_timegrapher.sh           # build + run
-#   ./run_timegrapher.sh build     # build only
-#   ./run_timegrapher.sh run       # run only (skip build)
-#   ./run_timegrapher.sh rebuild   # clean build dir + build + run
+#   ./run_timegrapher.sh                   # build + run (no logging)
+#   ./run_timegrapher.sh build             # build only
+#   ./run_timegrapher.sh run               # run only (skip build)
+#   ./run_timegrapher.sh rebuild           # clean build dir + build + run
+#   ./run_timegrapher.sh build logging     # build with performance logging
+#   ./run_timegrapher.sh all logging       # build + run with logging
+# (logging uses a separate build dir: build-log/)
 # ──────────────────────────────────────────────────────────────
 set -e  # exit immediately on error
 
@@ -19,7 +22,23 @@ JOBS=4
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SRC_DIR=$(dirname "$SCRIPT_DIR")     # src/  (location of CMakeLists.txt)
 
-BUILD_DIR=$SRC_DIR/build
+# ── Parse args: mode + optional "logging" flag (any order) ────
+MODE=all
+LOGGING=OFF
+for a in "$@"; do
+    case "$a" in
+        logging|--logging) LOGGING=ON ;;
+        build|run|rebuild|all) MODE=$a ;;
+    esac
+done
+
+# Logging and non-logging binaries use separate build dirs so their
+# CMake caches never thrash.
+if [ "$LOGGING" = "ON" ]; then
+    BUILD_DIR=$SRC_DIR/build-log
+else
+    BUILD_DIR=$SRC_DIR/build
+fi
 BIN=$BUILD_DIR/TimeGrapher
 
 # ── Runtime env vars (GUI) ────────────────────────────────────
@@ -27,8 +46,6 @@ export DISPLAY=:0
 export XAUTHORITY=/home/lg/.Xauthority
 export XDG_RUNTIME_DIR=/run/user/1000
 export QT_QPA_PLATFORM=xcb
-
-MODE=${1:-all}   # default to all (build + run) when no arg
 
 # ── Conflict check ────────────────────────────────────────────
 # Check if a build is already in progress (make / cmake process)
@@ -45,7 +62,7 @@ fi
 
 # ── Functions ─────────────────────────────────────────────────
 do_build() {
-    echo "[build] SRC_DIR=$SRC_DIR"
+    echo "[build] SRC_DIR=$SRC_DIR  ENABLE_LOGGING=$LOGGING  ($(basename "$BUILD_DIR"))"
     mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
 
@@ -61,7 +78,7 @@ do_build() {
             rm -f CMakeCache.txt
         fi
         echo "[build] configuring..."
-        cmake .. -DCMAKE_PREFIX_PATH="$QT_PREFIX"
+        cmake .. -DCMAKE_PREFIX_PATH="$QT_PREFIX" -DENABLE_LOGGING="$LOGGING"
     fi
 
     echo "[build] compiling (-j$JOBS)..."
@@ -98,7 +115,7 @@ case "$MODE" in
         do_run
         ;;
     *)
-        echo "Usage: $0 [build|run|rebuild|all]"
+        echo "Usage: $0 [build|run|rebuild|all] [logging]"
         exit 1
         ;;
 esac
