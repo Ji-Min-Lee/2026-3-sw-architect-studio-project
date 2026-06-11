@@ -170,10 +170,20 @@ CSV logs are committed to git for experiment history (this is a short,
 ## Build & run
 
 ```powershell
-# Windows (Release, default unified build dir)
-.\src\tools\run_timegrapher.ps1 build            # ENABLE_LOGGING=OFF -> src/build
-.\src\tools\run_timegrapher.ps1 build -Logging   # ENABLE_LOGGING=ON  -> src/build-log
+# Windows
+.\src\tools\run_timegrapher.ps1 build          # ENABLE_LOGGING=OFF -> src/build
+.\src\tools\run_timegrapher.ps1 build --log     # ENABLE_LOGGING=ON  -> src/build-log
 ```
+
+```bash
+# Raspberry Pi
+./src/tools/run_timegrapher.sh build           # ENABLE_LOGGING=OFF -> src/build
+./src/tools/run_timegrapher.sh build --log      # ENABLE_LOGGING=ON  -> src/build-log
+```
+
+The `--log` flag is a build-time switch (it sets the `ENABLE_LOGGING` compile
+definition), so it applies to `build` / `all` / `rebuild`; `run` simply launches
+the binary from the matching build dir.
 
 Logging and non-logging binaries use separate build directories (`build` vs
 `build-log`) so their CMake caches never thrash.

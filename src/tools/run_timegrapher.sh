@@ -7,9 +7,9 @@
 #   ./run_timegrapher.sh build             # build only
 #   ./run_timegrapher.sh run               # run only (skip build)
 #   ./run_timegrapher.sh rebuild           # clean build dir + build + run
-#   ./run_timegrapher.sh build logging     # build with performance logging
-#   ./run_timegrapher.sh all logging       # build + run with logging
-# (logging uses a separate build dir: build-log/)
+#   ./run_timegrapher.sh build --log       # build with performance logging
+#   ./run_timegrapher.sh all --log         # build + run with logging
+# (--log uses a separate build dir: build-log/)
 # ──────────────────────────────────────────────────────────────
 set -e  # exit immediately on error
 
@@ -27,7 +27,7 @@ MODE=all
 LOGGING=OFF
 for a in "$@"; do
     case "$a" in
-        logging|--logging) LOGGING=ON ;;
+        --log|logging) LOGGING=ON ;;
         build|run|rebuild|all) MODE=$a ;;
     esac
 done
@@ -115,7 +115,7 @@ case "$MODE" in
         do_run
         ;;
     *)
-        echo "Usage: $0 [build|run|rebuild|all] [logging]"
+        echo "Usage: $0 [build|run|rebuild|all] [--log]"
         exit 1
         ;;
 esac

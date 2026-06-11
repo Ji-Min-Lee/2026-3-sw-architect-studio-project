@@ -3,19 +3,28 @@
    TimeGrapher build & run script (Windows / MinGW)
 
  .USAGE
-   .\run_timegrapher.ps1            # build + run
-   .\run_timegrapher.ps1 build      # build only
-   .\run_timegrapher.ps1 run        # run only (skip build)
-   .\run_timegrapher.ps1 rebuild    # clean build dir + build + run
+   .\run_timegrapher.ps1                 # build + run (no logging)
+   .\run_timegrapher.ps1 build           # build only
+   .\run_timegrapher.ps1 run             # run only (skip build)
+   .\run_timegrapher.ps1 rebuild         # clean build dir + build + run
+   .\run_timegrapher.ps1 build --log     # build with performance logging
+   .\run_timegrapher.ps1 all --log       # build + run with logging
+ (--log uses a separate build dir: build-log/)
 #>
 param(
-    [ValidateSet('all','build','run','rebuild')]
-    [string]$Mode = 'all',
-    # Enable performance logging (console + CSV). Uses a separate build dir
-    # so logging / non-logging binaries don't thrash each other's cache.
-    [switch]$Logging
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$CmdArgs
 )
 $ErrorActionPreference = 'Stop'
+
+# ── Parse args: mode + optional --log flag (any order) ────────
+$Mode    = 'all'
+$Logging = $false
+foreach ($a in $CmdArgs) {
+    if     ($a -in @('build','run','rebuild','all')) { $Mode = $a }
+    elseif ($a -eq '--log' -or $a -eq 'logging')     { $Logging = $true }
+    else { Write-Host "[warn] ignoring unknown arg: $a" }
+}
 
 # ── Config (edit here if paths change) ────────────────────────
 $QtPrefix    = 'C:\Qt\6.11.1\mingw_64'
