@@ -82,6 +82,56 @@ private slots:
         QCOMPARE(table->item(0, 0)->text(), QString("—"));
     }
 
+    // DVH 행: Rate = Vertical 평균 − Horizontal 평균, Ampl 동일, Beat는 "—"
+    void sequenceTab_dvh_rate_and_ampl()
+    {
+        SequenceTab tab;
+        auto *table = tab.findChild<QTableWidget *>();
+        QVERIFY(table);
+
+        // Horizontal: CH=2.0, CB=4.0  → mean = 3.0
+        // Vertical:   9H=1.0, 6H=1.0, 3H=1.0, 12H=1.0 → mean = 1.0
+        // DVH Rate = 1.0 − 3.0 = −2.0
+        auto capture = [&](const QString &pos, double rate, double ampl) {
+            Measurement m;
+            m.rateValid = true;      m.rateErrorSpd = rate;
+            m.amplitudeValid = true; m.amplitudeDeg = ampl;
+            m.beatErrorValid = false;
+            tab.setActivePosition(pos);
+            tab.onMeasurement(m);
+            tab.captureCurrent();
+        };
+
+        capture("CH",  2.0, 300.0);
+        capture("CB",  4.0, 290.0);
+        capture("9H",  1.0, 260.0);
+        capture("6H",  1.0, 260.0);
+        capture("3H",  1.0, 260.0);
+        capture("12H", 1.0, 260.0);
+
+        const int dvhRow = SequenceTab::positions().size() + 2;
+        QCOMPARE(table->item(dvhRow, 0)->text(), QString("-2.0")); // Rate DVH
+        QCOMPARE(table->item(dvhRow, 1)->text(), QString("—"));    // Beat: 빈칸
+        // Ampl DVH: Vertical mean=260, Horizontal mean=295 → -35
+        QCOMPARE(table->item(dvhRow, 2)->text(), QString("-35"));  // Ampl DVH
+    }
+
+    // DVH: 수직 또는 수평 포지션이 하나도 없으면 "—"
+    void sequenceTab_dvh_missing_positions_shows_dash()
+    {
+        SequenceTab tab;
+        auto *table = tab.findChild<QTableWidget *>();
+
+        Measurement m;
+        m.rateValid = true; m.rateErrorSpd = 1.0;
+        tab.setActivePosition("CH");
+        tab.onMeasurement(m);
+        tab.captureCurrent();  // Horizontal만 존재
+
+        const int dvhRow = SequenceTab::positions().size() + 2;
+        QCOMPARE(table->item(dvhRow, 0)->text(), QString("—"));
+    }
+
     // ── EscapementTab: 파형 + A/C 마커 + Δms ────────────────────────────────
     void escapementTab_deltaMs_matchesEventSpacing()
     {

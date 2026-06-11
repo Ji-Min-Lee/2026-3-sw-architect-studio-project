@@ -35,9 +35,11 @@ private:
 
     QComboBox   *mRefCombo;
     QLabel      *mDeltaLabel;
+    QLabel      *mStabilityLabel;
     QCustomPlot *mPlot;
     QCPItemLine *mAMarker, *mCMarker;
     QCPItemText *mALabel, *mCLabel, *mDeltaText;
+    QCPItemRect *mACRect;
 
     QVector<double> mBuf;       // rolling raw pcm
     double          mBufStartAbs = 0;
@@ -48,4 +50,8 @@ private:
     Beat   mBeat;               // last complete beat
     bool   mHaveBeat = false;
     double mCurrentMs = 0.0;
+
+    static constexpr int kHistoryN = 20;
+    QVector<double> mPeakHistory;
+    QVector<double> mOnsetHistory;
 };

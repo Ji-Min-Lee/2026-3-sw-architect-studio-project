@@ -138,7 +138,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->GraphicsTabWidget->addTab(mBeatErrorTab,      "Beat Error");
     ui->GraphicsTabWidget->addTab(mVarioTab,          "Vario");
     ui->GraphicsTabWidget->addTab(mSequenceTab,       "Sequence");
-    ui->GraphicsTabWidget->addTab(mBeatNoiseScopeTab, "Beat Noise");
+    ui->GraphicsTabWidget->addTab(mBeatNoiseScopeTab, "Beat Scope");
     ui->GraphicsTabWidget->addTab(mLongTermTab,       "Long Term");
     ui->GraphicsTabWidget->addTab(mEscapementTab,     "Escapement");
     ui->GraphicsTabWidget->addTab(mSpectrogramTab,    "Spectrum");

@@ -46,7 +46,20 @@ BeatNoiseScopeTab::BeatNoiseScopeTab(QWidget *parent) : BaseGraphTab(parent)
     }
     mAMarker->setPen(QPen(Qt::darkGreen, 1.5, Qt::DashLine));
     mCMarker->setPen(QPen(Qt::red, 1.5, Qt::DashLine));
-    mStack->addWidget(mPlot1);
+
+    mStripBar = new BeatStripBar(this);
+
+    auto *scope1Container = new QWidget(this);
+    auto *scope1Lay = new QVBoxLayout(scope1Container);
+    scope1Lay->setContentsMargins(0, 0, 0, 0);
+    scope1Lay->setSpacing(2);
+    scope1Lay->addWidget(mPlot1, 1);
+    scope1Lay->addWidget(mStripBar);
+    mStack->addWidget(scope1Container);
+
+    connect(mStripBar, &BeatStripBar::beatSelected, this, [this](int i) {
+        mBeatCombo->setCurrentIndex(i);
+    });
 
     mPlot2 = new QCustomPlot(this);
     mPlot2->plotLayout()->clear();
@@ -60,6 +73,8 @@ BeatNoiseScopeTab::BeatNoiseScopeTab(QWidget *parent) : BaseGraphTab(parent)
     mTicGraph2->setBrush(QBrush(QColor(240, 200, 60, 120)));
     mTocGraph2->setPen(QPen(QColor(180, 140, 0)));
     mTocGraph2->setBrush(QBrush(QColor(240, 200, 60, 120)));
+    ticRect->axis(QCPAxis::atLeft)->setLabel("|Amplitude|");
+    tocRect->axis(QCPAxis::atLeft)->setLabel("|Amplitude|");
     tocRect->axis(QCPAxis::atBottom)->setLabel("Time (ms)");
     mStack->addWidget(mPlot2);
 
@@ -201,6 +216,11 @@ void BeatNoiseScopeTab::redrawScope1()
                             .arg(mLiftAngle, 0, 'f', 1)
                             .arg(idx == 0 ? "latest" : QString("−%1").arg(idx))
                             .arg(b.isTic ? "tic" : "tac"));
+    QList<QVector<double>> strips;
+    for (const Beat &b : mBeats)
+        strips.append(b.ys.mid(0, qMin(rangeSamples(), (int)b.ys.size())));
+    mStripBar->setStrips(strips, idx);
+
     mPlot1->replot(QCustomPlot::rpQueuedReplot);
 }
 
@@ -265,6 +285,7 @@ void BeatNoiseScopeTab::reset()
     mCMarker->setVisible(false);
     mTicGraph2->data()->clear();
     mTocGraph2->data()->clear();
+    mStripBar->setStrips({}, 0);
     mPlot1->replot();
     mPlot2->replot();
     setLiftAngle(mLiftAngle);

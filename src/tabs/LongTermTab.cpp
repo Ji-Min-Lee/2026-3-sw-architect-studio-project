@@ -16,6 +16,22 @@ LongTermTab::LongTermTab(QWidget *parent) : BaseGraphTab(parent)
     mAmp  = makeSeries(1, "Amplitude (°)",   QColor(40, 70, 200), false);
     mBeat = makeSeries(2, "Beat Error (ms)", QColor(30, 140, 60), false);
     mBeat.rect->axis(QCPAxis::atBottom)->setLabel("Time (s)");
+
+    // Synchronise all three X-axes so every subplot always shows the same time window.
+    QCPAxis *xRate = mRate.rect->axis(QCPAxis::atBottom);
+    QCPAxis *xAmp  = mAmp.rect->axis(QCPAxis::atBottom);
+    QCPAxis *xBeat = mBeat.rect->axis(QCPAxis::atBottom);
+    connect(xRate, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged),
+            xAmp,  QOverload<const QCPRange&>::of(&QCPAxis::setRange));
+    connect(xRate, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged),
+            xBeat, QOverload<const QCPRange&>::of(&QCPAxis::setRange));
+
+    // Tolerance / acceptance reference lines (project plan Figure 14).
+    addTolLine(mRate,  5.0);   // Rate upper limit  +5 s/d
+    addTolLine(mRate, -5.0);   // Rate lower limit  -5 s/d
+    addTolLine(mAmp,  310.0);  // Amplitude upper   310°
+    addTolLine(mAmp,  270.0);  // Amplitude lower   270°
+    addTolLine(mBeat,   0.6);  // Beat Error limit  0.6 ms
 }
 
 LongTermTab::Series LongTermTab::makeSeries(int row, const QString &name,
@@ -60,6 +76,21 @@ LongTermTab::Series LongTermTab::makeSeries(int row, const QString &name,
     return s;
 }
 
+void LongTermTab::addTolLine(Series &s, double yVal)
+{
+    QCPAxis *x = s.rect->axis(QCPAxis::atBottom);
+    QCPAxis *y = s.rect->axis(QCPAxis::atLeft);
+    auto *line = new QCPItemLine(mPlot);
+    line->setClipAxisRect(s.rect);
+    line->start->setAxes(x, y);
+    line->end->setAxes(x, y);
+    line->start->setTypeX(QCPItemPosition::ptAxisRectRatio);
+    line->end->setTypeX(QCPItemPosition::ptAxisRectRatio);
+    line->start->setCoords(0.0, yVal);
+    line->end->setCoords(1.0, yVal);
+    line->setPen(QPen(QColor(160, 160, 160), 1, Qt::DotLine));
+}
+
 void LongTermTab::updateOverlay(Series &s)
 {
     if (s.n < 2) return;
@@ -83,7 +114,7 @@ void LongTermTab::addPoint(Series &s, double t, double v)
     s.graph->addData(t, s.bucketSum / s.bucketN);
     s.bucketSum = 0;
     s.bucketN   = 0;
-    mTotalPoints++;
+    updateOverlay(s);  // update mean/σ only when a bucket is complete
 }
 
 void LongTermTab::reset()
@@ -97,7 +128,6 @@ void LongTermTab::reset()
     }
     mTimeElapsed = 0.0;
     mBucketSize  = 1;
-    mTotalPoints = 0;
     mPlot->replot();
 }
 
@@ -110,17 +140,19 @@ void LongTermTab::onMeasurement(const Measurement &m)
     if (m.amplitudeValid) addPoint(mAmp,  mTimeElapsed, m.amplitudeDeg);
     if (m.beatErrorValid) addPoint(mBeat, mTimeElapsed, m.beatErrorMs);
 
-    // Reduce update frequency as elapsed time grows
-    if (mTotalPoints > 3 * kMaxPointsBeforeCoarsen) {
-        mBucketSize *= 2;
-        mTotalPoints = 0;
-    }
+    // Reduce update frequency as elapsed time grows (time-based thresholds).
+    int newBucket = 1;
+    if      (mTimeElapsed > 7200) newBucket = 60;  // > 2 hours
+    else if (mTimeElapsed > 1800) newBucket = 30;  // > 30 min
+    else if (mTimeElapsed > 300)  newBucket = 10;  // > 5 min
+    mBucketSize = newBucket;
 
     if (mPaused) return;
+    // Rescale X only on the primary axis — linked axes follow automatically.
+    mRate.rect->axis(QCPAxis::atBottom)->rescale();
     for (Series *s : {&mRate, &mAmp, &mBeat}) {
-        updateOverlay(*s);
-        s->rect->axis(QCPAxis::atBottom)->rescale();
         s->rect->axis(QCPAxis::atLeft)->rescale();
+        s->rect->axis(QCPAxis::atLeft)->scaleRange(1.15);  // 15% padding so lines aren't clipped
     }
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }

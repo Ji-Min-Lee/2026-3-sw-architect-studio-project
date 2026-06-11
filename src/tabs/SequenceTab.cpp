@@ -26,10 +26,10 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
     top->addWidget(clearButton);
     lay->addLayout(top);
 
-    mTable = new QTableWidget(kPositions.size() + 2, 3, this);
+    mTable = new QTableWidget(kPositions.size() + 3, 3, this);
     mTable->setHorizontalHeaderLabels({"Rate (s/d)", "Beat (ms)", "Ampl (°)"});
     QStringList rows = kPositions;
-    rows << "X (mean)" << "D (max−min)";
+    rows << "X (mean)" << "D (max−min)" << "DVH";
     mTable->setVerticalHeaderLabels(rows);
     mTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -40,13 +40,11 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
             if (r >= kPositions.size()) {
                 QFont f = it->font(); f.setBold(true); it->setFont(f);
                 it->setBackground(QColor(235, 235, 235));
+                it->setForeground(QColor(30, 30, 30));
             }
             mTable->setItem(r, c, it);
         }
     lay->addWidget(mTable, 1);
-
-    mUnbalanceLabel = new QLabel(this);
-    lay->addWidget(mUnbalanceLabel);
 
     connect(mCaptureButton, &QPushButton::clicked, this, &SequenceTab::captureCurrent);
     connect(clearButton, &QPushButton::clicked, this, [this] { reset(); });
@@ -93,7 +91,10 @@ void SequenceTab::captureCurrent()
 
 void SequenceTab::recomputeSummary()
 {
-    const int xRow = kPositions.size(), dRow = kPositions.size() + 1;
+    const int xRow   = kPositions.size();
+    const int dRow   = kPositions.size() + 1;
+    const int dvhRow = kPositions.size() + 2;
+
     for (int c = 0; c < 3; c++) {
         QVector<double> vals;
         for (int r = 0; r < kPositions.size(); r++) {
@@ -113,29 +114,30 @@ void SequenceTab::recomputeSummary()
         mTable->item(dRow, c)->setText(QString::number(hi - lo, 'f', dec));
     }
 
-    // Vertical vs horizontal rate comparison (balance-wheel unbalance hint)
-    auto meanOf = [&](const QStringList &group, bool &ok) {
+    // DVH: Vertical mean − Horizontal mean (Rate + Ampl only; Beat left blank)
+    auto groupMean = [&](const QStringList &group, int col, bool &ok) {
         double sum = 0; int n = 0;
         for (const QString &p : group) {
             int r = rowOfPosition(p);
             bool conv = false;
-            double v = mTable->item(r, kColRate)->text().toDouble(&conv);
+            double v = mTable->item(r, col)->text().toDouble(&conv);
             if (conv) { sum += v; n++; }
         }
         ok = n > 0;
         return ok ? sum / n : 0.0;
     };
-    bool okV = false, okH = false;
-    double v = meanOf(kVertical, okV), h = meanOf(kHorizontal, okH);
-    if (okV && okH)
-        mUnbalanceLabel->setText(QString("Vertical X̄ %1 s/d  −  Horizontal X̄ %2 s/d  =  "
-                                         "<b>Δ %3 s/d</b>  (large Δ suggests balance unbalance "
-                                         "or positional fault)")
-                                     .arg(v, 0, 'f', 1).arg(h, 0, 'f', 1)
-                                     .arg(v - h, 0, 'f', 1));
-    else
-        mUnbalanceLabel->setText("Capture at least one horizontal (CH/CB) and one vertical "
-                                 "(9H/6H/3H/12H) position for the unbalance comparison.");
+    for (int c = 0; c < 3; c++) {
+        if (c == kColBeat) {
+            mTable->item(dvhRow, c)->setText("—");
+            continue;
+        }
+        bool okV = false, okH = false;
+        double vMean = groupMean(kVertical,   c, okV);
+        double hMean = groupMean(kHorizontal, c, okH);
+        int dec = (c == kColAmp) ? 0 : 1;
+        mTable->item(dvhRow, c)->setText(
+            (okV && okH) ? QString::number(vMean - hMean, 'f', dec) : "—");
+    }
 }
 
 void SequenceTab::reset()
