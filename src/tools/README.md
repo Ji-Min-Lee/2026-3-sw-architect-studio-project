@@ -15,7 +15,7 @@ Native builds use a unified output path: `src/build`.
 ## Common Modes (native scripts)
 
 ```
-<script> [build|run|rebuild|all]
+<script> [build|run|rebuild|all] [--log]
 ```
 
 | Mode | Action |
@@ -25,6 +25,22 @@ Native builds use a unified output path: `src/build`.
 | `run`     | run only (skip build) |
 | `rebuild` | delete `build` dir, then build + run |
 
+### `--log` — performance logging
+
+`--log` is a build-time switch that sets the `ENABLE_LOGGING` compile
+definition (per-frame console + CSV logging; see
+[../../docs/logging-design.md](../../docs/logging-design.md)). It uses a
+separate build dir (`build-log/`) so logging and non-logging binaries don't
+thrash each other's cache. Because it is compile-time, it applies to
+`build` / `all` / `rebuild`; `run --log` just launches the `build-log/` binary.
+
+```
+<script> build --log     # build with logging  -> build-log/
+<script> all   --log     # build + run with logging
+```
+
+Without `--log`, builds carry **zero logging overhead** (release default).
+
 ---
 
 ## Raspberry Pi (Linux)
@@ -33,6 +49,7 @@ Native builds use a unified output path: `src/build`.
 cd <repo>/src/tools
 ./run_timegrapher.sh           # build + run
 ./run_timegrapher.sh build     # build only
+./run_timegrapher.sh all --log # build + run with performance logging
 ```
 
 - Auto-sets GUI env vars (`DISPLAY`, `XAUTHORITY`, `XDG_RUNTIME_DIR`, `QT_QPA_PLATFORM=xcb`)
@@ -46,8 +63,9 @@ cd <repo>/src/tools
 
 ```powershell
 cd <repo>\src\tools
-.\run_timegrapher.ps1          # build + run
-.\run_timegrapher.ps1 build    # build only
+.\run_timegrapher.ps1            # build + run
+.\run_timegrapher.ps1 build      # build only
+.\run_timegrapher.ps1 all --log  # build + run with performance logging
 ```
 
 - Adds Qt/MinGW/CMake to PATH automatically
