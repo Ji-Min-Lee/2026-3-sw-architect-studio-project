@@ -10,6 +10,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# Performance logging (console + CSV). OFF by default so release builds carry
+# zero overhead (instrumentation folds away via TG_NOW()==0). Enable with:
+#   cmake -DENABLE_LOGGING=ON ...
+option(ENABLE_LOGGING "Enable performance logging (console + CSV)" OFF)
+
 if(MINGW)
     add_compile_options("-Wa,-mbig-obj")
 endif()
@@ -64,6 +69,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         SoundImageRenderer.cpp
         RollingAverage.h
         RollingAverage.cpp
+        Logger.h
+        Logger.cpp
         SimWorker.cpp
         SimWorker.h
         WatchSynthStream.cpp
@@ -127,8 +134,17 @@ set_target_properties(TimeGrapher PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
+    # When logging is on we need a console subsystem to see qInfo output;
+    # otherwise keep the normal GUI subsystem (no console window).
+    WIN32_EXECUTABLE $<IF:$<BOOL:${ENABLE_LOGGING}>,FALSE,TRUE>
 )
+
+if(ENABLE_LOGGING)
+    target_compile_definitions(TimeGrapher PRIVATE ENABLE_LOGGING)
+    message(STATUS "TimeGrapher: performance logging ENABLED")
+else()
+    message(STATUS "TimeGrapher: performance logging disabled (release/default)")
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS TimeGrapher

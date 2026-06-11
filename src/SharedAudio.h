@@ -1,6 +1,7 @@
 #ifndef SHAREDAUDIO_H
 #define SHAREDAUDIO_H
 #include <QMutex>
+#include <cstdint>   // int64_t used in worker signal signatures
 
 #define CHANNELS      1
 #define SAMPLE_FORMAT QAudioFormat::Float

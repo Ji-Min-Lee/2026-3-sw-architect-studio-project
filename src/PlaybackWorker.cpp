@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QDebug>
 #include "PlaybackWorker.h"
+#include "Logger.h"   // nowUs() / TG_NOW()
 #include "WaveHeader.h"
 
 #if defined(Q_OS_WIN)
@@ -161,7 +162,7 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
         mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
         mRawAudio->TotalSamplesWritten+=NumberOfSamples;
         mRawAudio->Mutex.unlock();
-        emit PlaybackDataReady(); // Emit data to the main thread
+        emit PlaybackDataReady(TG_NOW()); // T0: emit time (0 when logging disabled)
 
         ++mFrameCount;
         mSampleCount+=NumberOfSamples;

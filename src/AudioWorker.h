@@ -35,7 +35,8 @@ private slots:
 
 signals:
     // Signal to send captured audio data to the main thread (e.g., for processing/visualization)
-    void AudioDataReady();
+    // emitTimestampUs = nowUs() at emit time, passed by value so each queued event keeps its own T0.
+    void AudioDataReady(int64_t emitTimestampUs);
     void finished();
 
 private:

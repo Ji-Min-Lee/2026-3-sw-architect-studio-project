@@ -13,6 +13,7 @@
 #include "SoundImageRenderer.h"
 #include "RollingAverage.h"
 #include "WatchSynthStream.h"
+#include "Logger.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -85,10 +86,10 @@ private slots:
     void on_ModeComboBox_currentTextChanged(const QString &arg1);
 
 public slots:
-    void HandleAudioInput();
-    void HandlePlaybackInput();
+    void HandleAudioInput(int64_t emitTimestampUs);
+    void HandlePlaybackInput(int64_t emitTimestampUs);
     void HandlePlaybackDoneReadingFile();
-    void HandleSimInput();
+    void HandleSimInput(int64_t emitTimestampUs);
     void HandleSimDone();
 
 signals:
@@ -120,7 +121,7 @@ private:
     void   AddText(QCustomPlot *Plot, double x,double height,QString text,const QColor color,Qt::Alignment alignment);
     void   RemoveMarkersAndText(QCustomPlot *Plot, double rangeMin,double rangeMax);
     bool   OpenFile(const QString &FileName);
-    void   HandleInputData(TMasterAudioDataRaw *SharedDataPtr);
+    void   HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emitTimestampUs);
     void   CreateEvents(void);
     void   EventsReset(void);
     double WrapInToRange(double number, double lower_bound, double upper_bound);
@@ -131,7 +132,7 @@ private:
     void   GetAudioRate(int &Rate);
     void   GetAudioDevice(QString &Name);
     double Amplitude(double LiftAngle,double T1,double BPH);
-    void   ProcessSamples(TMasterAudioDataRaw *SharedDataPtr);
+    void   ProcessSamples(TMasterAudioDataRaw *SharedDataPtr, Logger::Frame &bd);
     void   PopulateSampleRates(QComboBox *comboBox, const QAudioDevice &device);
     void   A_Event(double A_EventTime,bool haveValidBPH, double BPH);
     void   C_Event(double C_EventTime,bool haveValidBPH, double BPH);
@@ -193,6 +194,7 @@ private:
     double                     mForegroundLastTime=0.0;
     uint64_t                   mForegroundFrameCount=0;
     uint64_t                   mForegroundSampleCount=0;
+    Logger                    *mLogger=nullptr;
 
 };
 #endif

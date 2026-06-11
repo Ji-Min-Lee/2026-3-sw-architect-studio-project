@@ -10,7 +10,10 @@
 #>
 param(
     [ValidateSet('all','build','run','rebuild')]
-    [string]$Mode = 'all'
+    [string]$Mode = 'all',
+    # Enable performance logging (console + CSV). Uses a separate build dir
+    # so logging / non-logging binaries don't thrash each other's cache.
+    [switch]$Logging
 )
 $ErrorActionPreference = 'Stop'
 
@@ -23,14 +26,16 @@ $Jobs        = 4
 # src dir = one level up from this script (src\tools\), independent of cwd
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $SrcDir    = Split-Path -Parent $ScriptDir          # src\  (location of CMakeLists.txt)
-$BuildDir  = Join-Path $SrcDir 'build'
+$BuildName = if ($Logging) { 'build-log' } else { 'build' }
+$BuildDir  = Join-Path $SrcDir $BuildName
 $Bin       = Join-Path $BuildDir 'TimeGrapher.exe'
+$LoggingFlag = if ($Logging) { 'ON' } else { 'OFF' }
 
 # ── PATH setup (mingw, cmake) ─────────────────────────────────
 $env:Path = "$MingwBin;$CMakeBin;$QtPrefix\bin;" + $env:Path
 
 function Do-Build {
-    Write-Host "[build] SrcDir=$SrcDir"
+    Write-Host "[build] SrcDir=$SrcDir  ENABLE_LOGGING=$LoggingFlag  ($BuildName)"
     if (-not (Test-Path $BuildDir)) { New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null }
 
     # If cache points to an old path (stale), reconfigure
@@ -50,6 +55,7 @@ function Do-Build {
         Write-Host "[build] configuring..."
         cmake -S $SrcDir -B $BuildDir -G "MinGW Makefiles" `
               -DCMAKE_BUILD_TYPE=Release `
+              -DENABLE_LOGGING=$LoggingFlag `
               -DCMAKE_PREFIX_PATH="$QtPrefix"
     }
 
