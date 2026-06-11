@@ -1,5 +1,6 @@
 #include "BeatErrorTab.h"
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 
 namespace {
 constexpr double kGoodBeatErrorMs = 0.6;  // "values under 0.6 ms generally good"
@@ -14,9 +15,17 @@ BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
     mHeaderLabel->setAlignment(Qt::AlignHCenter);
     lay->addWidget(mHeaderLabel);
 
+    auto *row = new QHBoxLayout;
+    row->setContentsMargins(4, 0, 4, 0);
+    row->addWidget(new QLabel("Window:", this));
+    mZoomCombo = new QComboBox(this);
+    mZoomCombo->addItems({"10 min", "5 min", "2.5 min", "75 s", "30 s"});
+    mZoomCombo->setCurrentIndex(4);  // scrolling visible with ~45 s test files
+    row->addWidget(mZoomCombo);
     mAlertLabel = new QLabel(this);
     mAlertLabel->setAlignment(Qt::AlignHCenter);
-    lay->addWidget(mAlertLabel);
+    row->addWidget(mAlertLabel, 1);
+    lay->addLayout(row);
 
     mPlot = new QCustomPlot(this);
     lay->addWidget(mPlot, 1);
@@ -54,9 +63,26 @@ BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
     mTocGraph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 2.5));
     mTicGraph->setPen(QPen(Qt::red));
     mTocGraph->setPen(QPen(Qt::blue));
+    mTicGraph->setName("Tic offset (ms)");
+    mTocGraph->setName("Toc offset (ms)");
     mTraceRect->axis(QCPAxis::atBottom)->setLabel("Beat #");
     mTraceRect->axis(QCPAxis::atLeft)->setLabel("Timing offset (ms)");
     mTraceRect->axis(QCPAxis::atLeft)->setRange(-10, 10);
+
+    connect(mZoomCombo, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, [this](int) {
+                if (mPaused) return;
+                double hi = qMax(mTimeElapsed, windowSec());
+                mPlot->xAxis->setRange(hi - windowSec(), hi);
+                mPlot->replot();
+            });
+
+    // Legend in its own row above the graphs so it never covers the trace
+    mPlot->axisRect()->insetLayout()->take(mPlot->legend);
+    mPlot->plotLayout()->insertRow(0);
+    mPlot->plotLayout()->addElement(0, 0, mPlot->legend);
+    mPlot->legend->setFillOrder(QCPLegend::foColumnsFirst);
+    mPlot->plotLayout()->setRowStretchFactor(0, 0.001);
 
     updateHeader(Measurement{});
 }
@@ -114,7 +140,9 @@ void BeatErrorTab::updateHeader(const Measurement &m)
         }
     }
     mAlertLabel->setText(alerts.isEmpty()
-                             ? "Trace separation = beat error · slope = rate deviation"
+                             ? QString("green band = good beat error (under %1 ms, 0.0 ideal) · "
+                                       "trace separation = beat error · slope = rate deviation")
+                                   .arg(kGoodBeatErrorMs)
                              : alerts.join("   "));
 }
 
@@ -136,10 +164,22 @@ void BeatErrorTab::onMeasurement(const Measurement &m)
     if (mPaused) return;
     updateHeader(m);
     if (m.beatErrorValid) {
-        mPlot->xAxis->rescale();
+        // Rolling time window: the trace scrolls past instead of compressing;
+        // all data is retained for Pause + drag/zoom review
+        double hi = qMax(mTimeElapsed, windowSec());
+        mPlot->xAxis->setRange(hi - windowSec(), hi);
         mPlot->yAxis->rescale();
         if (mPlot->yAxis->range().lower > 0) mPlot->yAxis->setRangeLower(0);
     }
-    mTraceRect->axis(QCPAxis::atBottom)->setRange(qMax(0, mBeatIdx - kTracePoints), mBeatIdx);
+    // Fixed-width beat window from the start: fills left→right, then scrolls
+    // (no growing axis = no compression effect)
+    int hiBeat = qMax(mBeatIdx, kTracePoints);
+    mTraceRect->axis(QCPAxis::atBottom)->setRange(hiBeat - kTracePoints, hiBeat);
     mPlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+double BeatErrorTab::windowSec() const
+{
+    static const double sec[] = {600, 300, 150, 75, 30};
+    return sec[qBound(0, mZoomCombo->currentIndex(), 4)];
 }

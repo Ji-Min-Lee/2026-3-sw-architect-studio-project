@@ -2,15 +2,22 @@
 #include "BaseGraphTab.h"
 #include "qcustomplot.h"
 #include <QLabel>
+#include <QComboBox>
 
-// Graph 2: Trace Display (Witschi Chronoscope X1 G3 manual p.14, Figure 8).
+// Graph 2: Trace Display (Witschi Chronoscope X1 G3 manual §5.2, Figure 8).
 //
-// Two stacked graphs recorded continuously in real time:
-//   top    — rate deviation (s/d): raw samples + smoothed line
+// Two stacked graphs over a fixed rolling time window (Witschi: 10 min,
+// zoom 1/2/4/8×):
+//   top    — rate deviation (s/d); the plotted value is already smoothed by
+//            the engine's Averaging Period rolling window (spec's required
+//            smoothing function — user-adjustable via the control panel)
 //   bottom — amplitude (°) with the normal operating band 270–300° marked
-// Alerts the user when the smoothed rate indicates the watch is running late
-// or when amplitude falls outside the normal band, and shows long-term
-// session averages for both measures.
+//
+// Time always advances with the audio stream, so signal dropouts appear as
+// visible gaps in the trace. All data is retained: with Pause the user can
+// drag/zoom back through the full session (project plan p.10).
+// Alerts when the rate indicates the watch is running late or amplitude
+// leaves the normal band; shows session average + 60 s rolling average.
 class TraceTab : public BaseGraphTab
 {
     Q_OBJECT
@@ -23,24 +30,33 @@ public slots:
     void onMeasurement(const Measurement &m) override;
 private:
     void updateAlerts();
+    void updateRanges();
+    double windowSec() const;        // visible rolling window (zoom-dependent)
+    double rollingAvg(const QVector<QPair<double, double>> &buf) const;
 
     QLabel      *mAlertLabel;
     QLabel      *mSummaryLabel;
+    QComboBox   *mZoomCombo;
     QCustomPlot *mPlot;
-    QCPGraph    *mSmoothedGraph = nullptr;  // smoothed s/d (top rect)
-    QCPGraph    *mAmpGraph      = nullptr;  // amplitude (bottom rect)
-    QCPAxisRect *mAmpRect       = nullptr;
+    QCPGraph    *mAmpGraph = nullptr;   // amplitude (bottom rect)
+    QCPAxisRect *mAmpRect  = nullptr;
 
     double mTimeElapsed = 0.0;
 
-    // Smoothing (rolling mean of recent rate samples)
-    QVector<double> mRateWindow;
-    static constexpr int kSmoothWindow = 15;
+    // Y auto-expansion (never narrower than the nominal ranges)
+    double mRateMin = 0, mRateMax = 0;
+    double mAmpMin  = 0, mAmpMax  = 0;
 
-    // Long-term session averages
+    // Session averages + 60 s rolling averages
     double  mRateSum = 0; quint64 mRateN = 0;
     double  mAmpSum  = 0; quint64 mAmpN  = 0;
-    double  mLastSmoothed = 0;
-    bool    mHaveAmp = false;
-    double  mLastAmp = 0;
+    QVector<QPair<double, double>> mRateRecent;  // (t, value), last 60 s
+    QVector<QPair<double, double>> mAmpRecent;
+    bool    mHaveRate = false;
+    double  mLastRate = 0;
+    bool    mHaveAmp  = false;
+    double  mLastAmp  = 0;
+
+    static constexpr double kBaseWindowSec = 600.0;  // Witschi: 10 min at zoom 1
+    static constexpr double kRollingAvgSec = 60.0;
 };
