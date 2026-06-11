@@ -33,7 +33,6 @@ private:
     int  rowOfPosition(const QString &pos) const;
 
     QLabel       *mHeaderLabel;
-    QLabel       *mUnbalanceLabel;
     QPushButton  *mCaptureButton;
     QTableWidget *mTable;
 
