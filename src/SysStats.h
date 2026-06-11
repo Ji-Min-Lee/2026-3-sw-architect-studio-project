@@ -32,11 +32,12 @@ struct SysSample {
 class SysStats
 {
 public:
+    struct CpuTimes { unsigned long long busy = 0, total = 0; };
+
     SysStats();
     SysSample sample();   // call ~1x/second
 
 private:
-    struct CpuTimes { unsigned long long busy = 0, total = 0; };
     std::vector<CpuTimes> mPrev;   // [0] = overall, [1..] = per core
     bool mHavePrev = false;
 };
