@@ -47,6 +47,35 @@ samples = TotalSamplesWritten(BG) - LastTotalSamplesWritten(FG, previous)
 - `samples > 480` → the FG fell behind; multiple chunks piled up in the ring
   buffer and were drained in one frame. Higher = worse backlog.
 
+So a frame normally carries **~480 samples**, but when the FG slows down a
+single frame can carry far more — it drains whatever the BG accumulated while
+the FG was blocked:
+
+```
+FG keeps up    → samples = 480              (one 10 ms chunk)
+FG falls behind → samples = 480 × N         (N chunks drained at once)
+                  e.g. 960, 1440, ... thousands
+```
+
+This also shows up as **FG SPF rising above 480** (same quantity, consumer side)
+and is a direct symptom of a large `wait`.
+
+### The 480 baseline depends on sample rate × chunk period
+
+`480` is not hard-coded — it is `sample_rate × chunk_period`:
+
+```
+48 kHz × 10 ms = 480     (baseline used in the examples here)
+96 kHz × 10 ms = 960
+```
+
+The actual baseline for a run is the measured **BG SPF**. Read `samples`
+relative to BG SPF: equal = healthy, well above = backlog.
+
+Observed in sample runs: mic avg ≈ 774 (max 12480), sim avg ≈ 1496 (max 6240) —
+i.e. both were, on average, processing more than one chunk per frame (falling
+behind).
+
 ---
 
 ## 2. From frames to FPS / SPS / SPF
