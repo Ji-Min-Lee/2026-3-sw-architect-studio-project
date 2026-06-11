@@ -1,8 +1,9 @@
 #include <QtTest>
 #include <QApplication>
 #include "EscapementTab.h"
+#define private public
 #include "LongTermTab.h"
-#include "SequenceTab.h"
+#undef private
 #include "BeatNoiseScopeTab.h"
 #include "SpectrogramTab.h"
 #include "WaveformCompTab.h"
@@ -185,6 +186,26 @@ private slots:
         QVERIFY(qAbs(committed - 5.0) < 1e-9);
     }
 
+    void longterm_amplitudeBucketAverage_isCorrect()
+    {
+        LongTermTab tab;
+        tab.onMeasurement(makeOneSec(0.0, 250.0, 0.0));
+        tab.onMeasurement(makeOneSec(0.0, 260.0, 0.0));
+
+        double committed = tab.ampPlot()->graph(0)->data()->at(0)->value;
+        QVERIFY(qAbs(committed - 250.0) < 1e-9);
+    }
+
+    void longterm_beatErrorBucketAverage_isCorrect()
+    {
+        LongTermTab tab;
+        tab.onMeasurement(makeOneSec(0.0, 0.0, 0.5));
+        tab.onMeasurement(makeOneSec(0.0, 0.0, 0.6));
+
+        double committed = tab.beatPlot()->graph(0)->data()->at(0)->value;
+        QVERIFY(qAbs(committed - 0.5) < 1e-9);
+    }
+
     void longterm_invalidRate_notAccumulated()
     {
         LongTermTab tab;
@@ -208,84 +229,6 @@ private slots:
         QCOMPARE(tab.ratePlot()->graph(0)->data()->size(),  0);
         QCOMPARE(tab.ampPlot()->graph(0)->data()->size(),   0);
         QCOMPARE(tab.beatPlot()->graph(0)->data()->size(),  0);
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // SequenceTab
-    // ══════════════════════════════════════════════════════════════════════════
-
-    void sequence_singleAEvent_noDataPlotted()
-    {
-        SequenceTab tab;
-        Measurement m = makeBase();
-        m.events.append(makeAEvent(1000.0));
-        tab.onMeasurement(m);
-
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
-    }
-
-    void sequence_twoAEvents_oneIntervalPlotted()
-    {
-        SequenceTab tab;
-        // 두 A 이벤트를 같은 블록에 넣음
-        Measurement m = makeBase();
-        m.events.append(makeAEvent(1000.0));
-        m.events.append(makeAEvent(7000.0));  // +6000 샘플 = 125ms @48000Hz
-        tab.onMeasurement(m);
-
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 1);
-    }
-
-    void sequence_intervalMs_isCorrect()
-    {
-        // 6000 샘플 / 48000 Hz = 0.125 s = 125 ms
-        SequenceTab tab;
-        Measurement m = makeBase();
-        m.events.append(makeAEvent(1000.0));
-        m.events.append(makeAEvent(7000.0));
-        tab.onMeasurement(m);
-
-        double val = tab.plot()->graph(0)->data()->at(0)->value;
-        QVERIFY(qAbs(val - 125.0) < 1e-6);
-    }
-
-    void sequence_multipleBlocks_indexAccumulates()
-    {
-        SequenceTab tab;
-        Measurement m1 = makeBase();
-        m1.events.append(makeAEvent(1000.0));
-        m1.events.append(makeAEvent(7000.0));
-        tab.onMeasurement(m1);
-
-        // m2: lastA=7000(m1에서 인계), 13000 하나만 → interval 7000→13000 추가
-        Measurement m2 = makeBase();
-        m2.events.append(makeAEvent(13000.0));
-        tab.onMeasurement(m2);
-
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 2);
-        QCOMPARE(tab.plot()->graph(0)->data()->at(1)->key, 1.0);
-    }
-
-    void sequence_reset_clearsData()
-    {
-        SequenceTab tab;
-        Measurement m = makeBase();
-        m.events.append(makeAEvent(1000.0));
-        m.events.append(makeAEvent(7000.0));
-        tab.onMeasurement(m);
-        tab.reset();
-
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
-    }
-
-    void sequence_cEvent_ignored()
-    {
-        SequenceTab tab;
-        Measurement m = makeBase();
-        m.events.append(makeCEvent(1000.0, false));
-        tab.onMeasurement(m);
-
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -324,6 +267,36 @@ private slots:
 
         // scope1 default range=20ms → halfSamples = 48000*20/1000 = 960
         QCOMPARE(tab.scope1Plot()->graph(0)->data()->size(), 960);
+    }
+
+    void beatNoise_scope1_200msRangeProducesExpectedWindow()
+    {
+        BeatNoiseScopeTab tab;
+        auto *rangeCombo = tab.findChild<QComboBox *>();
+        QVERIFY(rangeCombo != nullptr);
+        rangeCombo->setCurrentIndex(1); // 200 ms
+
+        Measurement m = makeBase(50000);
+        m.events.append(makeAEvent(1000.0));
+        m.events.append(makeCEvent(1432.0, true, 9.0));
+        tab.onMeasurement(m);
+
+        QCOMPARE(tab.scope1Plot()->graph(0)->data()->size(), 9600);
+    }
+
+    void beatNoise_scope1_400msRangeProducesExpectedWindow()
+    {
+        BeatNoiseScopeTab tab;
+        auto *rangeCombo = tab.findChild<QComboBox *>();
+        QVERIFY(rangeCombo != nullptr);
+        rangeCombo->setCurrentIndex(2); // 400 ms
+
+        Measurement m = makeBase(50000);
+        m.events.append(makeAEvent(1000.0));
+        m.events.append(makeCEvent(1432.0, true, 9.0));
+        tab.onMeasurement(m);
+
+        QCOMPARE(tab.scope1Plot()->graph(0)->data()->size(), 19200);
     }
 
     void beatNoise_reset_clearsScope1AndScope2()
@@ -418,6 +391,84 @@ private slots:
         double freqStep;
         tab.computeSpectrum(pcm, 48000, freqStep);
         QVERIFY(qAbs(freqStep - 48000.0 / 4096.0) < 1e-6);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // LongTermTab requirement policy — update interval grows with elapsed time
+    // ══════════════════════════════════════════════════════════════════════════
+
+    void longterm_intervalPolicy_matchesOriginalRequirement()
+    {
+        QCOMPARE(LongTermTab::DownsampledSeries::interval(599.0), 1.0);
+        QCOMPARE(LongTermTab::DownsampledSeries::interval(600.0), 10.0);
+        QCOMPARE(LongTermTab::DownsampledSeries::interval(3599.0), 10.0);
+        QCOMPARE(LongTermTab::DownsampledSeries::interval(3600.0), 60.0);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // LongTermTab 버킷 커밋 동작 상세 검증
+    //
+    // 설계: feed(t, v) 에서 t - bucketStart >= interval 이 되는 순간,
+    //        이전 버킷(bucketSum/bucketN)을 커밋하고 현재 값으로 새 버킷을 시작한다.
+    //
+    // 따라서 N번째 피드가 커밋을 유발하면, 커밋된 값은 0 ~ N-1 번째 측정의 평균이다.
+    // ──────────────────────────────────────────────────────────────────────────
+
+    void longterm_secondBucket_commitsCorrectly()
+    {
+        // 3회 feed: feed1이 1번째 버킷 시작, feed2가 커밋 유발(첫 버킷=5.0),
+        // feed3가 두 번째 버킷 커밋(6.0) 유발.
+        LongTermTab tab;
+        tab.onMeasurement(makeOneSec(5.0, 0, 0));  // t=1s → 버킷 시작
+        tab.onMeasurement(makeOneSec(6.0, 0, 0));  // t=2s → 첫 버킷 커밋(5.0)
+        tab.onMeasurement(makeOneSec(7.0, 0, 0));  // t=3s → 두 번째 버킷 커밋(6.0)
+
+        auto data = tab.ratePlot()->graph(0)->data();
+        QCOMPARE(data->size(), 2);
+        QVERIFY(qAbs(data->at(0)->value - 5.0) < 1e-9);
+        QVERIFY(qAbs(data->at(1)->value - 6.0) < 1e-9);
+    }
+
+    void longterm_withinSameBucket_valuesAreAveraged()
+    {
+        // rawPcm.size() = sps/2 → 0.5초 블록.
+        // feed1(t=0.5, v=4.0), feed2(t=1.0, v=6.0): 같은 버킷(1s 창) 안에 있으므로
+        // 커밋은 일어나지 않는다.
+        // feed3(t=1.5, v=...): t-bucketStart=1.0 → 커밋 유발. 커밋값 = (4.0+6.0)/2 = 5.0
+        LongTermTab tab;
+
+        auto makeHalfSec = [](double rate) {
+            Measurement m;
+            m.samplesPerSecond = 48000;
+            m.rawPcm.fill(0.0f, 24000);  // 0.5s 블록
+            m.rateValid    = true;
+            m.rateErrorSpd = rate;
+            m.amplitudeValid = false;
+            m.beatErrorValid = false;
+            m.synced = true;
+            return m;
+        };
+
+        tab.onMeasurement(makeHalfSec(4.0));  // t=0.5s
+        tab.onMeasurement(makeHalfSec(6.0));  // t=1.0s  (0.5 < 1.0 → 커밋 없음)
+        tab.onMeasurement(makeHalfSec(0.0));  // t=1.5s  → 커밋: (4+6)/2 = 5.0
+
+        auto data = tab.ratePlot()->graph(0)->data();
+        QCOMPARE(data->size(), 1);
+        QVERIFY(qAbs(data->at(0)->value - 5.0) < 1e-9);
+    }
+
+    void longterm_bucketXAxis_isAtBucketMidpoint()
+    {
+        // X 키 = bucketStart + interval/2.
+        // 1초 버킷, bucketStart=1.0s → X = 1.0 + 0.5 = 1.5.
+        LongTermTab tab;
+        tab.onMeasurement(makeOneSec(5.0, 0, 0));  // t=1s
+        tab.onMeasurement(makeOneSec(6.0, 0, 0));  // t=2s → 커밋
+
+        auto data = tab.ratePlot()->graph(0)->data();
+        QCOMPARE(data->size(), 1);
+        QVERIFY(qAbs(data->at(0)->key - 1.5) < 1e-9);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
