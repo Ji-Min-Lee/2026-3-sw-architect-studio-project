@@ -2,6 +2,7 @@
 #include "BaseGraphTab.h"
 #include "qcustomplot.h"
 #include <QLabel>
+#include <QComboBox>
 
 // Graph 4: Beat Error Display and Diagnostic Trace (project plan Figures 12/13).
 //
@@ -24,8 +25,11 @@ public slots:
 private:
     void updateHeader(const Measurement &m);
 
+    double windowSec() const;       // visible rolling window of the ms trace
+
     QLabel      *mHeaderLabel;
     QLabel      *mAlertLabel;
+    QComboBox   *mZoomCombo;
     QCustomPlot *mPlot;
     QCPGraph    *mTicGraph = nullptr;   // diagnostic trace (bottom rect)
     QCPGraph    *mTocGraph = nullptr;
@@ -33,5 +37,7 @@ private:
 
     double mTimeElapsed = 0.0;
     int    mBeatIdx     = 0;
-    static constexpr int kTracePoints = 250;
+    // 150 beats ≈ 25 s @21600 bph — scrolling becomes visible within the
+    // ~45 s test files (axis width is fixed from the start, fill then scroll)
+    static constexpr int kTracePoints = 150;
 };
