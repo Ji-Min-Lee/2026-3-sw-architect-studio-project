@@ -48,6 +48,8 @@ set(ENGINE_SOURCES
     engine/RollingLeastSquares.cpp
     engine/RollingAverage.h
     engine/RollingAverage.cpp
+    engine/WatchMath.h
+    engine/WatchMath.cpp
 )
 
 set(TABS_SOURCES
@@ -232,6 +234,115 @@ target_link_libraries(TestAddedTabs PRIVATE
     kissfft
 )
 add_test(NAME AddedTabs COMMAND TestAddedTabs)
+
+# ── WatchMath pure-function tests ─────────────────────────────────────────────
+add_executable(TestWatchMath
+    tests/test_watch_math.cpp
+    engine/WatchMath.h
+    engine/WatchMath.cpp
+)
+set_target_properties(TestWatchMath PROPERTIES AUTOMOC ON)
+target_include_directories(TestWatchMath PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+)
+target_link_libraries(TestWatchMath PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+)
+add_test(NAME WatchMath COMMAND TestWatchMath)
+
+# ── RollingAverage tests ──────────────────────────────────────────────────────
+add_executable(TestRollingAverage
+    tests/test_rolling_average.cpp
+    engine/RollingAverage.h
+    engine/RollingAverage.cpp
+)
+set_target_properties(TestRollingAverage PROPERTIES AUTOMOC ON)
+target_include_directories(TestRollingAverage PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+)
+target_link_libraries(TestRollingAverage PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+)
+add_test(NAME RollingAverage COMMAND TestRollingAverage)
+
+# ── RollingLeastSquares tests ─────────────────────────────────────────────────
+add_executable(TestRollingLeastSquares
+    tests/test_rolling_least_squares.cpp
+    engine/RollingLeastSquares.h
+    engine/RollingLeastSquares.cpp
+)
+set_target_properties(TestRollingLeastSquares PROPERTIES AUTOMOC ON)
+target_include_directories(TestRollingLeastSquares PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+)
+target_link_libraries(TestRollingLeastSquares PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+)
+add_test(NAME RollingLeastSquares COMMAND TestRollingLeastSquares)
+
+# ── MeasurementEngine tests ───────────────────────────────────────────────────
+add_executable(TestMeasurementEngine
+    tests/test_measurement_engine.cpp
+    engine/Measurement.h
+    engine/MeasurementEngine.h
+    engine/MeasurementEngine.cpp
+    engine/RollingAverage.h
+    engine/RollingAverage.cpp
+    engine/RollingLeastSquares.h
+    engine/RollingLeastSquares.cpp
+    engine/WatchMath.h
+    engine/WatchMath.cpp
+    external/Timegrapher.cpp
+    external/Bph.cpp
+    external/Detector.cpp
+    external/Dsp.cpp
+)
+set_target_properties(TestMeasurementEngine PROPERTIES AUTOMOC ON)
+target_include_directories(TestMeasurementEngine PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio
+)
+target_link_libraries(TestMeasurementEngine PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+    kissfft
+)
+add_test(NAME MeasurementEngine COMMAND TestMeasurementEngine)
+
+# ── Remaining-tabs tests (RateScopeTab, SweepScopeTab, FilterScopeTab, SoundPrintTab) ─
+add_executable(TestRemainingTabs
+    tests/test_remaining_tabs.cpp
+    tabs/RateScopeTab.cpp
+    tabs/SweepScopeTab.cpp
+    tabs/FilterScopeTab.cpp
+    tabs/SoundPrintTab.cpp
+    tabs/BaseGraphTab.h
+    external/qcustomplot.cpp
+    external/SoundImageWidget.cpp
+    external/SoundImageRenderer.cpp
+)
+set_target_properties(TestRemainingTabs PROPERTIES AUTOMOC ON)
+target_include_directories(TestRemainingTabs PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/tabs
+    ${CMAKE_CURRENT_SOURCE_DIR}/ui
+)
+target_link_libraries(TestRemainingTabs PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+)
+add_test(NAME RemainingTabs COMMAND TestRemainingTabs)
 
 # ── Engine file-verification harness (wav → MeasurementEngine → ground truth) ─
 add_executable(EngineFileCheck
