@@ -2,16 +2,19 @@
 #include "BaseGraphTab.h"
 #include "qcustomplot.h"
 #include "kiss_fft.h"
-#include <QComboBox>
+#include <QButtonGroup>
+#include <QCheckBox>
+#include <QDoubleSpinBox>
+#include <QLabel>
+#include <QProgressBar>
+#include <vector>
 
 // Graph 10: Time-Frequency Spectrogram Display (project plan Figure 16).
 //
-// 2D heatmap: x = time (rolling window), y = frequency (Hz),
-// color = signal strength in dB, with a color scale legend.
-// A window selector lets the user inspect the most recent 2 / 6 / 12 s.
+// Ported from commit 6535adf: rolling HPF PCM buffer (F1 / filtered_pcm),
+// FFT 1024 / hop 512, column-scrolling QCPColorMap heatmap.
 //
-// 방식: Lazy Pull — isVisible() 일 때만 FFT 계산 (QAS-1/QAS-2).
-// FFT: Kiss FFT — FFTW 대비 경량, 임의 크기 지원, 외부 라이브러리.
+// Lazy Pull — FFT only when tab is visible (QAS-1/QAS-2).
 class SpectrogramTab : public BaseGraphTab
 {
     Q_OBJECT
@@ -26,22 +29,55 @@ public slots:
     void onMeasurement(const Measurement &m) override;
 
 private:
-    static constexpr int kRows = 128;   // frequency bins displayed
-    static constexpr int kCols = 144;   // time columns kept (~12 s at 85 ms/block)
+    enum class ViewMode { Seconds, LastBeat };
 
-    void prepareFft(int nfft);
-    QVector<double> computeColumn(const QVector<float> &rawPcm); // kRows dB values
-    void rebuildMap();
+    // Constants from reverted Implementation commit (6535adf), tuned for Figure 16
+    static constexpr int    kFftSize      = 1024;
+    static constexpr int    kHopSize      = 512;
+    static constexpr int    kTimeColumns  = 256;
+    static constexpr double kMaxDisplayHz = 20000.0;
+    // Figure 16 reference: viridis colormap, fixed colorbar −70…−10 dB
+    static constexpr double kDbMin        = -70.0;
+    static constexpr double kDbMax        = -10.0;
+    static constexpr double kMaxBufferSec = 12.0;
 
-    QCustomPlot   *mPlot;
-    QCPColorMap   *mMap;
-    QCPColorScale *mScale;
-    QComboBox     *mWindowCombo;
+    void prepareFft();
+    void ensureMapSize();
+    int  freqBinCount() const;
+    double binMagnitudeToDb(double magnitude, int bin) const;
+    std::vector<double> computeMagnitudes(const float *pcm) const;
+    void shiftColumnsAndAppend(const std::vector<double> &magnitudes);
+    void processPendingColumns();
+    void rebuildAxisRanges();
+    void rebuildLastBeatView();
+    void updateBeatMarkers(const Measurement &m);
+    double truePeakDbfs(const QVector<float> &pcm) const;
+    void updateColorRange();
+    static QCPColorGradient spectrogramGradient();
 
-    QList<QVector<double>> mColumns;    // newest last
-    double         mBlockSec = 0.085;
-    int            mSps      = 48000;
+    QCustomPlot      *mPlot = nullptr;
+    QCPColorMap      *mMap = nullptr;
+    QCPColorScale    *mScale = nullptr;
+    QLabel           *mTitleLabel = nullptr;
+    QCheckBox        *mPeakMeterCheck = nullptr;
+    QLabel           *mPeakDbLabel = nullptr;
+    QProgressBar     *mPeakBar = nullptr;
+    QButtonGroup     *mModeGroup = nullptr;
+    QDoubleSpinBox   *mWindowSpin = nullptr;
 
-    kiss_fft_cfg   mCfg    = nullptr;
-    int            mFftLen = 0;
+    ViewMode mViewMode = ViewMode::Seconds;
+
+    std::vector<float> mPcmBuffer;
+    uint64_t           mBufferStartTick = 0;
+
+    int      mSampleRate = 48000;
+    int      mFreqBins   = 171;
+    double   mWindowSec  = 1.0;
+    bool     mHaveLastBeat = false;
+    uint64_t mLastBeatTick = 0;
+    double   mBeatPeriodMs = 1000.0;
+    double   mLastPeakDbfs = -100.0;
+
+    kiss_fft_cfg     mCfg = nullptr;
+    std::vector<float> mHannWindow;
 };

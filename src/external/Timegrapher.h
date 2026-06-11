@@ -151,6 +151,12 @@ typedef struct {
     size_t            processed_pcm_len;
     uint64_t          processed_pcm_start_sample;
 
+    /* HPF output (bipolar), delayed by the same amount as processed_pcm so
+     * event sample_index maps to the same offset in both buffers. */
+    float            *filtered_pcm;
+    size_t            filtered_pcm_len;
+    uint64_t          filtered_pcm_start_sample;
+
     /* One-shot edge flags */
     int               sync_lost_event;
     int               sync_acquired_event;

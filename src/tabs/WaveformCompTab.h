@@ -4,47 +4,74 @@
 #include <QLabel>
 #include <QList>
 
-// Graph 11: Waveform Comparison Display with Timing Markers
-// (project plan Figure 17).
+// Graph 11: Waveform Comparison — three time-pass beat windows.
 //
-// Compares multiple beat waveforms in aligned lanes:
-//   graph(0)/graph(1) — the latest Tic/Toc pair, overlaid
-//   below them       — up to 4 previous beat pairs in vertically offset lanes
-// with vertical millisecond guide markers and a numeric overlay showing
-// rate / beat error / bph from the same Measurement stream.
-//
-// 문제: A(Tic)와 C(Toc) event가 서로 다른 블록에 있을 수 있음.
-// 해결: A event 발생 시 rawPcm 윈도우를 mTicXs/mTicYs에 복사해서 보관.
+// Displays HPF-filtered PCM (bipolar, delay-aligned with events) from the
+// same DSP chain as libtimegrapher — NOT mic raw, NOT envelope.
 class WaveformCompTab : public BaseGraphTab
 {
     Q_OBJECT
 public:
     explicit WaveformCompTab(QWidget *parent = nullptr);
     void reset() override;
+    void setLiftAngle(double degrees);
+
 public slots:
     void onMeasurement(const Measurement &m) override;
+
 private:
-    QLabel      *mValuesLabel;
-    QCustomPlot *mPlot;
+    struct BeatWave {
+        QVector<double> xs;
+        QVector<double> hpfYs;
+        double aSamplePos = 0.0;
+        double cMs = 0.0;
+        double tAcMs = 0.0;
+        bool   hasC = false;
+    };
 
-    static constexpr int kWindowSamples = 512;
-    static constexpr int kLanes        = 4;     // previous beat pairs shown
-    static constexpr double kLaneSpacing = 1.2; // vertical offset per lane
+    struct PendingBeat {
+        double aPos = -1.0;
+    };
 
-    // A event 파형 복사본 — 블록 경계를 넘어도 유지됨
-    QVector<double> mTicXs;
-    QVector<double> mTicYs;
-    bool            mHaveTic = false;
+    struct BeatWindow {
+        QLabel      *title = nullptr;
+        QCustomPlot *plot = nullptr;
+        QCPGraph    *hpfGraph = nullptr;
+        QCPItemLine *zeroLine = nullptr;
+        QCPItemLine *aMarker = nullptr;
+        QCPItemLine *cMarker = nullptr;
+        QCPItemText *tAcLabel = nullptr;
+        QCPAxis     *degAxis = nullptr;
+        QList<QCPItemLine *> msGrid;
+    };
 
-    struct BeatPair { QVector<double> ticXs, ticYs, tocXs, tocYs; };
-    QList<BeatPair> mHistory;                   // newest first
-    QList<QCPGraph *> mLaneGraphs;              // 2 per lane (tic, toc)
-    QList<QCPItemLine *> mGuides;
-    int mSps = 48000;
+    QLabel      *mValuesLabel = nullptr;
+    QLabel      *mTacLabel = nullptr;
+    QList<BeatWindow> mWindows;
 
-    void extractWindow(const QVector<float> &rawPcm,
-                       double samplePos, uint64_t tickStart,
-                       QVector<double> &outXs, QVector<double> &outYs) const;
-    void redrawLanes();
-    void updateGuides();
+    static constexpr int    kMaxBeats    = 20;
+    static constexpr int    kBeatPlots   = 3;
+    static constexpr double kPreMs       = 2.0;
+    static constexpr double kPostMs      = 20.0;
+    static constexpr double kWindowMs    = kPreMs + kPostMs;
+    static constexpr double kBufSeconds  = 1.0;
+
+    QList<BeatWave>    mBeats;
+    QList<PendingBeat> mPending;
+    QVector<float>     mHpfBuf;
+    double             mBufStartAbs = 0.0;
+
+    int    mSps = 48000;
+    int    mBph = 0;
+    double mLiftAngle = 52.0;
+
+    void appendBuffer(const Measurement &m);
+    void fulfillPending();
+    bool extractBeatWindow(double aPos, BeatWave &out) const;
+    void pushBeat(const BeatWave &beat);
+    void updateTacStats();
+    void redrawPlots();
+    void stylePlot(BeatWindow &win);
+    void updateDegreeAxis(BeatWindow &win);
+    void updatePlotGuides(BeatWindow &w, const BeatWave *beat, double yMin, double yMax);
 };

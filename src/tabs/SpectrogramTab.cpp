@@ -1,134 +1,421 @@
 #include "SpectrogramTab.h"
-#include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
 SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
 {
+    setStyleSheet(QStringLiteral(
+        "SpectrogramTab { background-color: #121218; color: #c8c8d0; }"
+        "QLabel { color: #c8c8d0; }"
+        "QCheckBox { color: #c8c8d0; }"
+        "QPushButton { background-color: #2a2a36; color: #c8c8d0; border: 1px solid #444; padding: 4px 10px; }"
+        "QPushButton:checked { background-color: #3d5a80; border-color: #6a9fd8; }"
+        "QDoubleSpinBox { background-color: #2a2a36; color: #c8c8d0; border: 1px solid #444; }"
+        "QProgressBar { background-color: #1a1a22; border: 1px solid #444; height: 14px; }"
+        "QProgressBar::chunk { background-color: #3ecf6e; }"));
+
     auto *lay = new QVBoxLayout(this);
-    lay->setContentsMargins(0, 0, 0, 0);
+    lay->setContentsMargins(6, 6, 6, 6);
+    lay->setSpacing(4);
+
+    mTitleLabel = new QLabel(tr("Time and Frequency Reassigned Spectrogram"), this);
+    QFont titleFont = mTitleLabel->font();
+    titleFont.setPointSize(11);
+    titleFont.setBold(true);
+    mTitleLabel->setFont(titleFont);
+    lay->addWidget(mTitleLabel);
+
+    auto *meterRow = new QHBoxLayout;
+    mPeakMeterCheck = new QCheckBox(tr("True Peak Programme Meter"), this);
+    mPeakMeterCheck->setChecked(true);
+    meterRow->addWidget(mPeakMeterCheck);
+    mPeakDbLabel = new QLabel(QStringLiteral("-∞ dBFS"), this);
+    meterRow->addWidget(mPeakDbLabel);
+    mPeakBar = new QProgressBar(this);
+    mPeakBar->setRange(0, 100);
+    mPeakBar->setValue(0);
+    mPeakBar->setTextVisible(false);
+    mPeakBar->setFixedWidth(180);
+    meterRow->addWidget(mPeakBar);
+    meterRow->addStretch(1);
+    lay->addLayout(meterRow);
 
     auto *controls = new QHBoxLayout;
-    controls->setContentsMargins(4, 4, 4, 0);
-    controls->addWidget(new QLabel("Window:", this));
-    mWindowCombo = new QComboBox(this);
-    mWindowCombo->addItems({"Last 2 s", "Last 6 s", "Last 12 s"});
-    mWindowCombo->setCurrentIndex(1);
-    controls->addWidget(mWindowCombo);
+    controls->addWidget(new QLabel(tr("Spectrograms"), this));
+
+    auto *lastBeatBtn = new QPushButton(tr("Last Beat"), this);
+    lastBeatBtn->setCheckable(true);
+    auto *secondsBtn = new QPushButton(tr("Seconds"), this);
+    secondsBtn->setCheckable(true);
+    secondsBtn->setChecked(true);
+    mModeGroup = new QButtonGroup(this);
+    mModeGroup->addButton(lastBeatBtn, static_cast<int>(ViewMode::LastBeat));
+    mModeGroup->addButton(secondsBtn, static_cast<int>(ViewMode::Seconds));
+    controls->addWidget(lastBeatBtn);
+    controls->addWidget(secondsBtn);
+
+    mWindowSpin = new QDoubleSpinBox(this);
+    mWindowSpin->setRange(0.2, 12.0);
+    mWindowSpin->setSingleStep(0.1);
+    mWindowSpin->setDecimals(1);
+    mWindowSpin->setValue(1.0);
+    mWindowSpin->setSuffix(QStringLiteral(" s"));
+    mWindowSpin->setFixedWidth(90);
+    controls->addWidget(mWindowSpin);
     controls->addStretch(1);
     lay->addLayout(controls);
 
     mPlot = new QCustomPlot(this);
     lay->addWidget(mPlot, 1);
 
-    mMap = new QCPColorMap(mPlot->xAxis, mPlot->yAxis);
-    mMap->data()->setSize(kCols, kRows);
-    mMap->data()->setRange(QCPRange(-12.0, 0.0), QCPRange(0, mSps / 2.0));
+    mPlot->setBackground(QBrush(QColor(0x12, 0x12, 0x18)));
+    mPlot->axisRect()->setBackground(QBrush(QColor(0x3a, 0x3a, 0x3e)));
+    const QPen axisPen(QColor(0x88, 0x88, 0x99));
+    mPlot->xAxis->setBasePen(axisPen);
+    mPlot->yAxis->setBasePen(axisPen);
+    mPlot->xAxis->setTickPen(axisPen);
+    mPlot->yAxis->setTickPen(axisPen);
+    mPlot->xAxis->setSubTickPen(axisPen);
+    mPlot->yAxis->setSubTickPen(axisPen);
+    mPlot->xAxis->setTickLabelColor(QColor(0xc8, 0xc8, 0xd0));
+    mPlot->yAxis->setTickLabelColor(QColor(0xc8, 0xc8, 0xd0));
+    mPlot->xAxis->setLabelColor(QColor(0xc8, 0xc8, 0xd0));
+    mPlot->yAxis->setLabelColor(QColor(0xc8, 0xc8, 0xd0));
 
+    mMap = new QCPColorMap(mPlot->xAxis, mPlot->yAxis);
     mScale = new QCPColorScale(mPlot);
     mPlot->plotLayout()->addElement(0, 1, mScale);
     mScale->setType(QCPAxis::atRight);
-    mScale->axis()->setLabel("Signal strength (dB)");
+    mScale->axis()->setLabel(tr("dB"));
+    mScale->axis()->setTickLabelColor(QColor(0xc8, 0xc8, 0xd0));
+    mScale->axis()->setLabelColor(QColor(0xc8, 0xc8, 0xd0));
     mMap->setColorScale(mScale);
-    mMap->setGradient(QCPColorGradient::gpSpectrum);
-    mMap->setDataRange(QCPRange(-70, -10));
+    mMap->setGradient(spectrogramGradient());
+    mMap->setDataRange(QCPRange(kDbMin, kDbMax));
+    mMap->setInterpolate(true);
+    mMap->setTightBoundary(false);
 
-    mPlot->xAxis->setLabel("Time (s)");
-    mPlot->yAxis->setLabel("Frequency (Hz)");
+    mPlot->xAxis->setLabel(tr("Time (ms)"));
+    mPlot->yAxis->setLabel(tr("Frequency (Hz)"));
     mPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
-    connect(mWindowCombo, qOverload<int>(&QComboBox::currentIndexChanged),
-            this, [this](int) { rebuildMap(); });
+    prepareFft();
+    reset();
+
+    connect(mModeGroup, &QButtonGroup::idClicked, this, [this](int id) {
+        mViewMode = static_cast<ViewMode>(id);
+        mWindowSpin->setEnabled(mViewMode == ViewMode::Seconds);
+        if (mViewMode == ViewMode::LastBeat) {
+            rebuildLastBeatView();
+        } else {
+            rebuildAxisRanges();
+            mPlot->replot(QCustomPlot::rpQueuedReplot);
+        }
+    });
+    connect(mWindowSpin, qOverload<double>(&QDoubleSpinBox::valueChanged),
+            this, [this](double v) {
+        mWindowSec = v;
+        rebuildAxisRanges();
+        if (!mPaused) {
+            mPlot->replot(QCustomPlot::rpQueuedReplot);
+        }
+    });
+    connect(mPeakMeterCheck, &QCheckBox::toggled, this, [this](bool on) {
+        mPeakDbLabel->setVisible(on);
+        mPeakBar->setVisible(on);
+    });
+}
+
+QCPColorGradient SpectrogramTab::spectrogramGradient()
+{
+    // Matplotlib viridis — matches project plan Figure 16 colorbar
+    QCPColorGradient grad;
+    grad.clearColorStops();
+    grad.setColorStopAt(0.00, QColor(0x44, 0x01, 0x54));
+    grad.setColorStopAt(0.25, QColor(0x20, 0x88, 0x94));
+    grad.setColorStopAt(0.50, QColor(0x35, 0xb7, 0x79));
+    grad.setColorStopAt(0.75, QColor(0xbc, 0xbd, 0x22));
+    grad.setColorStopAt(1.00, QColor(0xfd, 0xe7, 0x25));
+    grad.setColorInterpolation(QCPColorGradient::ciRGB);
+    grad.setLevelCount(256);
+    return grad;
+}
+
+void SpectrogramTab::updateColorRange()
+{
+    // Fixed scale per Figure 16 — do not auto-scale (prevents flat yellow/red)
+    const QCPRange range(kDbMin, kDbMax);
+    mMap->setDataRange(range);
+    mScale->setDataRange(range);
 }
 
 SpectrogramTab::~SpectrogramTab()
 {
-    if (mCfg) { kiss_fft_free(mCfg); mCfg = nullptr; }
+    if (mCfg) {
+        kiss_fft_free(mCfg);
+        mCfg = nullptr;
+    }
+}
+
+void SpectrogramTab::prepareFft()
+{
+    if (mCfg) {
+        return;
+    }
+    mCfg = kiss_fft_alloc(kFftSize, 0, nullptr, nullptr);
+    mHannWindow.resize(kFftSize);
+    for (int i = 0; i < kFftSize; ++i) {
+        mHannWindow[i] = static_cast<float>(
+            0.5 * (1.0 - std::cos(2.0 * M_PI * i / (kFftSize - 1))));
+    }
+}
+
+void SpectrogramTab::ensureMapSize()
+{
+    QCPColorMapData *data = mMap->data();
+    if (data->keySize() != kTimeColumns || data->valueSize() != mFreqBins) {
+        data->setSize(kTimeColumns, mFreqBins);
+        // QCPColorMapData::setSize() zero-fills; 0 lies above −10 dB → false yellow.
+        data->fill(kDbMin);
+    }
+}
+
+int SpectrogramTab::freqBinCount() const
+{
+    int bins = static_cast<int>(kMaxDisplayHz * kFftSize / mSampleRate) + 1;
+    bins = std::min(bins, kFftSize / 2);
+    return qMax(1, bins);
 }
 
 void SpectrogramTab::reset()
 {
-    mColumns.clear();
-    mMap->data()->fill(-70);
+    mPcmBuffer.clear();
+    mBufferStartTick = 0;
+    mHaveLastBeat = false;
+    mLastBeatTick = 0;
+    mBeatPeriodMs = 1000.0;
+    mLastPeakDbfs = -100.0;
+    mPeakDbLabel->setText(QStringLiteral("-∞ dBFS"));
+    mPeakBar->setValue(0);
+
+    mFreqBins = freqBinCount();
+    ensureMapSize();
+    mMap->data()->setRange(QCPRange(0.0, mWindowSec * 1000.0),
+                           QCPRange(0.0, kMaxDisplayHz));
+    rebuildAxisRanges();
+    const QCPRange fullRange(kDbMin, kDbMax);
+    mMap->setDataRange(fullRange);
+    mScale->setDataRange(fullRange);
     mPlot->replot();
 }
 
-// Kiss FFT 플랜 생성 — nfft가 바뀔 때만 재생성 (비용 절감)
-void SpectrogramTab::prepareFft(int nfft)
+std::vector<double> SpectrogramTab::computeMagnitudes(const float *pcm) const
 {
-    if (mFftLen == nfft) return;
-    if (mCfg) { kiss_fft_free(mCfg); mCfg = nullptr; }
-    mCfg    = kiss_fft_alloc(nfft, 0, nullptr, nullptr);
-    mFftLen = nfft;
-}
-
-// One spectrogram column: Hann window → FFT → kRows aggregated dB bins
-QVector<double> SpectrogramTab::computeColumn(const QVector<float> &rawPcm)
-{
-    int n = 1;
-    while (n * 2 <= rawPcm.size()) n <<= 1;
-    prepareFft(n);
-    if (!mCfg) return {};
-
-    std::vector<kiss_fft_cpx> in(n), out(n);
-    for (int i = 0; i < n; i++) {
-        double window = 0.5 * (1.0 - std::cos(2.0 * M_PI * i / (n - 1)));
-        in[i].r = rawPcm[i] * (float)window;
+    std::vector<kiss_fft_cpx> in(kFftSize);
+    std::vector<kiss_fft_cpx> out(kFftSize);
+    for (int i = 0; i < kFftSize; ++i) {
+        in[i].r = pcm[i] * mHannWindow[i];
         in[i].i = 0.0f;
     }
     kiss_fft(mCfg, in.data(), out.data());
 
-    const int half = n / 2;
-    QVector<double> col(kRows, -70.0);
-    const int binsPerRow = qMax(1, half / kRows);
-    for (int row = 0; row < kRows; row++) {
-        double maxMag = 0.0;
-        int b0 = row * binsPerRow;
-        int b1 = qMin(half, b0 + binsPerRow);
-        for (int b = b0; b < b1; b++) {
-            double mag = std::sqrt((double)out[b].r * out[b].r +
-                                   (double)out[b].i * out[b].i) / n;
-            maxMag = qMax(maxMag, mag);
-        }
-        col[row] = 20.0 * std::log10(maxMag + 1e-10);
+    std::vector<double> magnitudes(kFftSize / 2);
+    for (int i = 0; i < kFftSize / 2; ++i) {
+        magnitudes[i] = std::hypot(static_cast<double>(out[i].r),
+                                   static_cast<double>(out[i].i));
     }
-    return col;
+    return magnitudes;
 }
 
-void SpectrogramTab::rebuildMap()
+double SpectrogramTab::binMagnitudeToDb(double magnitude, int bin) const
 {
-    static const double windows[] = {2.0, 6.0, 12.0};
-    double windowSec = windows[qBound(0, mWindowCombo->currentIndex(), 2)];
+    const double norm = (bin > 0 && bin < kFftSize / 2 - 1) ? 2.0 : 1.0;
+    const double amplitude = norm * magnitude / (static_cast<double>(kFftSize) * 0.5);
+    const double db = 20.0 * std::log10(amplitude + 1e-12);
+    return qBound(kDbMin, db, kDbMax);
+}
 
-    mMap->data()->setSize(kCols, kRows);
-    mMap->data()->setRange(QCPRange(-kCols * mBlockSec, 0.0),
-                           QCPRange(0, mSps / 2.0));
-    for (int c = 0; c < kCols; c++) {
-        int srcIdx = mColumns.size() - kCols + c;
-        for (int r = 0; r < kRows; r++)
-            mMap->data()->setCell(c, r,
-                srcIdx >= 0 ? mColumns[srcIdx][r] : -70.0);
+void SpectrogramTab::shiftColumnsAndAppend(const std::vector<double> &magnitudes)
+{
+    QCPColorMapData *data = mMap->data();
+    const int keySize = data->keySize();
+    const int valSize = data->valueSize();
+
+    for (int k = 0; k < keySize - 1; ++k) {
+        for (int v = 0; v < valSize; ++v) {
+            data->setCell(k, v, data->cell(k + 1, v));
+        }
     }
-    mPlot->xAxis->setRange(-windowSec, 0.0);
-    mPlot->yAxis->setRange(0, mSps / 2.0);
+
+    const int newCol = keySize - 1;
+    const int binsToStore = std::min(valSize, static_cast<int>(magnitudes.size()));
+    for (int v = 0; v < binsToStore; ++v) {
+        data->setCell(newCol, v,
+                      binMagnitudeToDb(magnitudes[static_cast<size_t>(v)], v));
+    }
+    for (int v = binsToStore; v < valSize; ++v) {
+        data->setCell(newCol, v, kDbMin);
+    }
+}
+
+void SpectrogramTab::processPendingColumns()
+{
+    while (mPcmBuffer.size() >= static_cast<size_t>(kFftSize)) {
+        const std::vector<double> magnitudes = computeMagnitudes(mPcmBuffer.data());
+        if (!magnitudes.empty()) {
+            shiftColumnsAndAppend(magnitudes);
+        }
+        mPcmBuffer.erase(mPcmBuffer.begin(),
+                         mPcmBuffer.begin() + kHopSize);
+        if (!mPcmBuffer.empty()) {
+            mBufferStartTick += static_cast<uint64_t>(kHopSize);
+        }
+    }
+}
+
+void SpectrogramTab::rebuildAxisRanges()
+{
+    const double windowMs = (mViewMode == ViewMode::Seconds)
+        ? mWindowSec * 1000.0
+        : qMax(200.0, mBeatPeriodMs);
+
+    mMap->data()->setKeyRange(QCPRange(0.0, windowMs));
+    mMap->data()->setValueRange(QCPRange(0.0, kMaxDisplayHz));
+    mPlot->xAxis->setRange(0, windowMs);
+    mPlot->yAxis->setRange(0, kMaxDisplayHz);
+}
+
+void SpectrogramTab::rebuildLastBeatView()
+{
+    mMap->data()->fill(kDbMin);
+    if (!mHaveLastBeat || mPcmBuffer.empty()) {
+        rebuildAxisRanges();
+        mPlot->replot(QCustomPlot::rpQueuedReplot);
+        return;
+    }
+
+    const double windowMs = qMax(200.0, mBeatPeriodMs);
+    const uint64_t windowEndTick = mLastBeatTick
+        + static_cast<uint64_t>(windowMs / 1000.0 * mSampleRate);
+
+    uint64_t startTick = mLastBeatTick;
+    if (startTick < mBufferStartTick) {
+        startTick = mBufferStartTick;
+    }
+    uint64_t endTick = windowEndTick;
+    const uint64_t bufferEndTick = mBufferStartTick + mPcmBuffer.size();
+    if (endTick > bufferEndTick) {
+        endTick = bufferEndTick;
+    }
+
+    const int offset = static_cast<int>(startTick - mBufferStartTick);
+    const int count = static_cast<int>(endTick - startTick);
+    if (count < kFftSize) {
+        rebuildAxisRanges();
+        mPlot->replot(QCustomPlot::rpQueuedReplot);
+        return;
+    }
+
+    ensureMapSize();
+
+    int col = 0;
+    for (int start = 0; start + kFftSize <= count && col < kTimeColumns; start += kHopSize) {
+        const std::vector<double> magnitudes =
+            computeMagnitudes(mPcmBuffer.data() + offset + start);
+        const int binsToStore = std::min(mFreqBins, static_cast<int>(magnitudes.size()));
+        for (int v = 0; v < binsToStore; ++v) {
+            mMap->data()->setCell(col, v,
+                                  binMagnitudeToDb(magnitudes[static_cast<size_t>(v)], v));
+        }
+        ++col;
+    }
+
+    rebuildAxisRanges();
+    updateColorRange();
     mPlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void SpectrogramTab::updateBeatMarkers(const Measurement &m)
+{
+    if (m.synced && m.detectedBph > 0) {
+        mBeatPeriodMs = 3600000.0 / static_cast<double>(m.detectedBph);
+    }
+    for (const AcousticEvent &ev : m.events) {
+        if (ev.isA) {
+            mHaveLastBeat = true;
+            mLastBeatTick = static_cast<uint64_t>(ev.samplePos);
+        }
+    }
+}
+
+double SpectrogramTab::truePeakDbfs(const QVector<float> &pcm) const
+{
+    if (pcm.isEmpty()) {
+        return -100.0;
+    }
+    float peak = 0.0f;
+    for (float s : pcm) {
+        peak = qMax(peak, std::abs(s));
+    }
+    if (peak <= 1e-10f) {
+        return -100.0;
+    }
+    return 20.0 * std::log10(static_cast<double>(peak));
 }
 
 void SpectrogramTab::onMeasurement(const Measurement &m)
 {
-    // Lazy Pull: 탭이 안 보이면 FFT 스킵 → real-time path 보호 (QAS-1/QAS-2)
-    if (!isVisible() || m.rawPcm.isEmpty()) return;
+    if (m.hpfPcm.isEmpty()) {
+        return;
+    }
 
-    mSps      = m.samplesPerSecond;
-    mBlockSec = (double)m.rawPcm.size() / m.samplesPerSecond;
+    mSampleRate = m.samplesPerSecond;
+    mFreqBins = freqBinCount();
 
-    QVector<double> col = computeColumn(m.rawPcm);
-    if (col.isEmpty()) return;
-    mColumns.append(col);
-    while (mColumns.size() > kCols) mColumns.removeFirst();
+    if (mPcmBuffer.empty()) {
+        mBufferStartTick = m.graphTickStart;
+    }
 
-    if (mPaused) return;
-    rebuildMap();
+    mPcmBuffer.insert(mPcmBuffer.end(), m.hpfPcm.constBegin(), m.hpfPcm.constEnd());
+
+    const uint64_t maxSamples = static_cast<uint64_t>(kMaxBufferSec * mSampleRate);
+    if (mPcmBuffer.size() > static_cast<int>(maxSamples)) {
+        const int excess = mPcmBuffer.size() - static_cast<int>(maxSamples);
+        mPcmBuffer.erase(mPcmBuffer.begin(), mPcmBuffer.begin() + excess);
+        mBufferStartTick += static_cast<uint64_t>(excess);
+    }
+
+    updateBeatMarkers(m);
+
+    const double peakDb = truePeakDbfs(m.hpfPcm);
+    if (peakDb > mLastPeakDbfs - 0.5) {
+        mLastPeakDbfs = peakDb;
+    }
+    if (mPeakMeterCheck->isChecked()) {
+        mPeakDbLabel->setText(QStringLiteral("%1 dBFS").arg(mLastPeakDbfs, 0, 'f', 1));
+        const int bar = qBound(0, static_cast<int>((mLastPeakDbfs + 60.0) / 60.0 * 100.0), 100);
+        mPeakBar->setValue(bar);
+    }
+
+    // Lazy pull: skip FFT when an embedded tab page is hidden (QAS-1/QAS-2).
+    // Standalone widgets (parentWidget()==nullptr, e.g. unit tests) always process.
+    if (mPaused || (parentWidget() != nullptr && !isVisible())) {
+        return;
+    }
+
+    if (mViewMode == ViewMode::LastBeat) {
+        rebuildLastBeatView();
+        return;
+    }
+
+    ensureMapSize();
+
+    processPendingColumns();
+    rebuildAxisRanges();
+    updateColorRange();
+    mPlot->replot(QCustomPlot::rpQueuedReplot);
 }

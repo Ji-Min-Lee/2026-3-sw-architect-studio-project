@@ -117,6 +117,13 @@ struct tg_context {
     float    *buf_env_out;
     size_t    buf_env_out_capacity;
 
+    /* HPF output delay line (same length as envelope delay) */
+    float    *filt_delay_buf;
+    size_t    filt_delay_write_idx;
+    size_t    filt_delay_filled;
+    float    *buf_filt_out;
+    size_t    buf_filt_out_capacity;
+
     /* Raw events out of the detector for this batch */
     tg_raw_event_t *raw_events;
     size_t          raw_events_capacity;
@@ -157,6 +164,17 @@ static int ensure_env_out(tg_context_t *ctx, size_t n) {
     if (!p) return -1;
     ctx->buf_env_out = p;
     ctx->buf_env_out_capacity = new_cap;
+    return 0;
+}
+
+static int ensure_filt_out(tg_context_t *ctx, size_t n) {
+    if (n <= ctx->buf_filt_out_capacity) return 0;
+    size_t new_cap = ctx->buf_filt_out_capacity ? ctx->buf_filt_out_capacity : TG_INITIAL_BUF;
+    while (new_cap < n) new_cap *= 2;
+    float *p = (float*)realloc(ctx->buf_filt_out, new_cap * sizeof(float));
+    if (!p) return -1;
+    ctx->buf_filt_out = p;
+    ctx->buf_filt_out_capacity = new_cap;
     return 0;
 }
 
@@ -207,6 +225,27 @@ static size_t delay_push_pop(tg_context_t *ctx,
         ctx->delay_buf[ctx->delay_write_idx] = in[i];
         ctx->delay_write_idx = (ctx->delay_write_idx + 1) % cap;
         ctx->total_env_samples_in++;
+    }
+    return produced;
+}
+
+static size_t filt_delay_push_pop(tg_context_t *ctx,
+                                  const float *in, size_t n,
+                                  float *out)
+{
+    size_t cap = ctx->delay_capacity;
+    size_t D   = ctx->delay_samples;
+    if (cap == 0 || n == 0) return 0;
+    size_t produced = 0;
+    for (size_t i = 0; i < n; ++i) {
+        if (ctx->filt_delay_filled >= D) {
+            size_t read_idx = (ctx->filt_delay_write_idx + cap - D) % cap;
+            out[produced++] = ctx->filt_delay_buf[read_idx];
+        } else {
+            ctx->filt_delay_filled++;
+        }
+        ctx->filt_delay_buf[ctx->filt_delay_write_idx] = in[i];
+        ctx->filt_delay_write_idx = (ctx->filt_delay_write_idx + 1) % cap;
     }
     return produced;
 }
@@ -294,6 +333,8 @@ tg_context_t *tg_init(const tg_config_t *cfg_in) {
     ctx->delay_samples = ctx->delay_capacity;
     ctx->delay_buf = (float*)calloc(ctx->delay_capacity, sizeof(float));
     if (!ctx->delay_buf) { tg_destroy(ctx); return NULL; }
+    ctx->filt_delay_buf = (float*)calloc(ctx->delay_capacity, sizeof(float));
+    if (!ctx->filt_delay_buf) { tg_destroy(ctx); return NULL; }
 
     if (ensure_buf(ctx, TG_INITIAL_BUF) || ensure_raw_events(ctx, 64) ||
         ensure_out_events(ctx, 64))
@@ -310,7 +351,9 @@ void tg_destroy(tg_context_t *ctx) {
     free(ctx->buf_filt);
     free(ctx->buf_env);
     free(ctx->buf_env_out);
+    free(ctx->buf_filt_out);
     free(ctx->delay_buf);
+    free(ctx->filt_delay_buf);
     free(ctx->raw_events);
     free(ctx->out_events);
     free(ctx);
@@ -333,13 +376,17 @@ int tg_process(tg_context_t *ctx,
      * gives the offset into the buffer where the impulse will appear).
      */
     size_t env_out_len = 0;
+    size_t filt_out_len = 0;
     if (num_samples > 0) {
         if (ensure_buf(ctx, num_samples) != 0) return -2;
         if (ensure_env_out(ctx, num_samples) != 0) return -2;
+        if (ensure_filt_out(ctx, num_samples) != 0) return -2;
         tg_hpf_process     (&ctx->hpf, pcm,            ctx->buf_filt, num_samples);
         tg_envelope_process(&ctx->env, ctx->buf_filt,  ctx->buf_env,  num_samples);
         env_out_len = delay_push_pop(ctx, ctx->buf_env, num_samples,
                                      ctx->buf_env_out);
+        filt_out_len = filt_delay_push_pop(ctx, ctx->buf_filt, num_samples,
+                                           ctx->buf_filt_out);
     }
 
     /* Compute absolute index of first sample of the delayed envelope */
@@ -351,6 +398,9 @@ int tg_process(tg_context_t *ctx,
     result->processed_pcm              = ctx->buf_env_out;
     result->processed_pcm_len          = env_out_len;
     result->processed_pcm_start_sample = output_start;
+    result->filtered_pcm               = ctx->buf_filt_out;
+    result->filtered_pcm_len           = filt_out_len;
+    result->filtered_pcm_start_sample  = output_start;
 
     /* Detector reads the un-delayed envelope. Events emitted have
      * timing in the caller's absolute stream (in seconds since the
@@ -671,8 +721,12 @@ void tg_reset(tg_context_t *ctx) {
     ctx->ev_history_head     = 0;
     if (ctx->delay_buf && ctx->delay_capacity)
         memset(ctx->delay_buf, 0, ctx->delay_capacity * sizeof(float));
+    if (ctx->filt_delay_buf && ctx->delay_capacity)
+        memset(ctx->filt_delay_buf, 0, ctx->delay_capacity * sizeof(float));
     ctx->delay_write_idx       = 0;
     ctx->delay_filled          = 0;
+    ctx->filt_delay_write_idx  = 0;
+    ctx->filt_delay_filled     = 0;
     ctx->total_env_samples_in  = 0;
     ctx->total_samples_processed = 0;
 }

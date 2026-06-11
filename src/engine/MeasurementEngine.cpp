@@ -121,9 +121,13 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     // Processed PCM + threshold for ScopePlot
     m.pcm.reserve(r.processed_pcm_len);
     m.threshold.reserve(r.processed_pcm_len);
+    m.hpfPcm.reserve(r.filtered_pcm_len);
     for (int i = 0; i < r.processed_pcm_len; i++) {
         m.pcm.append(r.processed_pcm[i]);
         m.threshold.append(r.onset_threshold);
+    }
+    for (size_t i = 0; i < r.filtered_pcm_len; i++) {
+        m.hpfPcm.append(r.filtered_pcm[i]);
     }
     mGraphTicks    += r.processed_pcm_len;
     m.graphTickEnd  = mGraphTicks;

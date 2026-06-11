@@ -1,36 +1,51 @@
 #pragma once
 #include "BaseGraphTab.h"
 #include "qcustomplot.h"
-#include <QComboBox>
 #include <QLabel>
+#include <QList>
 
-// Graph 13 (NEW): Scope Function with Multiple Filter Views — F0..F3
-// (project plan Figure 19, after PC-RM4 / pascalchour chour_rm4).
+// Graph 13: Scope Function with Multiple Filter Views — F0..F3 (Figure 19).
 //
-//   F0 — signal as captured, mirrored around its average value
-//   F1 — moving-average filter of F0 (smoothed envelope)
-//   F2 — F1 with rising slopes emphasized, falling slopes attenuated
-//        (makes T3, and to some extent T2, stand out)
-//   F3 — upper portion of the signal only, rising-edge emphasis
-// A/C event markers stay overlaid in every view so the user can compare how
-// each filter changes the visibility of T1 / T2 / T3.
+// Four stacked time-pass panels showing the same PCM block through each
+// filter stage simultaneously for side-by-side comparison.
 class FilterScopeTab : public BaseGraphTab
 {
     Q_OBJECT
 public:
     explicit FilterScopeTab(QWidget *parent = nullptr);
     void reset() override;
+
 public slots:
     void onMeasurement(const Measurement &m) override;
-private:
-    QVector<double> applyFilter(const QVector<float> &raw) const;
-    void redraw();
 
-    QComboBox   *mFilterCombo;
-    QLabel      *mHintLabel;
-    QCustomPlot *mPlot;
-    QList<QCPItemLine *> mMarkers;
+private:
+    struct FilterStages {
+        QVector<double> f0;
+        QVector<double> f1;
+        QVector<double> f2;
+        QVector<double> f3;
+    };
+
+    struct FilterPanel {
+        QLabel      *title = nullptr;
+        QCustomPlot *plot = nullptr;
+        QCPGraph    *posGraph = nullptr;
+        QCPGraph    *negGraph = nullptr;
+        QList<QCPItemLine *> markers;
+    };
+
+    static constexpr int kFilterPanels = 4;
+
+    QLabel              *mBlockLabel = nullptr;
+    QList<FilterPanel>   mPanels;
 
     Measurement mLatest;
     bool        mHaveData = false;
+
+    static FilterStages computeFilterStages(const QVector<float> &pcm);
+    void stylePanel(FilterPanel &panel, bool showXLabel);
+    void drawPanel(FilterPanel &panel, int mode,
+                   const QVector<double> &xs, const QVector<double> &ys,
+                   const Measurement &m);
+    void redraw();
 };

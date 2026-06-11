@@ -32,6 +32,10 @@ struct Measurement {
     // Processed (envelope-filtered) PCM block for ScopePlot
     QVector<double> pcm;
     QVector<double> threshold;
+
+    // HPF output (bipolar, delay-aligned with pcm) — F1 / "raw" scope view
+    QVector<float>  hpfPcm;
+
     uint64_t        graphTickStart = 0;
     uint64_t        graphTickEnd   = 0;
 

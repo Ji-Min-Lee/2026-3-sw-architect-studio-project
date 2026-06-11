@@ -133,6 +133,7 @@ MainWindow::MainWindow(QWidget *parent)
     mFilterScopeTab    = new FilterScopeTab(this);
 
     mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
+    mWaveformCompTab->setLiftAngle(mLiftAngle);
 
     ui->GraphicsTabWidget->addTab(mTraceTab,          "Trace");
     ui->GraphicsTabWidget->addTab(mBeatErrorTab,      "Beat Error");
@@ -141,7 +142,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->GraphicsTabWidget->addTab(mBeatNoiseScopeTab, "Beat Scope");
     ui->GraphicsTabWidget->addTab(mLongTermTab,       "Long Term");
     ui->GraphicsTabWidget->addTab(mEscapementTab,     "Escapement");
-    ui->GraphicsTabWidget->addTab(mSpectrogramTab,    "Spectrum");
+    ui->GraphicsTabWidget->addTab(mSpectrogramTab,    "Spectrogram");
     ui->GraphicsTabWidget->addTab(mWaveformCompTab,   "Waveform");
     ui->GraphicsTabWidget->addTab(mSweepScopeTab,     "Sweep");
     ui->GraphicsTabWidget->addTab(mFilterScopeTab,    "Filters");
@@ -753,6 +754,7 @@ void MainWindow::on_LiftAngleSpinBox_valueChanged(int)
 {
     mLiftAngle = ui->LiftAngleSpinBox->value();
     if (mBeatNoiseScopeTab) mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
+    if (mWaveformCompTab)   mWaveformCompTab->setLiftAngle(mLiftAngle);
 }
 void MainWindow::on_ScopeScaleSpinBox_valueChanged(int value) { mRateScopeTab->setScopeScale(value); }
 void MainWindow::on_UseConsetCheckBox_toggled(bool checked)

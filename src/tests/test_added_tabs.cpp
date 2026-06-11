@@ -2,6 +2,7 @@
 // 주입된 Measurement 값을 정확히 반영하는지 검증한다.
 #include <QtTest>
 #include <QTableWidget>
+#include <QCoreApplication>
 #include <cmath>
 #include "SequenceTab.h"
 #include "EscapementTab.h"
@@ -242,69 +243,101 @@ private slots:
         QCOMPARE(tab.capturedBeats(), 0);
     }
 
-    // ── WaveformCompTab: 플롯된 파형이 rawPcm 원본과 일치 + Toc 레인 ─────────
-    void waveformComp_ticWindow_matchesRawPcm()
+    // ── WaveformCompTab: HPF bipolar, time-pass window ───────────────────────
+    void waveformComp_ticWindow_matchesHpfPcm()
     {
         WaveformCompTab tab;
         Measurement m;
         m.graphTickStart = 0;
         m.samplesPerSecond = 48000;
-        m.rawPcm.resize(4096);
-        for (int i = 0; i < 4096; i++) m.rawPcm[i] = i / 4096.0f;
+        m.hpfPcm.resize(4096);
+        for (int i = 0; i < 4096; i++) {
+            m.hpfPcm[i] = static_cast<float>(std::sin(2.0 * M_PI * i / 100.0));
+        }
         m.events << makeA(2048.0);
         tab.onMeasurement(m);
 
         auto data = plotOf(&tab)->graph(0)->data();
         QVERIFY(data->size() > 0);
-        bool foundCenter = false;
+
+        const int preSamples = static_cast<int>(2.0 * 48000.0 / 1000.0);
+        const int winStart = 2048 - preSamples;
+
+        bool foundAtA = false;
+        bool foundNegative = false;
         for (auto it = data->constBegin(); it != data->constEnd(); ++it) {
-            int off = (int)it->key;
-            QVERIFY(qAbs(it->value - m.rawPcm[2048 + off]) < 1e-6);
-            if (off == 0) foundCenter = true;
+            const int k = qRound(it->key * 48000.0 / 1000.0);
+            const int idx = winStart + k;
+            if (idx >= 0 && idx < 4096) {
+                QVERIFY(qAbs(it->value - m.hpfPcm[idx]) < 1e-5);
+                if (it->value < -0.01) foundNegative = true;
+            }
+            if (qAbs(it->key - 2.0) < 0.05) foundAtA = true;
         }
-        QVERIFY(foundCenter);
+        QVERIFY(foundAtA);
+        QVERIFY(foundNegative);
     }
 
-    void waveformComp_tocPair_alsoPlotted()
+    void waveformComp_tocPair_completesBeat()
     {
         WaveformCompTab tab;
         Measurement m;
         m.graphTickStart = 0;
         m.samplesPerSecond = 48000;
-        m.rawPcm.resize(4096);
-        for (int i = 0; i < 4096; i++) m.rawPcm[i] = i / 4096.0f;
+        m.hpfPcm.resize(4096);
+        for (int i = 0; i < 4096; i++) {
+            m.hpfPcm[i] = static_cast<float>(i) / 4096.0f;
+        }
         m.events << makeA(1000.0) << makeC(1400.0);
         tab.onMeasurement(m);
 
-        auto toc = plotOf(&tab)->graph(1)->data();
-        QVERIFY(toc->size() > 0);
-        for (auto it = toc->constBegin(); it != toc->constEnd(); ++it)
-            if ((int)it->key == 0)
-                QVERIFY(qAbs(it->value - m.rawPcm[1400]) < 1e-6);
+        auto data = plotOf(&tab)->graph(0)->data();
+        QVERIFY(data->size() > 0);
+        const double expectedTacMs = (1400.0 - 1000.0) * 1000.0 / 48000.0;
+        const auto labels = tab.findChildren<QLabel *>();
+        bool foundTac = false;
+        for (QLabel *lbl : labels) {
+            if (lbl->text().contains(QStringLiteral("t_AC")) && lbl->text().contains(QStringLiteral("min:"))) {
+                foundTac = true;
+                break;
+            }
+        }
+        QVERIFY(foundTac);
+        QVERIFY(qAbs(expectedTacMs - 400.0 * 1000.0 / 48000.0) < 1e-6);
     }
 
-    // ── SpectrogramTab: 히트맵 최신 열의 피크가 입력 주파수 행에 ─────────────
+    // ── SpectrogramTab: FFT on HPF PCM, peak row at input frequency ──────────
     void spectrogram_peakRowAtInputFrequency()
     {
         SpectrogramTab tab;
-        tab.show();                                       // lazy-pull: 보일 때만 FFT
         Measurement m;
         m.samplesPerSecond = 48000;
-        m.rawPcm.resize(4096);
+        m.hpfPcm.resize(4096);
         const double freq = 1500.0;
-        for (int i = 0; i < 4096; i++)
-            m.rawPcm[i] = (float)std::sin(2.0 * M_PI * freq * i / 48000.0);
-        tab.onMeasurement(m);
+        for (int block = 0; block < 8; ++block) {
+            m.graphTickStart = static_cast<uint64_t>(block * 4096);
+            for (int i = 0; i < 4096; ++i) {
+                const int sampleIdx = block * 4096 + i;
+                m.hpfPcm[i] = (float)std::sin(2.0 * M_PI * freq * sampleIdx / 48000.0);
+            }
+            tab.onMeasurement(m);
+        }
 
         QCPColorMapData *d = tab.colorMap()->data();
         const int lastCol = d->keySize() - 1;
-        int peakRow = 0; double peakVal = -1e9;
-        for (int r = 0; r < d->valueSize(); r++)
-            if (d->cell(lastCol, r) > peakVal) { peakVal = d->cell(lastCol, r); peakRow = r; }
+        int peakRow = 1;
+        double peakVal = -1e9;
+        for (int r = 1; r < d->valueSize(); ++r) {
+            if (d->cell(lastCol, r) > peakVal) {
+                peakVal = d->cell(lastCol, r);
+                peakRow = r;
+            }
+        }
 
-        // row → frequency: rows span 0..24000 Hz over 128 rows (187.5 Hz/row)
-        double rowFreq = (peakRow + 0.5) * (24000.0 / d->valueSize());
-        QVERIFY2(qAbs(rowFreq - freq) <= 24000.0 / d->valueSize() * 1.5,
+        const double binHz = 48000.0 / 1024.0;
+        const double rowFreq = peakRow * binHz;
+        QVERIFY2(peakVal > -60.0, qPrintable(QString("no spectrogram energy (peak %1 dB)").arg(peakVal)));
+        QVERIFY2(qAbs(rowFreq - freq) <= binHz * 2.0,
                  qPrintable(QString("peak row %1 → %2 Hz").arg(peakRow).arg(rowFreq)));
     }
 };
