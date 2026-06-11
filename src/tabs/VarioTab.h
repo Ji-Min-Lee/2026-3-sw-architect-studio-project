@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseGraphTab.h"
+#include "MeasurementSummaries.h"
 #include "qcustomplot.h"
 
 // Graph 5: Amplitude (°) over time, Tic (red) and Toc (blue) plotted separately.
@@ -18,4 +19,6 @@ public slots:
 private:
     QCustomPlot *mPlot;
     int          mBeatIdx = 0;
+    RunningStats mTicStats;
+    RunningStats mTocStats;
 };

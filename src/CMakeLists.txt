@@ -248,6 +248,64 @@ target_link_libraries(TestWatchMath PRIVATE
 )
 add_test(NAME WatchMath COMMAND TestWatchMath)
 
+# ── TestMeasurementEngine ─────────────────────────────────────────────────────
+add_executable(TestMeasurementEngine
+    tests/test_measurement_engine.cpp
+    engine/MeasurementEngine.h
+    engine/MeasurementEngine.cpp
+    engine/Measurement.h
+    engine/WatchMath.h
+    engine/WatchMath.cpp
+    engine/RollingAverage.h
+    engine/RollingAverage.cpp
+    engine/RollingLeastSquares.h
+    engine/RollingLeastSquares.cpp
+    external/Timegrapher.h
+    external/Timegrapher.cpp
+    external/Bph.h
+    external/Bph.cpp
+    external/Detector.h
+    external/Detector.cpp
+    external/Dsp.h
+    external/Dsp.cpp
+)
+set_target_properties(TestMeasurementEngine PROPERTIES AUTOMOC ON)
+target_include_directories(TestMeasurementEngine PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+)
+target_link_libraries(TestMeasurementEngine PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Multimedia
+)
+add_test(NAME MeasurementEngine COMMAND TestMeasurementEngine)
+
+# ── TestMeasurementSummaries ──────────────────────────────────────────────────
+add_executable(TestMeasurementSummaries
+    tests/test_measurement_summaries.cpp
+    tabs/VarioTab.h
+    tabs/VarioTab.cpp
+    tabs/BaseGraphTab.h
+    engine/Measurement.h
+    engine/MeasurementSummaries.h
+    external/qcustomplot.cpp
+)
+set_target_properties(TestMeasurementSummaries PROPERTIES AUTOMOC ON)
+target_include_directories(TestMeasurementSummaries PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/tabs
+)
+target_link_libraries(TestMeasurementSummaries PRIVATE
+    Qt${QT_VERSION_MAJOR}::Test
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+)
+add_test(NAME MeasurementSummaries COMMAND TestMeasurementSummaries)
+
 # ── TestRemainingTabs ─────────────────────────────────────────────────────────
 add_executable(TestRemainingTabs
     tests/test_remaining_tabs.cpp

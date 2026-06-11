@@ -33,6 +33,8 @@ VarioTab::VarioTab(QWidget *parent) : BaseGraphTab(parent)
 void VarioTab::reset()
 {
     mBeatIdx = 0;
+    mTicStats.clear();
+    mTocStats.clear();
     mPlot->graph(0)->data()->clear();
     mPlot->graph(1)->data()->clear();
     mPlot->replot();
@@ -43,6 +45,8 @@ void VarioTab::onMeasurement(const Measurement &m)
     bool changed = false;
     for (const AcousticEvent &ev : m.events) {
         if (ev.isA || !ev.hasAmpSplit) continue;
+        mTicStats.add(ev.ticAmpDeg);
+        mTocStats.add(ev.tocAmpDeg);
         mPlot->graph(0)->addData(mBeatIdx, ev.ticAmpDeg);
         mPlot->graph(1)->addData(mBeatIdx, ev.tocAmpDeg);
         mBeatIdx++;

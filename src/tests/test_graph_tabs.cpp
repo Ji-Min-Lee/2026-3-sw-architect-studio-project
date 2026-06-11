@@ -2,8 +2,17 @@
 #include <QApplication>
 #include "TraceTab.h"
 #include "BeatErrorTab.h"
-#include "VarioTab.h"
 #include "Measurement.h"
+
+static QCustomPlot *findPlotBySeriesName(const TraceTab &tab, const QString &name)
+{
+    const auto plots = tab.findChildren<QCustomPlot *>();
+    for (QCustomPlot *plot : plots) {
+        if (plot->graphCount() > 0 && plot->graph(0)->name() == name)
+            return plot;
+    }
+    return nullptr;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: 원하는 값으로 채운 Measurement 생성
@@ -70,6 +79,17 @@ private slots:
         QCOMPARE(tab.plot()->graph(0)->data()->at(0)->value, -12.7);
     }
 
+    void traceTab_amplitudeValue_appearsInSecondPlot()
+    {
+        TraceTab tab;
+        tab.onMeasurement(makeMeasurement(0.0, 0.0, true, 270.0, 266.0));
+
+        QCustomPlot *ampPlot = findPlotBySeriesName(tab, "Amplitude (°)");
+        QVERIFY(ampPlot != nullptr);
+        QCOMPARE(ampPlot->graph(0)->data()->size(), 1);
+        QCOMPARE(ampPlot->graph(0)->data()->at(0)->value, 268.0);
+    }
+
     void traceTab_multiplePoints_accumulateInOrder()
     {
         TraceTab tab;
@@ -92,12 +112,27 @@ private slots:
         QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
     }
 
+    void traceTab_invalidAmplitude_notDrawn()
+    {
+        TraceTab tab;
+        Measurement m = makeMeasurement(0.0, 0.0, true, 270.0, 266.0);
+        m.amplitudeValid = false;
+        tab.onMeasurement(m);
+
+        QCustomPlot *ampPlot = findPlotBySeriesName(tab, "Amplitude (°)");
+        QVERIFY(ampPlot != nullptr);
+        QCOMPARE(ampPlot->graph(0)->data()->size(), 0);
+    }
+
     void traceTab_reset_clearsData()
     {
         TraceTab tab;
         tab.onMeasurement(makeMeasurement(+3.0, 0, false, 0, 0));
         tab.reset();
         QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
+        QCustomPlot *ampPlot = findPlotBySeriesName(tab, "Amplitude (°)");
+        QVERIFY(ampPlot != nullptr);
+        QCOMPARE(ampPlot->graph(0)->data()->size(), 0);
     }
 
     void traceTab_xAxis_advancesWithBlockSize()
@@ -155,55 +190,6 @@ private slots:
         QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
     }
 
-    // ── VarioTab ─────────────────────────────────────────────────────────────
-
-    void varioTab_ticToc_splitIntoTwoGraphs()
-    {
-        VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, true, 270.0, 265.0));
-
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 1); // Tic
-        QCOMPARE(tab.plot()->graph(1)->data()->size(), 1); // Toc
-        QCOMPARE(tab.plot()->graph(0)->data()->at(0)->value, 270.0);
-        QCOMPARE(tab.plot()->graph(1)->data()->at(0)->value, 265.0);
-    }
-
-    void varioTab_noAmpSplit_notDrawn()
-    {
-        VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, false, 0, 0));
-
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
-        QCOMPARE(tab.plot()->graph(1)->data()->size(), 0);
-    }
-
-    void varioTab_multipleBeats_xAxisIncreases()
-    {
-        VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, true, 270.0, 265.0));
-        tab.onMeasurement(makeMeasurement(0, 0, true, 268.0, 263.0));
-
-        auto d0 = tab.plot()->graph(0)->data();
-        QCOMPARE(d0->size(), 2);
-        // x축 beat index가 순서대로 증가해야 함
-        QVERIFY(d0->at(1)->key > d0->at(0)->key);
-    }
-
-    void varioTab_reset_clearsData()
-    {
-        VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, true, 270.0, 265.0));
-        tab.reset();
-        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
-        QCOMPARE(tab.plot()->graph(1)->data()->size(), 0);
-    }
-
-    void varioTab_ticEqualsInputValue()
-    {
-        VarioTab tab;
-        tab.onMeasurement(makeMeasurement(0, 0, true, 315.5, 300.0));
-        QCOMPARE(tab.plot()->graph(0)->data()->at(0)->value, 315.5);
-    }
 };
 
 QTEST_MAIN(TestGraphTabs)

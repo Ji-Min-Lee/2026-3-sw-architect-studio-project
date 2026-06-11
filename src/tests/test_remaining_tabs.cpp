@@ -9,6 +9,7 @@
 #include "WaveformCompTab.h"
 #include "SoundPrintTab.h"
 #include "RateScopeTab.h"
+#include "SequenceTab.h"
 #include "Measurement.h"
 #include <cmath>
 
@@ -631,6 +632,137 @@ private slots:
 
         QCOMPARE(ratePlot.graph(0)->data()->size(), 0);
         QCOMPARE(ratePlot.graph(1)->data()->size(), 0);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // SequenceTab — A 이벤트 간격(ms)을 scatter plot으로 표시
+    // 로직: 연속된 A 이벤트 쌍마다 intervalMs = (A1-A0)/fs*1000
+    // X축 = beat index(0, 1, 2, ...), Y축 = intervalMs
+    // ══════════════════════════════════════════════════════════════════════════
+
+    void sequence_firstAEventAlone_noDataPlotted()
+    {
+        // 첫 A 이벤트만 있을 때는 이전 A가 없으므로 데이터 없음
+        SequenceTab tab;
+        Measurement m = makeBase();
+        m.events.append(makeAEvent(1000.0));
+        tab.onMeasurement(m);
+
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
+    }
+
+    void sequence_twoAEvents_intervalAppearsInPlot()
+    {
+        // A0=0, A1=4800 샘플 (fs=48000) → intervalMs = 100.0 ms
+        SequenceTab tab;
+        Measurement m = makeBase(9600);
+        m.events.append(makeAEvent(0.0));
+        m.events.append(makeAEvent(4800.0));
+        tab.onMeasurement(m);
+
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 1);
+        QVERIFY(qAbs(tab.plot()->graph(0)->data()->at(0)->value - 100.0) < 1e-9);
+    }
+
+    void sequence_threeAEvents_twoIntervalsPlotted()
+    {
+        // A0, A1, A2 → 2개의 interval 데이터
+        SequenceTab tab;
+        Measurement m = makeBase(14400);
+        m.events.append(makeAEvent(0.0));
+        m.events.append(makeAEvent(4800.0));   // interval = 100 ms
+        m.events.append(makeAEvent(9840.0));   // interval = 105 ms
+        tab.onMeasurement(m);
+
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 2);
+        QVERIFY(qAbs(tab.plot()->graph(0)->data()->at(0)->value - 100.0) < 1e-9);
+        QVERIFY(qAbs(tab.plot()->graph(0)->data()->at(1)->value - 105.0) < 1e-9);
+    }
+
+    void sequence_xAxis_incrementsPerInterval()
+    {
+        // X = 0, 1, 2 순으로 증가
+        SequenceTab tab;
+        Measurement m = makeBase(20000);
+        m.events.append(makeAEvent(0.0));
+        m.events.append(makeAEvent(4800.0));
+        m.events.append(makeAEvent(9600.0));
+        m.events.append(makeAEvent(14400.0));
+        tab.onMeasurement(m);
+
+        auto data = tab.plot()->graph(0)->data();
+        QCOMPARE(data->size(), 3);
+        QCOMPARE(data->at(0)->key, 0.0);
+        QCOMPARE(data->at(1)->key, 1.0);
+        QCOMPARE(data->at(2)->key, 2.0);
+    }
+
+    void sequence_cEventsIgnored_noDataPlotted()
+    {
+        // C 이벤트는 interval 계산에 참여하지 않음
+        SequenceTab tab;
+        Measurement m = makeBase();
+        m.events.append(makeCEvent(500.0, true, 9.0));
+        m.events.append(makeCEvent(1000.0, true, 9.0));
+        tab.onMeasurement(m);
+
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
+    }
+
+    void sequence_mixedACEvents_onlyAIntervalCounted()
+    {
+        // A-C-A 순서: C는 무시되고 A 간격만 계산
+        // A0=0, C=2400, A1=4800 → interval = (4800-0)/48000*1000 = 100 ms
+        SequenceTab tab;
+        Measurement m = makeBase(9600);
+        m.events.append(makeAEvent(0.0));
+        m.events.append(makeCEvent(2400.0, true, 9.0));
+        m.events.append(makeAEvent(4800.0));
+        tab.onMeasurement(m);
+
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 1);
+        QVERIFY(qAbs(tab.plot()->graph(0)->data()->at(0)->value - 100.0) < 1e-9);
+    }
+
+    void sequence_acrossMultipleMeasurements_statePreserved()
+    {
+        // 첫 Measurement에서 A 하나 → 데이터 없음
+        // 두 번째 Measurement에서 A 하나 → 이전 A를 기억해 interval 계산
+        SequenceTab tab;
+
+        Measurement m1 = makeBase(4800);
+        m1.events.append(makeAEvent(0.0));
+        tab.onMeasurement(m1);
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
+
+        // 두 번째 블록: A가 블록 내 samplePos=4800에 위치
+        Measurement m2 = makeBase(4800);
+        m2.events.append(makeAEvent(4800.0));
+        tab.onMeasurement(m2);
+
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 1);
+        QVERIFY(qAbs(tab.plot()->graph(0)->data()->at(0)->value - 100.0) < 1e-9);
+    }
+
+    void sequence_reset_clearsDataAndIndex()
+    {
+        SequenceTab tab;
+        Measurement m = makeBase(9600);
+        m.events.append(makeAEvent(0.0));
+        m.events.append(makeAEvent(4800.0));
+        tab.onMeasurement(m);
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 1);
+
+        tab.reset();
+        QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
+
+        // reset 후 새로운 A 이벤트를 두 개 주면 X=0부터 다시 시작
+        Measurement m2 = makeBase(9600);
+        m2.events.append(makeAEvent(0.0));
+        m2.events.append(makeAEvent(4800.0));
+        tab.onMeasurement(m2);
+
+        QCOMPARE(tab.plot()->graph(0)->data()->at(0)->key, 0.0);
     }
 };
 
