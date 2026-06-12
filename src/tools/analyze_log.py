@@ -78,11 +78,21 @@ print("\n=== Throughput ===")
 for k in ("samples", "bg_fps", "fg_fps", "bg_sps", "fg_sps"):
     stat(k)
 
-exec_over10 = sum(1 for t in cols.get("exec_ms", []) if t > 10)
-spf = next((s for s in cols.get("bg_spf", []) if s > 0), 480)
+# Real-time deadline = BG chunk period = BG_SPF / BG_SPS.
+# Use the steady-state (median of non-zero) values; warmup rows are 0.
+def median_nonzero(vals, default):
+    nz = sorted(v for v in vals if v > 0)
+    return nz[len(nz) // 2] if nz else default
+
+spf = median_nonzero(cols.get("bg_spf", []), 480)
+sps = median_nonzero(cols.get("bg_sps", []), 48000)
+deadline_ms = (spf / sps * 1000.0) if sps else 10.0
+
+exec_over = sum(1 for t in cols.get("exec_ms", []) if t > deadline_ms)
 backlog = sum(1 for s in cols.get("samples", []) if s > spf * 1.5)
-print(f"\n  exec > 10ms frames  : {exec_over10} / {n}")
-print(f"  backlog (>1.5x SPF) : {backlog} / {n}")
+print(f"\n  deadline (BG period) : {deadline_ms:.2f} ms  (spf={spf:.0f}, sps={sps:.0f})")
+print(f"  exec > deadline      : {exec_over} / {n}")
+print(f"  backlog (>1.5x SPF)  : {backlog} / {n}")
 
 # ── rolling average for overview panels ───────────────────────
 def rolling(v, w):
@@ -121,7 +131,8 @@ fig.suptitle(f"TimeGrapher Log Analysis  ({n} frames, overview window={window})\
 ax[0].plot(x, rt["total_ms"], label="total", color="red", linewidth=1.2)
 ax[0].plot(x, rt["wait_ms"],  label="wait",  color="orange", linewidth=1.0)
 ax[0].plot(x, rt["exec_ms"],  label="exec",  color="blue", linewidth=1.0)
-ax[0].axhline(y=10, color="red", linestyle="--", alpha=0.5, linewidth=0.8, label="10ms")
+ax[0].axhline(y=deadline_ms, color="red", linestyle="--", alpha=0.5, linewidth=0.8,
+              label=f"deadline {deadline_ms:.1f}ms")
 ax[0].set_ylabel("ms"); ax[0].set_title("Latency (rolling avg): total = wait + exec")
 ax[0].legend(loc="upper left", fontsize=8); ax[0].grid(True, alpha=0.3)
 

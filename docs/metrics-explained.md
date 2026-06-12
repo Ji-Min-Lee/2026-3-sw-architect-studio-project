@@ -76,6 +76,52 @@ Observed in sample runs: mic avg ≈ 774 (max 12480), sim avg ≈ 1496 (max 6240
 i.e. both were, on average, processing more than one chunk per frame (falling
 behind).
 
+### Frame period vs beat period (they are different)
+
+Two periodic things are easy to confuse:
+
+| | What it is | Value |
+|--|-----------|-------|
+| **Chunk / frame period** | how often audio arrives (and must be processed) | `SPF / SPS` (e.g. 21.3 ms on the Pi) |
+| **Beat period** | how often the watch ticks (an A/C event in the signal) | `3600 / BPH` s (125 ms @ 28800 BPH) |
+
+The chunk period is the rate of the **audio stream**; the beat period is a
+**feature inside** that stream. Audio keeps flowing at the chunk rate whether or
+not a beat is present, so the beat period does **not** set the processing
+deadline (see §2 "Real-time deadline").
+
+How many samples is one beat?
+
+```
+1 beat @ 28800 BPH = 125 ms = 0.125 × 48000 = 6000 samples
+```
+
+In the normal case (1 frame ≈ 1024 samples on the Pi):
+
+```
+1 beat = 6000 / 1024 ≈ 5.9 frames     (a beat spans ~6 frames)
+```
+
+### Frame size is variable → the beat:frame ratio is variable
+
+Because a frame drains *whatever has accumulated*, its size — and therefore how
+many beats it spans — changes with backlog:
+
+| Backlog state | samples / frame | beats per frame |
+|---------------|-----------------|-----------------|
+| healthy        | 1024 (21 ms)   | ~1/6 (≈6 frames per beat) |
+| ~1 beat behind | 6000 (125 ms)  | ~1 (one whole beat in one frame) |
+| heavily behind | 8192 (170 ms)  | ~1.36 (more than a beat per frame) |
+
+The last row is real: RPi `frame 300` had `samples = 8192` ≈ 1.36 beats in a
+single frame. So when backlogged, **one frame can swallow a whole beat or more.**
+
+**This does not hurt detection accuracy.** `tg_process` works on the sample
+stream and reports each event as `sample_index + sub_sample_offset`, so the
+computed beat time is the same no matter how the stream is chopped into frames.
+Backlog only changes **when** (wall-clock) the beat is detected — i.e. latency,
+not accuracy.
+
 ---
 
 ## 2. From frames to FPS / SPS / SPF
@@ -122,6 +168,34 @@ This is the consumer-side symptom of the same backlog seen in `samples`.
 - **wait / FPS / samples** reveal latency and backlog — whether it was timely.
 
 So good SPS + bad wait = "all data handled, but late and in bursts."
+
+### Real-time deadline = chunk period (BG SPF / BG SPS)
+
+To keep up frame-by-frame, the FG must finish a frame before the next chunk
+arrives. That budget is the **chunk period**:
+
+```
+deadline = BG_SPF / BG_SPS         (= 1 / BG_FPS)
+
+Windows : 480  / 48000 ≈ 10.0 ms   (≈100 fps)
+RPi     : 1024 / 48008 ≈ 21.3 ms   (≈47 fps)
+```
+
+It is **not** a fixed 10 ms — it depends on the OS audio chunk size
+(WASAPI ≈ 480 @ 10 ms, ALSA on this Pi ≈ 1024 @ 21 ms). The analysis script
+derives it from the data and draws it as the dashed line in the Latency panel.
+
+Notes:
+
+- `BG_SPS` is a **measured** value, so it reads e.g. `48008`, not exactly
+  `48000` — timer/clock jitter and audio-clock vs system-clock drift (~0.02%).
+  Negligible: `1024/48008` and `1024/48000` both round to 21.3 ms.
+- The deadline uses the **median of non-zero** `bg_spf` / `bg_sps`. Early rows
+  are `0` (the worker fills these only after its first ~2 s window), so a naive
+  mean would be dragged down — the median ignores the warmup zeros.
+
+Interpretation: `exec < deadline` consistently ⇒ no backlog. `exec > deadline`
+(or a blocked main thread) ⇒ chunks pile up.
 
 ---
 
@@ -216,11 +290,77 @@ window (~1 s).
 
 ---
 
-## 6. Quick reading guide
+## 6. Real-time Performance vs Low Latency
+
+### The buffer trades data-loss for latency
+
+A shared **ring buffer** (30 s) sits between BG (producer) and FG (consumer),
+and the FG drains *all* accumulated samples in one frame. Two things follow:
+
+- If the FG is briefly slow, samples are **not lost** — they wait in the buffer
+  and get drained in a later (fatter) frame. The dominant cost, `plot`, is paid
+  **once per frame** regardless of how many samples it carries, so a backlog is
+  cheap to catch up on (it amortizes). This is why throughput recovers.
+- But the data that waited is **shown late**. The buffer doesn't remove the
+  delay — it converts "loss" into "latency" and lets it accumulate.
+
+```
+no buffer : can't keep up  → immediate sample loss
+buffer    : can't keep up  → no loss, but growing display lag
+```
+
+Limits of the buffer:
+
+- **Tipping point:** if *average* consumption < production (not just transient),
+  backlog grows without bound → eventually exceeds the 30 s buffer → real loss.
+- **UI hitching:** a very fat frame (e.g. RPi `frame 300`, 8192 samples,
+  `exec = 62 ms`) blocks the main thread for that whole time.
+
+### How the two QAs relate
+
+```
+Real-time Performance  = sustained throughput (keep up on average, no loss, bounded memory)
+Low Latency            = freshness (small per-frame total = wait + exec)
+```
+
+They are a containment relationship — **Low Latency is the stronger condition**:
+
+```
+exec < deadline always           → Low Latency ✅ and Real-time ✅   (ideal)
+exec sometimes over, avg keeps up → Real-time ✅ (no loss) but Low Latency ❌
+avg consumption < production      → Real-time ❌ and Low Latency ❌
+
+Low Latency satisfied  ⟹  Real-time satisfied   (always)
+Real-time satisfied    ⇏   Low Latency satisfied  (the buffer separates them)
+```
+
+So `wait` blowing up breaks **Low Latency first**; if it persists it then
+threatens Real-time. Low Latency is the **early-warning** signal.
+
+### Metric mapping
+
+| QA | Primary signals |
+|----|-----------------|
+| Real-time Performance | FG SPS ≈ BG SPS, Rollover = 0, bounded memory, `exec` < deadline (avg) |
+| Low Latency | `wait`, `total` (avg + max), `samples` (backlog size) |
+
+### Where the RPi run stands
+
+```
+Real-time:   FG SPS ≈ BG SPS, no loss          → mostly OK ✅
+Low Latency: total max 570 ms, wait 542 ms     → fails ❌  (~0.5 s, ~4 beats late)
+```
+
+The Pi loses no data but is ~0.5 s behind — it passes Real-time (weaker) and
+fails Low Latency (stronger). Low Latency is the real bottleneck to fix.
+
+---
+
+## 7. Quick reading guide
 
 | Question | Look at |
 |----------|---------|
-| Is processing fast enough? | `exec` (Panel 1) — should stay < 10 ms |
+| Is processing fast enough? | `exec` (Panel 1) — should stay < deadline (chunk period) |
 | Are we keeping up in real time? | `wait`, `samples`, `FG fps` (Panels 1–2) |
 | Where does processing time go? | exec breakdown (Panel 3 / bottom-right) |
 | Are samples being lost on average? | BG vs FG SPS (Panel 4) |
