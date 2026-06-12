@@ -24,6 +24,12 @@ import csv
 import glob
 import statistics
 
+# Make console output UTF-8 safe (Windows cp949 can't encode em-dash etc.)
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 # ── args ──────────────────────────────────────────────────────
 args = [a for a in sys.argv[1:]]
 window = 100
