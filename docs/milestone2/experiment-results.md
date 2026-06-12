@@ -87,7 +87,7 @@ period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
 | Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Detail |
 |:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|:------:|
 | R1 | 2026-06-11 | Windows | 48 kHz | 1 | 11.5 / 266.7 | — | — | ▼ R1 below |
-| R2 | | | | | | | | |
+| R2 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | ▼ R2 below |
 | R3 | | | | | | | | |
 
 > `Dropped` (audio blocks) and `Missed` (beat detections) are required by the
@@ -143,6 +143,56 @@ bg_sps avg 41823. exec > deadline: 1/1102 (0.09 %). backlog (>1.5× SPF):
 - 22 % backlog during the fg_fps-drop phase = FG cannot sustain realtime
   throughput under competing load. SCHED_RR / priority tuning may help (→ EXP-01).
 - **11-tab measurement still required** to answer the EXP-02 question definitively.
+
+</details>
+
+<details>
+<summary><b>R2</b> — 2026-06-12 · Windows · 48 kHz · 1-tab · logging+platform-metadata build — E2E avg 2.8 / max 363.9 ms</summary>
+
+**Context**: 1-tab, 48 kHz, logging build with auto-recorded platform metadata.
+Deadline = 10.00 ms (480 / 48000, computed from data). CSV meta line:
+`platform=windows kernel=winnt sample_rate=48000`.
+Files: [csv](../../src/logs/EXP-02/log_20260612_132536.csv) ·
+[plot](../../src/logs/EXP-02/log_20260612_132536.png).
+
+**Per-frame metrics (analyze_log.py, window=100, 2104 frames), ms:**
+
+| Metric | avg | max | min |
+|--------|----:|----:|----:|
+| total = ①+② | 2.81 | 363.87 | 0.07 |
+| ① wait (BG→FG queue + sched) | 1.89 | 359.53 | 0.01 |
+| ② exec (process→display) | 0.92 | 4.34 | 0.03 |
+| ┄ copy | 0.003 | 0.067 | 0.001 |
+| ┄ sound | 0.000 | 0.011 | 0.000 |
+| ┄ tg | 0.117 | 3.303 | 0.009 |
+| ┄ ui | 0.014 | 2.074 | 0.000 |
+| ┄ plot (dominant) | 0.784 | 2.356 | 0.012 |
+
+**Throughput / health:** bg_fps avg 93.7 (max 100.6), fg_fps avg 85.6 (max 100.0),
+bg_sps avg 44990. samples avg 527 (≈ SPF 480). exec > deadline: **0 / 2104**.
+backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
+
+![R2 log analysis](../../src/logs/EXP-02/log_20260612_132536.png)
+
+**Observations:**
+
+| Phase | Pattern | Interpretation |
+|-------|---------|----------------|
+| Startup (0–250) | samples↑, wait↑ to ~15 ms | warmup; FG draining initial backlog |
+| Steady (250+) | wait ≈ 0, total ≈ exec ≈ 1 ms | FG keeps up; latency dominated by exec, not wait |
+| Single spike | one frame wait ≈ 360 ms | isolated OS preemption, not structural |
+
+**Conclusion:**
+
+- Much healthier than R1: avg total **2.8 ms** (R1 11.5), wait avg **1.9 ms**
+  (R1 10.1), backlog **4.3 %** (R1 22.4 %). The machine kept up frame-by-frame.
+- ② (`exec`) never exceeded the 10 ms deadline (0/2104) — processing is not the
+  constraint; `plot` remains the dominant exec component (~0.78 ms).
+- Worst-case is still a single ~360 ms `wait` spike (OS scheduling), so max E2E
+  is jitter-bound, not load-bound.
+- Validates the toolchain end-to-end on Windows: platform auto-metadata,
+  data-driven deadline (10 ms), and the analysis graphs.
+- **11-tab and RPi runs still required** for the definitive EXP-02 answer.
 
 </details>
 
