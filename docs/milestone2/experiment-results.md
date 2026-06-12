@@ -10,7 +10,7 @@
 | ID | Experiment | Runs | Latest Key Result | Status |
 |----|------------|:----:|-------------------|:------:|
 | EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 0 | — | ⏳ In Progress |
-| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 4 | Windows E2E avg 2.8 ms (exec < deadline). **RPi: real-time FAIL** — exec ~20 ms overruns ~21 ms deadline (43–65 %), single-core + thermal throttle | ⏳ In Progress |
+| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 2 | Baseline R2 (RPi): **real-time FAIL** — exec ~20 ms overruns ~21 ms deadline (43 %), single-core + thermal throttle. R1 (Windows) ref: 2.8 ms | ⏳ In Progress |
 | EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | 📅 Planned |
 | EXP-04 | Signal Quality Warning Threshold Search | 0 | — | 📅 Planned |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
@@ -84,17 +84,18 @@ Core comparison only — full per-run numbers and analysis are in the collapsibl
 detail blocks below. `E2E = ① wait + ② exec` (avg / max, ms). Deadline = chunk
 period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
 
-| Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Detail |
-|:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|:------:|
-| R1 | 2026-06-11 | Windows | 48 kHz | 1 | 11.5 / 266.7 | — | — | ▼ R1 below |
-| R2 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | ▼ R2 below |
-| R3 | 2026-06-11 | **RPi** | 48 kHz | ? | 517.2 / 1652.6 | — | — | ▼ R3 below |
-| R4 | 2026-06-11 | **RPi** | 48 kHz | ? | 255.4 / 900.9 | — | — | ▼ R4 below |
+**R2 (RPi) is the baseline for all future experiments.** R1 (Windows) is kept
+only as a dev-machine reference.
 
-> R3/R4 are RPi runs recorded before platform auto-metadata existed (no `#`
-> meta line); platform is confirmed by the presence of `_sys.csv`. Tabs unknown
-> (`?`). Their deadlines differ from Windows: derived from data (R3 ≈19 ms,
-> R4 ≈21 ms) because the ALSA chunk size differs (SPF 960 / 1024 vs WASAPI 480).
+| Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Role | Detail |
+|:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|------|:------:|
+| R1 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | dev reference | ▼ R1 below |
+| R2 | 2026-06-11 | **RPi** | 48 kHz | ? | 255.4 / 900.9 | — | — | **baseline** | ▼ R2 below |
+
+> R2 (RPi) was recorded before platform auto-metadata existed (no `#` meta line);
+> platform is confirmed by the presence of `_sys.csv`. Tabs unknown (`?`). Its
+> deadline ≈ 21 ms (SPF 1024 / SPS 48008) differs from Windows (480 / 48000)
+> because the ALSA chunk size differs.
 
 > `Dropped` (audio blocks) and `Missed` (beat detections) are required by the
 > Low-Latency QA but not yet instrumented — shown as `—`. See backlog % in the
@@ -103,57 +104,7 @@ period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
 ### Run details
 
 <details>
-<summary><b>R1</b> — 2026-06-11 · Windows · 48 kHz · 1-tab · baseline (logging build) — E2E avg 11.5 / max 266.7 ms</summary>
-
-**Context**: 1-tab, 48 kHz, logging build. Deadline ≈ 10 ms (480 / 48000).
-Files: [csv](../../src/logs/EXP-02/log_20260611_131240.csv) ·
-[plot](../../src/logs/EXP-02/log_20260611_131240.png)
-(this run predates RPi system sampling, so no `_sys` files).
-
-**Per-frame metrics (analyze_log.py, window=100, 1102 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 11.54 | 266.72 | 0.20 |
-| ① wait (BG→FG queue + sched) | 10.06 | 265.19 | 0.02 |
-| ② exec (process→display) | 1.48 | 74.41 | 0.09 |
-| ┄ copy | 0.005 | 0.210 | 0.001 |
-| ┄ sound | 0.000 | 0.006 | 0.000 |
-| ┄ tg | 0.184 | 2.544 | 0.009 |
-| ┄ ui | 0.180 | 73.79 | 0.001 |
-| ┄ plot (dominant) | 1.112 | 3.562 | 0.020 |
-
-**Throughput / health:** bg_fps avg 86.8 (max 100.3), fg_fps avg 54.3 (max 82.5),
-bg_sps avg 41823. exec > deadline: 1/1102 (0.09 %). backlog (>1.5× SPF):
-247/1102 (22.4 %).
-
-![R1 log analysis](../../src/logs/EXP-02/log_20260611_131240.png)
-
-**Observations:**
-
-| Phase | Frames | Pattern | Interpretation |
-|-------|:------:|---------|----------------|
-| Startup / warmup | 1 – 144 | samples=480, total<2 ms | BG not yet stable; FG draining small backlog |
-| BG stabilizes | 145 – 220 | bg_fps=100.3, fg_fps=72.3 | Steady 48 kHz capture; FG keeping up |
-| fg_fps drop | 221 – 326 | fg_fps→37.8 | FG falls behind BG → backlog grows; samples bursts up to 7200 |
-| Recovery | 327+ | fg_fps=52.9, total ~2 ms | FG recovers; latency back to normal |
-| Exec spike | frame 95 | exec_ms=74 (ui_ms=73.8) | Isolated Qt repaint jitter — not structural |
-| wait spike | frame ~450+ | wait_ms up to 265 | OS scheduling jitter; FG preempted |
-
-**Conclusion:**
-
-- ② (`exec`) is structurally fast: avg **1.5 ms**, well under the 30 ms target.
-- The 74 ms exec spike is a single-frame UI paint anomaly, not steady state.
-- ① (`wait`) dominates (87 % of avg total) and drives worst-case E2E to 266 ms —
-  OS scheduling jitter, not DSP load.
-- 22 % backlog during the fg_fps-drop phase = FG cannot sustain realtime
-  throughput under competing load. SCHED_RR / priority tuning may help (→ EXP-01).
-- **11-tab measurement still required** to answer the EXP-02 question definitively.
-
-</details>
-
-<details>
-<summary><b>R2</b> — 2026-06-12 · Windows · 48 kHz · 1-tab · logging+platform-metadata build — E2E avg 2.8 / max 363.9 ms</summary>
+<summary><b>R1</b> — 2026-06-12 · Windows · 48 kHz · 1-tab · dev reference — E2E avg 2.8 / max 363.9 ms</summary>
 
 **Context**: 1-tab, 48 kHz, logging build with auto-recorded platform metadata.
 Deadline = 10.00 ms (480 / 48000, computed from data). CSV meta line:
@@ -203,47 +154,7 @@ backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
 </details>
 
 <details>
-<summary><b>R3</b> — 2026-06-11 · RPi · 48 kHz · pre-metadata build — E2E avg 517.2 / max 1652.6 ms · <b>real-time FAIL</b></summary>
-
-**Context**: RPi run, before platform auto-metadata (no `#` line; RPi confirmed
-by `_sys.csv`). Deadline ≈ **19.06 ms** (SPF 960 / SPS 50375, ALSA period).
-Files: [csv](../../src/logs/EXP-02/log_20260611_141737.csv) ·
-[plot](../../src/logs/EXP-02/log_20260611_141737.png) ·
-[sys plot](../../src/logs/EXP-02/log_20260611_141737_sys.png).
-
-**Per-frame metrics (window=100, 1335 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 517.25 | 1652.59 | 0.54 |
-| ① wait | 495.85 | 1633.48 | 0.04 |
-| ② exec | 21.40 | 49.47 | 0.18 |
-| ┄ copy | 0.014 | 0.102 | 0.006 |
-| ┄ sound | 0.809 | 8.833 | 0.000 |
-| ┄ tg | 3.066 | 19.668 | 0.077 |
-| ┄ ui | 0.710 | 6.888 | 0.000 |
-| ┄ plot (dominant) | 16.795 | 30.335 | 0.052 |
-
-**Throughput / health:** bg_fps avg 48.4, fg_fps avg 36.1, samples avg 1301.
-**exec > deadline: 873 / 1335 (65 %)** — processing alone overruns the budget.
-backlog (>1.5× SPF): 421 / 1335.
-
-**System (RPi):** cpu_total 25 % but **cpu1 pinned at 91.9 % (max 100 %)** — a
-single core saturated; temp **84.5 °C**, **throttled on all 13 samples**;
-mem 3365 MB; freq 2400 MHz.
-
-![R3 system](../../src/logs/EXP-02/log_20260611_141737_sys.png)
-
-**Conclusion:** RPi **fails real-time performance**, not just latency. `plot`
-alone (~16.8 ms) nearly consumes the 19 ms deadline, so `exec` overruns 65 % of
-frames; the audio path runs on one core (cpu1 ~92 %) while the others idle, and
-the SoC is thermally throttled the whole run. Root causes: heavy `plot`,
-single-core processing, thermal throttling.
-
-</details>
-
-<details>
-<summary><b>R4</b> — 2026-06-11 · RPi · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>real-time FAIL</b></summary>
+<summary><b>R2</b> — 2026-06-11 · RPi · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>baseline · real-time FAIL</b></summary>
 
 **Context**: RPi run, before platform auto-metadata. Deadline ≈ **21.33 ms**
 (SPF 1024 / SPS 48008). Files:
@@ -270,34 +181,34 @@ single-core processing, thermal throttling.
 **System (RPi):** cpu_total 24 % but **cpu2 pinned at 91 % (max 99 %)**; temp
 **84.7 °C**, **throttled on all 10 samples**; mem 1651 MB; freq 2400 MHz.
 
-![R4 system](../../src/logs/EXP-02/log_20260611_145543_sys.png)
+![R2 system](../../src/logs/EXP-02/log_20260611_145543_sys.png)
 
-**Conclusion:** Same failure mode as R3 — `exec` (plot ~16 ms) overruns the
-21 ms deadline 43 % of the time, one core (cpu2) saturated, SoC throttled
-throughout. Confirms the RPi bottleneck is structural (plot + single-core +
-thermal), independent of which run.
+**Conclusion:** RPi **fails real-time performance**, not just latency. `exec`
+(plot ~16 ms) overruns the 21 ms deadline 43 % of the time; one core (cpu2)
+saturated (~92 %) while the others idle; SoC thermally throttled (85 °C)
+throughout. The bottleneck is structural: heavy `plot`, single-core audio path,
+thermal throttling. **This run is the baseline for all future RPi experiments.**
 
 </details>
 
 ### Current Best
 
-**Windows (dev) — best so far: R2**
-- E2E (1-tab): mean **2.8 ms** / worst **363.9 ms** (single OS-scheduling spike)
-- ② exec: mean **0.9 ms**, **never exceeds the 10 ms deadline** (0/2104)
-- backlog 4.3 %; dominant cost is `plot` (~0.78 ms). Latency is jitter-bound,
-  not load-bound. Processing is not the constraint on dev hardware.
-
-**RPi (target) — R3/R4: real-time FAIL** ⚠
-- E2E: mean **255–517 ms** / worst **0.9–1.65 s**
-- ② exec mean **~20 ms** overruns the ~19–21 ms deadline **43–65 %** of frames
-- `plot` alone ≈ **16 ms** (≈20× Windows); one core saturated (~92 %) while the
-  others idle; SoC **thermally throttled** (85 °C) for the entire run
+**Baseline — R2 (RPi, target platform): real-time FAIL** ⚠
+- E2E: mean **255 ms** / worst **901 ms** at 28,800 BPH, 48 kHz
+- ② exec mean **20 ms** overruns the **21 ms** deadline **43 %** of frames
+  (0/2104 on Windows by contrast) — processing itself cannot keep up
+- `plot` alone ≈ **16 ms** (≈20× the Windows dev machine)
+- one core saturated (cpu2 ~92 %) while the others idle; SoC **thermally
+  throttled** (85 °C) for the entire run; mem ~1.65 GB
 - Root causes (structural): heavy `plot`, single-core audio path, thermal throttle
-- Implication: meeting QAS-2 on the Pi needs **lazy/throttled rendering**,
-  off-loading `plot` from the audio path, and/or multi-core distribution + cooling
+- Improvement directions for QAS-2: **lazy / throttled rendering**, off-load
+  `plot` from the audio path, multi-core distribution, cooling
 
-- **Dominant latency source**: Windows = `wait` (OS jitter); RPi = `exec` (`plot`) + backlog
-- **Lazy Rendering required**: **Yes on RPi** (exec overruns deadline); Windows inconclusive (11-tab pending)
+> Windows dev reference (R1): E2E avg 2.8 ms, exec never exceeds the 10 ms
+> deadline — confirms the bottleneck is the Pi, not the algorithm.
+
+- **Dominant cost on target (RPi)**: `exec` (`plot` ~16 ms) + resulting backlog
+- **Lazy Rendering required**: **Yes** (RPi exec overruns the deadline)
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
 
 ---
