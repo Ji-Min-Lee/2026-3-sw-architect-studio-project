@@ -78,63 +78,73 @@ Timestamp injection points:
 | TS2 | T1/T3 event timestamp finalized | ① end / ② start |
 | TS3 | Qt `paintEvent()` complete | ② end |
 
-### Run History
+### Runs
 
-| Run | Date | Log | Plot | Change from Previous | E2E Mean 1-tab (ms) | E2E Mean 11-tab (ms) | ② >30ms? | Better? | Next Action |
-|:---:|------|-----|------|----------------------|:-------------------:|:--------------------:|:--------:|:-------:|-------------|
-| R1 | 2026-06-11 | [log_20260611_131240](../../src/logs/EXP-02/log_20260611_131240.csv) | [log_20260611_131240](../../src/logs/EXP-02/log_20260611_131240.png) | Baseline — 1-tab, 48 kHz, logging build | 11.5 | — (not yet) | sporadic (1 / 1102 frames, isolated ui_ms spike) | — | Run with 11 tabs; run on RPi if this is macOS baseline |
-| R2 | | | | | | | | ↑/↓/= | |
-| R3 | | | | | | | | ↑/↓/= | |
+Core comparison only — full per-run numbers and analysis are in the collapsible
+detail blocks below. `E2E = ① wait + ② exec` (avg / max, ms). Deadline = chunk
+period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
 
-#### R1 — Statistics (analyze_log.py, window=100)
+| Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Detail |
+|:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|:------:|
+| R1 | 2026-06-11 | Windows | 48 kHz | 1 | 11.5 / 266.7 | — | — | ▼ R1 below |
+| R2 | | | | | | | | |
+| R3 | | | | | | | | |
 
-```
-Analyzing: log_20260611_131240.csv  (overview window=100)
-Frames: 1102
+> `Dropped` (audio blocks) and `Missed` (beat detections) are required by the
+> Low-Latency QA but not yet instrumented — shown as `—`. See backlog % in the
+> detail block as the current proxy for "falling behind".
 
-=== Latency per frame (ms) ===
-  total_ms   avg=  11.542  max= 266.724  min=   0.198 ms
-  wait_ms    avg=  10.060  max= 265.189  min=   0.016 ms   ← ① BG→FG queue + scheduling
-  exec_ms    avg=   1.482  max=  74.409  min=   0.093 ms   ← ② process→display
+### Run details
 
-=== exec breakdown per frame (ms) ===
-  copy_ms    avg=   0.005  max=   0.210  min=   0.001 ms
-  sound_ms   avg=   0.000  max=   0.006  min=   0.000 ms
-  tg_ms      avg=   0.184  max=   2.544  min=   0.009 ms
-  ui_ms      avg=   0.180  max=  73.790  min=   0.001 ms   ← source of 74 ms exec spike
-  plot_ms    avg=   1.112  max=   3.562  min=   0.020 ms   ← dominant exec component
+<details>
+<summary><b>R1</b> — 2026-06-11 · Windows · 48 kHz · 1-tab · baseline (logging build) — E2E avg 11.5 / max 266.7 ms</summary>
 
-=== Throughput ===
-  bg_fps     avg=  86.799  max= 100.300                    ← BG capture ~48 kHz
-  fg_fps     avg=  54.252  max=  82.500                    ← FG processing rate
-  bg_sps     avg= 41822.895  max= 49341.300
+**Context**: 1-tab, 48 kHz, logging build. Deadline ≈ 10 ms (480 / 48000).
+Files: [csv](../../src/logs/EXP-02/log_20260611_131240.csv) ·
+[plot](../../src/logs/EXP-02/log_20260611_131240.png)
+(this run predates RPi system sampling, so no `_sys` files).
 
-  exec > 10ms frames  : 1 / 1102   (0.09 %)
-  backlog (>1.5x SPF) : 247 / 1102 (22.4 %)               ← ⚠ backlog accumulates in startup/spike phases
-```
+**Per-frame metrics (analyze_log.py, window=100, 1102 frames), ms:**
 
-**R1 Analysis Plot**
+| Metric | avg | max | min |
+|--------|----:|----:|----:|
+| total = ①+② | 11.54 | 266.72 | 0.20 |
+| ① wait (BG→FG queue + sched) | 10.06 | 265.19 | 0.02 |
+| ② exec (process→display) | 1.48 | 74.41 | 0.09 |
+| ┄ copy | 0.005 | 0.210 | 0.001 |
+| ┄ sound | 0.000 | 0.006 | 0.000 |
+| ┄ tg | 0.184 | 2.544 | 0.009 |
+| ┄ ui | 0.180 | 73.79 | 0.001 |
+| ┄ plot (dominant) | 1.112 | 3.562 | 0.020 |
+
+**Throughput / health:** bg_fps avg 86.8 (max 100.3), fg_fps avg 54.3 (max 82.5),
+bg_sps avg 41823. exec > deadline: 1/1102 (0.09 %). backlog (>1.5× SPF):
+247/1102 (22.4 %).
 
 ![R1 log analysis](../../src/logs/EXP-02/log_20260611_131240.png)
 
-**Key observations / 주요 관찰:**
+**Observations:**
 
 | Phase | Frames | Pattern | Interpretation |
 |-------|:------:|---------|----------------|
 | Startup / warmup | 1 – 144 | samples=480, total<2 ms | BG not yet stable; FG draining small backlog |
 | BG stabilizes | 145 – 220 | bg_fps=100.3, fg_fps=72.3 | Steady 48 kHz capture; FG keeping up |
-| fg_fps drop | 221 – 326 | fg_fps drops to 37.8 | FG falls behind BG → backlog grows; samples bursts up to 7200 |
-| Recovery | 327+ | fg_fps=52.9, total ~2 ms | FG recovers; latency returns to normal |
-| Exec spike | frame 95 | exec_ms=74 ms (ui_ms=73.8 ms) | Isolated Qt repaint jitter — not structural |
-| wait_ms spike | frame ~450+ | wait_ms up to 265 ms | OS scheduling jitter; FG thread preempted |
+| fg_fps drop | 221 – 326 | fg_fps→37.8 | FG falls behind BG → backlog grows; samples bursts up to 7200 |
+| Recovery | 327+ | fg_fps=52.9, total ~2 ms | FG recovers; latency back to normal |
+| Exec spike | frame 95 | exec_ms=74 (ui_ms=73.8) | Isolated Qt repaint jitter — not structural |
+| wait spike | frame ~450+ | wait_ms up to 265 | OS scheduling jitter; FG preempted |
 
-**Conclusion for EXP-02 R1 / R1 결론:**
+**Conclusion:**
 
-- ② (`exec_ms`) is structurally fast: avg **1.5 ms**, well under the 30 ms target.
-- The 74 ms exec spike is a single-frame UI paint anomaly, not a steady-state issue.
-- ① (`wait_ms`) is the dominant latency source (87 % of avg total) and drives worst-case E2E to 266 ms — this is OS scheduling jitter, not DSP load.
-- 22 % backlog rate during the fg_fps-drop phase indicates the FG thread cannot sustain realtime throughput when competing with other loads. SCHED_RR or thread priority tuning may be needed (→ see EXP-01).
+- ② (`exec`) is structurally fast: avg **1.5 ms**, well under the 30 ms target.
+- The 74 ms exec spike is a single-frame UI paint anomaly, not steady state.
+- ① (`wait`) dominates (87 % of avg total) and drives worst-case E2E to 266 ms —
+  OS scheduling jitter, not DSP load.
+- 22 % backlog during the fg_fps-drop phase = FG cannot sustain realtime
+  throughput under competing load. SCHED_RR / priority tuning may help (→ EXP-01).
 - **11-tab measurement still required** to answer the EXP-02 question definitively.
+
+</details>
 
 ### Current Best
 
