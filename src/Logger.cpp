@@ -3,9 +3,12 @@
 #include <QtGlobal>
 #include <QFile>
 #include <QTextStream>
+#include <QSysInfo>
 
-Logger::Logger(const QString &csvPath, int consoleEvery)
-    : mPath(csvPath), mConsoleEvery(consoleEvery > 0 ? consoleEvery : 100)
+Logger::Logger(const QString &csvPath, int consoleEvery, int sampleRate)
+    : mPath(csvPath),
+      mConsoleEvery(consoleEvery > 0 ? consoleEvery : 100),
+      mSampleRate(sampleRate)
 {
     qInfo("[Logger] per-frame logging -> %s (console every %d frames)",
           qPrintable(mPath), mConsoleEvery);
@@ -72,6 +75,12 @@ void Logger::writeCsv()
         return;
     }
     QTextStream out(&file);
+    // metadata line (comment): platform/host/sample-rate for self-identification.
+    // analyze_log.py skips lines starting with '#'.
+    out << "# platform=" << QSysInfo::productType()
+        << " kernel="    << QSysInfo::kernelType()
+        << " host="      << QSysInfo::machineHostName()
+        << " sample_rate=" << mSampleRate << '\n';
     // per-frame rows. durations measured in us, written in ms (3 decimals).
     out << "frame,samples,total_ms,wait_ms,exec_ms,"
         << "copy_ms,sound_ms,tg_ms,ui_ms,plot_ms,"

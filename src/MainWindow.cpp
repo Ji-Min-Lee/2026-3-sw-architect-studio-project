@@ -138,7 +138,7 @@ MainWindow::MainWindow(QWidget *parent)
     QString csvPath = QString("%1/log_%2.csv")
                           .arg(logDir)
                           .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
-    mLogger = new Logger(csvPath, 100);
+    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
 #endif
 }
 void   MainWindow::ConfigureSoundCard(void)

@@ -46,18 +46,29 @@ if not csv_path or not os.path.exists(csv_path):
     sys.exit(1)
 print(f"Analyzing: {csv_path}  (overview window={window})\n")
 
-# ── load per-frame CSV ────────────────────────────────────────
+# ── load per-frame CSV (skip '#' metadata lines) ──────────────
 cols = {}
+meta = ""
 with open(csv_path, newline="") as f:
-    for row in csv.DictReader(f):
-        for k, v in row.items():
-            try: cols.setdefault(k, []).append(float(v))
-            except (ValueError, TypeError): pass
+    all_lines = f.readlines()
+data_lines = []
+for ln in all_lines:
+    if ln.lstrip().startswith("#"):
+        if not meta:
+            meta = ln.lstrip("# ").strip()   # keep first metadata line
+    else:
+        data_lines.append(ln)
+for row in csv.DictReader(data_lines):
+    for k, v in row.items():
+        try: cols.setdefault(k, []).append(float(v))
+        except (ValueError, TypeError): pass
 
 n = len(cols.get("frame", []))
 if n == 0:
     print("CSV has no data rows yet (run longer with audio flowing).")
     sys.exit(1)
+if meta:
+    print(f"Meta: {meta}")
 print(f"Frames: {n}\n")
 
 # ── summary stats (per frame) ─────────────────────────────────
@@ -125,7 +136,8 @@ fig = plt.figure(figsize=(14, 17))
 gs = fig.add_gridspec(5, 3, height_ratios=[1, 1, 1, 1, 2.2])
 ax = [fig.add_subplot(gs[i, :]) for i in range(4)]
 fig.suptitle(f"TimeGrapher Log Analysis  ({n} frames, overview window={window})\n"
-             f"{os.path.basename(csv_path)}", fontsize=12)
+             f"{os.path.basename(csv_path)}"
+             + (f"\n{meta}" if meta else ""), fontsize=11)
 
 # 1) Latency
 ax[0].plot(x, rt["total_ms"], label="total", color="red", linewidth=1.2)

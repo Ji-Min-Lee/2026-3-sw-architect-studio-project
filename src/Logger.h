@@ -56,7 +56,7 @@ public:
         double  fg_fps = 0, fg_sps = 0, fg_spf = 0;
     };
 
-    explicit Logger(const QString &csvPath, int consoleEvery = 100);
+    explicit Logger(const QString &csvPath, int consoleEvery = 100, int sampleRate = 0);
     ~Logger();
 
     // Record one valid frame (caller should skip frames with samples == 0).
@@ -69,6 +69,7 @@ private:
 
     QString            mPath;
     int                mConsoleEvery;
+    int                mSampleRate;  // configured rate, for the CSV metadata line
     std::vector<Frame> mFrames;   // per-frame buffer (written once at shutdown)
 
     // System metrics, sampled once per console window (~1s), written separately.
