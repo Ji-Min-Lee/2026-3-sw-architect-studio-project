@@ -161,7 +161,7 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
         mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
         mRawAudio->TotalSamplesWritten+=NumberOfSamples;
         mRawAudio->Mutex.unlock();
-        emit PlaybackDataReady(); // Emit data to the main thread
+        emit PlaybackDataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
 
         ++mFrameCount;
         mSampleCount+=NumberOfSamples;

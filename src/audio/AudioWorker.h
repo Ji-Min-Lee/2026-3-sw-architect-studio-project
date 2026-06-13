@@ -13,7 +13,9 @@
 #include <QDebug>
 #include <QMutex>
 #include <QElapsedTimer>
+#include <cstdint>
 #include "SharedAudio.h"
+#include "Logger.h"   // TG_NOW()
 
 
 class TAudioWorker : public QObject
@@ -34,8 +36,8 @@ private slots:
     void ProcessAudioInput();
 
 signals:
-    // Signal to send captured audio data to the main thread (e.g., for processing/visualization)
-    void AudioDataReady();
+    // TS1: emit time passed to HandleInputData for wait_us measurement.
+    void AudioDataReady(int64_t emitTimestampUs);
     void finished();
 
 private:
