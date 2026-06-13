@@ -5,6 +5,7 @@
 #include "SharedAudio.h"
 #include "Timegrapher.h"
 #include "Bph.h"
+#include <QDateTime>
 
 #if defined(Q_OS_LINUX)
 #include "LinuxAudio.h"
@@ -195,6 +196,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    delete mLogger; mLogger = nullptr;   // flushes CSV before UI teardown
     delete ui;
     if (mInputBlock) { free(mInputBlock); mInputBlock = nullptr; }
 }
@@ -227,8 +229,12 @@ void MainWindow::DisplayResults(const Measurement &m)
 // ─────────────────────────────────────────────────────────────────────────────
 // Core processing: reads ring buffer, feeds raw PCM to MeasurementEngine
 // ─────────────────────────────────────────────────────────────────────────────
-void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
+void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emitTimestampUs)
 {
+    // TS2: FG handler start — wait_us = Qt queue + scheduling delay since TS1
+    int64_t fgStart = TG_NOW();
+    int64_t waitUs  = fgStart - emitTimestampUs;
+
     SharedDataPtr->Mutex.lock();
     mLocalWriteIndex            = SharedDataPtr->WriteIndex;
     mLocalTotalSamplesWritten   = SharedDataPtr->TotalSamplesWritten;
@@ -236,6 +242,9 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
 
     int SamplesToAdd = (int)(mLocalTotalSamplesWritten -
                               SharedDataPtr->MainThrd_LastTotalSamplesWritten);
+
+    Logger::Frame frame;
+    frame.samples = SamplesToAdd;
 
     if (!mForegroundTimerStarted) {
         mForegroundTimer.restart();
@@ -250,24 +259,27 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
             int slice = (SamplesToAdd > (int)DETECTOR_NUMBER_OF_SAMPLES)
                         ? (int)DETECTOR_NUMBER_OF_SAMPLES : SamplesToAdd;
 
+            // copy_us: ring-buffer copy
+            int64_t ts = TG_NOW();
             for (int i = 0; i < slice; i++) {
                 mInputBlock[i] = SharedDataPtr->Samples[SharedDataPtr->MainThrd_LastWriteIndex];
                 SharedDataPtr->MainThrd_LastWriteIndex =
                     (SharedDataPtr->MainThrd_LastWriteIndex + 1) %
                     SharedDataPtr->NumberOfAudioSamples;
             }
-
             if (mWavWriter) mWavWriter->write(mInputBlock, slice);
+            frame.copy_us += TG_NOW() - ts;
 
-            // Pipeline Stage 4: Domain layer processes the block
+            // tg_us: DSP pipeline (tg_process + measurement calc + direct-connected slots)
+            ts = TG_NOW();
             mEngine->processBlock(mInputBlock, slice);
+            frame.tg_us += TG_NOW() - ts;
 
             mForegroundSampleCount += slice;
             SamplesToAdd -= slice;
         }
 
         SharedDataPtr->MainThrd_LastTotalSamplesWritten = mLocalTotalSamplesWritten;
-        // SoundImage는 SoundPrintTab::onMeasurement()에서 그림
 
         mForegroundFrameCount++;
         double now = mForegroundTimer.elapsed() / 1000.0;
@@ -281,6 +293,21 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
             mForegroundSampleCount  = 0;
         }
     }
+
+#ifdef ENABLE_LOGGING
+    frame.wait_us = waitUs;
+    frame.exec_us = TG_NOW() - fgStart;
+    frame.bg_fps  = SharedDataPtr->FPS;
+    frame.bg_sps  = SharedDataPtr->SPS;
+    frame.bg_spf  = SharedDataPtr->SPF;
+    frame.fg_fps  = mForegroundFPS;
+    frame.fg_sps  = mForegroundSPS;
+    frame.fg_spf  = mForegroundSPF;
+    if (mLogger && frame.samples > 0)
+        mLogger->record(frame);
+#else
+    (void)waitUs; (void)fgStart;
+#endif
 
     if ((mBackgroundLastFPS != SharedDataPtr->FPS) ||
         (mBackgroundLastSPS != SharedDataPtr->SPS) ||
@@ -301,9 +328,9 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
     }
 }
 
-void MainWindow::HandleAudioInput()    { HandleInputData(mAudioWorker->mRawAudio); }
-void MainWindow::HandlePlaybackInput() { HandleInputData(mPlaybackWorker->mRawAudio); }
-void MainWindow::HandleSimInput()      { HandleInputData(mSimWorker->mRawAudio); }
+void MainWindow::HandleAudioInput(int64_t ts)    { HandleInputData(mAudioWorker->mRawAudio, ts); }
+void MainWindow::HandlePlaybackInput(int64_t ts) { HandleInputData(mPlaybackWorker->mRawAudio, ts); }
+void MainWindow::HandleSimInput(int64_t ts)      { HandleInputData(mSimWorker->mRawAudio, ts); }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reset — reinitialises Domain layer + Presentation layer
@@ -345,6 +372,12 @@ void MainWindow::StartAudioThread(void)
     QVariant v = ui->InputDeviceComboBox->currentData();
     QAudioDevice InputDevice = v.value<QAudioDevice>();
     Reset();
+#ifdef ENABLE_LOGGING
+    delete mLogger;
+    QString csvPath = QString("logs/EXP-02/log_%1.csv")
+                          .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
+    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+#endif
     if (mRawAudio) {
         if (mRawAudio->Samples) { delete[] mRawAudio->Samples; mRawAudio->Samples = nullptr; }
         delete mRawAudio; mRawAudio = nullptr;

@@ -10,6 +10,7 @@
 #include "WatchSynthStream.h"
 #include "MeasurementEngine.h"
 #include "SettingsManager.h"
+#include "Logger.h"   // Logger, TG_NOW()
 // Tabs (Presentation layer — all 11 graph tabs)
 #include "RateScopeTab.h"
 #include "TraceTab.h"
@@ -61,10 +62,10 @@ private slots:
     void onMeasurementReady(const Measurement &m);
 
 public slots:
-    void HandleAudioInput();
-    void HandlePlaybackInput();
+    void HandleAudioInput(int64_t emitTimestampUs);
+    void HandlePlaybackInput(int64_t emitTimestampUs);
     void HandlePlaybackDoneReadingFile();
-    void HandleSimInput();
+    void HandleSimInput(int64_t emitTimestampUs);
     void HandleSimDone();
 
 signals:
@@ -110,7 +111,7 @@ private:
     void   DisplayResults(const Measurement &m);
 
     // Core processing: reads ring buffer, feeds to engine
-    void   HandleInputData(TMasterAudioDataRaw *SharedDataPtr);
+    void   HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emitTimestampUs);
     void   Reset(void);
 
     // Settings persistence
@@ -153,6 +154,8 @@ private:
     // Persistent input block buffer (owned by MainWindow, fed to MeasurementEngine)
     float *mInputBlock = nullptr;
 
+    // Per-frame performance logger (active only when ENABLE_LOGGING is defined)
+    Logger   *mLogger = nullptr;
 
     int       mAvalableRates[5];
     int       mNumberofRates        = 0;

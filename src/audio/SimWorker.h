@@ -4,8 +4,10 @@
 #include <QObject>
 #include <QMutex>
 #include <QElapsedTimer>
+#include <cstdint>
 #include "SharedAudio.h"
 #include "WatchSynthStream.h"
+#include "Logger.h"   // TG_NOW()
 
 class TSimWorker : public QObject
 {
@@ -21,7 +23,7 @@ public slots:
 
 signals:
     // Signal to send captured audio data to the main thread (e.g., for processing/visualization)
-    void SimDataReady();
+    void SimDataReady(int64_t emitTimestampUs);
     void SimDone();
     void finished();
     void cancelled();

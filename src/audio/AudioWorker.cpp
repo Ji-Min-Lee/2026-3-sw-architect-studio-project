@@ -102,7 +102,7 @@ void TAudioWorker::ProcessAudioInput()
         SampleCount=0;
     }
     //qDebug() << "worker thread: handleResults slot is running in thread" << QThread::currentThreadId()<<" "<<count;
-    emit AudioDataReady(); // Emit data to the main thread
+    emit AudioDataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
 
 }
 

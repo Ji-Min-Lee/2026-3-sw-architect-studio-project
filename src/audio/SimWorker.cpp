@@ -102,7 +102,7 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
         mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
         mRawAudio->TotalSamplesWritten+=NumberOfSamples;
         mRawAudio->Mutex.unlock();
-        emit SimDataReady(); // Emit data to the main thread
+        emit SimDataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
 
         ++mFrameCount;
         mSampleCount+=NumberOfSamples;
