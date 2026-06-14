@@ -1,8 +1,9 @@
 // Logger.h — ported from baseline/experiments2
 //
 // Per-frame performance logger for the TimeGrapher audio pipeline.
-// Buffers all frames in memory; writes a single CSV on destruction.
-// Console summary printed every `consoleEvery` frames.
+// Streams rows to CSV on every flush interval (consoleEvery frames)
+// so data is preserved even if the app is force-quit.
+// Console summary printed at the same interval.
 //
 // Gated by ENABLE_LOGGING compile definition:
 //   defined   -> TG_NOW() reads the monotonic clock
@@ -23,6 +24,8 @@
 #include <vector>
 #include <utility>
 #include <QString>
+#include <QFile>
+#include <QTextStream>
 #include "SysStats.h"
 
 // Monotonic microsecond clock — same steady_clock on both threads.
@@ -61,14 +64,21 @@ public:
     void record(const Frame &f);
 
 private:
+    void writeHeader();
+    void flushBatch();
     void consoleSummary();
-    void writeCsv();
     void writeSysCsv();
 
-    QString            mPath;
-    int                mConsoleEvery;
-    int                mSampleRate;
-    std::vector<Frame> mFrames;
+    QString      mPath;
+    int          mConsoleEvery;
+    int          mSampleRate;
+    uint64_t     mTotalFrames = 0;
+
+    // Streaming: batch held since last flush
+    std::vector<Frame> mBatch;
+
+    QFile        mFile;
+    QTextStream  mOut;
 
     SysStats                                    mSys;
     std::vector<std::pair<uint64_t, SysSample>> mSysSamples;
