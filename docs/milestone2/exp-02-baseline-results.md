@@ -1,11 +1,5 @@
 # EXP-02: E2E 오디오 파이프라인 레이턴시 기준선 측정 / EXP-02: E2E Audio Pipeline Latency Baseline Measurement
 
-> **작성일 / Date**: 2026-06-14  
-> **브랜치 / Branch**: `feature/layer-ex-baseline`  
-> **상태 / Status**: Concluded
-
----
-
 ## 1. 결과 요약 / Results and Recommendations
 
 **한국어**
@@ -15,12 +9,18 @@ exec_ms 평균 0.57ms로 처리 자체는 매우 빠르며, deadline miss 0%를 
 대부분의 지연(wait_ms 평균 420ms)은 오디오 스레드 → 메인 스레드 간 Qt 큐 대기에서 발생하였다.
 RPi 기준선(EXP-02, baseline/experiments2)과 비교하여 feature/layer의 QueuedConnection 분리가 plot 부하(16ms)를 exec path에서 제거함을 확인하였다.
 
+T2(DSP Offload Thread) 적용 후 wait_ms가 420ms → 0.013ms로 극적으로 감소하였으며, backlog 47% → 0%로 완전 해소되었다.
+DSP 스레드가 Worker 스레드와 같은 FPS(95.6)로 동작함을 확인하여 실시간 추적이 성립함을 검증하였다.
+
 **English**
 
 Measured the E2E latency baseline of the feature/layer codebase on macOS (Playback mode, 96kHz).
 Average exec_ms of 0.57ms confirms very fast processing; deadline miss rate is 0%.
 The dominant delay (avg wait_ms = 420ms) originates from Qt queue latency between the audio thread and the main thread.
 Compared to the RPi baseline (EXP-02, baseline/experiments2), the QueuedConnection separation in feature/layer confirms that the 16ms plot burden has been removed from the exec path.
+
+After applying T2 (DSP Offload Thread), wait_ms dropped dramatically from 420ms to 0.013ms, and backlog was fully eliminated (47% → 0%).
+The DSP thread was confirmed to track the worker thread at identical FPS (95.6), validating real-time processing.
 
 ---
 
@@ -103,6 +103,13 @@ Log is flushed to CSV every 100 frames (data preserved even on force-quit).
 
 ## 6. 측정 결과 / Results
 
+### 6.0 Run 이력 / Run History
+
+| Run | 날짜 / Date | 브랜치 / Branch | 전술 / Tactic | 플랫폼 / Platform | 프레임 / Frames | wait avg | exec avg | deadline miss | backlog |
+|:---:|------------|----------------|:------------:|:-----------------:|:--------------:|:--------:|:--------:|:-------------:|:-------:|
+| R1 | 2026-06-14 | feature/layer-ex-baseline | Baseline (main thread DSP) | macOS 96kHz | 2,900 | 419.92 ms | 0.57 ms | 0% | 47% |
+| R2 | 2026-06-14 | feature/layer-ex-baseline | **T2 DSP Offload Thread** | macOS 96kHz | 4,500 | **0.013 ms** | **0.40 ms** | 0% | **0%** |
+
 ### 6.1 레이턴시 분포 / Latency Distribution
 
 | 항목 / Metric | 평균 / Avg | 최대 / Max | 최소 / Min |
@@ -133,6 +140,54 @@ Log is flushed to CSV every 100 frames (data preserved even on force-quit).
 
 ---
 
+### 6.4 T2 Run 결과 (R2) / T2 DSP Offload Thread Results (R2)
+
+**한국어**
+
+T2 전술(DSPWorker 별도 스레드) 적용 후 macOS 96kHz Playback 모드 측정 결과.
+로그 파일: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260614_231224.csv`
+
+**English**
+
+Measurement after applying T2 tactic (DSPWorker separate thread), macOS 96kHz Playback mode.
+Log file: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260614_231224.csv`
+
+| 항목 / Metric | 평균 / Avg | 최대 / Max | 최소 / Min |
+|---------------|:---------:|:---------:|:---------:|
+| total_ms | 0.413 ms | 6.030 ms | 0.099 ms |
+| wait_ms | **0.013 ms** | 0.087 ms | 0.006 ms |
+| exec_ms | **0.400 ms** | 5.993 ms | 0.084 ms |
+| copy_ms | 0.006 ms | 0.025 ms | 0.005 ms |
+| tg_ms (DSP) | **0.393 ms** | 5.982 ms | 0.079 ms |
+| ui_ms | 0 ms | — | — |
+| plot_ms | 0 ms | — | — |
+
+| 처리량 / Throughput | 값 / Value |
+|--------------------|-----------|
+| 총 프레임 / Total frames | 4,500 |
+| bg_fps avg | 95.6 |
+| fg_fps avg (DSP thread) | **95.6** |
+| deadline miss | **0 / 4,500 (0%)** |
+| backlog (>1.5× SPF) | **0 / 4,500 (0%)** |
+
+**한국어** 주요 관찰:
+
+1. **wait_ms 420ms → 0.013ms (×32,000 감소)**: 메인 스레드 Qt 이벤트 루프 병목이 DSP 스레드 분리로 완전히 해소됨
+2. **backlog 47% → 0%**: 프레임 누적 현상 완전 제거 — DSP 스레드가 실시간으로 Worker를 따라감
+3. **bg_fps ≈ fg_fps (95.6 ≈ 95.6)**: Worker 스레드와 DSP 스레드 처리 속도 일치 확인
+4. **exec_ms 0.57 → 0.40ms**: DSP 스레드 내 실제 처리 시간 (메인 스레드 경쟁 제거 효과)
+5. **tg_ms max 5.98ms 스파이크**: DSP 스레드 내 단발성 OS 스케줄링 지연. 평균은 0.39ms로 안정
+
+**English** Key observations:
+
+1. **wait_ms 420ms → 0.013ms (×32,000 reduction)**: Main thread Qt event loop bottleneck fully eliminated by DSP thread separation.
+2. **backlog 47% → 0%**: Frame accumulation completely eliminated — DSP thread tracks worker in real time.
+3. **bg_fps ≈ fg_fps (95.6 ≈ 95.6)**: Worker and DSP thread processing speed confirmed identical.
+4. **exec_ms 0.57 → 0.40ms**: Actual DSP processing time in dedicated thread (main thread contention removed).
+5. **tg_ms max 5.98ms spike**: Single OS scheduling jitter in DSP thread. Avg 0.39ms is stable.
+
+---
+
 ## 7. RPi 기준선과 비교 / Comparison with RPi Baseline
 
 **한국어**
@@ -143,14 +198,14 @@ RPi 기준선은 `baseline/experiments2` 브랜치에서 측정한 값이다(단
 
 RPi baseline was measured on `baseline/experiments2` branch (single thread, synchronous tab rendering).
 
-| 항목 / Metric | macOS · feature/layer | RPi · baseline |
-|---------------|----------------------|----------------|
-| exec_ms avg | **0.57 ms** | 20 ms |
-| tg_ms avg | 0.56 ms | ~4 ms |
-| plot_ms avg | **0 ms** | 16 ms (79%) |
-| deadline miss | **0%** | 43% |
-| wait_ms avg | 420 ms | 측정 안 됨 / N/A |
-| backlog | 47% | - |
+| 항목 / Metric | macOS · Baseline (R1) | macOS · T2 (R2) | RPi · baseline/experiments2 |
+|---------------|:---------------------:|:---------------:|:---------------------------:|
+| wait_ms avg | 420 ms | **0.013 ms** | N/A |
+| exec_ms avg | 0.57 ms | **0.40 ms** | 20 ms |
+| tg_ms avg | 0.56 ms | 0.39 ms | ~4 ms |
+| plot_ms avg | 0 ms | 0 ms | 16 ms (79%) |
+| deadline miss | 0% | **0%** | 43% |
+| backlog | 47% | **0%** | — |
 
 **한국어**
 
@@ -183,7 +238,7 @@ Key observations:
 | R1 Lazy Render (active tab only) | plot_ms가 이미 0 → QueuedConnection으로 효과 달성됨. RPi에서 추가 이득 있을 수 있음 |
 | R2 Timer-Decoupled Render | 마찬가지로 이미 분리됨. FPS 제어 목적으로는 유효 |
 | T1 SCHED_RR + CPU Affinity | wait_ms 감소 효과 기대. 오디오 스레드 우선순위 고정 → backlog 감소 |
-| T2 DSP Offload Thread | tg_ms(0.56ms)가 exec의 98%. 별도 스레드로 분리 시 메인 스레드 응답성 개선 |
+| T2 DSP Offload Thread | ✅ **macOS 검증 완료** — wait_ms ×32,000 감소, backlog 0%. RPi에서도 동일 효과 기대 |
 
 **English**
 
@@ -191,8 +246,8 @@ Key observations:
 |--------------|---------------------|
 | R1 Lazy Render (active tab only) | plot_ms already 0 via QueuedConnection — design goal achieved. May yield additional gain on RPi |
 | R2 Timer-Decoupled Render | Rendering already decoupled. Valid for FPS rate control |
-| T1 SCHED_RR + CPU Affinity | Expected to reduce wait_ms by pinning audio thread priority → reduce backlog |
-| T2 DSP Offload Thread | tg_ms (0.56ms) is 98% of exec. Moving to dedicated thread improves main-thread responsiveness |
+| T1 SCHED_RR + CPU Affinity | Linux-only; skip macOS; apply on RPi in combination with T2 |
+| T2 DSP Offload Thread | ✅ **macOS validated** — wait_ms ×32,000 reduction, backlog 0%. Same effect expected on RPi |
 
 ---
 
@@ -200,17 +255,23 @@ Key observations:
 
 **한국어**
 
-1. RPi에서 feature/layer-ex-baseline 동일 측정 실행 → RPi exec_ms 기준선 확보
-2. T1(SCHED_RR + CPU Affinity) 적용 후 재측정 → wait_ms / backlog 감소 확인
-3. T2(DSP Offload Thread) 적용 후 재측정 → exec 분리 효과 확인
-4. R1 또는 R2 적용 후 RPi 재측정 → rendering 전술 선택 결정
+| 단계 / Step | 내용 / Action | 상태 / Status |
+|:-----------:|--------------|:------------:|
+| macOS R1 | Baseline (main thread DSP) 측정 | ✅ 완료 |
+| macOS R2 | T2 (DSP Offload Thread) 적용 측정 | ✅ 완료 |
+| RPi R3 | T2 브랜치 그대로 RPi 측정 → exec_ms RPi 기준선 확보 | ⏳ 다음 |
+| RPi R4 | T1 (SCHED_RR + CPU Affinity) 추가 적용 후 RPi 재측정 | 📅 예정 |
+| RPi R5 | RPi 11탭 오픈 상태 측정 → R1 vs R2 렌더링 전술 결정 | 📅 예정 |
 
 **English**
 
-1. Run same measurement on RPi with feature/layer-ex-baseline → establish RPi exec_ms baseline
-2. Apply T1 (SCHED_RR + CPU Affinity) and re-measure → verify wait_ms / backlog reduction
-3. Apply T2 (DSP Offload Thread) and re-measure → verify exec separation effect
-4. Apply R1 or R2 on RPi and re-measure → decide rendering tactic
+| 단계 / Step | 내용 / Action | 상태 / Status |
+|:-----------:|--------------|:------------:|
+| macOS R1 | Baseline (main thread DSP) measurement | ✅ Done |
+| macOS R2 | T2 (DSP Offload Thread) measurement | ✅ Done |
+| RPi R3 | Run T2 branch on RPi → establish RPi exec_ms baseline | ⏳ Next |
+| RPi R4 | Add T1 (SCHED_RR + CPU Affinity) and re-measure on RPi | 📅 Planned |
+| RPi R5 | RPi 11-tab open measurement → decide R1 vs R2 rendering tactic | 📅 Planned |
 
 ---
 
@@ -218,5 +279,6 @@ Key observations:
 
 - `baseline/experiments2` 브랜치: RPi 기준선 측정 원본 / RPi baseline measurement source
 - `docs/milestone2/architectural-approaches.md`: 전술 옵션 및 trade-off 분석 / Tactic options and trade-off analysis
-- 로그 파일 / Log file: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260614_223711.csv`
+- 로그 파일 R1 (Baseline) / Log file R1: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260614_223711.csv`
+- 로그 파일 R2 (T2) / Log file R2: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260614_231224.csv`
 - 분석 도구 / Analysis tool: `src/tools/analyze_log.py`

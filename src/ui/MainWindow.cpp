@@ -31,7 +31,6 @@
 #define  PLAYBACK 1
 #define  SIM      2
 
-#define  DETECTOR_NUMBER_OF_SAMPLES  4096u
 
 #define PLAYBACK_OR_SIM_PCM             "Playback/Sim"
 
@@ -113,8 +112,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
 
-    // ── Domain layer: MeasurementEngine (MVC Model / Observer Subject) ────────
-    mEngine = new MeasurementEngine(this);
+    // Domain layer (T2): MeasurementEngine lives in DSPWorker (created per-session in StartXxxThread)
 
     // ── Presentation layer: tabs (MVC View / Observer ConcreteObserver) ───────
     // AP-3: RateScopeTab wraps the existing QCustomPlot widgets from .ui
@@ -162,14 +160,11 @@ MainWindow::MainWindow(QWidget *parent)
     cornerLay->addWidget(mPauseButton);
     ui->GraphicsTabWidget->setCornerWidget(corner, Qt::TopRightCorner);
 
-    // ── Observer: register() — connect Model → Views (AP-4) ──────────────────
+    // ── Observer: registered per-session in wireEngineToTabs() (T2) ──────────
     mAllTabs = {mRateScopeTab, mTraceTab, mSoundPrintTab, mBeatErrorTab,
                 mVarioTab, mSequenceTab, mBeatNoiseScopeTab, mLongTermTab,
                 mEscapementTab, mSpectrogramTab, mWaveformCompTab,
                 mSweepScopeTab, mFilterScopeTab};
-    for (BaseGraphTab *tab : mAllTabs)
-        QObject::connect(mEngine, &MeasurementEngine::measurementReady,
-                         tab, &BaseGraphTab::onMeasurement, Qt::QueuedConnection);
 
     QObject::connect(mPositionCombo, &QComboBox::currentTextChanged,
                      this, [this](const QString &pos) {
@@ -183,10 +178,7 @@ MainWindow::MainWindow(QWidget *parent)
         mPauseButton->setText(on ? "▶ Resume display" : "⏸ Pause display");
     });
 
-    // Controller also subscribes to update Results label
-    QObject::connect(mEngine, &MeasurementEngine::measurementReady,
-                     this, &MainWindow::onMeasurementReady,
-                     Qt::QueuedConnection);
+    // Results label subscription wired per-session in wireEngineToTabs() (T2)
 
     LoadBPH();
     LoadSimBPH();
@@ -199,7 +191,6 @@ MainWindow::~MainWindow()
 {
     delete mLogger; mLogger = nullptr;   // flushes CSV before UI teardown
     delete ui;
-    if (mInputBlock) { free(mInputBlock); mInputBlock = nullptr; }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -228,110 +219,48 @@ void MainWindow::DisplayResults(const Measurement &m)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Core processing: reads ring buffer, feeds raw PCM to MeasurementEngine
 // ─────────────────────────────────────────────────────────────────────────────
-void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emitTimestampUs)
+// T2: connect DSPWorker engine → all tabs + results label (called after DSPWorker created)
+// ─────────────────────────────────────────────────────────────────────────────
+void MainWindow::wireEngineToTabs()
 {
-    // TS2: FG handler start — wait_us = Qt queue + scheduling delay since TS1
-    int64_t fgStart = TG_NOW();
-    int64_t waitUs  = fgStart - emitTimestampUs;
+    MeasurementEngine *eng = mDspWorker->engine();
+    for (BaseGraphTab *tab : mAllTabs)
+        QObject::connect(eng, &MeasurementEngine::measurementReady,
+                         tab, &BaseGraphTab::onMeasurement, Qt::QueuedConnection);
+    QObject::connect(eng, &MeasurementEngine::measurementReady,
+                     this, &MainWindow::onMeasurementReady, Qt::QueuedConnection);
+}
 
-    SharedDataPtr->Mutex.lock();
-    mLocalWriteIndex            = SharedDataPtr->WriteIndex;
-    mLocalTotalSamplesWritten   = SharedDataPtr->TotalSamplesWritten;
-    SharedDataPtr->Mutex.unlock();
-
-    int SamplesToAdd = (int)(mLocalTotalSamplesWritten -
-                              SharedDataPtr->MainThrd_LastTotalSamplesWritten);
-
-    Logger::Frame frame;
-    frame.samples = SamplesToAdd;
-
-    if (!mForegroundTimerStarted) {
-        mForegroundTimer.restart();
-        mForegroundTimerStarted = true;
-        mForegroundLastTime     = 0.0;
-        mForegroundFrameCount   = 0;
-        mForegroundSampleCount  = 0;
-    }
-
-    if (SamplesToAdd > 0) {
-        while (SamplesToAdd > 0) {
-            int slice = (SamplesToAdd > (int)DETECTOR_NUMBER_OF_SAMPLES)
-                        ? (int)DETECTOR_NUMBER_OF_SAMPLES : SamplesToAdd;
-
-            // copy_us: ring-buffer copy
-            int64_t ts = TG_NOW();
-            for (int i = 0; i < slice; i++) {
-                mInputBlock[i] = SharedDataPtr->Samples[SharedDataPtr->MainThrd_LastWriteIndex];
-                SharedDataPtr->MainThrd_LastWriteIndex =
-                    (SharedDataPtr->MainThrd_LastWriteIndex + 1) %
-                    SharedDataPtr->NumberOfAudioSamples;
-            }
-            if (mWavWriter) mWavWriter->write(mInputBlock, slice);
-            frame.copy_us += TG_NOW() - ts;
-
-            // tg_us: DSP pipeline (tg_process + measurement calc + direct-connected slots)
-            ts = TG_NOW();
-            mEngine->processBlock(mInputBlock, slice);
-            frame.tg_us += TG_NOW() - ts;
-
-            mForegroundSampleCount += slice;
-            SamplesToAdd -= slice;
-        }
-
-        SharedDataPtr->MainThrd_LastTotalSamplesWritten = mLocalTotalSamplesWritten;
-
-        mForegroundFrameCount++;
-        double now = mForegroundTimer.elapsed() / 1000.0;
-        if (now - mForegroundLastTime > 2.0) {
-            double dt = now - mForegroundLastTime;
-            mForegroundFPS = mForegroundFrameCount  / dt;
-            mForegroundSPS = mForegroundSampleCount / dt;
-            mForegroundSPF = mForegroundSampleCount / (double)mForegroundFrameCount;
-            mForegroundLastTime     = now;
-            mForegroundFrameCount   = 0;
-            mForegroundSampleCount  = 0;
-        }
-    }
-
+// ─────────────────────────────────────────────────────────────────────────────
+// T2: receive per-frame log data from DSP thread, write CSV on main thread
+// ─────────────────────────────────────────────────────────────────────────────
+void MainWindow::onFrameLogged(Logger::Frame frame)
+{
 #ifdef ENABLE_LOGGING
-    frame.wait_us = waitUs;
-    frame.exec_us = TG_NOW() - fgStart;
-    frame.bg_fps  = SharedDataPtr->FPS;
-    frame.bg_sps  = SharedDataPtr->SPS;
-    frame.bg_spf  = SharedDataPtr->SPF;
-    frame.fg_fps  = mForegroundFPS;
-    frame.fg_sps  = mForegroundSPS;
-    frame.fg_spf  = mForegroundSPF;
     if (mLogger && frame.samples > 0)
         mLogger->record(frame);
 #else
-    (void)waitUs; (void)fgStart;
+    (void)frame;
 #endif
 
-    if ((mBackgroundLastFPS != SharedDataPtr->FPS) ||
-        (mBackgroundLastSPS != SharedDataPtr->SPS) ||
-        (mBackgroundLastSPF != SharedDataPtr->SPF) ||
-        (mForegroundLastFPS != mForegroundFPS))
+    if (mBackgroundLastFPS != frame.bg_fps ||
+        mBackgroundLastSPS != frame.bg_sps ||
+        mDspLastFPS        != frame.fg_fps)
     {
-        mBackgroundLastFPS = SharedDataPtr->FPS;
-        mBackgroundLastSPS = SharedDataPtr->SPS;
-        mBackgroundLastSPF = SharedDataPtr->SPF;
-        mForegroundLastFPS = mForegroundFPS;
-        mForegroundLastSPS = mForegroundSPS;
-        mForegroundLastSPF = mForegroundSPF;
+        mBackgroundLastFPS = frame.bg_fps;
+        mBackgroundLastSPS = frame.bg_sps;
+        mBackgroundLastSPF = frame.bg_spf;
+        mDspLastFPS = frame.fg_fps;
+        mDspLastSPS = frame.fg_sps;
+        mDspLastSPF = frame.fg_spf;
         statusBar()->showMessage(
-            QString("Background FPS:%1 SPS:%2 SPF:%3 | Foreground FPS:%4 SPS:%5 SPF:%6")
+            QString("BG FPS:%1 SPS:%2 SPF:%3 | DSP FPS:%4 SPS:%5 SPF:%6")
                 .arg(mBackgroundLastFPS, 0, 'f', 0).arg(mBackgroundLastSPS, 0, 'f', 0)
-                .arg(mBackgroundLastSPF, 0, 'f', 0).arg(mForegroundLastFPS, 0, 'f', 0)
-                .arg(mForegroundLastSPS, 0, 'f', 0).arg(mForegroundLastSPF, 0, 'f', 0));
+                .arg(mBackgroundLastSPF, 0, 'f', 0).arg(mDspLastFPS, 0, 'f', 0)
+                .arg(mDspLastSPS, 0, 'f', 0).arg(mDspLastSPF, 0, 'f', 0));
     }
 }
-
-void MainWindow::HandleAudioInput(int64_t ts)    { HandleInputData(mAudioWorker->mRawAudio, ts); }
-void MainWindow::HandlePlaybackInput(int64_t ts) { HandleInputData(mPlaybackWorker->mRawAudio, ts); }
-void MainWindow::HandleSimInput(int64_t ts)      { HandleInputData(mSimWorker->mRawAudio, ts); }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reset — reinitialises Domain layer + Presentation layer
@@ -339,30 +268,14 @@ void MainWindow::HandleSimInput(int64_t ts)      { HandleInputData(mSimWorker->m
 void MainWindow::Reset(void)
 {
     qInfo() << "RESET";
-    // SoundImage 초기화는 SoundPrintTab::reset()에서 처리
-
-    // Allocate block buffer
-    if (mInputBlock) { free(mInputBlock); mInputBlock = nullptr; }
-    mInputBlock = (float *)malloc(DETECTOR_NUMBER_OF_SAMPLES * sizeof(float));
-    if (!mInputBlock) throw std::runtime_error("allocation failed");
-
-    // Initialise Domain layer (MVC Model)
-    int bph = ManualAutoBPH[ui->BPHComboBox->currentIndex()];
-    mEngine->init(mCurrentSamplesPerSecond, bph, mLiftAngle, mAveragingPeriod,
-                  ui->HighLineEdit->text().toDouble());
-    mEngine->setUseOnset(ui->UseConsetCheckBox->isChecked());
-    mEngine->reset();
-
+    // Domain layer (MeasurementEngine) is re-created inside DSPWorker per session.
     // Reset Presentation layer (MVC Views) — all tabs except the position
-    // sequence, which must survive Stop/Start while repositioning the watch
-    // (it has its own "Clear sequence" button).
+    // sequence, which must survive Stop/Start while repositioning the watch.
     for (BaseGraphTab *tab : mAllTabs)
         if (tab != mSequenceTab) tab->reset();
 
     DisplayResults(Measurement{});
-
-    mBackgroundLastFPS       = 0.0;
-    mForegroundTimerStarted  = false;
+    mBackgroundLastFPS = 0.0;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -401,14 +314,29 @@ void MainWindow::StartAudioThread(void)
                      mAudioWorker, &QObject::deleteLater);
     QObject::connect(mAudioWorkerThread, &QThread::finished,
                      mAudioWorkerThread, &QObject::deleteLater);
-    QObject::connect(mAudioWorker, &TAudioWorker::AudioDataReady,
-                     this, &MainWindow::HandleAudioInput);
     QObject::connect(this, &MainWindow::LocalStartAudio,
                      mAudioWorker, &TAudioWorker::StartAudioRecording);
     QObject::connect(this, &MainWindow::LocalStopAudio,
                      mAudioWorker, &TAudioWorker::StopAudioRecording);
     QObject::connect(this, &MainWindow::LocalSetAudioInputVolume,
                      mAudioWorker, &TAudioWorker::SetAudioInputVolume);
+
+    // T2: create DSP thread and wire audio worker → DSPWorker
+    int bph = ManualAutoBPH[ui->BPHComboBox->currentIndex()];
+    mDspWorker = new DSPWorker(mRawAudio, mCurrentSamplesPerSecond, bph, mLiftAngle,
+                                mAveragingPeriod, ui->HighLineEdit->text().toDouble(),
+                                ui->UseConsetCheckBox->isChecked());
+    mDspThread = new QThread();
+    mDspWorker->moveToThread(mDspThread);
+    QObject::connect(mAudioWorker, &TAudioWorker::AudioDataReady,
+                     mDspWorker, &DSPWorker::onDataReady, Qt::QueuedConnection);
+    QObject::connect(mDspWorker, &DSPWorker::frameLogged,
+                     this, &MainWindow::onFrameLogged, Qt::QueuedConnection);
+    QObject::connect(mAudioWorkerThread, &QThread::finished, mDspThread, &QThread::quit);
+    QObject::connect(mDspThread, &QThread::finished, mDspWorker, &QObject::deleteLater);
+    QObject::connect(mDspThread, &QThread::finished, mDspThread, &QObject::deleteLater);
+    wireEngineToTabs();
+    mDspThread->start();
 
     mAudioWorkerThread->start(QThread::TimeCriticalPriority);
     emit LocalStartAudio(InputDevice, mCurrentSamplesPerSecond,
@@ -450,10 +378,25 @@ void MainWindow::StartPlaybackThread(const QString &FileName)
                      mPlaybackWorkerThread, &QObject::deleteLater);
     QObject::connect(this, &MainWindow::LocalStartPlayback,
                      mPlaybackWorker, &TPlaybackWorker::StartPlayback);
-    QObject::connect(mPlaybackWorker, &TPlaybackWorker::PlaybackDataReady,
-                     this, &MainWindow::HandlePlaybackInput);
     QObject::connect(mPlaybackWorker, &TPlaybackWorker::PlaybackDoneReadingFile,
                      this, &MainWindow::HandlePlaybackDoneReadingFile);
+
+    // T2: create DSP thread and wire playback worker → DSPWorker
+    int bph = ManualAutoBPH[ui->BPHComboBox->currentIndex()];
+    mDspWorker = new DSPWorker(mRawAudio, mCurrentSamplesPerSecond, bph, mLiftAngle,
+                                mAveragingPeriod, ui->HighLineEdit->text().toDouble(),
+                                ui->UseConsetCheckBox->isChecked());
+    mDspThread = new QThread();
+    mDspWorker->moveToThread(mDspThread);
+    QObject::connect(mPlaybackWorker, &TPlaybackWorker::PlaybackDataReady,
+                     mDspWorker, &DSPWorker::onDataReady, Qt::QueuedConnection);
+    QObject::connect(mDspWorker, &DSPWorker::frameLogged,
+                     this, &MainWindow::onFrameLogged, Qt::QueuedConnection);
+    QObject::connect(mPlaybackWorkerThread, &QThread::finished, mDspThread, &QThread::quit);
+    QObject::connect(mDspThread, &QThread::finished, mDspWorker, &QObject::deleteLater);
+    QObject::connect(mDspThread, &QThread::finished, mDspThread, &QObject::deleteLater);
+    wireEngineToTabs();
+    mDspThread->start();
 
     mPlaybackWorkerThread->start(QThread::TimeCriticalPriority);
     emit LocalStartPlayback(FileName);
@@ -482,10 +425,25 @@ void MainWindow::StartSimThread(WatchSynthStreamConfig cfg)
                      mSimWorkerThread, &QObject::deleteLater);
     QObject::connect(this, &MainWindow::LocalStartSim,
                      mSimWorker, &TSimWorker::StartSim);
-    QObject::connect(mSimWorker, &TSimWorker::SimDataReady,
-                     this, &MainWindow::HandleSimInput);
     QObject::connect(mSimWorker, &TSimWorker::SimDone,
                      this, &MainWindow::HandleSimDone);
+
+    // T2: create DSP thread and wire sim worker → DSPWorker
+    int bph = ManualAutoBPH[ui->BPHComboBox->currentIndex()];
+    mDspWorker = new DSPWorker(mRawAudio, mCurrentSamplesPerSecond, bph, mLiftAngle,
+                                mAveragingPeriod, ui->HighLineEdit->text().toDouble(),
+                                ui->UseConsetCheckBox->isChecked());
+    mDspThread = new QThread();
+    mDspWorker->moveToThread(mDspThread);
+    QObject::connect(mSimWorker, &TSimWorker::SimDataReady,
+                     mDspWorker, &DSPWorker::onDataReady, Qt::QueuedConnection);
+    QObject::connect(mDspWorker, &DSPWorker::frameLogged,
+                     this, &MainWindow::onFrameLogged, Qt::QueuedConnection);
+    QObject::connect(mSimWorkerThread, &QThread::finished, mDspThread, &QThread::quit);
+    QObject::connect(mDspThread, &QThread::finished, mDspWorker, &QObject::deleteLater);
+    QObject::connect(mDspThread, &QThread::finished, mDspThread, &QObject::deleteLater);
+    wireEngineToTabs();
+    mDspThread->start();
 
     mSimWorkerThread->start(QThread::TimeCriticalPriority);
     emit LocalStartSim(cfg);
@@ -807,7 +765,9 @@ void MainWindow::on_LiftAngleSpinBox_valueChanged(int)
 void MainWindow::on_ScopeScaleSpinBox_valueChanged(int value) { mRateScopeTab->setScopeScale(value); }
 void MainWindow::on_UseConsetCheckBox_toggled(bool checked)
 {
-    if (mEngine) mEngine->setUseOnset(checked);
+    if (mDspWorker)
+        QMetaObject::invokeMethod(mDspWorker, "setUseOnset",
+                                  Qt::QueuedConnection, Q_ARG(bool, checked));
 }
 void MainWindow::on_AveragingPeriodComboBox_currentIndexChanged(int)
 {
