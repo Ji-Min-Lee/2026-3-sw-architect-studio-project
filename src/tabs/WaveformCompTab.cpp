@@ -168,6 +168,15 @@ void WaveformCompTab::reset()
         w.plot->yAxis->setRange(-1.0, 1.0);
         w.zeroLine->start->setCoords(0.0, 0.0);
         w.zeroLine->end->setCoords(kWindowMs, 0.0);
+        w.aMarker->start->setCoords(kPreMs, -1.0);
+        w.aMarker->end->setCoords(kPreMs,  1.0);
+        w.aMarker->setVisible(false);
+        for (int gi = 0; gi < w.msGrid.size(); ++gi) {
+            double ms = gi * 5.0;
+            w.msGrid[gi]->start->setCoords(ms, -1.0);
+            w.msGrid[gi]->end->setCoords(ms,  1.0);
+            w.msGrid[gi]->setVisible(false);
+        }
         updateDegreeAxis(w);
         w.plot->replot();
     }
