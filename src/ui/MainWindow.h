@@ -6,6 +6,7 @@
 #include "AudioWorker.h"
 #include "PlaybackWorker.h"
 #include "SimWorker.h"
+#include "DSPWorker.h"
 #include "WavStreamWriter.h"
 #include "WatchSynthStream.h"
 #include "MeasurementEngine.h"
@@ -62,11 +63,9 @@ private slots:
     void onMeasurementReady(const Measurement &m);
 
 public slots:
-    void HandleAudioInput(int64_t emitTimestampUs);
-    void HandlePlaybackInput(int64_t emitTimestampUs);
     void HandlePlaybackDoneReadingFile();
-    void HandleSimInput(int64_t emitTimestampUs);
     void HandleSimDone();
+    void onFrameLogged(Logger::Frame frame);
 
 signals:
     void LocalStartAudio(QAudioDevice InputDevice, int SampleRate, float Volume);
@@ -110,15 +109,15 @@ private:
     // Results display
     void   DisplayResults(const Measurement &m);
 
-    // Core processing: reads ring buffer, feeds to engine
-    void   HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emitTimestampUs);
     void   Reset(void);
+    void   wireEngineToTabs();
 
     // Settings persistence
     SettingsManager *mSettings = nullptr;
 
-    // Domain layer (MVC: Model / Observer: Subject)
-    MeasurementEngine *mEngine = nullptr;
+    // Domain layer (T2: owned by DSPWorker, accessed via mDspWorker->engine())
+    DSPWorker *mDspWorker = nullptr;
+    QThread   *mDspThread = nullptr;
 
     // Presentation layer (MVC: View / Observer: Concrete Observers) — 11 tabs
     RateScopeTab     *mRateScopeTab     = nullptr;
@@ -151,9 +150,6 @@ private:
     QThread               *mSimWorkerThread       = nullptr;
     TSimWorker            *mSimWorker             = nullptr;
 
-    // Persistent input block buffer (owned by MainWindow, fed to MeasurementEngine)
-    float *mInputBlock = nullptr;
-
     // Per-frame performance logger (active only when ENABLE_LOGGING is defined)
     Logger   *mLogger = nullptr;
 
@@ -161,28 +157,18 @@ private:
     int       mNumberofRates        = 0;
     double    mLiftAngle            = 52.0;
     int       mAveragingPeriod      = 20;
-    unsigned int mLocalWriteIndex   = 0;
-    uint64_t  mLocalTotalSamplesWritten = 0;
     QDir      mCurrentDir;
     int       mCurrentSamplesPerSecond  = 48000;
     int       mRateBeforePlaybackOrSim  = 48000;
     QString   mDeviceNameBeforePlaybackOrSim;
 
-    // FPS stats
+    // FPS stats (updated from DSPWorker::frameLogged)
     double mBackgroundLastFPS = 0.0;
     double mBackgroundLastSPF = 0.0;
     double mBackgroundLastSPS = 0.0;
-    double mForegroundFPS     = 0.0;
-    double mForegroundSPF     = 0.0;
-    double mForegroundSPS     = 0.0;
-    double mForegroundLastFPS = 0.0;
-    double mForegroundLastSPF = 0.0;
-    double mForegroundLastSPS = 0.0;
-    bool   mForegroundTimerStarted = false;
-    QElapsedTimer mForegroundTimer;
-    double mForegroundLastTime    = 0.0;
-    uint64_t mForegroundFrameCount = 0;
-    uint64_t mForegroundSampleCount = 0;
+    double mDspLastFPS        = 0.0;
+    double mDspLastSPF        = 0.0;
+    double mDspLastSPS        = 0.0;
 
 };
 #endif

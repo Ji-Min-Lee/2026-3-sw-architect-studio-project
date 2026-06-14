@@ -45,6 +45,8 @@ set(AUDIO_SOURCES
     audio/SharedAudio.h
     audio/AudioManager.h
     audio/AudioManager.cpp
+    audio/DSPWorker.h
+    audio/DSPWorker.cpp
 )
 
 set(ENGINE_SOURCES
