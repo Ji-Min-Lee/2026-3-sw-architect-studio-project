@@ -1,4 +1,5 @@
 #include "VarioTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 
 // Acceptable (green) ranges fixed to the Witschi reference figure (Fig 9):
@@ -170,6 +171,8 @@ void VarioTab::onMeasurement(const Measurement &m)
                                .arg(sec % 60, 2, 10, QChar('0')));
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, mHaveRateNow, mRateNow);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, mHaveAmpNow, mAmpNow);
+    g_replotCount++;
     mRateScale.plot->replot(QCustomPlot::rpQueuedReplot);
+    g_replotCount++;
     mAmpScale.plot->replot(QCustomPlot::rpQueuedReplot);
 }

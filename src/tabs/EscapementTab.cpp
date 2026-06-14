@@ -1,4 +1,5 @@
 #include "EscapementTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <numeric>
@@ -200,6 +201,7 @@ void EscapementTab::redraw()
         mStabilityLabel->clear();
     }
 
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
 

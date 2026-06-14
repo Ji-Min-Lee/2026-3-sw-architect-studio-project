@@ -1,4 +1,5 @@
 #include "WaveformCompTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QtMath>
 #include <cmath>
@@ -371,6 +372,7 @@ void WaveformCompTab::redrawPlots()
         const QCPRange yr = w.plot->yAxis->range();
         updatePlotGuides(w, beat, yr.lower, yr.upper);
         updateDegreeAxis(w);
+        g_replotCount++;
         w.plot->replot(QCustomPlot::rpQueuedReplot);
     }
 }

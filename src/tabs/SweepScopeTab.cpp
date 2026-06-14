@@ -1,4 +1,5 @@
 #include "SweepScopeTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <cmath>
@@ -86,6 +87,7 @@ void SweepScopeTab::redraw()
     mPlot->graph(0)->setData(xs, ys, true);
     mPlot->xAxis->setRange(0, (double)n / mSps * 1000.0);
     mPlot->yAxis->rescale();
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
 

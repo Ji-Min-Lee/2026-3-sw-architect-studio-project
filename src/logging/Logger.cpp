@@ -40,7 +40,8 @@ void Logger::writeHeader()
     // sound_ms and plot_ms are always 0 in feature/layer (tabs are async).
     mOut << "frame,samples,total_ms,wait_ms,exec_ms,"
          << "copy_ms,sound_ms,tg_ms,ui_ms,plot_ms,"
-         << "bg_fps,bg_sps,bg_spf,fg_fps,fg_sps,fg_spf\n";
+         << "bg_fps,bg_sps,bg_spf,fg_fps,fg_sps,fg_spf,"
+         << "replot_count\n";
     mOut.flush();
 }
 
@@ -76,7 +77,8 @@ void Logger::flushBatch()
              << QString::number(f.bg_spf, 'f', 1) << ','
              << QString::number(f.fg_fps, 'f', 1) << ','
              << QString::number(f.fg_sps, 'f', 1) << ','
-             << QString::number(f.fg_spf, 'f', 1) << '\n';
+             << QString::number(f.fg_spf, 'f', 1) << ','
+             << f.replot_count << '\n';
     }
     mOut.flush();
     mBatch.clear();

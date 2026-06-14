@@ -1,5 +1,6 @@
 #include <QtGlobal>
 #include "MainWindow.h"
+#include "ReplotCounter.h"
 #include "ui_MainWindow.h"
 #include "WaveHeader.h"
 #include "SharedAudio.h"
@@ -198,6 +199,7 @@ MainWindow::~MainWindow()
 // ─────────────────────────────────────────────────────────────────────────────
 void MainWindow::onMeasurementReady(const Measurement &m)
 {
+    mLastReplotCount = g_replotCount.exchange(0);
     DisplayResults(m);
 }
 
@@ -238,6 +240,7 @@ void MainWindow::wireEngineToTabs()
 void MainWindow::onFrameLogged(Logger::Frame frame)
 {
 #ifdef ENABLE_LOGGING
+    frame.replot_count = mLastReplotCount;
     if (mLogger && frame.samples > 0)
         mLogger->record(frame);
 #else

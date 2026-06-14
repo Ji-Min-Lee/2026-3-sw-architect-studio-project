@@ -1,4 +1,5 @@
 #include "BeatErrorTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
@@ -175,6 +176,7 @@ void BeatErrorTab::onMeasurement(const Measurement &m)
     // (no growing axis = no compression effect)
     int hiBeat = qMax(mBeatIdx, kTracePoints);
     mTraceRect->axis(QCPAxis::atBottom)->setRange(hiBeat - kTracePoints, hiBeat);
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
 

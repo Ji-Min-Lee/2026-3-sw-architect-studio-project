@@ -1,4 +1,5 @@
 #include "BeatNoiseScopeTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
@@ -221,6 +222,7 @@ void BeatNoiseScopeTab::redrawScope1()
         strips.append(b.ys.mid(0, qMin(rangeSamples(), (int)b.ys.size())));
     mStripBar->setStrips(strips, idx);
 
+    g_replotCount++;
     mPlot1->replot(QCustomPlot::rpQueuedReplot);
 }
 
@@ -265,6 +267,7 @@ void BeatNoiseScopeTab::redrawScope2()
                             .arg(mLiftAngle, 0, 'f', 1)
                             .arg(avgAmp[0], 0, 'f', 3).arg(avgAmp[1], 0, 'f', 3)
                             .arg(mAvgCheck->isChecked() ? cycle : "Σ off"));
+    g_replotCount++;
     mPlot2->replot(QCustomPlot::rpQueuedReplot);
 }
 

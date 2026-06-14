@@ -1,4 +1,5 @@
 #include "LongTermTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 
 LongTermTab::LongTermTab(QWidget *parent) : BaseGraphTab(parent)
@@ -154,5 +155,6 @@ void LongTermTab::onMeasurement(const Measurement &m)
         s->rect->axis(QCPAxis::atLeft)->rescale();
         s->rect->axis(QCPAxis::atLeft)->scaleRange(1.15);  // 15% padding so lines aren't clipped
     }
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
