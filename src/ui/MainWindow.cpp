@@ -6,6 +6,7 @@
 #include "Timegrapher.h"
 #include "Bph.h"
 #include <QDateTime>
+#include <QCoreApplication>
 
 #if defined(Q_OS_LINUX)
 #include "LinuxAudio.h"
@@ -374,9 +375,13 @@ void MainWindow::StartAudioThread(void)
     Reset();
 #ifdef ENABLE_LOGGING
     delete mLogger;
-    QString csvPath = QString("logs/EXP-02/log_%1.csv")
-                          .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
-    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+    {
+        QString logDir = QCoreApplication::applicationDirPath() + "/logs/EXP-02";
+        QDir().mkpath(logDir);
+        QString csvPath = logDir + "/log_" +
+                          QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+        mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+    }
 #endif
     if (mRawAudio) {
         if (mRawAudio->Samples) { delete[] mRawAudio->Samples; mRawAudio->Samples = nullptr; }
@@ -415,6 +420,16 @@ void MainWindow::StopAudioThread(void) { emit LocalStopAudio(); }
 void MainWindow::StartPlaybackThread(const QString &FileName)
 {
     Reset();
+#ifdef ENABLE_LOGGING
+    delete mLogger;
+    {
+        QString logDir = QCoreApplication::applicationDirPath() + "/logs/EXP-02";
+        QDir().mkpath(logDir);
+        QString csvPath = logDir + "/log_" +
+                          QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+        mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+    }
+#endif
     if (mRawAudio) {
         if (mRawAudio->Samples) { delete[] mRawAudio->Samples; mRawAudio->Samples = nullptr; }
         delete mRawAudio; mRawAudio = nullptr;
