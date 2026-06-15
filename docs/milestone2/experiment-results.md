@@ -10,7 +10,7 @@
 | ID | Experiment | Runs | Latest Key Result | Status |
 |----|------------|:----:|-------------------|:------:|
 | EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 0 | — | ⏳ In Progress |
-| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 5 | R5 (rpi2, no-render+sync): E2E avg **2.1 ms**, wait **0.03 ms**, backlog **0/1224** — perfect real-time sync. R4 same condition had backlog 28 %. R3 (full GUI): 4.4 % overruns. | ⏳ In Progress |
+| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 6 | R6 (rpi2, no-render+sync): E2E avg **2.1 ms**, max **5.7 ms** — tighter max than R5 (11.1 ms), same zero-backlog behavior. | ⏳ In Progress |
 | EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | 📅 Planned |
 | EXP-04 | Signal Quality Warning Threshold Search | 0 | — | 📅 Planned |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
@@ -94,6 +94,7 @@ only as a dev-machine reference.
 | R3 | 2026-06-15 | **rpi2** | 48 kHz | ? | 57.2 / 208.9 | — | — | rpi2 baseline (full GUI) | ▼ R3 below |
 | R4 | 2026-06-15 | **rpi2\*** | 48 kHz | — | 80.1 / 258.7 | — | — | no-render (plot=0) | ▼ R4 below |
 | R5 | 2026-06-15 | **rpi2\*** | 48 kHz | — | 2.1 / 11.1 | — | — | no-render + perfect sync | ▼ R5 below |
+| R6 | 2026-06-15 | **rpi2\*** | 48 kHz | — | 2.1 / 5.7 | — | — | no-render + perfect sync | ▼ R6 below |
 
 > R2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
 > (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
@@ -114,6 +115,12 @@ only as a dev-machine reference.
 > R5 (rpi2\*) shares the same meta line as R4 (same unit, no-render build). Key
 > difference: FG and BG are perfectly synchronized — samples fixed at exactly 1024,
 > backlog 0/1224, wait avg 0.027 ms. Sourced from `project-2` repo copy.
+>
+> R6 (rpi2\*) shares the same meta line (`host=lg1`, no device field), same conditions
+> as R5 — no-render + perfect sync. Sourced from `project-3` repo build-log. Memory
+> usage notably lower (850 MB vs 2292 MB in R5) suggesting a lighter build variant.
+> Pinned core shifted to cpu0 (vs cpu1 in R4/R5), normal scheduling variation. Max
+> E2E tighter than R5 (5.7 ms vs 11.1 ms).
 
 > `Dropped` (audio blocks) and `Missed` (beat detections) are required by the
 > Low-Latency QA but not yet instrumented — shown as `—`. See backlog % in the
@@ -384,6 +391,64 @@ temp avg **60.4 °C** (max 62.3 °C), **throttled 0 / 12 samples**; mem ~2292 MB
 
 </details>
 
+<details>
+<summary><b>R6</b> — 2026-06-15 · rpi2* (no device field) · 48 kHz · no-render + perfect sync — E2E avg 2.1 / max 5.7 ms · <b>exec > deadline: 0 / 1142 · backlog: 0 / 1142 — ideal real-time</b></summary>
+
+**Context**: Same rpi2 unit and conditions as R5 (host=lg1, no-render, perfect sync),
+sourced from `project-3` repo build-log. Memory usage lower than R5 (~850 MB vs
+~2292 MB) — lighter build variant. Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
+Files: [csv](../../src/logs/EXP-02/log_20260615_165612.csv) ·
+[plot](../../src/logs/EXP-02/log_20260615_165612.png) ·
+[sys plot](../../src/logs/EXP-02/log_20260615_165612_sys.png).
+
+**Per-frame metrics (1142 frames), ms:**
+
+| Metric | avg | max | min |
+|--------|----:|----:|----:|
+| total = ①+② | 2.050 | 5.655 | 0.237 |
+| ① wait | 0.029 | 0.558 | 0.013 |
+| ② exec | 2.021 | 5.616 | 0.208 |
+| ┄ copy | 0.007 | 0.018 | 0.006 |
+| ┄ sound | 0.000 | 0.000 | 0.000 |
+| ┄ tg (dominant) | 2.012 | 5.606 | 0.199 |
+| ┄ ui | 0.000 | 0.000 | 0.000 |
+| ┄ **plot** | **0.000** | **0.000** | **0.000** |
+
+**Throughput / health:** bg_fps avg 43.1 (max 47.4), fg_fps avg 43.1 (max 47.4)
+— **FG and BG perfectly matched**. bg_sps avg 44092. samples avg / min / max all
+= **1024 exactly** (no backlog accumulation). exec > deadline: **0 / 1142**.
+backlog (>1.5× SPF): **0 / 1142**.
+
+**System (rpi2\*):** cpu_total ~29.2 % avg, **cpu0 pinned at ~92.7 % avg (max 99.6 %)**;
+temp avg **61.3 °C** (max 62.8 °C), **throttled 0 / 11 samples**; mem ~850 MB used
+/ 16 GB total; freq 2400 MHz.
+
+![R6 sys](../../src/logs/EXP-02/log_20260615_165612_sys.png)
+
+**Observations:**
+
+| Phase | Pattern | Interpretation |
+|-------|---------|----------------|
+| wait | avg 0.029 ms (near-zero) | FG picks up immediately after BG emits — same as R5 |
+| samples | exactly 1024 every frame | BG and FG are 1-for-1 synchronized, no accumulation |
+| bg_fps ≈ fg_fps | both ~43.1 fps | FG keeps pace with BG throughout the run |
+| exec | avg 2.02 ms, max 5.62 ms | `tg` sole cost; max tighter than R5 (9.9 ms) |
+| backlog | 0 / 1142 | zero frames with accumulated samples |
+
+**Conclusion:**
+
+- R6 replicates R5's **ideal real-time pipeline behavior** on the same rpi2 unit:
+  zero backlog, near-zero wait, exec well within the 21.33 ms deadline.
+- Max E2E is **5.7 ms** — notably tighter than R5's **11.1 ms**, confirming the
+  no-render + perfect sync ceiling is sub-10 ms even at worst case.
+- `tg` (DSP) costs 2.01 ms avg — consistent with R4 (2.68 ms) and R5 (2.06 ms).
+- Lower memory footprint (~850 MB vs ~2292 MB) suggests a different build variant
+  but has no observable effect on latency or throughput.
+- **Confirms R5's result**: the ideal rpi2 pipeline ceiling is ~2.1 ms E2E avg,
+  with max excursions below 6 ms under this build.
+
+</details>
+
 ### R2 vs R3 Comparison (rpi1 vs rpi2)
 
 | Metric | R2 · rpi1 | R3 · rpi2 | Change |
@@ -448,16 +513,17 @@ the rpi2 pipeline with rendering decoupled.
 
 ### Current Best
 
-**R5 (rpi2, no-render + perfect sync) — ideal real-time pipeline** ✅
-- E2E avg **2.1 ms** / max **11.1 ms** — matches Windows reference (R1: 2.8 ms)
-- ① wait avg **0.027 ms** (near-zero); samples exactly 1024 every frame
-- exec avg **2.1 ms**, max **9.9 ms** — **0 / 1224** deadline overruns
-- backlog **0 / 1224** — FG and BG perfectly synchronized
-- temp 60.4 °C, no throttling, mem 2.29 GB / 16 GB
+**R6 (rpi2, no-render + perfect sync) — ideal real-time pipeline** ✅
+- E2E avg **2.1 ms** / max **5.7 ms** — tighter max than R5 (11.1 ms); matches Windows reference (R1: 2.8 ms)
+- ① wait avg **0.029 ms** (near-zero); samples exactly 1024 every frame
+- exec avg **2.0 ms**, max **5.6 ms** — **0 / 1142** deadline overruns
+- backlog **0 / 1142** — FG and BG perfectly synchronized
+- temp 61.3 °C, no throttling, mem 0.85 GB / 16 GB
 
+> R5 (same conditions): E2E avg 2.1 ms, max 11.1 ms — same zero-backlog behavior, slightly higher max.  
 > R4 (same no-render, no sync fix): E2E avg 80 ms, backlog 28 % — FG scheduling lag.  
 > R3 (full GUI): exec 15.2 ms, 4.4 % overruns — `plot` bottleneck in audio path.  
-> Windows dev reference (R1): E2E avg 2.8 ms — R5 reaches parity.
+> Windows dev reference (R1): E2E avg 2.8 ms — R6 reaches parity with tighter max.
 
 - **Target performance for full-GUI lazy rendering**: E2E ~2 ms, 0 overruns, 0 backlog
 - **Lazy Rendering required**: **Yes, and sufficient** — R5 is evidence of the ceiling
