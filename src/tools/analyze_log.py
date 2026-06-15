@@ -73,8 +73,18 @@ n = len(cols.get("frame", []))
 if n == 0:
     print("CSV has no data rows yet (run longer with audio flowing).")
     sys.exit(1)
+# parse meta "key=value" tokens (platform, device, sample_rate, ...)
+meta_kv = {}
+for tok in meta.split():
+    if "=" in tok:
+        k, v = tok.split("=", 1)
+        meta_kv[k] = v
+device = meta_kv.get("device", "")
+platform = meta_kv.get("platform", "")
 if meta:
     print(f"Meta: {meta}")
+    if device:
+        print(f"Device: {device}  (platform={platform})")
 print(f"Frames: {n}\n")
 
 # ── summary stats (per frame) ─────────────────────────────────

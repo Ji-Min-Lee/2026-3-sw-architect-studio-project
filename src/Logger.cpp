@@ -4,6 +4,21 @@
 #include <QFile>
 #include <QTextStream>
 #include <QSysInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+// Device id from /home/whoami.json (e.g. "rpi1"/"rpi2") to distinguish the two
+// Raspberry Pi units. Returns "" if the file is absent (e.g. on Windows).
+static QString readDeviceId()
+{
+    QFile f("/home/whoami.json");
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) return QString();
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(f.readAll(), &err);
+    f.close();
+    if (err.error != QJsonParseError::NoError || !doc.isObject()) return QString();
+    return doc.object().value("id").toString();
+}
 
 Logger::Logger(const QString &csvPath, int consoleEvery, int sampleRate)
     : mPath(csvPath),
@@ -77,9 +92,11 @@ void Logger::writeCsv()
     QTextStream out(&file);
     // metadata line (comment): platform/host/sample-rate for self-identification.
     // analyze_log.py skips lines starting with '#'.
+    QString device = readDeviceId();
     out << "# platform=" << QSysInfo::productType()
         << " kernel="    << QSysInfo::kernelType()
         << " host="      << QSysInfo::machineHostName()
+        << " device="    << (device.isEmpty() ? QStringLiteral("unknown") : device)
         << " sample_rate=" << mSampleRate << '\n';
     // per-frame rows. durations measured in us, written in ms (3 decimals).
     out << "frame,samples,total_ms,wait_ms,exec_ms,"

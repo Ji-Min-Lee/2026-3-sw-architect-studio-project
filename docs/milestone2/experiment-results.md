@@ -90,12 +90,13 @@ only as a dev-machine reference.
 | Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Role | Detail |
 |:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|------|:------:|
 | R1 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | dev reference | ▼ R1 below |
-| R2 | 2026-06-11 | **RPi** | 48 kHz | ? | 255.4 / 900.9 | — | — | **baseline** | ▼ R2 below |
+| R2 | 2026-06-11 | **rpi1** | 48 kHz | ? | 255.4 / 900.9 | — | — | **baseline** | ▼ R2 below |
 
-> R2 (RPi) was recorded before platform auto-metadata existed (no `#` meta line);
-> platform is confirmed by the presence of `_sys.csv`. Tabs unknown (`?`). Its
-> deadline ≈ 21 ms (SPF 1024 / SPS 48008) differs from Windows (480 / 48000)
-> because the ALSA chunk size differs.
+> R2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
+> (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
+> unknown (`?`). Its deadline ≈ 21 ms (SPF 1024 / SPS 48008) differs from Windows
+> (480 / 48000) because the ALSA chunk size differs. Future runs auto-record the
+> unit as `device=rpi1`/`rpi2` in the CSV meta line.
 
 > `Dropped` (audio blocks) and `Missed` (beat detections) are required by the
 > Low-Latency QA but not yet instrumented — shown as `—`. See backlog % in the
@@ -154,7 +155,7 @@ backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
 </details>
 
 <details>
-<summary><b>R2</b> — 2026-06-11 · RPi · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>baseline · real-time FAIL</b></summary>
+<summary><b>R2</b> — 2026-06-11 · rpi1 (1st unit) · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>baseline · real-time FAIL</b></summary>
 
 **Context**: RPi run, before platform auto-metadata. Deadline ≈ **21.33 ms**
 (SPF 1024 / SPS 48008). Files:
@@ -193,7 +194,7 @@ thermal throttling. **This run is the baseline for all future RPi experiments.**
 
 ### Current Best
 
-**Baseline — R2 (RPi, target platform): real-time FAIL** ⚠
+**Baseline — R2 (rpi1, target platform): real-time FAIL** ⚠
 - E2E: mean **255 ms** / worst **901 ms** at 28,800 BPH, 48 kHz
 - ② exec mean **20 ms** overruns the **21 ms** deadline **43 %** of frames
   (0/2104 on Windows by contrast) — processing itself cannot keep up
