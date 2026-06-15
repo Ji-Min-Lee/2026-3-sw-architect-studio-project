@@ -449,45 +449,62 @@ temp avg **61.3 °C** (max 62.8 °C), **throttled 0 / 11 samples**; mem ~850 MB 
 
 </details>
 
-### R2 vs R3 Comparison (rpi1 vs rpi2)
+### R3–R6 Tactic Progression Comparison (rpi2, same unit)
 
-| Metric | R2 · rpi1 | R3 · rpi2 | Change |
-|--------|----------:|----------:|:------:|
-| E2E avg / max (ms) | 255.4 / 900.9 | 57.2 / 208.9 | −78 % / −77 % |
-| ① wait avg (ms) | 235.2 | 42.1 | −82 % |
-| ② exec avg / max (ms) | 20.2 / 62.5 | 15.2 / 26.0 | −25 % / −58 % |
-| plot avg (ms) | 16.0 | 12.3 | −23 % |
-| exec > deadline (21.3 ms) | 441/1015 **(43 %)** | 57/1288 **(4.4 %)** | −90 % |
-| backlog (>1.5× SPF) | 312/1015 | 273/1288 | fewer absolute |
-| bg_fps avg | 43.5 | 46.9 | +8 % |
-| fg_fps avg | 31.2 | 38.5 | +23 % |
-| CPU pinned core | cpu2 ~91 % | cpu3 ~99 % | same pattern |
-| SoC temp avg | **84.7 °C** | **60.3 °C** | −29 °C |
-| Thermal throttle | **10/10 samples** | **0/12 samples** | eliminated |
-| RAM (used / total) | ~1651 MB / ? | ~1120 MB / 16 GB | more headroom |
+All four runs are on rpi2 at 48 kHz; deadline ≈ 21.33 ms (SPF 1024 / SPS 48008).
+Tactics R1 / T2 are defined in
+[architectural-approaches.md](architectural-approaches.md) (R1 = Lazy Rendering,
+T2 = DSP Offload Thread).
 
-**Key finding:** The performance gap between rpi1 and rpi2 is primarily explained by
-thermal throttling. rpi2 sustains 2400 MHz throughout while rpi1 was throttled
-from the start. The `plot` bottleneck (~12–16 ms) is structural and present on both
-units — lazy rendering remains the required fix regardless of which unit is used.
+| Config | R3 baseline | R4 baseline + multi-graph | R5 R4 + T2 | R6 R4 + T2 + R1 |
+|--------|------------:|--------------------------:|-----------:|----------------:|
+| E2E avg (ms) | 57.2 | 80.1 | **2.1** | **2.05** |
+| E2E max (ms) | 208.9 | 258.7 | 11.1 | **5.7** |
+| ① wait avg (ms) | 42.1 | 77.4 | 0.03 | 0.03 |
+| ② exec avg (ms) | 15.2 | 2.7 | 2.07 | 2.02 |
+| ② exec max (ms) | 26.0 | 8.8 | 9.9 | 5.6 |
+| tg avg (ms) | 2.0 | 2.7 | 2.06 | 2.01 |
+| plot avg (ms) | 12.3 | 0.0 | 0.0 | 0.0 |
+| exec > deadline | 57/1288 (4.4 %) | 0/1244 | 0/1224 | 0/1142 |
+| backlog (>1.5× SPF) | 273/1288 (21 %) | 352/1244 (28 %) | **0/1224** | **0/1142** |
+| samples (avg) | 1245 | 1329 | 1024 | 1024 |
+| bg/fg fps | 46.9 / 38.5 | 43.5 / 33.4 | 43.3 / 43.3 | 43.1 / 43.1 |
+| pinned core | cpu3 ~99 % | cpu1 ~91 % | cpu1 ~94 % | cpu0 ~93 % |
+| temp avg (°C) | 60.3 | 60.0 | 60.4 | 61.3 |
+| throttled | 0/12 | 0/12 | 0/12 | 0/11 |
+| real-time | marginal FAIL | exec OK, wait high | **ideal** | **ideal** |
 
-### R3 vs R4 — Rendering ON vs OFF (rpi2 same unit)
+> `plot_ms` is 0 in R4–R6 (rendering is off the measured exec path), so the
+> comparison turns on wait / exec / tg and on backlog & sync rather than plot.
 
-| Metric | R3 · rpi2 (full GUI) | R4 · rpi2 (no-render) | Change |
-|--------|---------------------:|----------------------:|:------:|
-| E2E avg / max (ms) | 57.2 / 208.9 | 80.1 / 258.7 | wait ↑ (see below) |
-| ① wait avg (ms) | 42.1 | 77.4 | +84 % (scheduling artifact) |
-| ② exec avg / max (ms) | 15.2 / 26.0 | **2.7 / 8.8** | **−82 % / −66 %** |
-| plot avg (ms) | 12.3 | **0.0** | eliminated |
-| tg avg (ms) | 2.0 | 2.7 | +35 % (sole exec cost) |
-| exec > deadline (21.3 ms) | 57/1288 **(4.4 %)** | **0 / 1244 (0 %)** | **eliminated** |
-| backlog (>1.5× SPF) | 273/1288 (21.2 %) | 352/1244 (28.3 %) | ↑ (FG slower without render pressure) |
-| SoC temp avg | 60.3 °C | 60.0 °C | same (no thermal effect from render) |
+**Key findings:**
 
-**Key finding:** With rendering removed, exec drops 82 % (15 ms → 2.7 ms) and
-deadline overruns are **eliminated entirely**. `tg` (DSP computation) costs 2.7 ms,
-leaving 18.6 ms headroom in the 21.33 ms deadline. Lazy / decoupled rendering will
-directly fix the real-time failure with no algorithmic changes.
+- **R3 → R4 (multi-graph):** exec drops 15.2 → 2.7 ms (plot leaves the exec path),
+  but `wait` rises (42 → 77 ms) and E2E worsens — FG falls behind without render
+  pressure; backlog grows to 28 %.
+- **R4 → R5 (+T2, DSP Offload):** the decisive step. FG/BG become 1-for-1
+  synchronized (samples fixed at 1024, backlog 0), `wait` collapses to ~0.03 ms,
+  and E2E avg drops to **2.1 ms** — ideal real-time.
+- **R5 → R6 (+T2 +R1, Lazy Rendering):** same avg (2.05 ms) but tighter worst case
+  (max 11.1 → **5.7 ms**), i.e. R1 trims tail latency.
+- **tg (DSP) is stable at ~2 ms** across R4–R6, confirming the gains are
+  scheduling/rendering architecture, not algorithmic.
+- Hardware note: R2 (rpi1) failed at 43 % overruns mainly due to thermal throttling
+  (85 °C); rpi2 stays at 60 °C / 2400 MHz throughout (see R2 detail block).
+
+### Provenance (R3–R6)
+
+All runs used the latest **tools** from branch `baseline/experiments2`
+(logging facility + `run_timegrapher.sh`). R4–R6 were run on rpi2 from the tagged
+team repos; tactics R1/T2 per
+[architectural-approaches.md](architectural-approaches.md).
+
+| Run | Repo | Tag | Branch / tools | Applied |
+|:---:|------|-----|----------------|---------|
+| R3 | project (`~/user/k-bahn/2026-3-sw-architect-studio-project`) | — | `baseline/experiments2` tools | tools only (baseline, full GUI) |
+| R4 | project | `macos_ex_baseline` | `baseline/experiments2` tools | tools only |
+| R5 | project-2 (`...-2`) | `macos_ex_t2` | `baseline/experiments2` tools | tools + **T2** (DSP Offload) |
+| R6 | project-3 (`...-3`) | `macos_ex_r1` | `baseline/experiments2` tools | tools + **T2 + R1** (DSP Offload + Lazy Rendering); build-error patch (`${CMAKE_CURRENT_SOURCE_DIR}/logging` added to CMake) |
 
 ### R4 vs R5 — Same condition, different sync behavior (rpi2 no-render)
 
