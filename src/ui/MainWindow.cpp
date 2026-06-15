@@ -108,6 +108,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     this->setWindowTitle("TimeGrapher");
     ui->StopPushButton->setEnabled(false);
+    ui->PausePushButton->setEnabled(false);
     ui->LiftAngleSpinBox->setFocusPolicy(Qt::NoFocus);
     ui->Results->setAlignment(Qt::AlignHCenter);
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
@@ -148,7 +149,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->GraphicsTabWidget->addTab(mSweepScopeTab,     "Sweep");
     ui->GraphicsTabWidget->addTab(mFilterScopeTab,    "Filters");
 
-    // ── Watch-position selector + global display pause (tab-bar corner) ──────
+    // ── Watch-position selector (tab-bar corner) ─────────────────────────────
     auto *corner = new QWidget(this);
     auto *cornerLay = new QHBoxLayout(corner);
     cornerLay->setContentsMargins(0, 0, 4, 0);
@@ -156,9 +157,6 @@ MainWindow::MainWindow(QWidget *parent)
     mPositionCombo = new QComboBox(corner);
     mPositionCombo->addItems(SequenceTab::positions());
     cornerLay->addWidget(mPositionCombo);
-    mPauseButton = new QPushButton("⏸ Pause display", corner);
-    mPauseButton->setCheckable(true);
-    cornerLay->addWidget(mPauseButton);
     ui->GraphicsTabWidget->setCornerWidget(corner, Qt::TopRightCorner);
 
     // ── Observer: registered per-session in wireEngineToTabs() (T2) ──────────
@@ -172,12 +170,6 @@ MainWindow::MainWindow(QWidget *parent)
                          mActivePosition = pos;
                          mSequenceTab->setActivePosition(pos);
                      });
-    // Pause freezes axis rescaling/replots only; data keeps accumulating, so
-    // the user can drag/zoom (cursor-navigate) recorded data without loss.
-    QObject::connect(mPauseButton, &QPushButton::toggled, this, [this](bool on) {
-        for (BaseGraphTab *tab : mAllTabs) tab->setPaused(on);
-        mPauseButton->setText(on ? "▶ Resume display" : "⏸ Pause display");
-    });
 
     // Results label subscription wired per-session in wireEngineToTabs() (T2)
 
@@ -671,6 +663,15 @@ void MainWindow::AudioCloseCheck(void)
 // ─────────────────────────────────────────────────────────────────────────────
 // GUI state management
 // ─────────────────────────────────────────────────────────────────────────────
+void MainWindow::setDisplayPaused(bool on)
+{
+    for (BaseGraphTab *tab : mAllTabs)
+        tab->setPaused(on);
+    ui->PausePushButton->setText(on ? "Resume" : "Pause");
+    statusBar()->showMessage(on ? "Paused — graphs frozen for diagnostic"
+                                : "Running");
+}
+
 void MainWindow::SetGuiRunMode(void)
 {
     ui->InputDeviceComboBox->setEnabled(false);
@@ -678,6 +679,7 @@ void MainWindow::SetGuiRunMode(void)
     ui->BPHComboBox->setEnabled(false);
     ui->ModeComboBox->setEnabled(false);
     ui->StartPushButton->setEnabled(false);
+    ui->PausePushButton->setEnabled(true);
     ui->StopPushButton->setEnabled(true);
     ui->RefreshPushButton->setEnabled(false);
     ui->AveragingPeriodComboBox->setEnabled(false);
@@ -693,6 +695,13 @@ void MainWindow::SetGuiRunMode(void)
 void MainWindow::SetGuiStopMode(void)
 {
     ui->StopPushButton->setEnabled(false);
+    ui->PausePushButton->setEnabled(false);
+    if (ui->PausePushButton->isChecked()) {
+        ui->PausePushButton->blockSignals(true);
+        ui->PausePushButton->setChecked(false);
+        ui->PausePushButton->blockSignals(false);
+    }
+    setDisplayPaused(false);
     ui->ModeComboBox->setEnabled(true);
     ui->RefreshPushButton->setEnabled(true);
     ui->StartPushButton->setEnabled(true);
@@ -785,6 +794,10 @@ void MainWindow::on_StartPushButton_clicked()
     if (ui->ModeComboBox->currentText() == ModeStrings[LIVE])       { ConfigureSoundCard(); LiveStart(); }
     else if (ui->ModeComboBox->currentText() == ModeStrings[PLAYBACK]) PlaybackStart();
     else if (ui->ModeComboBox->currentText() == ModeStrings[SIM])      SimStart();
+}
+void MainWindow::on_PausePushButton_toggled(bool checked)
+{
+    setDisplayPaused(checked);
 }
 void MainWindow::on_StopPushButton_clicked()
 {

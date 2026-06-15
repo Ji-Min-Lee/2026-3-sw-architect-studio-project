@@ -41,6 +41,7 @@ void SoundPrintTab::reset()
 
 void SoundPrintTab::onMeasurement(const Measurement &m)
 {
+    if (mPaused) return;
     if (!mWidget) return;
 
     // BPH 확정 시 렌더러에 알림 (sync 직후 1회)

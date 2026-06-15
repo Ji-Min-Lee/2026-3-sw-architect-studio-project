@@ -26,8 +26,6 @@
 #include "WaveformCompTab.h"
 #include "SweepScopeTab.h"
 #include "FilterScopeTab.h"
-#include <QPushButton>
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -51,6 +49,7 @@ private slots:
     void on_RefreshPushButton_clicked();
     void on_MicrophoneHorizontalSlider_sliderMoved(int position);
     void on_StartPushButton_clicked();
+    void on_PausePushButton_toggled(bool checked);
     void on_StopPushButton_clicked();
     void on_InputDeviceComboBox_currentIndexChanged(int index);
     void on_SampleRatesComboBox_currentIndexChanged(int index);
@@ -102,6 +101,7 @@ private:
     void   PopulateSampleRates(QComboBox *comboBox, const QAudioDevice &device);
     void   SetGuiRunMode(void);
     void   SetGuiStopMode(void);
+    void   setDisplayPaused(bool on);
     void   LiveStart(void);
     void   PlaybackStart(void);
     void   SimStart(void);
@@ -135,10 +135,9 @@ private:
     FilterScopeTab   *mFilterScopeTab   = nullptr;
     QList<BaseGraphTab *> mAllTabs;     // for global pause + reset
 
-    // Watch-position testing (NIHS 95-10/ISO 3158) + global display pause
-    QComboBox   *mPositionCombo = nullptr;
-    QPushButton *mPauseButton   = nullptr;
-    QString      mActivePosition = "CH";
+    // Watch-position testing (NIHS 95-10/ISO 3158)
+    QComboBox *mPositionCombo = nullptr;
+    QString    mActivePosition = "CH";
 
     // Audio threads
     WavStreamWriter       *mWavWriter            = nullptr;
