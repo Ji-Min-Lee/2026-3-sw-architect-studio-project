@@ -21,7 +21,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SRC_DIR=$(dirname "$SCRIPT_DIR")
 BIN="$SRC_DIR/build-log/TimeGrapher"
 LOG_DIR="$SRC_DIR/logs"
-DURATION=30
+DURATION=300
 SCHED_PRIORITY=50
 
 # ── Parse args ────────────────────────────────────────────────
