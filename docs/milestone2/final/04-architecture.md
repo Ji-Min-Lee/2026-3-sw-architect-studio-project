@@ -4,198 +4,97 @@
 
 ---
 
-## Module View — Code-Level Structure
+## View Selection Rationale
 
-```mermaid
-graph TD
-    subgraph Presentation["Presentation Layer"]
-        MainWindow["MainWindow"]
-        GTM["GraphTabManager"]
-        Tabs["11 Graph Tabs\n(TraceDisplay, VarioDisplay, SequenceDisplay,\nScopeDisplay×2, BeatErrorTrace, LongTermPerf,\nEscapementAnalyzer, Spectrogram,\nWaveformComparison, ScopeMode, ScopeFunction×4)"]
-    end
+View selection follows the principle: document a view IFF it is needed, IFF it is useful to someone (Merson). The four views below each answer a distinct architectural question for this project.
 
-    subgraph Domain["Domain Layer"]
-        ME["MeasurementEngine\n(Rate / Amplitude / Beat Error / BPH)"]
-        BD["BeatDetector\n(T1/T3 event detection)"]
-        DS["MeasurementStore\n(history buffer)"]
-    end
-
-    subgraph Processing["Signal Processing Layer"]
-        FC["FilterChain\n(LP / HP filters)"]
-        SB["SignalBuffer\n(ring buffer)"]
-    end
-
-    subgraph Acquisition["Acquisition Layer"]
-        AC["AudioCapture\n(Live / Playback / Sim)"]
-    end
-
-    MainWindow --> GTM --> Tabs
-    Tabs --> ME & BD & DS
-    ME --> BD & DS
-    BD --> FC --> SB
-    AC --> SB
-
-    Presentation -.->|NOT ALLOWED| Processing
-    Presentation -.->|NOT ALLOWED| Acquisition
-```
-
-**Dependency rule**: strictly downward. Presentation → Domain → Processing → Acquisition. No bypass allowed.
-
-**Extensibility**: Adding a new graph tab = add one class in Presentation only. Zero changes to Domain or below.
+| View Name | Type | Question Answered | Primary Reader |
+|---|---|---|---|
+| TimeGrapher 4-layer allowed-to-use view | Module — Layered | Which direction do dependencies flow? Which layer changes when a new tab is added? | Developers (11 tabs in parallel) |
+| Graph tab decomposition view | Module — Decomposition | What is the internal structure of the Presentation layer? How is a new tab added? | Developers (per-tab ownership) |
+| DSP pipeline thread model | Runtime / C&C | How do the two threads cooperate? Where do T2 and R1 decisions operate at runtime? | Developers (performance / concurrency) |
+| Raspberry Pi 5 hardware deployment view | Deployment / Allocation | Which hardware node runs which software? What is the deploy path from dev to target? | Operations, hardware owners |
 
 ---
 
-## Runtime / C&C View — Threading Model
+## View 1 — TimeGrapher 4-Layer Allowed-to-Use View
 
-```mermaid
-graph TD
-    subgraph AudioThread["Audio Thread (background)"]
-        AC2["AudioCapture"]
-        FC2["FilterChain"]
-        BD2["BeatDetector"]
-        ME2["MeasurementEngine"]
-        DW["DSPWorker\n(T2: new thread)"]
-    end
+Layered module view. Shows the four layers (Acquisition / Signal Processing / Domain / Presentation) and the allowed-to-use relation (downward only). Presentation may not bypass Domain to reach Signal Processing or Acquisition directly.
 
-    subgraph UIThread["UI Thread (Qt main)"]
-        GTM2["GraphTabManager"]
-        Tabs2["Graph Tabs\n(active tab only renders — R1)"]
-        CP["ControlPanel"]
-    end
+![TimeGrapher 4-Layer Allowed-to-Use View](assets/view1-layered-module.png)
 
-    subgraph Shared["Thread-Safe Connectors"]
-        SB2["SignalBuffer\n(ring buffer)"]
-        MQ["MeasurementQueue\n(Qt::QueuedConnection)"]
-        MS["MeasurementStore\n(read-write lock)"]
-    end
+**Key Design Principle**
 
-    AC2 -->|PCM write| SB2
-    SB2 -->|PCM read| DW
-    DW --> FC2 --> BD2 --> ME2
-    ME2 -->|Qt queued signal| MQ
-    ME2 -->|append| MS
-    MQ -->|cross-thread safe| GTM2 --> Tabs2
-    MS -->|history query| Tabs2
-    CP -->|config| AC2
-```
-
-**ADD-2-01 (T2)**: `DSPWorker` runs on a separate thread. Audio capture stays lightweight (write-only to ring buffer). DSP runs independently → eliminates Qt event-loop bottleneck.
-
-**ADD-2-02 (R1)**: `isVisible()` guard in each tab's `updateData()`. Non-visible tabs skip `replot()`. Tab switch triggers `showEvent()` → `QTimer::singleShot(0)` catch-up.
+- Presentation depends on Domain only. Direct access to Signal Processing or Acquisition is forbidden.
+- Adding a new graph tab = one new class in Presentation. Zero changes to Domain or below. **(Modifiability QA)**
+- ADD-2-02 (R1): `isVisible()` guard in each tab's `updateData()` — non-visible tabs skip `replot()`.
 
 ---
 
-## Deployment View
+## View 2 — Graph Tab Decomposition View
 
-```mermaid
-graph TD
-    subgraph DevMachine["Development Machine (macOS)"]
-        QtCreator["Qt Creator IDE + qmake/CMake"]
-        Src["TimeGrapher Source"]
-    end
+Decomposition view zooming into the Presentation layer. Shows how `GraphTabManager` manages all tabs through the `IGraphTab` interface, enabling parallel development of 11 tabs without cross-tab blocking.
 
-    subgraph RPi5["Raspberry Pi 5 (ARM64, 8GB) — Runtime Target"]
-        subgraph SW["Software Stack"]
-            Bin["TimeGrapher Executable"]
-            OS["Raspberry Pi OS (Linux ARM64)"]
-            ALSA["ALSA / Qt Multimedia"]
-            QtRT["Qt Runtime Libraries"]
-        end
-        USB_A["USB — Audio input"]
-        HDMI_P["HDMI — Display output"]
-        USB_T["USB — Touch input"]
-    end
+![Graph Tab Decomposition View](assets/view2-decomposition.png)
 
-    subgraph Peripherals["Connected Hardware"]
-        Mic["USB Sensor Stand + Converter\n(watch microphone)"]
-        Screen["8" IPS Touchscreen 1280×800"]
-        Watch["Mechanical Watch"]
-    end
+**Extension Rule**
 
-    Watch -->|vibration| Mic
-    Mic -->|USB PCM| USB_A --> ALSA --> Bin
-    Bin -->|Qt rendering| HDMI_P --> Screen
-    Screen -->|USB HID| USB_T --> Bin
-    Src -->|SSH / SCP deploy| Bin
-```
-
-**AGC must be disabled** on each RPi boot (`alsamixer` → Auto Gain Control → OFF). If AGC is on, amplitude measurements become unreliable.
+To add a new graph tab: create one class implementing `IGraphTab`, register it in `GraphTabManager`. Zero changes to Domain or below.
 
 ---
 
-## Architectural Approaches — Design Decisions
+## View 3 — DSP Pipeline Thread Model
 
-### Decision 1: Rendering Strategy
+Runtime C&C view. Shows the two threads (Audio Thread, UI Thread) and their thread-safe connectors (ring buffer, `Qt::QueuedConnection`). ADD-2-01 (T2) and ADD-2-02 (R1) are labeled directly in the diagram at the point where they operate.
 
-**Problem**: `plot` consumes 79% of exec budget on RPi. Runs inside audio exec path.
+![DSP Pipeline Thread Model](assets/view3-thread-model.png)
 
-| Option | Mechanism | exec saving | Complexity | M2 risk |
-|--------|-----------|:-----------:|:----------:|:-------:|
-| **R1: Lazy Rendering** ✅ | `isVisible()` guard — skip inactive tab render | ★★★★☆ | Low | None |
-| R2: Timer-Decoupled | Qt 20FPS timer drives render, beat only updates data | ★★★☆☆ | Medium | Low |
-| R3: Double-Buffer Async | Off-screen QPixmap, blit in UI thread | ★★★★★ | High | **High** |
+**Experiment Link**
 
-**Selected: R1** — minimal code change (1 guard line per tab), 75–85% replot reduction confirmed on macOS. R2 kept as fallback: apply if RPi R5 shows replot spike (>20/beat) or exec leak after tab switch.
-
----
-
-### Decision 2: Threading Strategy
-
-**Problem**: All pipeline stages on cpu2 (91% load). Three other cores idle. Thermal throttle at 85°C.
-
-| Option | Mechanism | Core spread | Complexity | M2 risk |
-|--------|-----------|:-----------:|:----------:|:-------:|
-| T1: SCHED_RR + CPU Affinity | OS scheduling priority + core pin | Low | Low | None |
-| **T2: DSP Offload Thread** ✅ | AudioCapture ↔ DSP on separate threads via ring buffer | Medium | Medium | Low |
-| T3: Full Pipeline Split | Each stage on its own thread | High | **High** | **High** |
-
-**Selected: T2** — wait_ms ×32,000 reduction, backlog 0% confirmed on macOS. T1 (SCHED_RR) will be layered on top of T2 during RPi R6.
+| Decision | Evidence | Effect |
+|---|---|---|
+| ADD-2-01 (T2) — DSPWorker thread | EXP-02 R2: wait_ms 420ms → 0.013ms | ×32,000 reduction, backlog 0% |
+| ADD-2-02 (R1) — isVisible() guard | EXP-02 R3/R4: baseline 8.22 replot/beat | 75–85% replot reduction |
 
 ---
 
-### Trade-off Summary
+## View 4 — Raspberry Pi 5 Hardware Deployment View
 
-```
-Speed to validate vs Structural completeness
-  R1 + T2 → validated on macOS, RPi R5 next
-  R2 + T2 → better long-term structure, needs more implementation time
+Deployment view. Shows which software components run on which hardware nodes, and the deploy path from the dev machine (macOS) to the runtime target (Raspberry Pi 5). The AGC operational constraint is annotated directly on the diagram.
 
-Rendering decoupling
-  R1 (Lazy) → gains when most tabs inactive
-  R2 (Timer) → caps FPS uniformly; better when all tabs active simultaneously
+![Raspberry Pi 5 Hardware Deployment View](assets/view4-deployment.png)
 
-Threading depth
-  T2 alone: 2-thread model, simple synchronization
-  T2 + T1: adds OS-level priority — Linux only, applies on RPi in R6
-```
+**Operational Constraint**
+
+AGC (Auto Gain Control) must be disabled on every RPi boot (`alsamixer` → Auto Gain Control → OFF). If AGC is on, signal gain fluctuates and Amplitude / Beat Error measurements become unreliable.
 
 ---
 
 ## Architecture Evaluation
 
-### Did experiments drive architecture refinement?
+### Experiment → Architecture Decision Map
 
 | Experiment Result | Architecture Change |
-|-------------------|---------------------|
-| RPi deadline miss 43% (EXP-02 R1) | → Identified structural root cause — not solvable by tuning |
-| wait_ms 420ms on macOS baseline (EXP-02 R1) | → ADD-2-01: T2 DSP Offload Thread |
-| replot_count 8.22/beat without guard (EXP-02 R2b) | → ADD-2-02: R1 Lazy Rendering |
-| backlog 0%, wait_ms ×32,000 after T2 (EXP-02 R2) | → T2 confirmed; layered architecture validated |
-| replot ↓75–85% after R1 (EXP-02 R3/R4) | → R1 confirmed; RPi plot_ms ~14ms saving expected |
+|---|---|
+| RPi deadline miss 43% (EXP-02 R1) | Identified structural root cause — not solvable by algorithm tuning |
+| wait_ms 420ms on macOS baseline (EXP-02 R1) | ADD-2-01: T2 DSP Offload Thread |
+| replot_count 8.22/beat without guard (EXP-02 R2b) | ADD-2-02: R1 Lazy Rendering |
+| backlog 0%, wait_ms ×32,000 after T2 (EXP-02 R2) | T2 confirmed; layered architecture validated |
+| replot ↓75–85% after R1 (EXP-02 R3/R4) | R1 confirmed; expected ~14ms plot_ms saving on RPi |
 
-### QA Achievement Assessment
+### QA Achievement Status
 
 | QA | Target | Current Evidence | Status |
-|----|--------|-----------------|--------|
-| Modifiability | New graph tab ≤ 3 file changes, 0 Domain changes | 4-layer structure enforced; new tabs = Presentation only | ✅ Design ready |
+|---|---|---|---|
+| Modifiability | New tab ≤ 3 file changes, 0 Domain changes | 4-layer structure enforced; new tab = one Presentation class | ✅ Design ready |
 | Real-Time Performance | 0% deadline miss at 96kHz on RPi | 0% on macOS (T2+R1). RPi R5 pending | 🔶 macOS ✅, RPi pending |
 | Low Latency | capture→display < 100ms | wait_ms 0.013ms on macOS. RPi TBD | 🔶 macOS ✅, RPi pending |
-| Usability | Tab switch < 200ms response | catch-up via singleShot(0) confirmed | ✅ |
+| Usability | Tab switch < 200ms response | `showEvent()` + `singleShot(0)` catch-up confirmed | ✅ |
 
 ### Unresolved Critical Concerns
 
 | Concern | Plan |
-|---------|------|
+|---|---|
 | T2+R1 effect on RPi not yet measured | EXP-02 RPi R5 — 06/23 |
 | Thermal throttle mitigation | T1 (SCHED_RR) on RPi R6 — 06/24 |
 | 11-tab rendering under full load on RPi | EXP-05 — 06/26 |

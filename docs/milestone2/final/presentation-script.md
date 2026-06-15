@@ -96,39 +96,59 @@ EXP-01, 03, 04, 05 are pending — all targeting RPi measurements starting tomor
 
 ## 04. Architecture
 
-### Module View
+We have four views. Each answers a different architectural question. I'll go through them in order.
 
-[point to diagram] Four layers: Acquisition, Signal Processing, Domain, Presentation.
+### View 1 — TimeGrapher 4-Layer Allowed-to-Use View
 
-The dependency rule is strict and one-directional — downward only. Presentation may not bypass Domain to touch Processing or Acquisition. This is enforced by code review and will be enforced by the compiler through header include rules.
+[point to diagram] This is a layered module view. Four layers: Acquisition at the bottom, Signal Processing, Domain, Presentation at the top.
 
-The benefit: adding a new graph tab is a Presentation-only change. Zero changes to Domain or below. That's how we support 11 graphs being built in parallel by two teams without blocking each other.
+The key relation here is "allowed-to-use" — arrows only go downward. Presentation depends on Domain. Domain depends on Processing. No bypassing allowed. Presentation cannot reach into Processing or Acquisition directly.
 
-### Runtime / C&C View
+The red "NOT ALLOWED" arrows on the left make this constraint explicit. These are the dependencies we are prohibiting — and this prohibition is what makes the architecture scalable.
 
-[point to diagram] Two threads. Audio Thread handles AudioCapture and — after ADD-2-01 — the DSPWorker. UI Thread handles GraphTabManager and all graph tabs.
+The practical consequence: adding a new graph tab is a Presentation-only change. One class, zero changes to Domain or below. That's how we have two teams building 11 tabs in parallel without blocking each other.
 
-The connector between them is Qt::QueuedConnection — cross-thread safe by Qt's design. No manual locking needed at the handoff point.
+Note the annotation on the right: ADD-2-02 (R1) — the isVisible() guard — is a Presentation-layer decision. It doesn't touch Domain.
 
-ADD-2-02 (R1) is shown here: each tab's updateData() has an isVisible() guard. Only the active tab calls replot(). On tab switch, showEvent() triggers a catch-up replot via singleShot(0).
+### View 2 — Graph Tab Decomposition View
 
-### Deployment View
+[point to diagram] This zooms into Presentation. We have GraphTabManager, which manages tabs through the IGraphTab interface. Each concrete tab — TraceDisplay, VarioDisplay, and so on — implements that interface independently.
 
-[point to diagram] Raspberry Pi 5 is the runtime target. USB sensor stand connects the watch microphone. 8-inch touchscreen on HDMI. Development happens on macOS, deployed via SSH/SCP.
+The color coding maps directly to our build priority: green is HIGH (demo survival), yellow is MEDIUM, red is LOW or optional.
 
-One operational note: AGC must be disabled on every RPi boot. If it's on, amplitude measurements drift — the signal gain fluctuates and Beat Error calculations become unreliable.
+The key point here is the interface contract. IGraphTab defines updateData() and showEvent(). Those two methods are the only coupling between the manager and the tab. Each developer owns their tab class. There is no cross-tab dependency.
+
+### View 3 — DSP Pipeline Thread Model
+
+[point to diagram] This is the runtime view. Two threads. Audio Thread on the left, UI Thread on the right.
+
+The two architectural decisions are labeled directly in the diagram where they operate.
+
+ADD-2-01 (T2): DSPWorker runs on a separate thread. AudioCapture writes to the ring buffer, DSPWorker reads from it. These are decoupled. Before T2, the entire pipeline ran on one thread — wait_ms was 420ms, backlog was 47%. After T2: wait_ms dropped to 0.013ms, backlog zero.
+
+ADD-2-02 (R1): On the UI Thread side, the active tab's updateData() has an isVisible() guard. Only the tab currently visible calls replot(). On tab switch, showEvent() triggers a catch-up via singleShot(0) so the user always sees a fresh frame.
+
+The connectors between threads are shown with their types: ring buffer and Qt::QueuedConnection. Both are thread-safe by design. No manual locking at the handoff point.
+
+### View 4 — Raspberry Pi 5 Hardware Deployment View
+
+[point to diagram] The deployment view. Raspberry Pi 5 is the runtime target — ARM64, 8GB. The software stack runs inside Raspberry Pi OS.
+
+From the left: dev machine compiles on macOS, deploys via SSH/SCP. From the right: USB sensor stand captures the watch microphone signal, feeds 96kHz PCM via ALSA to the executable. The rendered output goes HDMI to the 8-inch touchscreen. Touch events come back via USB HID.
+
+The orange warning box is there deliberately: AGC must be disabled on every RPi boot. If auto gain control is on, the signal amplitude fluctuates and Beat Error calculations become unreliable. This is an operational constraint, not a code issue.
 
 ### Design Decisions and Trade-offs
 
-We made two independent decisions.
+Two decisions, both validated on macOS.
 
-For rendering: R1 (Lazy Rendering) was selected. R2 (Timer-Decoupled, 20FPS) is kept as a conditional fallback — we will apply it if RPi R5 shows replot spikes above 20 per beat or exec leak after tab switch.
+For rendering: R1 (Lazy Rendering) selected. R2 (Timer-Decoupled, 20FPS) kept as conditional fallback — we apply it if RPi R5 shows replot spikes above 20 per beat or exec leak after tab switch.
 
-For threading: T2 (DSP Offload Thread) was selected. T1 (SCHED_RR + CPU Affinity) will be layered on top during RPi R6. T3 (Full Pipeline Split) is out of scope for MVP.
+For threading: T2 (DSP Offload Thread) selected. T1 (SCHED_RR + CPU Affinity) will be layered on top during RPi R6.
 
 ### Architecture Evaluation
 
-[walk through the table] Every experiment result drove an architecture change. EXP-02 RPi baseline → structural root cause analysis → two ADD decisions. Both decisions are now validated on macOS.
+[walk through the table] Every experiment result maps to an architecture change. EXP-02 RPi baseline → structural root cause → two ADD decisions. Both validated on macOS.
 
 The unresolved critical concern is RPi. We don't yet have T2+R1 measured on the target hardware. That's the first thing we do tomorrow.
 
