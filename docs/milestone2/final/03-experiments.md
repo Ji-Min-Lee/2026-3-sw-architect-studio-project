@@ -16,7 +16,7 @@
 
 ---
 
-## EXP-02: The Core Finding
+## EXP-02: The Core Finding — [Full Experiment Doc](references/exp-02.md)
 
 ### Problem Confirmed — RPi Baseline (single-threaded)
 
