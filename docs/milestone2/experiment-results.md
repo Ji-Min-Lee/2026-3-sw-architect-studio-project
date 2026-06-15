@@ -10,7 +10,7 @@
 | ID | Experiment | Runs | Latest Key Result | Status |
 |----|------------|:----:|-------------------|:------:|
 | EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 0 | — | ⏳ In Progress |
-| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 2 | Baseline R2 (RPi): **real-time FAIL** — exec ~20 ms overruns ~21 ms deadline (43 %), single-core + thermal throttle. R1 (Windows) ref: 2.8 ms | ⏳ In Progress |
+| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 3 | R2 (rpi1): **real-time FAIL** — exec 20 ms / 43 % overruns, throttled 85 °C. R3 (rpi2): exec 15 ms / 4.4 % overruns, no throttle 60 °C — significant improvement, still marginal FAIL. R1 (Windows) ref: 2.8 ms | ⏳ In Progress |
 | EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | 📅 Planned |
 | EXP-04 | Signal Quality Warning Threshold Search | 0 | — | 📅 Planned |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
@@ -90,13 +90,18 @@ only as a dev-machine reference.
 | Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Role | Detail |
 |:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|------|:------:|
 | R1 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | dev reference | ▼ R1 below |
-| R2 | 2026-06-11 | **rpi1** | 48 kHz | ? | 255.4 / 900.9 | — | — | **baseline** | ▼ R2 below |
+| R2 | 2026-06-11 | **rpi1** | 48 kHz | ? | 255.4 / 900.9 | — | — | **rpi1 baseline** | ▼ R2 below |
+| R3 | 2026-06-15 | **rpi2** | 48 kHz | ? | 57.2 / 208.9 | — | — | rpi2 baseline | ▼ R3 below |
 
 > R2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
 > (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
 > unknown (`?`). Its deadline ≈ 21 ms (SPF 1024 / SPS 48008) differs from Windows
 > (480 / 48000) because the ALSA chunk size differs. Future runs auto-record the
 > unit as `device=rpi1`/`rpi2` in the CSV meta line.
+>
+> R3 (rpi2, the 2nd unit) is the first run with auto-recorded platform metadata
+> (`device=rpi2` in the CSV `#` meta line). Same deadline (21.33 ms). Tabs unknown
+> (`?`). No thermal throttling observed — a key hardware difference from rpi1.
 
 > `Dropped` (audio blocks) and `Missed` (beat detections) are required by the
 > Low-Latency QA but not yet instrumented — shown as `—`. See backlog % in the
@@ -192,24 +197,106 @@ thermal throttling. **This run is the baseline for all future RPi experiments.**
 
 </details>
 
+<details>
+<summary><b>R3</b> — 2026-06-15 · rpi2 (2nd unit) · 48 kHz · auto-metadata build — E2E avg 57.2 / max 208.9 ms · <b>marginal real-time FAIL (4.4 % overruns)</b></summary>
+
+**Context**: RPi 2nd unit (rpi2), first run with platform auto-metadata
+(`platform=debian kernel=linux host=lg1 device=rpi2 sample_rate=48000`).
+Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48000). Files:
+[csv](../../src/logs/EXP-02/log_20260615_152751.csv) ·
+[plot](../../src/logs/EXP-02/log_20260615_152751.png) ·
+[sys plot](../../src/logs/EXP-02/log_20260615_152751_sys.png).
+
+**Per-frame metrics (1288 frames), ms:**
+
+| Metric | avg | max | min |
+|--------|----:|----:|----:|
+| total = ①+② | 57.23 | 208.92 | 0.16 |
+| ① wait | 42.07 | 186.93 | 0.03 |
+| ② exec | 15.17 | 26.04 | 0.12 |
+| ┄ copy | 0.011 | 0.041 | 0.006 |
+| ┄ sound | 0.367 | 8.131 | 0.000 |
+| ┄ tg | 1.973 | 7.535 | 0.063 |
+| ┄ ui | 0.490 | 6.933 | 0.000 |
+| ┄ plot (dominant) | 12.322 | 19.109 | 0.025 |
+
+**Throughput / health:** bg_fps avg 46.9 (max 47.4), fg_fps avg 38.5 (max 42.1),
+bg_sps avg 48041. samples avg 1245 (≈ SPF 1024). exec > deadline: **57 / 1288 (4.4 %)**.
+backlog (>1.5× SPF): **273 / 1288 (21.2 %)**.
+
+**System (rpi2):** cpu_total ~28 % avg but **cpu3 pinned at ~99 %**; temp avg
+**60.3 °C** (max 61.1 °C), **throttled 0 / 12 samples** (no throttling); mem
+~1120 MB used / 16 GB total; freq 2400 MHz.
+
+![R3 sys](../../src/logs/EXP-02/log_20260615_152751_sys.png)
+
+**Observations:**
+
+| Phase | Pattern | Interpretation |
+|-------|---------|----------------|
+| Startup (0–100) | samples↑, exec↑ to ~20 ms | warmup / initial backlog drain |
+| Steady (100+) | exec avg ~15 ms, occasional spikes to ~26 ms | load stable; `plot` ~12 ms is the dominant cost |
+| Deadline overruns | 4.4 % of frames | structural but sporadic — not every frame fails |
+
+**Conclusion:**
+
+- Dramatically better than R2 (rpi1): E2E avg **57 ms** vs 255 ms (−78 %), exec avg
+  **15.2 ms** vs 20.2 ms (−25 %), exec overruns **4.4 %** vs 43 % (−90 %).
+- Root cause of improvement: **no thermal throttling** (60 °C vs 85 °C on rpi1).
+  rpi2 runs consistently at 2400 MHz while rpi1 was throttled for the entire run.
+- Still structurally failing: exec avg 15 ms with `plot` dominating at 12 ms. Max
+  exec 26 ms exceeds the 21.33 ms deadline, and 4.4 % overruns remain.
+- `plot` remains the dominant bottleneck on both units — lazy / throttled rendering
+  is still required regardless of hardware unit.
+- **16 GB RAM** (vs rpi1's smaller capacity) — memory pressure not a factor on rpi2.
+
+</details>
+
+### R2 vs R3 Comparison (rpi1 vs rpi2)
+
+| Metric | R2 · rpi1 | R3 · rpi2 | Change |
+|--------|----------:|----------:|:------:|
+| E2E avg / max (ms) | 255.4 / 900.9 | 57.2 / 208.9 | −78 % / −77 % |
+| ① wait avg (ms) | 235.2 | 42.1 | −82 % |
+| ② exec avg / max (ms) | 20.2 / 62.5 | 15.2 / 26.0 | −25 % / −58 % |
+| plot avg (ms) | 16.0 | 12.3 | −23 % |
+| exec > deadline (21.3 ms) | 441/1015 **(43 %)** | 57/1288 **(4.4 %)** | −90 % |
+| backlog (>1.5× SPF) | 312/1015 | 273/1288 | fewer absolute |
+| bg_fps avg | 43.5 | 46.9 | +8 % |
+| fg_fps avg | 31.2 | 38.5 | +23 % |
+| CPU pinned core | cpu2 ~91 % | cpu3 ~99 % | same pattern |
+| SoC temp avg | **84.7 °C** | **60.3 °C** | −29 °C |
+| Thermal throttle | **10/10 samples** | **0/12 samples** | eliminated |
+| RAM (used / total) | ~1651 MB / ? | ~1120 MB / 16 GB | more headroom |
+
+**Key finding:** The performance gap between rpi1 and rpi2 is primarily explained by
+thermal throttling. rpi2 sustains 2400 MHz throughout while rpi1 was throttled
+from the start. The `plot` bottleneck (~12–16 ms) is structural and present on both
+units — lazy rendering remains the required fix regardless of which unit is used.
+
+---
+
 ### Current Best
 
-**Baseline — R2 (rpi1, target platform): real-time FAIL** ⚠
-- E2E: mean **255 ms** / worst **901 ms** at 28,800 BPH, 48 kHz
-- ② exec mean **20 ms** overruns the **21 ms** deadline **43 %** of frames
-  (0/2104 on Windows by contrast) — processing itself cannot keep up
-- `plot` alone ≈ **16 ms** (≈20× the Windows dev machine)
-- one core saturated (cpu2 ~92 %) while the others idle; SoC **thermally
-  throttled** (85 °C) for the entire run; mem ~1.65 GB
-- Root causes (structural): heavy `plot`, single-core audio path, thermal throttle
+**R3 (rpi2, 2nd unit): marginal real-time FAIL — 4.4 % overruns, no throttling** ⚠
+- E2E: mean **57 ms** / worst **209 ms** at 28,800 BPH, 48 kHz
+- ② exec mean **15.2 ms** overruns the **21.3 ms** deadline **4.4 %** of frames
+  (max 26 ms) — structurally failing but far less than rpi1 (43 %)
+- `plot` alone ≈ **12.3 ms** — dominant bottleneck on both units
+- one core saturated (cpu3 ~99 %) while others idle; SoC **stable at 60 °C, no
+  throttling** throughout; mem ~1.12 GB used / 16 GB total
+- Root causes (structural): heavy `plot`, single-core audio path
 - Improvement directions for QAS-2: **lazy / throttled rendering**, off-load
-  `plot` from the audio path, multi-core distribution, cooling
+  `plot` from the audio path, multi-core distribution
+
+> rpi1 baseline (R2) for comparison: E2E avg 255 ms, exec 43 % overruns,
+> throttled at 85 °C — thermal throttling was a major compounding factor on rpi1.
 
 > Windows dev reference (R1): E2E avg 2.8 ms, exec never exceeds the 10 ms
 > deadline — confirms the bottleneck is the Pi, not the algorithm.
 
-- **Dominant cost on target (RPi)**: `exec` (`plot` ~16 ms) + resulting backlog
-- **Lazy Rendering required**: **Yes** (RPi exec overruns the deadline)
+- **Dominant cost on target (RPi)**: `exec` (`plot` ~12 ms) + resulting backlog
+- **Lazy Rendering required**: **Yes** (exec still overruns deadline even on rpi2)
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
 
 ---
