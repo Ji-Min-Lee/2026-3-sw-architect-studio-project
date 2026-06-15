@@ -217,6 +217,7 @@ target_include_directories(TestGraphTabs PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external
     ${CMAKE_CURRENT_SOURCE_DIR}/tabs
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/logging
 )
 target_link_libraries(TestGraphTabs PRIVATE
     Qt${QT_VERSION_MAJOR}::Test
@@ -244,6 +245,7 @@ target_include_directories(TestAddedTabs PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external
     ${CMAKE_CURRENT_SOURCE_DIR}/tabs
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/logging
 )
 target_link_libraries(TestAddedTabs PRIVATE
     Qt${QT_VERSION_MAJOR}::Test
@@ -354,6 +356,7 @@ target_include_directories(TestRemainingTabs PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external
     ${CMAKE_CURRENT_SOURCE_DIR}/tabs
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/logging
 )
 target_link_libraries(TestRemainingTabs PRIVATE
     Qt${QT_VERSION_MAJOR}::Test
