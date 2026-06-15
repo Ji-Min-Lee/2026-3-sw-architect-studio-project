@@ -64,6 +64,7 @@ private:
     QProgressBar     *mPeakBar = nullptr;
     QButtonGroup     *mModeGroup = nullptr;
     QDoubleSpinBox   *mWindowSpin = nullptr;
+    QCheckBox        *mAutoScaleCheck = nullptr;
 
     ViewMode mViewMode = ViewMode::Seconds;
 

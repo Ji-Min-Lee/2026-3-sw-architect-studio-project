@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QComboBox>
+#include <QDateTime>
 
 // Graph 6: Multi-Position Sequence Display
 // (Witschi Chronoscope X1 G3 manual p.15, project plan Figure 10).
@@ -43,4 +44,5 @@ private:
     Measurement   mLatest;
     bool          mHaveLatest     = false;
     QString       mActivePosition = "CH";
+    QDateTime     mCapturedAt[10];
 };

@@ -26,7 +26,7 @@ void RateScopeTab::setupPlots()
     mScopePlot->legend->setVisible(true);
     mScopePlot->legend->setFont(legendFont);
     mScopePlot->yAxis->setLabel("Amplitude");
-    mScopePlot->xAxis->setLabel("Time");
+    mScopePlot->xAxis->setLabel("Time (ms)");
     mScopePlot->yAxis->setRange(0, 0.1);
     mScopePlot->xAxis->setTickLabels(false);
     mScopePlot->clearGraphs();
@@ -43,8 +43,8 @@ void RateScopeTab::setupPlots()
 
     mRatePlot->legend->setVisible(true);
     mRatePlot->legend->setFont(legendFont);
-    mRatePlot->yAxis->setLabel("Rate Error (milliseconds)");
-    mRatePlot->xAxis->setLabel("Time");
+    mRatePlot->yAxis->setLabel("Timing offset (ms)");
+    mRatePlot->xAxis->setLabel("Beat index");
     mRatePlot->yAxis->setRange(-ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
     mRatePlot->xAxis->setRange(0, mMaxPoints);
     mRatePlot->xAxis->setTickLabels(false);

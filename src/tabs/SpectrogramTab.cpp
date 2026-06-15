@@ -66,6 +66,8 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
     mWindowSpin->setSuffix(QStringLiteral(" s"));
     mWindowSpin->setFixedWidth(90);
     controls->addWidget(mWindowSpin);
+    mAutoScaleCheck = new QCheckBox(tr("Auto-scale dB"), this);
+    controls->addWidget(mAutoScaleCheck);
     controls->addStretch(1);
     lay->addLayout(controls);
 
@@ -128,6 +130,10 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
         mPeakDbLabel->setVisible(on);
         mPeakBar->setVisible(on);
     });
+    connect(mAutoScaleCheck, &QCheckBox::toggled, this, [this](bool) {
+        updateColorRange();
+        if (!mPaused) mPlot->replot(QCustomPlot::rpQueuedReplot);
+    });
 }
 
 QCPColorGradient SpectrogramTab::spectrogramGradient()
@@ -147,10 +153,14 @@ QCPColorGradient SpectrogramTab::spectrogramGradient()
 
 void SpectrogramTab::updateColorRange()
 {
-    // Fixed scale per Figure 16 — do not auto-scale (prevents flat yellow/red)
-    const QCPRange range(kDbMin, kDbMax);
-    mMap->setDataRange(range);
-    mScale->setDataRange(range);
+    if (mAutoScaleCheck && mAutoScaleCheck->isChecked()) {
+        mMap->rescaleDataRange(true);
+        mScale->setDataRange(mMap->dataRange());
+    } else {
+        const QCPRange range(kDbMin, kDbMax);
+        mMap->setDataRange(range);
+        mScale->setDataRange(range);
+    }
 }
 
 SpectrogramTab::~SpectrogramTab()

@@ -53,7 +53,7 @@ TraceTab::TraceTab(QWidget *parent)
     mPlot->xAxis->setLabel("Time (s)");
     mPlot->yAxis->setLabel("Rate Error (s/day)");
     mPlot->yAxis->setRange(kRateSpanLo, kRateSpanHi);
-    mPlot->legend->setVisible(true);
+    mPlot->legend->setVisible(false);
     mPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
     // Bottom rect: amplitude with normal band
@@ -77,13 +77,6 @@ TraceTab::TraceTab(QWidget *parent)
     band->bottomRight->setCoords(1.0, kAmpBandLo);
     band->setBrush(QBrush(QColor(120, 220, 120, 80)));
     band->setPen(Qt::NoPen);
-
-    // Legend in its own row above the graphs so it never covers the trace
-    mPlot->axisRect()->insetLayout()->take(mPlot->legend);
-    mPlot->plotLayout()->insertRow(0);
-    mPlot->plotLayout()->addElement(0, 0, mPlot->legend);
-    mPlot->legend->setFillOrder(QCPLegend::foColumnsFirst);  // entries side by side
-    mPlot->plotLayout()->setRowStretchFactor(0, 0.001);
 
     connect(mZoomCombo, qOverload<int>(&QComboBox::currentIndexChanged),
             this, [this](int) { if (!mPaused) { updateRanges(); mPlot->replot(); } });

@@ -7,11 +7,14 @@ LongTermTab::LongTermTab(QWidget *parent) : BaseGraphTab(parent)
     mPlot = new QCustomPlot(this);
     auto *lay = new QVBoxLayout(this);
     lay->setContentsMargins(0, 0, 0, 0);
-    lay->addWidget(mPlot);
+    mSummaryLabel = new QLabel("—", this);
+    mSummaryLabel->setAlignment(Qt::AlignHCenter);
+    lay->addWidget(mSummaryLabel);
+    lay->addWidget(mPlot, 1);
     setLayout(lay);
 
     mPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    mPlot->legend->setVisible(true);
+    mPlot->legend->setVisible(false);
 
     mRate = makeSeries(0, "Rate (s/d)",      QColor(170, 30, 90), true);
     mAmp  = makeSeries(1, "Amplitude (°)",   QColor(40, 70, 200), false);
@@ -129,6 +132,7 @@ void LongTermTab::reset()
     }
     mTimeElapsed = 0.0;
     mBucketSize  = 1;
+    mSummaryLabel->setText("—");
     mPlot->replot();
 }
 
@@ -147,6 +151,19 @@ void LongTermTab::onMeasurement(const Measurement &m)
     else if (mTimeElapsed > 1800) newBucket = 30;  // > 30 min
     else if (mTimeElapsed > 300)  newBucket = 10;  // > 5 min
     mBucketSize = newBucket;
+
+    // Update summary header
+    {
+        auto fmt = [](const Series &s, int dec) {
+            return s.n ? QString::number(s.mean(), 'f', dec) : QString("—");
+        };
+        QString granularity = (mBucketSize == 1)
+            ? "live"
+            : QString("%1 meas/pt").arg(mBucketSize);
+        mSummaryLabel->setText(
+            QString("Rate: %1 s/d   Amp: %2°   Beat: %3 ms   |   Granularity: %4")
+                .arg(fmt(mRate, 1)).arg(fmt(mAmp, 0)).arg(fmt(mBeat, 2)).arg(granularity));
+    }
 
     if (mPaused || !isVisible()) return;
     // Rescale X only on the primary axis — linked axes follow automatically.

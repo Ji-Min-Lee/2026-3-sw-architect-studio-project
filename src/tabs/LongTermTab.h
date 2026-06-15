@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseGraphTab.h"
 #include "qcustomplot.h"
+#include <QLabel>
 
 // Graph 8: Long-Term Performance Graph (project plan Figure 14).
 //
@@ -43,6 +44,7 @@ private:
     void   updateOverlay(Series &s);
 
     QCustomPlot *mPlot;
+    QLabel      *mSummaryLabel = nullptr;
     Series mRate, mAmp, mBeat;
     double mTimeElapsed = 0.0;
     int    mBucketSize  = 1;     // measurements per plotted point

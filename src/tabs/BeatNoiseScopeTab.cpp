@@ -15,7 +15,7 @@ BeatNoiseScopeTab::BeatNoiseScopeTab(QWidget *parent) : BaseGraphTab(parent)
 
     auto *controls = new QHBoxLayout;
     mViewCombo  = new QComboBox(this);
-    mViewCombo->addItems({"Scope 1", "Scope 2"});
+    mViewCombo->addItems({"Single Beat", "Averaged Tic/Toc"});
     mRangeCombo = new QComboBox(this);
     mRangeCombo->addItems({"20 ms", "200 ms", "400 ms"});
     mBeatCombo  = new QComboBox(this);
@@ -72,11 +72,24 @@ BeatNoiseScopeTab::BeatNoiseScopeTab(QWidget *parent) : BaseGraphTab(parent)
     mTocGraph2 = mPlot2->addGraph(tocRect->axis(QCPAxis::atBottom), tocRect->axis(QCPAxis::atLeft));
     mTicGraph2->setPen(QPen(QColor(180, 140, 0)));
     mTicGraph2->setBrush(QBrush(QColor(240, 200, 60, 120)));
+    mTicGraph2->setName("Tic");
     mTocGraph2->setPen(QPen(QColor(180, 140, 0)));
     mTocGraph2->setBrush(QBrush(QColor(240, 200, 60, 120)));
+    mTocGraph2->setName("Toc");
     ticRect->axis(QCPAxis::atLeft)->setLabel("|Amplitude|");
     tocRect->axis(QCPAxis::atLeft)->setLabel("|Amplitude|");
     tocRect->axis(QCPAxis::atBottom)->setLabel("Time (ms)");
+
+    // Per-rect inset legends to label each subplot
+    auto addInsetLegend = [&](QCPAxisRect *rect, QCPGraph *g) {
+        auto *leg = new QCPLegend;
+        rect->insetLayout()->addElement(leg, Qt::AlignTop | Qt::AlignRight);
+        leg->setLayer("legend");
+        leg->addItem(new QCPPlottableLegendItem(leg, g));
+        leg->setMargins(QMargins(4, 4, 4, 4));
+    };
+    addInsetLegend(ticRect, mTicGraph2);
+    addInsetLegend(tocRect, mTocGraph2);
     mStack->addWidget(mPlot2);
 
     lay->addWidget(mStack, 1);

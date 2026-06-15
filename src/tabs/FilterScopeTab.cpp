@@ -7,10 +7,10 @@ constexpr int    kMovingAvgWin = 32;
 constexpr double kFallDecay    = 0.85;
 
 const char *kPanelTitles[] = {
-    "F0 — raw mirrored",
-    "F1 — moving average",
-    "F2 — rising emphasis",
-    "F3 — upper + rising",
+    "Raw",
+    "Smoothed",
+    "Envelope",
+    "Upper Envelope",
 };
 } // namespace
 

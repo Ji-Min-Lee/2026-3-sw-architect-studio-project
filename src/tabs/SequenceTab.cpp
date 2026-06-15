@@ -90,8 +90,13 @@ void SequenceTab::captureCurrent()
     int row = rowOfPosition(mActivePosition);
     if (row < 0) return;
 
+    mCapturedAt[row] = QDateTime::currentDateTime();
+    QString ts = mCapturedAt[row].toString("HH:mm:ss");
+
     auto set = [&](int col, bool valid, double v, int dec) {
-        mTable->item(row, col)->setText(valid ? QString::number(v, 'f', dec) : "—");
+        auto *it = mTable->item(row, col);
+        it->setText(valid ? QString::number(v, 'f', dec) : "—");
+        it->setToolTip("Captured at " + ts);
     };
     set(kColRate, mLatest.rateValid,      mLatest.rateErrorSpd, 1);
     set(kColBeat, mLatest.beatErrorValid, mLatest.beatErrorMs,  1);
@@ -153,8 +158,12 @@ void SequenceTab::recomputeSummary()
 void SequenceTab::reset()
 {
     for (int r = 0; r < mTable->rowCount(); r++)
-        for (int c = 0; c < 3; c++)
+        for (int c = 0; c < 3; c++) {
             mTable->item(r, c)->setText("—");
+            mTable->item(r, c)->setToolTip({});
+        }
+    for (int r = 0; r < kPositions.size(); r++)
+        mCapturedAt[r] = QDateTime{};
     mHaveLatest = false;
     recomputeSummary();
 }
