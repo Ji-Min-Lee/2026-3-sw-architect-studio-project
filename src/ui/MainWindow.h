@@ -152,6 +152,7 @@ private:
 
     // Per-frame performance logger (active only when ENABLE_LOGGING is defined)
     Logger   *mLogger = nullptr;
+    int       mLastReplotCount = 0;
 
     int       mAvalableRates[5];
     int       mNumberofRates        = 0;

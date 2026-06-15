@@ -53,6 +53,7 @@ public:
         int64_t tg_us    = 0;   // MeasurementEngine::processBlock()
         int64_t ui_us    = 0;   // onMeasurementReady() / DisplayResults
         int64_t plot_us  = 0;   // unused in feature/layer (tabs are async)
+        int     replot_count = 0; // number of replot() calls this beat (R1 measurement)
         // throughput snapshots (~every 2s)
         double  bg_fps = 0, bg_sps = 0, bg_spf = 0;
         double  fg_fps = 0, fg_sps = 0, fg_spf = 0;

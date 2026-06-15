@@ -22,6 +22,7 @@ public:
     QCustomPlot *plot() const { return mPlot; }
 public slots:
     void onMeasurement(const Measurement &m) override;
+    void replotAll() override;
 private:
     void updateHeader(const Measurement &m);
 

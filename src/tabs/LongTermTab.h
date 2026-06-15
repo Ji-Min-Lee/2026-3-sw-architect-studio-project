@@ -18,6 +18,7 @@ public:
     void reset() override;
 public slots:
     void onMeasurement(const Measurement &m) override;
+    void replotAll() override;
 private:
     struct Series {
         QCPGraph    *graph    = nullptr;

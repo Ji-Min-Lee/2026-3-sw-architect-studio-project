@@ -1,4 +1,5 @@
 #include "RateScopeTab.h"
+#include "ReplotCounter.h"
 #include <QDebug>
 
 #define ERROR_RATE_Y_SCALE    10
@@ -76,6 +77,8 @@ void RateScopeTab::reset()
 
 void RateScopeTab::onMeasurement(const Measurement &m)
 {
+    if (!isVisible()) return;
+
     for (int i = 0; i < m.pcm.size(); i++) {
         uint64_t tick = m.graphTickStart + i;
         mScopePlot->graph(0)->addData((double)tick, m.pcm[i]);
@@ -104,6 +107,7 @@ void RateScopeTab::onMeasurement(const Measurement &m)
                 else { yv[idx] = ev.wrappedRateError; }
                 idx = (idx + 1) % mMaxPoints;
                 mRatePlot->graph(g)->setData(xv, yv);
+                g_replotCount++;
                 mRatePlot->replot(QCustomPlot::rpQueuedReplot);
             }
         } else {
@@ -125,7 +129,13 @@ void RateScopeTab::onMeasurement(const Measurement &m)
     double divisor = (mScopeScale > 0) ? mScopeScale : 4;
     mScopePlot->xAxis->setRange((double)m.graphTickEnd, m.samplesPerSecond / divisor, Qt::AlignRight);
     mScopePlot->yAxis->rescale();
+    g_replotCount++;
     mScopePlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void RateScopeTab::replotAll()
+{
+    mRatePlot->replot(); mScopePlot->replot();
 }
 
 void RateScopeTab::purgeScopeHistory(int sps)
