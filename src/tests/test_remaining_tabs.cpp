@@ -227,41 +227,35 @@ private slots:
     void init()   { mTab = new FilterScopeTab; }
     void cleanup(){ delete mTab; mTab = nullptr; }
 
-    QCustomPlot *plot()
+    // Returns the QCustomPlot for panel i (0=F0, 1=F1, 2=F2, 3=F3)
+    QCustomPlot *plot(int i = 0)
     {
-        return mTab->findChild<QCustomPlot*>();
-    }
-
-    QComboBox *combo()
-    {
-        return mTab->findChild<QComboBox*>();
+        return mTab->findChildren<QCustomPlot*>().value(i);
     }
 
     // FS-1: F0 output size equals input size
     void f0_outputSizeMatchesInput()
     {
-        combo()->setCurrentIndex(0);
         const int n = 256;
         Measurement m;
         m.samplesPerSecond = 48000;
         m.rawPcm.fill(1.0f, n);
         mTab->show(); // make visible so redraw fires
         mTab->onMeasurement(m);
-        QCOMPARE(plot()->graph(0)->dataCount(), n);
+        QCOMPARE(plot(0)->graph(0)->dataCount(), n);
     }
 
     // FS-2: F0 produces mirrored negative series on graph(1)
     void f0_mirroredGraph1HasData()
     {
-        combo()->setCurrentIndex(0);
         Measurement m;
         m.samplesPerSecond = 48000;
         m.rawPcm.fill(2.0f, 64);
         mTab->show();
         mTab->onMeasurement(m);
-        QVERIFY(plot()->graph(1)->dataCount() > 0);
+        QVERIFY(plot(0)->graph(1)->dataCount() > 0);
         // graph(1) values should be <= 0
-        auto data = plot()->graph(1)->data();
+        auto data = plot(0)->graph(1)->data();
         for (auto it = data->begin(); it != data->end(); ++it)
             QVERIFY(it->value <= 0.0);
     }
@@ -269,43 +263,40 @@ private slots:
     // FS-3: F1 output has no negative values (moving average of |.|)
     void f1_allValuesNonNegative()
     {
-        combo()->setCurrentIndex(1);
         Measurement m;
         m.samplesPerSecond = 48000;
         // varying signal
         for (int i = 0; i < 128; i++) m.rawPcm.append((float)(i % 10 - 5));
         mTab->show();
         mTab->onMeasurement(m);
-        auto data = plot()->graph(0)->data();
+        auto data = plot(1)->graph(0)->data();
         QVERIFY(data->size() > 0);
         for (auto it = data->begin(); it != data->end(); ++it)
             QVERIFY(it->value >= 0.0);
     }
 
-    // FS-4: F1 graph(1) is empty (no mirror for non-F0 modes)
+    // FS-4: F1 negGraph is empty (F1 is a positive-only envelope, not mirrored)
     void f1_graph1IsEmpty()
     {
-        combo()->setCurrentIndex(1);
         Measurement m;
         m.samplesPerSecond = 48000;
         m.rawPcm.fill(1.0f, 64);
         mTab->show();
         mTab->onMeasurement(m);
-        QCOMPARE(plot()->graph(1)->dataCount(), 0);
+        QCOMPARE(plot(1)->graph(1)->dataCount(), 0);
     }
 
-    // FS-5: reset() clears both graph series
+    // FS-5: reset() clears both graph series on F0 panel
     void reset_clearsBothGraphs()
     {
-        combo()->setCurrentIndex(0);
         Measurement m;
         m.samplesPerSecond = 48000;
         m.rawPcm.fill(1.0f, 64);
         mTab->show();
         mTab->onMeasurement(m);
         mTab->reset();
-        QCOMPARE(plot()->graph(0)->dataCount(), 0);
-        QCOMPARE(plot()->graph(1)->dataCount(), 0);
+        QCOMPARE(plot(0)->graph(0)->dataCount(), 0);
+        QCOMPARE(plot(0)->graph(1)->dataCount(), 0);
     }
 
 private:
