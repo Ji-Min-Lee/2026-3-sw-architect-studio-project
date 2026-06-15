@@ -76,6 +76,8 @@ void RateScopeTab::reset()
 
 void RateScopeTab::onMeasurement(const Measurement &m)
 {
+    if (mPaused) return;
+
     for (int i = 0; i < m.pcm.size(); i++) {
         uint64_t tick = m.graphTickStart + i;
         mScopePlot->graph(0)->addData((double)tick, m.pcm[i]);
