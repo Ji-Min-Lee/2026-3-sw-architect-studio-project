@@ -93,7 +93,8 @@ do_run() {
         exit 1
     fi
     echo "[run] launching TimeGrapher..."
-    sudo DISPLAY=:0 XAUTHORITY=/home/lg/.Xauthority "$BIN"
+    sudo DISPLAY=:0 XAUTHORITY=/home/lg/.Xauthority \
+         XDG_RUNTIME_DIR=/run/user/1000 QT_QPA_PLATFORM=xcb "$BIN"
 }
 
 # ── Dispatch ──────────────────────────────────────────────────

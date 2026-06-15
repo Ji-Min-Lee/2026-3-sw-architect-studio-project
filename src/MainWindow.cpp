@@ -54,6 +54,7 @@ static QString RenameAudioDevices[][2] =
   {"USB PnP Sound Device",        PREF_NAME_WELSHI},
   {"C-Media USB Headphone Set",   PREF_NAME_CHINESE_GENERIC},
   {"CM108 Audio Controller Mono", PREF_NAME_WELSHI},
+  {"CM108 Audio Controller Pro",  PREF_NAME_WELSHI},
   {"Audio Adapter Mono",          PREF_NAME_CHINESE_GENERIC}
 };
 
