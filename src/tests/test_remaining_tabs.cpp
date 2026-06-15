@@ -157,6 +157,7 @@ private slots:
     {
         Measurement m = makePcmMeas(480, 0.5f);
         m.synced = true; m.detectedBph = 28800;
+        mTab->show();
         mTab->onMeasurement(m);
         auto *plot = mTab->findChild<QCustomPlot*>();
         QVERIFY(plot != nullptr);
@@ -177,6 +178,7 @@ private slots:
         Measurement m = makeMeas(0, 270, 0, sps, bph);
         m.pcm.fill(1.0, 480);
         m.rawPcm.fill(1.0f, 480);
+        mTab->show();
         mTab->onMeasurement(m);
 
         auto *plot = mTab->findChild<QCustomPlot*>();
