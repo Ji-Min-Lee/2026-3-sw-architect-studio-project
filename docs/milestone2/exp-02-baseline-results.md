@@ -302,19 +302,47 @@ Key observations:
 
 | 전술 / Tactic | 시사점 / Implication |
 |--------------|---------------------|
-| R1 Lazy Render (active tab only) | plot_ms가 이미 0 → QueuedConnection으로 효과 달성됨. RPi에서 추가 이득 있을 수 있음 |
-| R2 Timer-Decoupled Render | 마찬가지로 이미 분리됨. FPS 제어 목적으로는 유효 |
-| T1 SCHED_RR + CPU Affinity | wait_ms 감소 효과 기대. 오디오 스레드 우선순위 고정 → backlog 감소 |
+| R1 Lazy Render (active tab only) | ✅ **macOS 검증 완료** — replot 75~85% 감소. RPi R5에서 실측 예정 |
+| R2 Timer-Decoupled Render | macOS에서는 spike 미관찰 → 현재 불필요. RPi R5에서 replot_count spike 또는 UI 프리즈 관찰 시 적용 검토 |
+| T1 SCHED_RR + CPU Affinity | Linux-only. RPi R6에서 T2+R1 위에 추가 적용 예정 |
 | T2 DSP Offload Thread | ✅ **macOS 검증 완료** — wait_ms ×32,000 감소, backlog 0%. RPi에서도 동일 효과 기대 |
 
 **English**
 
 | 전술 / Tactic | 시사점 / Implication |
 |--------------|---------------------|
-| R1 Lazy Render (active tab only) | plot_ms already 0 via QueuedConnection — design goal achieved. May yield additional gain on RPi |
-| R2 Timer-Decoupled Render | Rendering already decoupled. Valid for FPS rate control |
-| T1 SCHED_RR + CPU Affinity | Linux-only; skip macOS; apply on RPi in combination with T2 |
+| R1 Lazy Render (active tab only) | ✅ **macOS validated** — 75–85% replot reduction. RPi measurement planned in R5 |
+| R2 Timer-Decoupled Render | No spike observed on macOS → not needed now. Revisit if RPi R5 shows replot_count spikes or UI freeze |
+| T1 SCHED_RR + CPU Affinity | Linux-only. Planned for RPi R6 on top of T2+R1 |
 | T2 DSP Offload Thread | ✅ **macOS validated** — wait_ms ×32,000 reduction, backlog 0%. Same effect expected on RPi |
+
+### R2 적용 판단 기준 / R2 Trigger Criteria (RPi R5 관찰 시)
+
+**한국어**
+
+RPi R5 측정 후 아래 조건 중 하나라도 해당하면 R2(Timer-Decoupled 20FPS) 적용을 검토한다.
+
+| 관찰 항목 | 임계값 | 비고 |
+|----------|--------|------|
+| replot_count 분포 | 순간 max > 20 (burst) | showEvent catch-up이 한 프레임에 몰리는 경우 |
+| exec_ms spike | tab 전환 직후 프레임 > deadline×2 | catch-up replot이 exec path에 영향을 주는 경우 |
+| UI 프리즈 체감 | 탭 전환 시 >200ms 응답 지연 | singleShot(0) 지연으로도 해소 안 되는 경우 |
+| replot_count avg | RPi에서 R1 효과가 macOS보다 작을 때 | (예: avg > 5 → R2의 FPS 고정이 더 유리) |
+
+조건 미충족 시 R2는 Skip하고 T1(SCHED_RR) 적용(R6)으로 진행한다.
+
+**English**
+
+Apply R2 (Timer-Decoupled 20FPS) after RPi R5 if any of the following is observed:
+
+| Observation | Threshold | Note |
+|-------------|-----------|------|
+| replot_count distribution | instantaneous max > 20 (burst) | catch-up replots concentrated in one frame |
+| exec_ms spike | frame after tab switch > deadline×2 | catch-up replot leaking into exec path |
+| UI freeze | >200ms response lag on tab switch | singleShot(0) deferral insufficient |
+| replot_count avg | R1 less effective on RPi than macOS | (e.g., avg > 5 → fixed FPS cap more beneficial) |
+
+If none triggered, skip R2 and proceed to T1 (SCHED_RR) in R6.
 
 ---
 
@@ -329,6 +357,7 @@ Key observations:
 | macOS R3 | T2+R1 Lazy Rendering · Scenario A (1탭 고정) 측정 | ✅ 완료 |
 | macOS R4 | T2+R1 Lazy Rendering · Scenario B (탭 전환) 측정 | ✅ 완료 |
 | RPi R5 | T2+R1 브랜치 그대로 RPi 측정 → exec_ms + replot_count RPi 기준선 확보 | ⏳ 다음 |
+| RPi R5 판단 | R2 적용 기준(§8 표) 확인 → spike 없으면 Skip, 있으면 R2 적용 후 재측정 | 📅 예정 |
 | RPi R6 | T1 (SCHED_RR + CPU Affinity) 추가 적용 후 RPi 재측정 | 📅 예정 |
 
 **English**
@@ -340,6 +369,7 @@ Key observations:
 | macOS R3 | T2+R1 Lazy Rendering · Scenario A (1 tab fixed) | ✅ Done |
 | macOS R4 | T2+R1 Lazy Rendering · Scenario B (tab switching) | ✅ Done |
 | RPi R5 | Run T2+R1 branch on RPi → establish RPi exec_ms + replot_count baseline | ⏳ Next |
+| RPi R5 decision | Check R2 trigger criteria (§8 table) → skip if no spike, apply R2 if triggered | 📅 Planned |
 | RPi R6 | Add T1 (SCHED_RR + CPU Affinity) and re-measure on RPi | 📅 Planned |
 
 ---
