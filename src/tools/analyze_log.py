@@ -147,6 +147,14 @@ if "buffer_pct" not in rt:
 if "block_drops" not in rt:
     rt["block_drops"] = [0.0] * n
 
+# Cumulative block_drops: running total — goes up (우상향) each time drops occur
+raw_drops = cols.get("block_drops", [0.0] * n)
+cumulative_drops = []
+acc = 0
+for d in raw_drops:
+    acc += d
+    cumulative_drops.append(acc)
+
 # Layout: 5 full-width overview panels + a bottom row of 3 per-frame
 # horizontal breakdowns (e2e / wait / exec).
 fig = plt.figure(figsize=(14, 20))
@@ -191,14 +199,15 @@ ax[3].set_ylabel("samples/sec")
 ax[3].set_title("BG vs FG SPS (rolling avg)")
 ax[3].legend(loc="upper left", fontsize=8); ax[3].grid(True, alpha=0.3)
 
-# 5) Buffer usage + block drops
+# 5) Buffer fill % (per-frame spike) + cumulative block drops (우상향)
 ax4r = ax[4].twinx()
-ax[4].plot(x, rt["buffer_pct"], label="buffer %", color="teal", linewidth=1.2)
-ax[4].axhline(y=100, color="teal", linestyle="--", alpha=0.4, linewidth=0.8, label="100%")
+raw_buf_pct = cols.get("buffer_pct", [0.0] * n)
+ax[4].plot(x, raw_buf_pct, label="buffer % (raw)", color="teal", linewidth=0.7, alpha=0.8)
+ax[4].axhline(y=100, color="red", linestyle="--", alpha=0.6, linewidth=0.9, label="100% full → drops")
 ax[4].set_ylim(0, 110); ax[4].set_ylabel("buffer fill %")
-ax4r.plot(x, rt["block_drops"], label="block drops", color="red", linewidth=1.0, alpha=0.8)
-ax4r.set_ylabel("block drops (rolling avg)")
-ax[4].set_title("Buffer fill % + Block drops (rolling avg)")
+ax4r.plot(x, cumulative_drops, label="cumulative drops", color="red", linewidth=1.2)
+ax4r.set_ylabel("cumulative block drops (samples)")
+ax[4].set_title("Buffer fill % (per-frame) + Cumulative block drops")
 ax[4].set_xlabel("frame")
 ax[4].legend(loc="upper left", fontsize=8); ax4r.legend(loc="upper right", fontsize=8)
 ax[4].grid(True, alpha=0.3)
