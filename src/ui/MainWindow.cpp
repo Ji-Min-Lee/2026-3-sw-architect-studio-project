@@ -148,16 +148,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->GraphicsTabWidget->addTab(mSweepScopeTab,     "Sweep");
     ui->GraphicsTabWidget->addTab(mFilterScopeTab,    "Filters");
 
-    // ── Watch-position selector (tab-bar corner) ─────────────────────────────
-    auto *corner = new QWidget(this);
-    auto *cornerLay = new QHBoxLayout(corner);
-    cornerLay->setContentsMargins(0, 0, 4, 0);
-    cornerLay->addWidget(new QLabel("Position:", corner));
-    mPositionCombo = new QComboBox(corner);
-    mPositionCombo->addItems(SequenceTab::positions());
-    cornerLay->addWidget(mPositionCombo);
-    ui->GraphicsTabWidget->setCornerWidget(corner, Qt::TopRightCorner);
-
     // ── Observer: register() — connect Model → Views (AP-4) ──────────────────
     mAllTabs = {mRateScopeTab, mTraceTab, mSoundPrintTab, mBeatErrorTab,
                 mVarioTab, mSequenceTab, mBeatNoiseScopeTab, mLongTermTab,
@@ -167,11 +157,8 @@ MainWindow::MainWindow(QWidget *parent)
         QObject::connect(mEngine, &MeasurementEngine::measurementReady,
                          tab, &BaseGraphTab::onMeasurement, Qt::QueuedConnection);
 
-    QObject::connect(mPositionCombo, &QComboBox::currentTextChanged,
-                     this, [this](const QString &pos) {
-                         mActivePosition = pos;
-                         mSequenceTab->setActivePosition(pos);
-                     });
+    QObject::connect(mSequenceTab, &SequenceTab::positionChanged,
+                     this, [this](const QString &pos) { mActivePosition = pos; });
 
     // Controller also subscribes to update Results label
     QObject::connect(mEngine, &MeasurementEngine::measurementReady,
