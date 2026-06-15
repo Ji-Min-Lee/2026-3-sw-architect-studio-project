@@ -26,7 +26,8 @@ void Logger::record(const Frame &f)
 {
     mFrames.push_back(f);   // cheap: memory only, no per-frame disk I/O
     if ((int)(mFrames.size() % mConsoleEvery) == 0) {
-        consoleSummary();
+        // Console summary removed: real-time qInfo() I/O skews timing measurements.
+        // All data is buffered and written to CSV at shutdown.
         SysSample s = mSys.sample();          // ~1x/window system snapshot
         if (s.valid)
             mSysSamples.emplace_back(mFrames.size(), s);
