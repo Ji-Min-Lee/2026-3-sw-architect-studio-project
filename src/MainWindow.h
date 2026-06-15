@@ -196,5 +196,11 @@ private:
     uint64_t                   mForegroundSampleCount=0;
     Logger                    *mLogger=nullptr;
 
+    // CLI automation flags (--autostart, --no-record, --rate N, --duration N)
+    bool                       mNoRecord=false;
+    bool                       mCmdAutoStart=false;
+    int                        mCmdRate=0;
+    int                        mCmdDurationSec=0;
+
 };
 #endif
