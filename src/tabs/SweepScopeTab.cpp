@@ -1,4 +1,5 @@
 #include "SweepScopeTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <cmath>
@@ -57,7 +58,7 @@ void SweepScopeTab::onMeasurement(const Measurement &m)
         mWriteIdx = (mWriteIdx + 1) % mSweep.size();
     }
 
-    if (mPaused) return;
+    if (mPaused || !isVisible()) return;
 
     mRefLabel->setText(QString("<b>DAILY RATE %1 s/d   AMPLITUDE %2°   BEAT ERROR %3 ms   %4 bph</b>")
                            .arg(m.rateValid ? QString::number(m.rateErrorSpd, 'f', 1) : "---",
@@ -86,8 +87,11 @@ void SweepScopeTab::redraw()
     mPlot->graph(0)->setData(xs, ys, true);
     mPlot->xAxis->setRange(0, (double)n / mSps * 1000.0);
     mPlot->yAxis->rescale();
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
+
+void SweepScopeTab::replotAll() { redraw(); }
 
 void SweepScopeTab::reset()
 {

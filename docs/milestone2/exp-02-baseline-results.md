@@ -105,10 +105,13 @@ Log is flushed to CSV every 100 frames (data preserved even on force-quit).
 
 ### 6.0 Run 이력 / Run History
 
-| Run | 날짜 / Date | 브랜치 / Branch | 전술 / Tactic | 플랫폼 / Platform | 프레임 / Frames | wait avg | exec avg | deadline miss | backlog |
-|:---:|------------|----------------|:------------:|:-----------------:|:--------------:|:--------:|:--------:|:-------------:|:-------:|
-| R1 | 2026-06-14 | feature/layer-ex-baseline | Baseline (main thread DSP) | macOS 96kHz | 2,900 | 419.92 ms | 0.57 ms | 0% | 47% |
-| R2 | 2026-06-14 | feature/layer-ex-baseline | **T2 DSP Offload Thread** | macOS 96kHz | 4,500 | **0.013 ms** | **0.40 ms** | 0% | **0%** |
+| Run | 날짜 / Date | 브랜치 / Branch | 전술 / Tactic | 플랫폼 / Platform | 프레임 / Frames | wait avg | exec avg | deadline miss | backlog | replot_count avg |
+|:---:|------------|----------------|:------------:|:-----------------:|:--------------:|:--------:|:--------:|:-------------:|:-------:|:----------------:|
+| R1 | 2026-06-14 | feature/layer-ex-baseline | Baseline (main thread DSP) | macOS 96kHz | 2,900 | 419.92 ms | 0.57 ms | 0% | 47% | — |
+| R2 | 2026-06-14 | feature/layer-ex-baseline | **T2 DSP Offload Thread** | macOS 96kHz | 4,500 | **0.013 ms** | **0.40 ms** | 0% | **0%** | — |
+| R2b | 2026-06-15 | exp/r1-replot-baseline | T2 + **replot counter (가드 없음)** · Scenario A | macOS 96kHz | 4,501 | 0.013 ms | ~0.40 ms | 0% | 0% | **8.22** |
+| R3 | 2026-06-15 | feature/layer-ex-baseline | **T2 + R1 Lazy Rendering** · Scenario A (1탭 고정) | macOS 96kHz | 4,501 | 0.013 ms | 0.395 ms | 0% | 0% | **2.08** |
+| R4 | 2026-06-15 | feature/layer-ex-baseline | **T2 + R1 Lazy Rendering** · Scenario B (탭 전환) | macOS 96kHz | 4,501 | 0.013 ms | 0.395 ms | 0% | 0% | **1.20** |
 
 ### 6.1 레이턴시 분포 / Latency Distribution
 
@@ -188,6 +191,69 @@ Log file: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260614_231224.
 
 ---
 
+### 6.5 R1 Lazy Rendering Run 결과 (R3 / R4) / R1 Lazy Rendering Results
+
+**한국어**
+
+R1 전술(isVisible() 가드 + showEvent catch-up) 적용 후 macOS 96kHz Playback 모드 시나리오 A/B 측정 결과.
+
+- **Scenario A** (1탭 고정): Trace 탭 고정, 다른 탭으로 이동 없음
+  - 로그: `logs/EXP-02/log_20260615_003136.csv`
+- **Scenario B** (탭 전환): 실행 중 탭을 순차적으로 전환
+  - 로그: `logs/EXP-02/log_20260615_003429.csv`
+
+**English**
+
+Measurement after applying R1 tactic (isVisible() guard + showEvent catch-up), macOS 96kHz Playback mode.
+
+- **Scenario A** (single tab fixed): stay on Trace tab, no tab switch
+- **Scenario B** (tab switching): sequentially switch tabs during run
+
+| 항목 / Metric | R3 Scenario A | R4 Scenario B |
+|---------------|:-------------:|:-------------:|
+| total_ms avg | 0.408 ms | 0.407 ms |
+| exec_ms avg | 0.395 ms | 0.395 ms |
+| tg_ms avg | 0.389 ms | 0.388 ms |
+| plot_ms | 0 ms | 0 ms |
+| deadline miss | 0 / 4,501 (0%) | 0 / 4,501 (0%) |
+| backlog | 0 / 4,501 (0%) | 0 / 4,501 (0%) |
+| **replot_count avg** | **2.08 / beat** | **1.20 / beat** |
+| replot_count 분포 / dist | [2, 3] | [1, 2, 3] |
+
+**replot_count 해석 (한국어)**
+
+- **R2b (R1 가드 없음, 실측)**: avg **8.22** / beat, 분포 [4, 5, 8, 9, 11, 13]
+  - 최빈값 8: 탭마다 replot 1회 × 8탭(BeatNoiseScopeTab·RateScopeTab 각 2plot, 나머지 1plot)
+  - 최대값 13: RateScopeTab 이벤트마다 mRatePlot 추가 replot(rate point마다 호출)
+  - BeatErrorTab·SweepScopeTab 등 박자 이벤트 없을 때 skip → 최소값 4
+- **R3 Scenario A (R1 적용, 1탭)**: avg **2.08** → 동일 조건 대비 **75% 감소**
+- **R4 Scenario B (R1 적용, 탭 전환)**: avg **1.20** → 동일 조건 대비 **85% 감소**
+
+**replot_count interpretation (English)**
+
+- **R2b (no R1 guard, measured)**: avg **8.22** / beat, distribution [4, 5, 8, 9, 11, 13]
+  - Mode 8: most beats trigger 1 replot per tab (BeatNoiseScope/RateScope have 2 plots each)
+  - Max 13: RateScopeTab calls mRatePlot->replot() per rate-point event within a frame
+  - Min 4: frames with no acoustic events skip BeatError/Sweep
+- **R3 Scenario A (R1 applied, 1 tab)**: avg **2.08** → **75% reduction** vs R2b baseline
+- **R4 Scenario B (R1 applied, tab switch)**: avg **1.20** → **85% reduction** vs R2b baseline
+
+**한국어 주요 관찰**
+
+1. **exec/deadline 지표는 변화 없음**: macOS에서 QueuedConnection으로 plot_ms가 이미 0이므로, R1의 replot 감소는 exec path에 영향을 주지 않는다.
+2. **replot_count가 R1 검증의 직접 지표**: 실제로 얼마나 많은 탭이 매 비트마다 replot()을 호출하는지를 정량화 — Scenario A에서 85% 감소 확인.
+3. **Scenario B catch-up 동작 정상**: showEvent()의 `QTimer::singleShot(0)` 덕분에 탭 전환 시 화면이 즉시 최신 데이터로 갱신되며 UI 블로킹 없음.
+4. **RPi에서의 기대 효과**: macOS와 달리 RPi는 QueuedConnection 없이 탭 렌더링이 exec path에 포함될 경우, R1로 replot 85% 감소 → plot_ms ~14ms 감소로 직결될 것으로 예상.
+
+**English Key Observations**
+
+1. **exec/deadline metrics unchanged**: On macOS, QueuedConnection already makes plot_ms = 0; R1's replot reduction does not affect the exec path here.
+2. **replot_count is the direct R1 validation metric**: Quantifies how many tabs actually call replot() per beat — 85% reduction confirmed in Scenario A.
+3. **Scenario B catch-up works correctly**: `QTimer::singleShot(0)` in showEvent() ensures the tab refreshes to the latest data snapshot on switch with no UI blocking.
+4. **Expected RPi impact**: Unlike macOS, if RPi's rendering runs in the exec path (no QueuedConnection), R1's 85% replot reduction would directly cut ~14ms from plot_ms per beat.
+
+---
+
 ## 7. RPi 기준선과 비교 / Comparison with RPi Baseline
 
 **한국어**
@@ -198,14 +264,15 @@ RPi 기준선은 `baseline/experiments2` 브랜치에서 측정한 값이다(단
 
 RPi baseline was measured on `baseline/experiments2` branch (single thread, synchronous tab rendering).
 
-| 항목 / Metric | macOS · Baseline (R1) | macOS · T2 (R2) | RPi · baseline/experiments2 |
-|---------------|:---------------------:|:---------------:|:---------------------------:|
-| wait_ms avg | 420 ms | **0.013 ms** | N/A |
-| exec_ms avg | 0.57 ms | **0.40 ms** | 20 ms |
-| tg_ms avg | 0.56 ms | 0.39 ms | ~4 ms |
-| plot_ms avg | 0 ms | 0 ms | 16 ms (79%) |
-| deadline miss | 0% | **0%** | 43% |
-| backlog | 47% | **0%** | — |
+| 항목 / Metric | macOS · Baseline (R1) | macOS · T2 (R2) | macOS · T2, 가드 없음 (R2b) | macOS · T2+R1 Scenario A (R3) | RPi · baseline/experiments2 |
+|---------------|:---------------------:|:---------------:|:---------------------------:|:-----------------------------:|:---------------------------:|
+| wait_ms avg | 420 ms | **0.013 ms** | 0.013 ms | 0.013 ms | N/A |
+| exec_ms avg | 0.57 ms | **0.40 ms** | ~0.40 ms | 0.395 ms | 20 ms |
+| tg_ms avg | 0.56 ms | 0.39 ms | ~0.39 ms | 0.389 ms | ~4 ms |
+| plot_ms avg | 0 ms | 0 ms | 0 ms | 0 ms | 16 ms (79%) |
+| deadline miss | 0% | **0%** | 0% | 0% | 43% |
+| backlog | 47% | **0%** | 0% | 0% | — |
+| replot_count avg | — | — | **8.22** (실측 baseline) | **2.08** (↓75%) | — |
 
 **한국어**
 
@@ -259,9 +326,10 @@ Key observations:
 |:-----------:|--------------|:------------:|
 | macOS R1 | Baseline (main thread DSP) 측정 | ✅ 완료 |
 | macOS R2 | T2 (DSP Offload Thread) 적용 측정 | ✅ 완료 |
-| RPi R3 | T2 브랜치 그대로 RPi 측정 → exec_ms RPi 기준선 확보 | ⏳ 다음 |
-| RPi R4 | T1 (SCHED_RR + CPU Affinity) 추가 적용 후 RPi 재측정 | 📅 예정 |
-| RPi R5 | RPi 11탭 오픈 상태 측정 → R1 vs R2 렌더링 전술 결정 | 📅 예정 |
+| macOS R3 | T2+R1 Lazy Rendering · Scenario A (1탭 고정) 측정 | ✅ 완료 |
+| macOS R4 | T2+R1 Lazy Rendering · Scenario B (탭 전환) 측정 | ✅ 완료 |
+| RPi R5 | T2+R1 브랜치 그대로 RPi 측정 → exec_ms + replot_count RPi 기준선 확보 | ⏳ 다음 |
+| RPi R6 | T1 (SCHED_RR + CPU Affinity) 추가 적용 후 RPi 재측정 | 📅 예정 |
 
 **English**
 
@@ -269,9 +337,10 @@ Key observations:
 |:-----------:|--------------|:------------:|
 | macOS R1 | Baseline (main thread DSP) measurement | ✅ Done |
 | macOS R2 | T2 (DSP Offload Thread) measurement | ✅ Done |
-| RPi R3 | Run T2 branch on RPi → establish RPi exec_ms baseline | ⏳ Next |
-| RPi R4 | Add T1 (SCHED_RR + CPU Affinity) and re-measure on RPi | 📅 Planned |
-| RPi R5 | RPi 11-tab open measurement → decide R1 vs R2 rendering tactic | 📅 Planned |
+| macOS R3 | T2+R1 Lazy Rendering · Scenario A (1 tab fixed) | ✅ Done |
+| macOS R4 | T2+R1 Lazy Rendering · Scenario B (tab switching) | ✅ Done |
+| RPi R5 | Run T2+R1 branch on RPi → establish RPi exec_ms + replot_count baseline | ⏳ Next |
+| RPi R6 | Add T1 (SCHED_RR + CPU Affinity) and re-measure on RPi | 📅 Planned |
 
 ---
 
@@ -281,4 +350,7 @@ Key observations:
 - `docs/milestone2/architectural-approaches.md`: 전술 옵션 및 trade-off 분석 / Tactic options and trade-off analysis
 - 로그 파일 R1 (Baseline) / Log file R1: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260614_223711.csv`
 - 로그 파일 R2 (T2) / Log file R2: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260614_231224.csv`
+- 로그 파일 R2b (가드 없는 replot 기준선) / Log file R2b: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260615_050649.csv` (branch: `exp/r1-replot-baseline`)
+- 로그 파일 R3 (T2+R1 Scenario A) / Log file R3: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260615_003136.csv`
+- 로그 파일 R4 (T2+R1 Scenario B) / Log file R4: `build/TimeGrapher.app/Contents/MacOS/logs/EXP-02/log_20260615_003429.csv`
 - 분석 도구 / Analysis tool: `src/tools/analyze_log.py`

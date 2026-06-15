@@ -1,4 +1,5 @@
 #include "LongTermTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 
 LongTermTab::LongTermTab(QWidget *parent) : BaseGraphTab(parent)
@@ -147,12 +148,15 @@ void LongTermTab::onMeasurement(const Measurement &m)
     else if (mTimeElapsed > 300)  newBucket = 10;  // > 5 min
     mBucketSize = newBucket;
 
-    if (mPaused) return;
+    if (mPaused || !isVisible()) return;
     // Rescale X only on the primary axis — linked axes follow automatically.
     mRate.rect->axis(QCPAxis::atBottom)->rescale();
     for (Series *s : {&mRate, &mAmp, &mBeat}) {
         s->rect->axis(QCPAxis::atLeft)->rescale();
         s->rect->axis(QCPAxis::atLeft)->scaleRange(1.15);  // 15% padding so lines aren't clipped
     }
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
+
+void LongTermTab::replotAll() { mPlot->replot(); }

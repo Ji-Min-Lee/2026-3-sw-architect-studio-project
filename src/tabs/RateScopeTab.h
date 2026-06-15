@@ -15,6 +15,7 @@ public:
 
 public slots:
     void onMeasurement(const Measurement &m) override;
+    void replotAll() override;
 
 private:
     void setupPlots();

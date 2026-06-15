@@ -1,4 +1,5 @@
 #include "BeatErrorTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
@@ -161,7 +162,7 @@ void BeatErrorTab::onMeasurement(const Measurement &m)
         mPlot->graph(0)->addData(mTimeElapsed, m.beatErrorMs);
     }
 
-    if (mPaused) return;
+    if (mPaused || !isVisible()) return;
     updateHeader(m);
     if (m.beatErrorValid) {
         // Rolling time window: the trace scrolls past instead of compressing;
@@ -175,8 +176,11 @@ void BeatErrorTab::onMeasurement(const Measurement &m)
     // (no growing axis = no compression effect)
     int hiBeat = qMax(mBeatIdx, kTracePoints);
     mTraceRect->axis(QCPAxis::atBottom)->setRange(hiBeat - kTracePoints, hiBeat);
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
+
+void BeatErrorTab::replotAll() { mPlot->replot(); }
 
 double BeatErrorTab::windowSec() const
 {

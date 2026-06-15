@@ -21,6 +21,7 @@ public:
     void reset() override;
 public slots:
     void onMeasurement(const Measurement &m) override;
+    void replotAll() override;
 private:
     void resizeSweep(int bph);
     void redraw();
