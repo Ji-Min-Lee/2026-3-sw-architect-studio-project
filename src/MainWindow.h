@@ -201,6 +201,7 @@ private:
     bool                       mCmdAutoStart=false;
     int                        mCmdRate=0;
     int                        mCmdDurationSec=0;
+    QElapsedTimer              mCmdDurationTimer;  // wall-clock duration check
 
 };
 #endif

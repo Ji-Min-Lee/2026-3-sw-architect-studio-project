@@ -157,7 +157,7 @@ MainWindow::MainWindow(QWidget *parent)
                 if (liveIdx >= 0) ui->ModeComboBox->setCurrentIndex(liveIdx);
                 on_StartPushButton_clicked();
                 if (mCmdDurationSec > 0)
-                    QTimer::singleShot(mCmdDurationSec * 1000, this, [this]() { close(); });
+                    mCmdDurationTimer.start();  // wall-clock checked in HandleInputData
             });
         }
     }
@@ -878,6 +878,15 @@ void MainWindow::RemoveMarkersAndText(QCustomPlot *Plot,double rangeMin,double r
 
 void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emitTimestampUs)
 {
+        // Wall-clock duration check: exit as soon as --duration seconds have elapsed,
+        // even if the event queue is backed up with many pending AudioDataReady signals.
+        if (mCmdDurationSec > 0 && mCmdDurationTimer.isValid() &&
+            mCmdDurationTimer.elapsed() >= (qint64)mCmdDurationSec * 1000)
+        {
+            close();
+            return;
+        }
+
         // fg_handler_start: FG begins handling. wait = queue + scheduling delay.
         int64_t fgStart = TG_NOW();
         int64_t waitUs  = fgStart - emitTimestampUs;
