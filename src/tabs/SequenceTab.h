@@ -3,6 +3,7 @@
 #include <QTableWidget>
 #include <QLabel>
 #include <QPushButton>
+#include <QComboBox>
 
 // Graph 6: Multi-Position Sequence Display
 // (Witschi Chronoscope X1 G3 manual p.15, project plan Figure 10).
@@ -23,20 +24,23 @@ public:
     static QStringList positions();          // standard position order
     QString activePosition() const { return mActivePosition; }
     void captureCurrent();                   // record latest averages at active position
-
 public slots:
     void onMeasurement(const Measurement &m) override;
     void setActivePosition(const QString &pos);
+
+signals:
+    void positionChanged(const QString &pos); // notify MainWindow for Results label
 
 private:
     void recomputeSummary();
     int  rowOfPosition(const QString &pos) const;
 
+    QComboBox    *mPositionCombo;
     QLabel       *mHeaderLabel;
     QPushButton  *mCaptureButton;
     QTableWidget *mTable;
 
     Measurement   mLatest;
-    bool          mHaveLatest = false;
+    bool          mHaveLatest     = false;
     QString       mActivePosition = "CH";
 };

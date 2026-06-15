@@ -136,8 +136,7 @@ private:
     QList<BaseGraphTab *> mAllTabs;     // for global pause + reset
 
     // Watch-position testing (NIHS 95-10/ISO 3158)
-    QComboBox *mPositionCombo = nullptr;
-    QString    mActivePosition = "CH";
+    QString mActivePosition = "CH";
 
     // Audio threads
     WavStreamWriter       *mWavWriter            = nullptr;

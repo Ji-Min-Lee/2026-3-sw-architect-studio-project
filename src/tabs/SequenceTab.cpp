@@ -19,9 +19,14 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
 
     auto *top = new QHBoxLayout;
     mHeaderLabel = new QLabel(this);
+    mPositionCombo = new QComboBox(this);
+    mPositionCombo->addItems(kPositions);
     mCaptureButton = new QPushButton("Capture position", this);
+    mCaptureButton->setEnabled(false);
     auto *clearButton = new QPushButton("Clear sequence", this);
     top->addWidget(mHeaderLabel, 1);
+    top->addWidget(new QLabel("Position:", this));
+    top->addWidget(mPositionCombo);
     top->addWidget(mCaptureButton);
     top->addWidget(clearButton);
     lay->addLayout(top);
@@ -46,6 +51,11 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
         }
     lay->addWidget(mTable, 1);
 
+    connect(mPositionCombo, &QComboBox::currentTextChanged,
+            this, [this](const QString &pos) {
+                setActivePosition(pos);
+                emit positionChanged(pos);
+            });
     connect(mCaptureButton, &QPushButton::clicked, this, &SequenceTab::captureCurrent);
     connect(clearButton, &QPushButton::clicked, this, [this] { reset(); });
 
