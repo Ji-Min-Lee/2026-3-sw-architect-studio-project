@@ -78,7 +78,7 @@ do_build() {
             rm -f CMakeCache.txt
         fi
         echo "[build] configuring..."
-        cmake .. -DCMAKE_PREFIX_PATH="$QT_PREFIX" -DENABLE_LOGGING="$LOGGING"
+        cmake .. -DCMAKE_PREFIX_PATH="$QT_PREFIX" -DENABLE_LOGGING="$LOGGING" -DCMAKE_BUILD_TYPE=Release
     fi
 
     echo "[build] compiling (-j$JOBS)..."
