@@ -1,4 +1,5 @@
 #include "TraceTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
@@ -194,8 +195,14 @@ void TraceTab::onMeasurement(const Measurement &m)
     while (!mAmpRecent.isEmpty() && mAmpRecent.first().first < mTimeElapsed - kRollingAvgSec)
         mAmpRecent.removeFirst();
 
-    if (mPaused) return;
+    if (mPaused || !isVisible()) return;
     updateAlerts();
     updateRanges();
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void TraceTab::replotAll()
+{
+    updateAlerts(); updateRanges(); mPlot->replot();
 }

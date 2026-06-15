@@ -19,6 +19,13 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS PrintSupport REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Multimedia Widgets)
 
+set(LOGGING_SOURCES
+    logging/Logger.h
+    logging/Logger.cpp
+    logging/SysStats.h
+    logging/SysStats.cpp
+)
+
 set(PROJECT_SOURCES
     Main.cpp
     ui/MainWindow.cpp
@@ -38,6 +45,8 @@ set(AUDIO_SOURCES
     audio/SharedAudio.h
     audio/AudioManager.h
     audio/AudioManager.cpp
+    audio/DSPWorker.h
+    audio/DSPWorker.cpp
 )
 
 set(ENGINE_SOURCES
@@ -112,6 +121,13 @@ set(EXTERNAL_SOURCES
     external/_kiss_fft_guts.h
 )
 
+# ── Logging build option ──────────────────────────────────────────────────────
+option(ENABLE_LOGGING "Enable per-frame performance logging (EXP-02)" OFF)
+if(ENABLE_LOGGING)
+    add_compile_definitions(ENABLE_LOGGING)
+    message(STATUS "[TimeGrapher] ENABLE_LOGGING=ON — per-frame CSV logging active")
+endif()
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(TimeGrapher
         MANUAL_FINALIZATION
@@ -120,6 +136,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${ENGINE_SOURCES}
         ${TABS_SOURCES}
         ${EXTERNAL_SOURCES}
+        ${LOGGING_SOURCES}
     )
 else()
     if(ANDROID)
@@ -144,6 +161,7 @@ target_include_directories(TimeGrapher PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external
     ${CMAKE_CURRENT_SOURCE_DIR}/tabs
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/logging
 )
 
 target_link_libraries(TimeGrapher PRIVATE kissfft)
@@ -199,6 +217,7 @@ target_include_directories(TestGraphTabs PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external
     ${CMAKE_CURRENT_SOURCE_DIR}/tabs
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/logging
 )
 target_link_libraries(TestGraphTabs PRIVATE
     Qt${QT_VERSION_MAJOR}::Test
@@ -226,6 +245,7 @@ target_include_directories(TestAddedTabs PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external
     ${CMAKE_CURRENT_SOURCE_DIR}/tabs
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/logging
 )
 target_link_libraries(TestAddedTabs PRIVATE
     Qt${QT_VERSION_MAJOR}::Test
@@ -336,6 +356,7 @@ target_include_directories(TestRemainingTabs PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external
     ${CMAKE_CURRENT_SOURCE_DIR}/tabs
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/logging
 )
 target_link_libraries(TestRemainingTabs PRIVATE
     Qt${QT_VERSION_MAJOR}::Test

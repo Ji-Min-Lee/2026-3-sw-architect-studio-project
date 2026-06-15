@@ -1,4 +1,5 @@
 #include "EscapementTab.h"
+#include "ReplotCounter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <numeric>
@@ -120,7 +121,7 @@ void EscapementTab::onMeasurement(const Measurement &m)
                 if (mOnsetHistory.size() > kHistoryN) mOnsetHistory.removeFirst();
             }
 
-            if (!mPaused) redraw();
+            if (!mPaused && isVisible()) redraw();
         } else if (start < mBufStartAbs) {
             mHavePending = false;  // too old, drop
         }
@@ -200,8 +201,11 @@ void EscapementTab::redraw()
         mStabilityLabel->clear();
     }
 
+    g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
+
+void EscapementTab::replotAll() { redraw(); }
 
 void EscapementTab::reset()
 {
