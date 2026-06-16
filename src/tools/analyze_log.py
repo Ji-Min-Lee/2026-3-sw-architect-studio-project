@@ -104,6 +104,12 @@ for k in ("copy_ms", "sound_ms", "tg_ms", "ui_ms", "plot_ms"):
 print("\n=== Throughput ===")
 for k in ("samples", "bg_fps", "fg_fps", "bg_sps", "fg_sps"):
     stat(k)
+print("\n=== Buffer & Block Drops ===")
+stat("buffer_pct", "%")
+drops = cols.get("block_drops", [])
+total_drops = int(sum(drops))
+frames_with_drops = sum(1 for d in drops if d > 0)
+print(f"  {'block_drops':10s} total={total_drops}  frames_with_drops={frames_with_drops} / {n}")
 
 # Real-time deadline = BG chunk period = BG_SPF / BG_SPS.
 # Use the steady-state (median of non-zero) values; warmup rows are 0.
@@ -142,23 +148,38 @@ except ImportError:
     sys.exit(0)
 
 x = cols["frame"]
-rt = {k: rolling(cols[k], window) for k in
-      ("total_ms", "wait_ms", "exec_ms", "samples", "fg_fps", "bg_fps",
-       "bg_sps", "fg_sps", "plot_ms", "tg_ms", "ui_ms", "copy_ms")}
+# Convert frame index → wall-clock seconds (each frame = one BG chunk period)
+x_sec = [f * deadline_ms / 1000.0 for f in x]
+rt_keys = ("total_ms", "wait_ms", "exec_ms", "samples", "fg_fps", "bg_fps",
+           "bg_sps", "fg_sps", "plot_ms", "tg_ms", "ui_ms", "copy_ms",
+           "buffer_pct", "block_drops")
+rt = {k: rolling(cols[k], window) for k in rt_keys if k in cols}
+if "buffer_pct" not in rt:
+    rt["buffer_pct"] = [0.0] * n
+if "block_drops" not in rt:
+    rt["block_drops"] = [0.0] * n
 
-# Layout: 4 full-width overview panels + a bottom row of 3 per-frame
+# Cumulative block_drops: running total — goes up (우상향) each time drops occur
+raw_drops = cols.get("block_drops", [0.0] * n)
+cumulative_drops = []
+acc = 0
+for d in raw_drops:
+    acc += d
+    cumulative_drops.append(acc)
+
+# Layout: 5 full-width overview panels + a bottom row of 3 per-frame
 # horizontal breakdowns (e2e / wait / exec).
-fig = plt.figure(figsize=(14, 17))
-gs = fig.add_gridspec(5, 3, height_ratios=[1, 1, 1, 1, 2.2])
-ax = [fig.add_subplot(gs[i, :]) for i in range(4)]
+fig = plt.figure(figsize=(14, 20))
+gs = fig.add_gridspec(6, 3, height_ratios=[1, 1, 1, 1, 1, 2.2])
+ax = [fig.add_subplot(gs[i, :]) for i in range(5)]
 fig.suptitle(f"TimeGrapher Log Analysis  ({n} frames, overview window={window})\n"
              f"{os.path.basename(csv_path)}"
              + (f"\n{meta}" if meta else ""), fontsize=11)
 
 # 1) Latency
-ax[0].plot(x, rt["total_ms"], label="total", color="red", linewidth=1.2)
-ax[0].plot(x, rt["wait_ms"],  label="wait",  color="orange", linewidth=1.0)
-ax[0].plot(x, rt["exec_ms"],  label="exec",  color="blue", linewidth=1.0)
+ax[0].plot(x_sec, rt["total_ms"], label="total", color="red", linewidth=1.2)
+ax[0].plot(x_sec, rt["wait_ms"],  label="wait",  color="orange", linewidth=1.0)
+ax[0].plot(x_sec, rt["exec_ms"],  label="exec",  color="blue", linewidth=1.0)
 ax[0].axhline(y=deadline_ms, color="red", linestyle="--", alpha=0.5, linewidth=0.8,
               label=f"deadline {deadline_ms:.1f}ms")
 ax[0].set_ylabel("ms"); ax[0].set_title("Latency (rolling avg): total = wait + exec")
@@ -166,11 +187,11 @@ ax[0].legend(loc="upper left", fontsize=8); ax[0].grid(True, alpha=0.3)
 
 # 2) samples + FPS
 ax2 = ax[1].twinx()
-ax[1].plot(x, rt["samples"], label="samples", color="purple", linewidth=1.2)
+ax[1].plot(x_sec, rt["samples"], label="samples", color="purple", linewidth=1.2)
 ax[1].axhline(y=spf, color="purple", linestyle="--", alpha=0.5, linewidth=0.8,
               label=f"SPF={spf:.0f}")
-ax2.plot(x, rt["fg_fps"], label="FG fps", color="green", linewidth=1.0, alpha=0.8)
-ax2.plot(x, rt["bg_fps"], label="BG fps", color="gray", linewidth=0.8, alpha=0.5)
+ax2.plot(x_sec, rt["fg_fps"], label="FG fps", color="green", linewidth=1.0, alpha=0.8)
+ax2.plot(x_sec, rt["bg_fps"], label="BG fps", color="gray", linewidth=0.8, alpha=0.5)
 ax[1].set_ylabel("samples"); ax2.set_ylabel("FPS")
 ax[1].set_title("samples + BG/FG FPS (rolling avg)")
 ax[1].legend(loc="upper left", fontsize=8); ax2.legend(loc="upper right", fontsize=8)
@@ -179,22 +200,37 @@ ax[1].grid(True, alpha=0.3)
 # 3) exec breakdown
 for name, color in (("plot_ms", "steelblue"), ("tg_ms", "darkorange"),
                     ("ui_ms", "green"), ("copy_ms", "brown")):
-    ax[2].plot(x, rt[name], label=name.replace("_ms", ""), color=color, linewidth=1.0)
+    ax[2].plot(x_sec, rt[name], label=name.replace("_ms", ""), color=color, linewidth=1.0)
 ax[2].set_ylabel("ms"); ax[2].set_title("exec breakdown (rolling avg)")
 ax[2].legend(loc="upper left", fontsize=8); ax[2].grid(True, alpha=0.3)
 
 # 4) SPS throughput
-ax[3].plot(x, rt["bg_sps"], label="BG sps", color="gray", linewidth=1.0)
-ax[3].plot(x, rt["fg_sps"], label="FG sps", color="green", linewidth=1.0)
-ax[3].set_ylabel("samples/sec"); ax[3].set_xlabel("frame")
+ax[3].plot(x_sec, rt["bg_sps"], label="BG sps", color="gray", linewidth=1.0)
+ax[3].plot(x_sec, rt["fg_sps"], label="FG sps", color="green", linewidth=1.0)
+ax[3].set_ylabel("samples/sec")
 ax[3].set_title("BG vs FG SPS (rolling avg)")
 ax[3].legend(loc="upper left", fontsize=8); ax[3].grid(True, alpha=0.3)
 
-# 5) per-FRAME horizontal breakdowns, three side by side:
+# 5) exec_ms rolling avg + overrun dots (frames > deadline) + cumulative drops
+ax4r = ax[4].twinx()
+raw_exec = cols.get("exec_ms", [0.0] * n)
+ax[4].plot(x_sec, rt["exec_ms"], label="exec_ms (rolling avg)", color="blue", linewidth=1.2)
+ax[4].axhline(y=deadline_ms, color="red", linestyle="--", alpha=0.7, linewidth=1.0,
+              label=f"deadline {deadline_ms:.1f} ms")
+ax[4].set_ylabel("exec (ms)"); ax[4].set_ylim(bottom=0)
+ax4r.step(x_sec, cumulative_drops, label="cumulative drops", color="red", linewidth=1.2, where="post")
+ax4r.set_ylim(0, max(cumulative_drops) + 1 if max(cumulative_drops) > 0 else 1)
+ax4r.set_ylabel("cumulative block drops")
+ax[4].set_title("exec_ms (rolling avg) vs deadline + Cumulative block drops")
+ax[4].set_xlabel("time (s)")
+ax[4].legend(loc="upper left", fontsize=8); ax4r.legend(loc="upper right", fontsize=8)
+ax[4].grid(True, alpha=0.3)
+
+# 6) per-FRAME horizontal breakdowns, three side by side:
 #    (a) e2e = wait + exec sections   (b) wait only   (c) exec sections only
 ypos = list(range(n))
 step = max(1, n // 20)
-yticklabels = [f"{int(x[i])}" for i in ypos[::step]]
+yticklabels = [f"{x_sec[i]:.0f}s" for i in ypos[::step]]
 
 def hbreak(axx, segs, title):
     left = [0.0] * n
@@ -213,9 +249,9 @@ exec_seg = [("copy_ms", "copy", "brown"), ("sound_ms", "sound", "olive"),
             ("plot_ms", "plot", "steelblue")]
 e2e_seg  = [("wait_ms", "wait", "orange")] + exec_seg
 
-ax_e2e  = fig.add_subplot(gs[4, 0])
-ax_wait = fig.add_subplot(gs[4, 1])
-ax_exec = fig.add_subplot(gs[4, 2])
+ax_e2e  = fig.add_subplot(gs[5, 0])
+ax_wait = fig.add_subplot(gs[5, 1])
+ax_exec = fig.add_subplot(gs[5, 2])
 ax_e2e.set_ylabel("frame")
 hbreak(ax_e2e,  e2e_seg,                         f"e2e = wait + exec  ({n} frames)")
 hbreak(ax_wait, [("wait_ms", "wait", "orange")], "wait only")
