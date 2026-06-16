@@ -303,7 +303,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>530</y>
+      <y>554</y>
       <width>242</width>
       <height>181</height>
      </rect>
@@ -432,7 +432,7 @@
      <rect>
       <x>250</x>
       <y>0</y>
-      <width>1020</width>
+      <width>770</width>
       <height>30</height>
      </rect>
     </property>
@@ -449,11 +449,33 @@
      <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QLabel" name="DiagnosisLabel">
+    <property name="geometry">
+     <rect>
+      <x>1020</x>
+      <y>0</y>
+      <width>250</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>DIAGNOSIS: ---</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
    <widget class="QFrame" name="SimFrame">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>350</y>
+      <y>374</y>
       <width>242</width>
       <height>181</height>
      </rect>
@@ -783,7 +805,7 @@
       <x>0</x>
       <y>250</y>
       <width>242</width>
-      <height>101</height>
+      <height>125</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -906,6 +928,50 @@
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
+    </widget>
+    <widget class="QLabel" name="WatchTypeLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Watch Type</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="WatchTypeComboBox">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>90</y>
+       <width>111</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <bold>true</bold>
+      </font>
+     </property>
+     <item>
+      <property name="text">
+       <string>Men</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Women</string>
+      </property>
+     </item>
     </widget>
    </widget>
   </widget>

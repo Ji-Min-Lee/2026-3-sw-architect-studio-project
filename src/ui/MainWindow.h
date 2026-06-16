@@ -14,6 +14,7 @@
 #include "MeasurementEngine.h"
 #include "SettingsManager.h"
 #include "Logger.h"   // Logger, TG_NOW()
+#include "WatchDiagnostics.h"
 // Tabs (Presentation layer — all 11 graph tabs)
 #include "RateScopeTab.h"
 #include "TraceTab.h"
@@ -58,6 +59,7 @@ private slots:
     void on_SampleRatesComboBox_currentIndexChanged(int index);
     void on_LiftAngleSpinBox_valueChanged(int arg1);
     void on_AveragingPeriodComboBox_currentIndexChanged(int index);
+    void on_WatchTypeComboBox_currentIndexChanged(int index);
     void on_ModeComboBox_currentTextChanged(const QString &arg1);
     void on_ScopeScaleSpinBox_valueChanged(int value);
     void on_UseConsetCheckBox_toggled(bool checked);
@@ -190,6 +192,11 @@ private:
     double mDspLastFPS        = 0.0;
     double mDspLastSPF        = 0.0;
     double mDspLastSPS        = 0.0;
+
+    // AI feature step 1: rule-based watch condition diagnosis
+    WatchDiagnostics           mWatchDiagnostics;
+    DiagnosisLevel             mLastDiagnosisLevel = DiagnosisLevel::Unknown;
+    WatchType                  mWatchType           = WatchType::Men;
 
 };
 #endif
