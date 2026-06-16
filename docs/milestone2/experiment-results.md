@@ -460,7 +460,7 @@ Tactics R1 / T2 are defined in
 [architectural-approaches.md](architectural-approaches.md) (R1 = Lazy Rendering,
 T2 = DSP Offload Thread).
 
-| Config | E2-3 baseline | E2-4 baseline + multi-graph | E2-5 E2-4 + T2 | E2-6 E2-4 + T2 + R1 |
+| Config | E2-3 = baseline | E2-4 = baseline + multi-graph | E2-5 = E2-4 + T2 | E2-6 = E2-5 + R1 |
 |--------|------------:|--------------------------:|-----------:|----------------:|
 | E2E avg (ms) | 57.2 | 80.1 | **2.1** | **2.05** |
 | E2E max (ms) | 208.9 | 258.7 | 11.1 | **5.7** |
