@@ -148,6 +148,8 @@ except ImportError:
     sys.exit(0)
 
 x = cols["frame"]
+# Convert frame index → wall-clock seconds (each frame = one BG chunk period)
+x_sec = [f * deadline_ms / 1000.0 for f in x]
 rt_keys = ("total_ms", "wait_ms", "exec_ms", "samples", "fg_fps", "bg_fps",
            "bg_sps", "fg_sps", "plot_ms", "tg_ms", "ui_ms", "copy_ms",
            "buffer_pct", "block_drops")
@@ -175,9 +177,9 @@ fig.suptitle(f"TimeGrapher Log Analysis  ({n} frames, overview window={window})\
              + (f"\n{meta}" if meta else ""), fontsize=11)
 
 # 1) Latency
-ax[0].plot(x, rt["total_ms"], label="total", color="red", linewidth=1.2)
-ax[0].plot(x, rt["wait_ms"],  label="wait",  color="orange", linewidth=1.0)
-ax[0].plot(x, rt["exec_ms"],  label="exec",  color="blue", linewidth=1.0)
+ax[0].plot(x_sec, rt["total_ms"], label="total", color="red", linewidth=1.2)
+ax[0].plot(x_sec, rt["wait_ms"],  label="wait",  color="orange", linewidth=1.0)
+ax[0].plot(x_sec, rt["exec_ms"],  label="exec",  color="blue", linewidth=1.0)
 ax[0].axhline(y=deadline_ms, color="red", linestyle="--", alpha=0.5, linewidth=0.8,
               label=f"deadline {deadline_ms:.1f}ms")
 ax[0].set_ylabel("ms"); ax[0].set_title("Latency (rolling avg): total = wait + exec")
@@ -185,11 +187,11 @@ ax[0].legend(loc="upper left", fontsize=8); ax[0].grid(True, alpha=0.3)
 
 # 2) samples + FPS
 ax2 = ax[1].twinx()
-ax[1].plot(x, rt["samples"], label="samples", color="purple", linewidth=1.2)
+ax[1].plot(x_sec, rt["samples"], label="samples", color="purple", linewidth=1.2)
 ax[1].axhline(y=spf, color="purple", linestyle="--", alpha=0.5, linewidth=0.8,
               label=f"SPF={spf:.0f}")
-ax2.plot(x, rt["fg_fps"], label="FG fps", color="green", linewidth=1.0, alpha=0.8)
-ax2.plot(x, rt["bg_fps"], label="BG fps", color="gray", linewidth=0.8, alpha=0.5)
+ax2.plot(x_sec, rt["fg_fps"], label="FG fps", color="green", linewidth=1.0, alpha=0.8)
+ax2.plot(x_sec, rt["bg_fps"], label="BG fps", color="gray", linewidth=0.8, alpha=0.5)
 ax[1].set_ylabel("samples"); ax2.set_ylabel("FPS")
 ax[1].set_title("samples + BG/FG FPS (rolling avg)")
 ax[1].legend(loc="upper left", fontsize=8); ax2.legend(loc="upper right", fontsize=8)
@@ -198,27 +200,29 @@ ax[1].grid(True, alpha=0.3)
 # 3) exec breakdown
 for name, color in (("plot_ms", "steelblue"), ("tg_ms", "darkorange"),
                     ("ui_ms", "green"), ("copy_ms", "brown")):
-    ax[2].plot(x, rt[name], label=name.replace("_ms", ""), color=color, linewidth=1.0)
+    ax[2].plot(x_sec, rt[name], label=name.replace("_ms", ""), color=color, linewidth=1.0)
 ax[2].set_ylabel("ms"); ax[2].set_title("exec breakdown (rolling avg)")
 ax[2].legend(loc="upper left", fontsize=8); ax[2].grid(True, alpha=0.3)
 
 # 4) SPS throughput
-ax[3].plot(x, rt["bg_sps"], label="BG sps", color="gray", linewidth=1.0)
-ax[3].plot(x, rt["fg_sps"], label="FG sps", color="green", linewidth=1.0)
+ax[3].plot(x_sec, rt["bg_sps"], label="BG sps", color="gray", linewidth=1.0)
+ax[3].plot(x_sec, rt["fg_sps"], label="FG sps", color="green", linewidth=1.0)
 ax[3].set_ylabel("samples/sec")
 ax[3].set_title("BG vs FG SPS (rolling avg)")
 ax[3].legend(loc="upper left", fontsize=8); ax[3].grid(True, alpha=0.3)
 
-# 5) Buffer fill % (per-frame spike) + cumulative block drops (우상향)
+# 5) exec_ms rolling avg + overrun dots (frames > deadline) + cumulative drops
 ax4r = ax[4].twinx()
-raw_buf_pct = cols.get("buffer_pct", [0.0] * n)
-ax[4].plot(x, raw_buf_pct, label="buffer % (raw)", color="teal", linewidth=0.7, alpha=0.8)
-ax[4].axhline(y=100, color="red", linestyle="--", alpha=0.6, linewidth=0.9, label="100% full → drops")
-ax[4].set_ylim(0, 110); ax[4].set_ylabel("buffer fill %")
-ax4r.plot(x, cumulative_drops, label="cumulative drops", color="red", linewidth=1.2)
-ax4r.set_ylabel("cumulative block drops (samples)")
-ax[4].set_title("Buffer fill % (per-frame) + Cumulative block drops")
-ax[4].set_xlabel("frame")
+raw_exec = cols.get("exec_ms", [0.0] * n)
+ax[4].plot(x_sec, rt["exec_ms"], label="exec_ms (rolling avg)", color="blue", linewidth=1.2)
+ax[4].axhline(y=deadline_ms, color="red", linestyle="--", alpha=0.7, linewidth=1.0,
+              label=f"deadline {deadline_ms:.1f} ms")
+ax[4].set_ylabel("exec (ms)"); ax[4].set_ylim(bottom=0)
+ax4r.step(x_sec, cumulative_drops, label="cumulative drops", color="red", linewidth=1.2, where="post")
+ax4r.set_ylim(0, max(cumulative_drops) + 1 if max(cumulative_drops) > 0 else 1)
+ax4r.set_ylabel("cumulative block drops")
+ax[4].set_title("exec_ms (rolling avg) vs deadline + Cumulative block drops")
+ax[4].set_xlabel("time (s)")
 ax[4].legend(loc="upper left", fontsize=8); ax4r.legend(loc="upper right", fontsize=8)
 ax[4].grid(True, alpha=0.3)
 
@@ -226,7 +230,7 @@ ax[4].grid(True, alpha=0.3)
 #    (a) e2e = wait + exec sections   (b) wait only   (c) exec sections only
 ypos = list(range(n))
 step = max(1, n // 20)
-yticklabels = [f"{int(x[i])}" for i in ypos[::step]]
+yticklabels = [f"{x_sec[i]:.0f}s" for i in ypos[::step]]
 
 def hbreak(axx, segs, title):
     left = [0.0] * n
