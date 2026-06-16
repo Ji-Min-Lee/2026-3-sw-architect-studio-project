@@ -1,7 +1,7 @@
 # Experiment Results
 
 **Milestone**: M2 | **Due**: 2026-06-22 | **Status**: [x] Draft  [ ] Final  
-**Last Updated**: 2026-06-11
+**Last Updated**: 2026-06-15
 
 ---
 
@@ -9,7 +9,7 @@
 
 | ID | Experiment | Runs | Latest Key Result | Status |
 |----|------------|:----:|-------------------|:------:|
-| EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 0 | — | ⏳ In Progress |
+| EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps (48k/96k/192k) × all scheduling (default/RR/FIFO) — **QAS-1 Pass** | ✅ Done |
 | EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 2 | Baseline R2 (RPi): **real-time FAIL** — exec ~20 ms overruns ~21 ms deadline (43 %), single-core + thermal throttle. R1 (Windows) ref: 2.8 ms | ⏳ In Progress |
 | EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | 📅 Planned |
 | EXP-04 | Signal Quality Warning Threshold Search | 0 | — | 📅 Planned |
@@ -36,28 +36,79 @@ EXP-04 (warning threshold) ────────────┘
 ## EXP-01: RPi Real-Time Performance — Dropped Block Measurement
 
 **Linked QA**: QAS-1 | **Linked Risk**: TR-01, TR-02  
-**Status**: ⏳ In Progress
+**Status**: ✅ Done  
+**Date**: 2026-06-15
 
 **Question**: Can RPi 5 achieve Dropped Block = 0 at 96,000 sps while running Qt GUI + DSP concurrently? If not, what is the maximum sps that can be processed stably?
 
+**Answer**: Yes. Dropped Block = 0 at all tested sps (48k / 96k / 192k) under all scheduling policies. QAS-1 Pass.
+
 ### Run History
 
-> Add a new row after each run. `Change` describes what was different from the previous run.
+> 3 runs executed 2026-06-15 on RPi (host=lg1, platform=debian). Each run covers all 3 sps simultaneously (run_experiment1.sh). Duration = 5 min per sps. Buffer = 30 s.
 
-| Run | Date | Change from Previous | 48k Dropped/min | 96k Dropped/min | 192k Dropped/min | SCHED_RR applied? | Better? | Next Action |
-|:---:|------|----------------------|:---------------:|:---------------:|:----------------:|:-----------------:|:-------:|-------------|
-| R1 | | Baseline | — | — | — | No | — | |
-| R2 | | | | | | | ↑/↓/= | |
-| R3 | | | | | | | ↑/↓/= | |
+| Run | Date | Change from Previous | 48k Dropped/min | 96k Dropped/min | 192k Dropped/min | Scheduling | Better? | Next Action |
+|:---:|------|----------------------|:---------------:|:---------------:|:----------------:|:----------:|:-------:|-------------|
+| R1 | 2026-06-15 | Baseline (default OS scheduling) | **0** | **0** | **0** | default | — | Try RT scheduling |
+| R2 | 2026-06-15 | SCHED_RR priority 50 | **0** | **0** | **0** | SCHED_RR | = | Try FIFO |
+| R3 | 2026-06-15 | SCHED_FIFO priority 50 | **0** | **0** | **0** | SCHED_FIFO | = | Complete |
+
+### Per-Run Detail
+
+<details>
+<summary><b>R1</b> — 2026-06-15 · default scheduling · all sps</summary>
+
+**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv)
+
+| sps | frames | Dropped | exec avg (ms) | exec > deadline | temp avg / max | throttle events | CPU dominant core |
+|-----|-------:|:-------:|:-------------:|:---------------:|:--------------:|:---------------:|:-----------------:|
+| 48k | 11,810 | **0** | 5.8 | 578 / 11,810 (4.9%) | 83.7 °C / 85.9 °C | 111 | cpu2 46% |
+| 96k | 10,577 | **0** | 9.6 | 853 / 10,577 (8.1%) | 85.1 °C / 86.5 °C | 105 | cpu2 66% |
+| 192k | 9,855 | **0** | 15.8 | 1,190 / 9,855 (12.1%) | 85.4 °C / 87.5 °C | 98 | cpu0 46%, cpu1 43% |
+
+**Per-core CPU (avg)**: 48k: cpu0=14% cpu1=32% **cpu2=46%** cpu3=26% | 96k: cpu0=18% cpu1=18% **cpu2=66%** cpu3=12% | 192k: cpu0=46% cpu1=43% cpu2=16% cpu3=7%
+
+**Observations**: At 48k/96k audio path is pinned to cpu2 (single-core pattern). At 192k load spreads across cpu0/1. Thermal throttling occurs in all runs (temp ≥ 85 °C), consistent with EXP-02 baseline. exec > deadline grows with sps (4.9% → 8.1% → 12.1%) but 30 s buffer absorbs all backlog → Dropped = 0.
+
+</details>
+
+<details>
+<summary><b>R2</b> — 2026-06-15 · SCHED_RR priority 50 · all sps</summary>
+
+**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv)
+
+| sps | frames | Dropped | exec avg (ms) | exec > deadline | temp avg / max | throttle events | CPU pattern |
+|-----|-------:|:-------:|:-------------:|:---------------:|:--------------:|:---------------:|:------------|
+| 48k | 10,357 | **0** | 6.9 | 682 / 10,357 (6.6%) | 84.7 °C / 86.5 °C | 103 | balanced (cpu0-3 ≈ 26-31%) |
+| 96k | 10,320 | **0** | 9.8 | 866 / 10,320 (8.4%) | 85.3 °C / 86.5 °C | 103 | balanced (cpu0-3 ≈ 24-31%) |
+| 192k | 9,585 | **0** | 16.0 | 1,197 / 9,585 (12.5%) | 85.4 °C / 87.0 °C | 95 | balanced (cpu0-3 ≈ 21-31%) |
+
+**Observation**: SCHED_RR distributes CPU load evenly across all 4 cores (no single-core dominance), but exec time is slightly higher than default — likely because `vcgencmd get_throttled` subprocess is more expensive to fork under RT scheduling. Dropped = 0 unchanged.
+
+</details>
+
+<details>
+<summary><b>R3</b> — 2026-06-15 · SCHED_FIFO priority 50 · all sps</summary>
+
+**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv)
+
+| sps | frames | Dropped | exec avg (ms) | exec > deadline | temp avg / max | throttle events | CPU pattern |
+|-----|-------:|:-------:|:-------------:|:---------------:|:--------------:|:---------------:|:------------|
+| 48k | 10,299 | **0** | 7.2 | 715 / 10,299 (6.9%) | 84.9 °C / 87.5 °C | 102 | balanced (cpu0-3 ≈ 24-30%) |
+| 96k | 9,921 | **0** | 9.9 | 858 / 9,921 (8.6%) | 85.4 °C / 87.0 °C | 99 | balanced (cpu0-3 ≈ 27-30%) |
+| 192k | 9,596 | **0** | 16.0 | 1,197 / 9,596 (12.5%) | 85.4 °C / 87.0 °C | 95 | balanced (cpu0-3 ≈ 22-30%) |
+
+**Observation**: Nearly identical to SCHED_RR. No additional benefit over RR.
+
+</details>
 
 ### Current Best
 
-> Update this block after each run that improves the result.
-
-- **Run**: —
-- **Recommended sample rate**: — sps
-- **Graceful degradation fallback needed**: —
-- **SCHED_RR effect**: —
+- **Run**: R1 / R2 / R3 — all equivalent (Dropped = 0 in all conditions)
+- **Recommended sample rate**: **96k sps** (QAS-1 target; 0 drops confirmed, exec avg 9.6 ms well under 21.3 ms deadline)
+- **Graceful degradation fallback needed**: No — 192k also achieves 0 drops with 30 s buffer
+- **SCHED_RR effect**: No improvement in Dropped Block count. CPU load is distributed more evenly but exec time is marginally higher. **SCHED_RR not required.**
+- **Thermal throttling**: All runs operate at ≥ 85 °C with sustained throttling (95–111 events / 5 min). Cooling improvement would reduce throttling but does not affect drop count.
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
 
 ---
@@ -341,9 +392,9 @@ thermal throttling. **This run is the baseline for all future RPi experiments.**
 
 | Decision | Source Experiment | QA Impacted | Decision Made | Date |
 |----------|:-----------------:|:-----------:|---------------|------|
-| QAS-1 Response Measure: confirmed max sps | EXP-01 | QAS-1 | — | — |
-| Graceful degradation fallback threshold | EXP-01 | QAS-1 | — | — |
-| SCHED_RR applied to audio capture thread | EXP-01 | QAS-1 | Yes / No | — |
+| QAS-1 Response Measure: confirmed max sps | EXP-01 | QAS-1 | 192k sps achieves 0 Dropped Block (30 s buffer). Recommended operating point: **96k sps**. | 2026-06-15 |
+| Graceful degradation fallback threshold | EXP-01 | QAS-1 | Not required — 0 drops at all tested sps with 30 s buffer. | 2026-06-15 |
+| SCHED_RR applied to audio capture thread | EXP-01 | QAS-1 | **No** — SCHED_RR/FIFO show no improvement in Dropped Block count; exec time marginally worse. | 2026-06-15 |
 | QAS-2 Response Measure: confirmed E2E latency target | EXP-02 | QAS-2 | Partial — 1-tab avg 11.5 ms; ② avg 1.5 ms (< 30 ms). 11-tab pending. | 2026-06-11 |
 | Lazy Rendering tactic: required or not | EXP-02 | QAS-2 | Inconclusive — 11-tab test required | 2026-06-11 |
 | `Detector.cpp` default params updated | EXP-03 | QAS-3 | — | — |
