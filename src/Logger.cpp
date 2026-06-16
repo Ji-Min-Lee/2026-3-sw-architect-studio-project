@@ -7,6 +7,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#ifndef TG_GIT_COMMIT
+#define TG_GIT_COMMIT "unknown"
+#endif
+
 // Device id from /home/whoami.json (e.g. "rpi1"/"rpi2") to distinguish the two
 // Raspberry Pi units. Returns "" if the file is absent (e.g. on Windows).
 static QString readDeviceId()
@@ -97,6 +101,7 @@ void Logger::writeCsv()
         << " kernel="    << QSysInfo::kernelType()
         << " host="      << QSysInfo::machineHostName()
         << " device="    << (device.isEmpty() ? QStringLiteral("unknown") : device)
+        << " git_commit=" << TG_GIT_COMMIT
         << " sample_rate=" << mSampleRate << '\n';
     // per-frame rows. durations measured in us, written in ms (3 decimals).
     out << "frame,samples,total_ms,wait_ms,exec_ms,"

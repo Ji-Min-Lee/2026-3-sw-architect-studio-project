@@ -148,6 +148,20 @@ else()
     message(STATUS "TimeGrapher: performance logging disabled (release/default)")
 endif()
 
+# Build-time git commit, injected so each log self-identifies its source build.
+# Captured at configure time; reconfigure (or clean build) to refresh.
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE TG_GIT_COMMIT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+if(NOT TG_GIT_COMMIT)
+    set(TG_GIT_COMMIT "unknown")
+endif()
+target_compile_definitions(TimeGrapher PRIVATE TG_GIT_COMMIT="${TG_GIT_COMMIT}")
+message(STATUS "TimeGrapher: git_commit=${TG_GIT_COMMIT}")
+
 include(GNUInstallDirs)
 install(TARGETS TimeGrapher
     BUNDLE DESTINATION .
