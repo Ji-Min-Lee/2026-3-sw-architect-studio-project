@@ -126,7 +126,8 @@ echo ""
 wait_for_window() {
     local name="$1" timeout="${2:-10}" found=""
     for ((i=0; i<timeout*2; i++)); do
-        found=$(xdotool search --onlyvisible --name "$name" 2>/dev/null | tail -1)
+        # try with and without --onlyvisible (dialog may not be mapped yet)
+        found=$(xdotool search --name "$name" 2>/dev/null | tail -1)
         [ -n "$found" ] && echo "$found" && return 0
         sleep 0.5
     done
@@ -193,10 +194,12 @@ for RATE in "${RATES[@]}"; do
         # ── Click Start ───────────────────────────────────────
         xdotool mousemove --window "$WIN_ID" $START_BTN_X $START_BTN_Y
         xdotool click 1
-        sleep 1.5
+        sleep 2.5   # give Qt time to open the dialog
 
         # ── Handle file dialog ────────────────────────────────
-        DIALOG_ID=$(wait_for_window "Open Document" 6) || true
+        # Try "Open Document" title first; fall back to any QFileDialog window
+        DIALOG_ID=$(wait_for_window "Open Document" 8) || \
+            DIALOG_ID=$(xdotool search --class "QFileDialog" 2>/dev/null | tail -1) || true
 
         if [ -z "$DIALOG_ID" ]; then
             echo "  [error] File dialog not found — skipping run $RUN"
