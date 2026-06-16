@@ -82,6 +82,7 @@ void DSPWorker::onDataReady(int64_t ts1)
     frame.fg_fps  = mDspFPS;  // fg = DSP thread (T2 semantics)
     frame.fg_sps  = mDspSPS;
     frame.fg_spf  = mDspSPF;
+    frame.dsp_emit_ts = TG_NOW();  // FG wait = onFrameLogged start - this timestamp
 
     emit frameLogged(frame);
 }

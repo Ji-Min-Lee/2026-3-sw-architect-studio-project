@@ -1,3 +1,4 @@
+#include "ReplotCounter.h"
 #include "FilterScopeTab.h"
 #include <QVBoxLayout>
 #include <cmath>
@@ -236,6 +237,6 @@ void FilterScopeTab::reset()
         for (QCPItemLine *mk : panel.markers) {
             mk->setVisible(false);
         }
-        panel.plot->replot();
+        { int64_t _pt=TG_NOW(); panel.plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
     }
 }

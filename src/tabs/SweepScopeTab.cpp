@@ -99,5 +99,5 @@ void SweepScopeTab::reset()
     mWriteIdx = 0;
     mPlot->graph(0)->data()->clear();
     mRefLabel->setText("Waiting for signal…");
-    mPlot->replot();
+    { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }

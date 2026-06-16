@@ -179,7 +179,7 @@ void WaveformCompTab::reset()
             w.msGrid[gi]->setVisible(false);
         }
         updateDegreeAxis(w);
-        w.plot->replot();
+        { int64_t _pt=TG_NOW(); w.plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
     }
 
     mValuesLabel->setText(tr("RATE --- s/d   BEAT ERROR --- ms   BEAT ----- bph"));

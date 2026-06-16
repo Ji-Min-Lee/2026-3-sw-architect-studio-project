@@ -133,7 +133,7 @@ void LongTermTab::reset()
     mTimeElapsed = 0.0;
     mBucketSize  = 1;
     mSummaryLabel->setText("—");
-    mPlot->replot();
+    { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }
 
 void LongTermTab::onMeasurement(const Measurement &m)
@@ -176,4 +176,4 @@ void LongTermTab::onMeasurement(const Measurement &m)
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
 
-void LongTermTab::replotAll() { mPlot->replot(); }
+void LongTermTab::replotAll() { { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }; }

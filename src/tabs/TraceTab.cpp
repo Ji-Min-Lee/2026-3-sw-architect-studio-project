@@ -79,7 +79,7 @@ TraceTab::TraceTab(QWidget *parent)
     band->setPen(Qt::NoPen);
 
     connect(mZoomCombo, qOverload<int>(&QComboBox::currentIndexChanged),
-            this, [this](int) { if (!mPaused) { updateRanges(); mPlot->replot(); } });
+            this, [this](int) { if (!mPaused) { updateRanges(); { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }; } });
 
     updateAlerts();
 }
@@ -105,7 +105,7 @@ void TraceTab::reset()
     mAmpGraph->data()->clear();
     updateAlerts();
     updateRanges();
-    mPlot->replot();
+    { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }
 
 double TraceTab::rollingAvg(const QVector<QPair<double, double>> &buf) const
@@ -197,5 +197,5 @@ void TraceTab::onMeasurement(const Measurement &m)
 
 void TraceTab::replotAll()
 {
-    updateAlerts(); updateRanges(); mPlot->replot();
+    updateAlerts(); updateRanges(); { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }

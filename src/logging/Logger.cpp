@@ -36,12 +36,10 @@ void Logger::writeHeader()
          << " kernel="    << QSysInfo::kernelType()
          << " host="      << QSysInfo::machineHostName()
          << " sample_rate=" << mSampleRate << '\n';
-    // CSV schema kept identical to baseline for analyze_log.py compatibility.
-    // sound_ms and plot_ms are always 0 in feature/layer (tabs are async).
     mOut << "frame,samples,total_ms,wait_ms,exec_ms,"
          << "copy_ms,sound_ms,tg_ms,ui_ms,plot_ms,"
          << "bg_fps,bg_sps,bg_spf,fg_fps,fg_sps,fg_spf,"
-         << "replot_count\n";
+         << "replot_count,fg_wait_ms\n";
     mOut.flush();
 }
 
@@ -78,7 +76,8 @@ void Logger::flushBatch()
              << QString::number(f.fg_fps, 'f', 1) << ','
              << QString::number(f.fg_sps, 'f', 1) << ','
              << QString::number(f.fg_spf, 'f', 1) << ','
-             << f.replot_count << '\n';
+             << f.replot_count << ','
+             << QString::number(f.fg_wait_us / 1000.0, 'f', 3) << '\n';
     }
     mOut.flush();
     mBatch.clear();
@@ -88,28 +87,27 @@ void Logger::consoleSummary()
 {
     const size_t cnt = (size_t)mConsoleEvery;
 
-    int64_t sWait=0, sExec=0, sCopy=0, sSound=0, sTg=0, sUi=0, sPlot=0, sSamp=0;
+    int64_t sWait=0, sExec=0, sCopy=0, sTg=0, sPlot=0, sFgWait=0, sSamp=0;
     for (const Frame &f : mBatch) {
-        sSamp  += f.samples;  sWait  += f.wait_us; sExec  += f.exec_us;
-        sCopy  += f.copy_us;  sSound += f.sound_us; sTg   += f.tg_us;
-        sUi    += f.ui_us;    sPlot  += f.plot_us;
+        sSamp    += f.samples;  sWait   += f.wait_us;  sExec  += f.exec_us;
+        sCopy    += f.copy_us;  sTg     += f.tg_us;
+        sPlot    += f.plot_us;  sFgWait += f.fg_wait_us;
     }
     const double n = (double)cnt;
     const Frame &last = mBatch.back();
 
-    qInfo("[%06llu] avg_samples=%-7.1f  BG: fps=%-6.1f sps=%-8.1f spf=%-6.1f  FG: fps=%-6.1f sps=%-8.1f spf=%-6.1f",
+    qInfo("[%06llu] avg_samples=%-7.1f  BG: fps=%-6.1f sps=%-8.1f spf=%-6.1f  DSP: fps=%-6.1f sps=%-8.1f spf=%-6.1f",
           (unsigned long long)mTotalFrames, sSamp / n,
           last.bg_fps, last.bg_sps, last.bg_spf,
           last.fg_fps, last.fg_sps, last.fg_spf);
-    qInfo("[%06llu] total=%.2fms [wait=%.2f + exec=%.2f]  exec=[copy=%.3f tg=%.3f ui=%.3f] ms",
+    qInfo("[%06llu] DSP: wait=%.2f exec=%.2f [copy=%.3f tg=%.3f] ms  |  FG: wait=%.2f plot=%.3f ms",
           (unsigned long long)mTotalFrames,
-          (sWait + sExec) / n / 1000.0,
-          sWait / n / 1000.0,
-          sExec / n / 1000.0,
-          sCopy / n / 1000.0,
-          sTg   / n / 1000.0,
-          sUi   / n / 1000.0);
-    (void)sSound; (void)sPlot;
+          sWait   / n / 1000.0,
+          sExec   / n / 1000.0,
+          sCopy   / n / 1000.0,
+          sTg     / n / 1000.0,
+          sFgWait / n / 1000.0,
+          sPlot   / n / 1000.0);
 }
 
 void Logger::writeSysCsv()

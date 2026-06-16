@@ -222,5 +222,5 @@ void EscapementTab::reset()
     mACRect->setVisible(false);
     mDeltaLabel->setText("Waiting for a complete beat (A → C)…");
     mStabilityLabel->clear();
-    mPlot->replot();
+    { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }
