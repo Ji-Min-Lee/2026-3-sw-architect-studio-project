@@ -6,13 +6,13 @@
 
 ## Slide Flow & Timing (target: ~20 min)
 
-| # | Section | Slides | Est. Time |
-|---|---------|--------|:---------:|
-| 1 | M1 Feedback & Improvements | Feedback table + QA Priority | 4 min |
-| 2 | Architectural Approach Overview | 4 architecture views | 5 min |
-| 3 | Risk → Experiment → Architecture Decision | 3 cases (ADR-001, ADR-002, pending) | 7 min |
-| 4 | Remaining Issues | Open experiments + risks | 2 min |
-| 5 | Schedule | Construction plan | 2 min |
+| # | Section | Est. Time |
+|---|---------|:---------:|
+| 1 | M1 Feedback & Improvements | 3 min |
+| 2 | Our Goals | 3 min |
+| 3 | Architectural Approach Overview | 7 min |
+| 4 | Milestone 2 Sprint Progress | 5 min |
+| 5 | Remaining Schedule | 2 min |
 
 ---
 
@@ -20,19 +20,15 @@
 
 Hello, we are Team 3 — Blue Sky.
 
-Our M2 story is about evidence driving architecture.
-In M1, we set up experiments and proposed architectural approaches.
-In M2, we ran the key experiment, measured the failure on actual hardware, traced the root cause structurally, made two architecture decisions with data, and validated both.
+Our M2 story is structured around goals. We started from what we need to achieve — delivery, accuracy, usability — and built the architecture to serve each of those goals with evidence.
 
-Today we'll walk you through: what we fixed from M1 feedback, how the architecture is structured, and most importantly — the causal chain from risk to experiment to architecture decision.
+Today we'll cover: what we fixed from M1, the goals driving our architecture, the views we chose and why, the sprint progress over the past two weeks, and the remaining schedule.
 
 ---
 
-## Section 1 — M1 Feedback & Improvements (4 min)
+## Section 1 — M1 Feedback & Improvements (3 min)
 
-### M1 Feedback Response
-
-Let's start with the M1 feedback directly.
+Let's start with M1 feedback directly.
 
 [point to feedback table]
 
@@ -40,195 +36,208 @@ The critical points were: no owner or date per task, experiments not tracked as 
 
 We've addressed all five.
 
-The most important structural fix: in M1, our QA document described solutions, not problems. The mentor was right to flag this. A QA requirement should express what the system must achieve, not how. We moved tactics to the Architectural Approaches document and rewrote QAs in problem-only language. Numbers that were "provisional" are now confirmed by EXP-02.
+The most important structural fix: in M1, our QA document described solutions, not problems. A QA requirement should express what the system must achieve — not how. We moved tactics to the Architectural Approaches document and rewrote QAs in problem-only language. Numbers that were "provisional" are now confirmed by EXP-02.
 
-### QA Priority Reframe
-
-This brings us to a reframe that changed how we think about the whole project.
-
-[point to QA priority diagram]
-
-Measurement Accuracy is not one QA among equals — it is the criterion the entire architecture is evaluated against. Rate, Amplitude, and Beat Error must match the WeiShi No.1000 reference.
-
-Every other QA is a structural prerequisite. Real-Time Performance means: if the pipeline misses the 21ms deadline, a beat event is dropped — you cannot compute Rate for that cycle. Low Latency means: if the capture-to-detect path takes longer than one beat period, the timestamp shifts — Beat Error and Amplitude become wrong. Signal Quality means: if a false trigger fires, the math computes valid-looking numbers that are simply incorrect.
-
-Modifiability is the execution enabler. Without a clean layer structure, two teams can't build 11 graph tabs in parallel without blocking each other.
-
-One trade-off we accepted explicitly: BPH coverage is narrowed to 28,800 BPH for M3. Full range from 18,000 to 36,000 BPH is an accuracy stretch goal, not a structural constraint.
+Every experiment now maps to a Risk ID, and every task has an owner and date on our GitHub board.
 
 ---
 
-## Section 2 — Architectural Approach Overview (5 min)
+## Section 2 — Our Goals (3 min)
 
-### The Core Approach
+[point to goal map table]
 
-The architecture has two structural pillars.
+We organized our goals into three categories — on-schedule delivery, accuracy, and usability.
 
-First: a 4-layer allowed-to-use structure — Acquisition, Signal Processing, Domain, Presentation — with a strict downward dependency rule. Presentation talks to Domain only. Domain does not depend on Presentation. This is how we enable 11 graph tabs to be built in parallel.
+For on-schedule delivery: we need to shorten the dev machine to RPi deploy cycle, we need 11 graph tabs working before experiments can run, and we need to apply architecture decisions quickly enough to stay on schedule. These are Deployability and Modifiability concerns.
 
-Second: explicit concurrency — two threads, two responsibilities. The audio pipeline runs on its own thread. The UI thread handles only rendering. The two are connected by a thread-safe ring buffer and Qt QueuedConnection.
+For accuracy: the pipeline must process each beat within the 21ms window or we drop a beat and lose Rate computation for that cycle. Latency must be low enough that timestamps are correct, because Beat Error is computed from timestamp deltas. And the system must produce correct results even under noise.
 
-Both pillars were forced by evidence. EXP-02 showed the original single-threaded design fails real-time constraints on Raspberry Pi — 43% deadline miss. We could not fix this with algorithm tuning. It required structural change.
+For usability: inputs the system cannot handle — signal too weak, device not connected — must be clearly communicated to the user.
 
-### View 1 — 4-Layer Allowed-to-Use
+[point to QA dependency tree]
 
-[show view1-layered-module.png]
+Now here is the key reframe from M1. Measurement Accuracy is not one QA among equals. It is the criterion the entire architecture is evaluated against. Rate, Amplitude, Beat Error — they must match the WeiShi No.1000 reference.
 
-Four layers, one rule: dependencies flow downward only.
+Every other QA is a structural prerequisite to accuracy. Modifiability is the execution enabler — without a clean layer structure, we cannot build 11 tabs in parallel on schedule. Real-Time Performance and Low Latency are mathematical prerequisites — miss the deadline or shift the timestamp, and the computed value is simply wrong. Reliability handles the false trigger case.
 
-Acquisition captures PCM. Signal Processing filters and detects beats. Domain computes Rate, Amplitude, Beat Error, BPH. Presentation renders 11 graph tabs.
+This hierarchy is what drove every architecture decision we made in M2.
 
-If you add a new graph tab, you add one class to Presentation. You touch nothing below Domain. This is our Modifiability QA enforced at the structure level.
+---
 
-### View 2 — Graph Tab Decomposition
+## Section 3 — Architectural Approach Overview (7 min)
 
-[show view2-decomposition.png]
+[point to view selection table]
 
-This zooms into Presentation. `GraphTabManager` manages all tabs through the `IGraphTab` interface. Each tab is independently developed and tested. No cross-tab dependencies.
+We chose four views, each tied to a specific goal and a specific reader. The deployment view addresses deployability. The two module views address modifiability. The C&C thread model addresses accuracy.
 
-Extension rule: one class, zero Domain changes. This is also how parallel development is structured — each team member owns specific tabs without conflict.
+Let me walk through each.
 
-### View 3 — DSP Pipeline Thread Model
+---
 
-[show view3-thread-model.png]
-
-This is the runtime view — two threads and how they connect.
-
-The Audio Thread runs AudioCapture and DSPWorker. The ring buffer sits between them. Qt QueuedConnection emits measurement results to the UI thread asynchronously.
-
-You'll notice two decisions are labeled directly in the diagram — ADD-2-01 (T2) where the DSP offload happens, and ADD-2-02 (R1) where the lazy rendering guard operates. I'll explain the data behind each in Section 3.
-
-### View 4 — RPi 5 Deployment View
+### View 1 — Deployment View (Allocation)
 
 [show view4-deployment.png]
 
-The deployment view shows which software runs on which hardware and the deploy path from macOS dev machines to the Raspberry Pi 5.
+This is the allocation view — which software runs on which hardware and how we deploy.
 
-One operational constraint worth highlighting: AGC — Auto Gain Control — must be disabled on every RPi boot via alsamixer. If it's on, the signal gain fluctuates, and Amplitude and Beat Error measurements become unreliable. This is not a code fix; it's a boot-time configuration requirement.
+The dev machine is where all code work happens: write, build, unit test, run. Once validated, push to GitHub. The RPi pulls from GitHub, builds, and runs experiments.
 
----
+This separation is what shortens the cycle. We don't push to RPi repeatedly during development. RPi is used only for hardware experiments and the final demo. No re-imaging, no file transfers, no environment drift.
 
-## Section 3 — Risk → Experiment → Architecture Decision (7 min)
-
-Now the core of our M2 story. Three cases, each following the same structure: here was the risk, here is what we measured, here is the architecture decision that evidence produced.
+One constraint worth calling out: AGC — Auto Gain Control — must be disabled on every RPi boot via alsamixer. If AGC is on, the signal gain fluctuates, and Amplitude and Beat Error become unreliable. This is not a code fix. It's a boot-time configuration requirement, and it's documented here as an operational constraint.
 
 ---
 
-### Case 1: TR-02/03 — Single-Core Saturation → ADR-001
+### View 2 — 4-Layer Allowed-to-Use (Module View)
 
-**The Risk**
+[show view1-layered-module.png]
 
-Our highest-rated risk going into M2: the RPi 5 pipeline, running single-threaded, would saturate one core and fail to meet the 21ms exec deadline at scale.
+Four layers. One rule: dependencies flow downward only.
 
-**The Experiment**
+Acquisition captures PCM from audio hardware. Signal Processing filters and detects beat events. Domain computes Rate, Amplitude, Beat Error, BPH. Presentation renders the 11 graph tabs.
 
-EXP-02. We instrumented the pipeline with per-frame CSV logging — wait_ms (queue drain time), exec_ms (DSP computation time), deadline miss rate, and backlog percentage.
+The key property: Presentation depends on Domain. Domain does not depend on Presentation. If you add a new graph tab, you add one class to Presentation. You touch nothing in Domain, Signal Processing, or Acquisition.
 
-[point to data table]
-
-RPi baseline: cpu2 at 91%, other cores idle. 43% of frames exceeded the deadline. Temperature at 85°C with active thermal throttling.
-
-macOS baseline first: wait_ms at 420ms. Backlog at 47% — the queue accumulates faster than it drains. exec_ms was only 0.57ms — the DSP computation itself is fast. The bottleneck is the Qt event loop coupling, not the algorithm.
-
-We applied T2 — moved DSP to a dedicated worker thread. wait_ms dropped from 420ms to 0.013ms. That's a ×32,000 reduction. Backlog went to zero.
-
-**The Architecture Decision: ADR-001**
-
-[reference references/adr/ADR-001-t2-dsp-offload-thread.md]
-
-We will separate AudioCapture from DSP. AudioCapture writes PCM into a ring buffer and returns immediately. DSPWorker reads from that buffer on a separate thread. Measurement results are emitted via QueuedConnection to the UI thread.
-
-The rejected alternative was T1 — SCHED_RR scheduling priority only. That improves jitter but doesn't reduce exec_ms or address the single-core saturation. T1 may supplement T2 on RPi, but it cannot replace it.
-
-Status: Accepted. macOS validated. RPi R5 scheduled 06/23.
+This is our modifiability guarantee enforced structurally, not by convention. It's also how two people can build different tabs in parallel without blocking each other.
 
 ---
 
-### Case 2: TR-04 — Rendering Bottleneck in Exec Path → ADR-002
+### View 3 — Graph Tab Decomposition (Module — Zoom)
 
-**The Risk**
+[show view2-decomposition.png]
 
-Even with T2 in place, `replot()` is still called on every beat event for every tab. On RPi baseline, plot alone consumed 16ms — 79% of the 21ms exec budget. N tabs means N × plot_ms.
+This zooms into Presentation. `GraphTabManager` manages all tabs through the `IGraphTab` interface. Each tab is an independent class — developed and tested in isolation.
 
-**The Experiment**
+The extension rule is: implement `IGraphTab`, register in `GraphTabManager`, done. No other files are touched.
 
-After applying T2, we measured replot_count per beat with no guard: 8.22 per beat. Then we applied the R1 `isVisible()` guard.
-
-[point to R3/R4 results]
-
-Scenario A — one active tab: 8.22 drops to 2.08. That's 75% reduction.
-Scenario B — tab switch: drops to 1.20. That's 85% reduction.
-
-The tab switch experience: when you switch to a tab that has been non-visible, we fire a `QTimer::singleShot(0)` in `showEvent()` to deliver a catch-up frame immediately. The stale display duration is less than one beat period — 21ms at 28,800 BPH — which is imperceptible.
-
-**The Architecture Decision: ADR-002**
-
-[reference references/adr/ADR-002-r1-lazy-rendering.md]
-
-One line per tab: `if (!isVisible()) return;` in `updateData()`. One `showEvent()` override per tab. Zero changes to Domain or below.
-
-The expected RPi impact: if `plot` consumed 16ms at 8.22 replot/beat, at 1.20/beat the proportional saving is approximately 14ms.
-
-The trade-off we accepted: non-visible tabs show a stale frame on switch. The catch-up mechanism makes this imperceptible in practice.
-
-Status: Accepted. macOS validated. RPi confirmation via EXP-02 R5 on 06/23.
+Evidence that this works: all 11 graph tabs are implemented as of today. Each team member owned specific tabs without conflict.
 
 ---
 
-### Case 3: TR-01 — RPi Sample Rate (Decision Pending)
+### View 4 — DSP Pipeline Thread Model (C&C View)
 
-**The Risk**
+[show view3-thread-model.png]
 
-RPi 5 may not sustain 96kHz audio capture without dropping blocks while the Qt GUI runs concurrently. This sets the sample rate ceiling — which directly affects Beat Error resolution (10.4µs per sample at 96kHz).
+This is the runtime view, and this is where the accuracy story lives.
 
-**Experiment Status**
+Two threads. The Audio Thread runs AudioCapture and DSPWorker. The UI Thread handles only rendering. Between them: a thread-safe ring buffer and Qt QueuedConnection for asynchronous result delivery.
 
-EXP-01. macOS result: 96kHz sustained, zero dropped blocks. RPi measurement scheduled 06/23.
+You'll see two decisions labeled directly on this diagram — ADR-001 and ADR-002. Both were forced by experiment evidence.
 
-We are not making this architecture decision before we have RPi data. ADR-003 will be issued after EXP-01 RPi results are confirmed.
+[point to evidence table]
 
-If 96kHz is not achievable: fallback to 48kHz, which degrades Beat Error resolution to 20.8µs per sample but remains within WeiShi comparison tolerance.
+ADR-001, T2: AudioCapture writes PCM into the ring buffer and returns immediately. DSPWorker reads from the buffer on a separate thread and does all signal processing there. The experiment result: wait_ms dropped from 420ms to 0.013ms — that's a factor of 32,000. Backlog went from 47% to zero.
+
+Why this matters for accuracy: with the original single-threaded design, the Qt event loop queuing caused a 420ms backlog. Frames were not processed in time. 43% of frames on RPi exceeded the 21ms deadline. This is a structural failure — not an algorithm problem. You cannot fix it by tuning DSP parameters. It requires structural separation.
+
+ADR-002, R1: In the original design, `replot()` is called on every beat event for every tab, even tabs not currently visible. On RPi, rendering one plot consumed 16ms — 79% of the 21ms exec budget. With 11 tabs, this does not scale.
+
+The fix: one line per tab — `if (!isVisible()) return;` in `updateData()`. Non-visible tabs skip `replot()`. When a tab becomes visible, `showEvent()` fires a catch-up frame via `QTimer::singleShot(0)`.
+
+Experiment result: replot count per beat dropped from 8.22 to 1.20 — an 85% reduction. Expected RPi saving: approximately 14ms.
+
+Trade-off we explicitly accepted: a non-visible tab shows a stale frame on switch. The catch-up mechanism makes this imperceptible — less than one beat period, which is 21ms at 28,800 BPH.
+
+One case pending: TR-01, the RPi sample rate ceiling. EXP-01 confirmed 96kHz on macOS — zero dropped blocks. We have not yet run EXP-01 on RPi. ADR-003 — sample rate decision — is deferred until we have RPi data on 06/23. The fallback is 48kHz, which degrades Beat Error resolution from 10.4µs to 20.8µs per sample but remains within WeiShi comparison tolerance.
 
 ---
 
-## Section 4 — Remaining Issues (2 min)
+## Section 4 — Milestone 2 Sprint Progress (5 min)
+
+[point to team structure diagram]
+
+We have two parallel teams under one Product Owner.
+
+Jimin Lee is the Product Owner — responsible for requirements prioritization and sprint goal approval.
+
+The Experiment Team — Dong Ho Shin, Gyeongjin Shin, Kyudae Bahn, and Taejoon Song — owns all experiments: EXP-01 through EXP-05, risk validation, and ADR evidence collection. Scrum Master is Dong Ho Shin.
+
+The Development Team — Hung Son Tong, Jimin Lee, and Sungho Shin — owns architecture implementation, graph tab development, and the DSP pipeline. Scrum Master is Sungho Shin.
+
+The Architecture Committee — PO and both Scrum Masters — meets at each Sprint Planning to apply ADD Steps 2–4 and align on architecture decisions before development begins.
+
+[point to sprint timeline]
+
+We ran four sprints across weeks 2 and 3. Let me walk through each.
+
+---
+
+### W2 Sprint 1 — Modifiability (6/9–6/10)
+
+The goal of this sprint was to make parallel tab development possible.
+
+We defined the 4-layer structure, created the `IGraphTab` interface and `GraphTabManager`, and started parallel implementation of all 11 graph tabs.
+
+One risk we addressed here: domain knowledge gap. Understanding watch measurement mathematics — Beat Error, Amplitude, Rate — requires specialized knowledge the team didn't have on day one.
+
+We used AI-assisted unit test generation to bootstrap structural validation. The AI could generate tests for the interface contracts and computation logic without the team needing deep domain expertise first. This let us validate the graph tab structure early without slowing down implementation.
+
+By the end of sprint 1, all 11 graph tabs were implemented. [point to GitHub board] You can see the issue tickets and status here.
+
+---
+
+### W2 Sprint 2 — Deployability (6/11–6/12)
+
+With the tabs built, the next bottleneck was the experiment feedback cycle. Manually copying files to RPi, rebuilding, running, and collecting results by hand was slow.
+
+This sprint delivered the experiment runner scripts — `run_exp.sh` and `analyze_log.py` — and a structured CSV logger embedded in the DSP pipeline.
+
+The result: the deploy flow from the deployment view is now operational. `git pull` on RPi, build, run experiment, collect CSV, analyze. The cycle is short enough that we can run multiple experiment rounds in a single day.
+
+---
+
+### W3 Sprint 1 — Performance: Real-Time / Latency (6/16–6/17)
+
+This is the sprint that produced our core architecture decisions.
+
+[point to EXP-02 results in the C&C view table]
+
+We ran EXP-02, measured the baseline failure — 43% deadline miss on RPi, 420ms backlog on macOS — traced the root cause structurally, applied T2 and R1, and validated both on macOS.
+
+ADR-001 and ADR-002 both required trade-off documentation. For ADR-001, the rejected alternative was SCHED_RR scheduling priority alone — T1 improves jitter but cannot address single-core saturation. For ADR-002, the rejected alternative was double-buffered async rendering — QPixmap is UI-thread-only in Qt, requiring a significant redesign that we could not deliver within the sprint.
 
 [point to open experiments table]
 
-Three experiments are still running on RPi. EXP-01 and EXP-02 R5 are both on 06/23 — tomorrow. EXP-02 R5 is our go/no-go gate for Phase A. If T2+R1 resolves deadline miss on RPi, we proceed to graph implementation. If not, EXP-02 R6 applies T1 SCHED_RR on top on 06/24.
-
-EXP-03, the filter parameter sweep, runs 06/25 and feeds directly into Phase A task A-02 — the filter cutoffs aren't finalized until that result is in.
-
-EXP-05, the 11-tab rendering FPS on RPi, is our validation that R1 is sufficient under full load. If it's not, we fall back to R2 (timer-decoupled rendering), and ADR-002 would be superseded.
-
-[point to unresolved concerns]
-
-Three critical concerns: T2+R1 not yet on RPi, thermal throttle mitigation not yet applied, and filter cutoffs not determined. All three resolve by 06/25 if experiments run on schedule.
+Three things remain from this sprint: EXP-01 and EXP-02 R5 on RPi, scheduled 06/23. These are our go/no-go gates for Phase A.
 
 ---
 
-## Section 5 — Schedule (2 min)
+### W3 Sprint 2 — Reliability: Noise (6/18–6/19, Planned)
 
-[point to timeline]
+The next sprint focuses on signal quality under noise.
 
-06/23: RPi experiments + M2 feedback review.
-06/24: Address M2 feedback + Phase A finalized — core pipeline complete.
-06/25 onward: Phase B HIGH-priority graphs — Trace Display, Vario Display, Beat Error Display, Pause/Rewind.
-06/29: Phase C MEDIUM graphs + RPi integration.
-06/30: Demo rehearsal.
+EXP-03 will sweep LP/HP filter parameters and feed directly into ADR-003. EXP-05 will confirm that R1 is sufficient under 11-tab full load on RPi, or trigger the fallback to R2 timer-decoupled rendering.
+
+The ADR count for this sprint depends on results — we expect at least one ADR from EXP-03, and one from EXP-05 if R1 proves insufficient.
+
+---
+
+## Section 5 — Remaining Schedule (2 min)
+
+[point to upcoming sprint table]
+
+06/23: RPi experiments — EXP-01 sample rate, EXP-02 R5 T2+R1 confirmation. This is also M2 feedback day.
+06/24–06/25: EXP-02 R6 thermal mitigation + EXP-03 filter sweep + ADR-003 finalized.
+06/26: EXP-05 11-tab FPS + Usability sprint begins.
+06/26–06/28: Radar Chart + Diagnosis/Classification + buffer.
+06/29–06/30: RPi integration + WeiShi accuracy validation + demo rehearsal.
 07/01: Final demo.
 
-The demo survives on Phase A plus Phase B. Phase C strengthens it. Phase D is time-permitting.
+[point to phase priority table]
 
-One quality gate worth emphasizing: extensibility. New graph tab requires ≤ 3 file changes, zero Domain changes. That gate is already satisfied by design — confirmed by the 4-layer structure and IGraphTab interface. Every new tab we add between now and M3 is a live demonstration of that architectural decision working in practice.
+All 11 graph tabs are done. The critical path is: RPi experiments → WeiShi accuracy validation → demo. Phase A — core capture-to-DSP pipeline on RPi — is the gate for everything else.
+
+One extensibility note worth emphasizing: adding a new graph tab requires at most 3 file changes and zero Domain changes. This gate is already satisfied by design. Every tab we add between now and M3 is a live demonstration of that architectural decision working in practice.
 
 ---
 
 ## Closing (30 sec)
 
-To summarize M2 in one sentence: we ran the experiment that confirmed a structural failure, traced the root cause, made two architecture decisions with data to back them, and validated both on macOS. The remaining work is hardware confirmation and graph implementation.
+To summarize M2 in two sentences:
 
-The architecture is ready. The pipeline is ready. The experiments running this week will tell us whether the target hardware agrees.
+We built the architecture to serve measurable goals, ran the experiment that confirmed a structural failure, made two decisions with data behind them, and validated both.
+
+The remaining work is hardware confirmation on RPi and the WeiShi accuracy validation. If T2+R1 holds on RPi — which we expect — the demo path is clear.
 
 Thank you.
 
@@ -238,8 +247,9 @@ Thank you.
 
 | Expected Question | Key Points |
 |-------------------|-----------|
-| Why macOS validation only? | RPi has one device — EXP sequenced by dependency. macOS establishes structural correctness; RPi confirms quantitative targets. R5 is tomorrow. |
-| What if T2+R1 doesn't fix RPi? | T1 (SCHED_RR) is the next lever (R6 on 06/24). If thermal throttle persists, active cooling or clock pinning. We have a fallback ladder. |
-| How do you know the layer boundary doesn't add latency? | EXP-02 R2 measured exec_ms before and after the layer boundary. Overhead: < 0.1ms. Less than 0.5% of the exec budget. |
-| Why not R3 (Double-Buffer Async Rendering)? | QPixmap is UI-thread-only in Qt. R3 requires off-screen render workers — significant redesign risk inside M2 deadline. Deferred to M3 review. |
+| Why macOS validation only for T2+R1? | RPi has one device — EXP sequenced by dependency. macOS establishes structural correctness; RPi confirms quantitative targets. EXP-02 R5 is 06/23. |
+| What if T2+R1 doesn't fix RPi? | T1 (SCHED_RR) is the next lever (EXP-02 R6, 06/24). If thermal throttle persists, active cooling or clock pinning. We have a fallback ladder. |
+| How do you know the layer boundary doesn't add latency? | EXP-02 R2 measured exec_ms before and after the layer boundary. Overhead < 0.1ms — less than 0.5% of the exec budget. |
+| Why not R3 (double-buffer async rendering)? | QPixmap is UI-thread-only in Qt. R3 requires off-screen render workers — significant redesign risk inside M2 deadline. Deferred to M3 review if EXP-05 shows R1 insufficient. |
 | BPH coverage only 28,800? | Time-boxed decision. EXP-03 extends filter parameters to other BPH. Full range is M3 stretch goal. Accuracy at 28,800 takes priority over coverage breadth. |
+| Why AI-generated unit tests? | Domain knowledge gap was a tracked risk. AI generated structural tests without requiring deep watch-measurement expertise — allowed parallel tab validation on schedule. |
