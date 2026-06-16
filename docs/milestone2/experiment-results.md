@@ -201,7 +201,7 @@ backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
 **Throughput / health:** bg_fps avg 43.5, fg_fps avg 31.2, samples avg 1427.
 **exec > deadline: 441 / 1015 (43 %)**. backlog (>1.5× SPF): 312 / 1015.
 
-**System (RPi):** cpu_total 24 % but **cpu2 pinned at 91 % (max 99 %)**; temp
+**System (RPi):** cpu_total 24 % but **cpu2 saturated, avg 91 % (max 99 %)**; temp
 **84.7 °C**, **throttled on all 10 samples**; mem 1651 MB; freq 2400 MHz.
 
 ![R2 system](../../src/logs/EXP-02/log_20260611_145543_sys.png)
@@ -241,7 +241,7 @@ Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48000). Files:
 bg_sps avg 48041. samples avg 1245 (≈ SPF 1024). exec > deadline: **57 / 1288 (4.4 %)**.
 backlog (>1.5× SPF): **273 / 1288 (21.2 %)**.
 
-**System (rpi2):** cpu_total ~28 % avg but **cpu3 pinned at ~99 %**; temp avg
+**System (rpi2):** cpu_total ~28 % avg but **cpu3 saturated, avg ~99 %**; temp avg
 **60.3 °C** (max 61.1 °C), **throttled 0 / 12 samples** (no throttling); mem
 ~1120 MB used / 16 GB total; freq 2400 MHz.
 
@@ -297,7 +297,7 @@ Files:
 bg_sps avg 44479. samples avg 1329 (spikes to 3072). exec > deadline: **0 / 1244**.
 backlog (>1.5× SPF): **352 / 1244 (28.3 %)**.
 
-**System (rpi2\*):** cpu_total ~27 % avg, **cpu1 pinned at ~91 % avg (max 99.7 %)**;
+**System (rpi2):** cpu_total ~27 % avg, **cpu1 saturated, avg ~91 % (max 99.7 %)**;
 temp avg **60.0 °C** (max 61.7 °C), **throttled 0 / 12 samples**; mem ~2260 MB used
 / 16 GB total; freq 2400 MHz.
 
@@ -356,7 +356,7 @@ exactly 1024 every frame with zero backlog. Deadline ≈ **21.33 ms**
 = **1024 exactly** (no backlog accumulation). exec > deadline: **0 / 1224**.
 backlog (>1.5× SPF): **0 / 1224**.
 
-**System (rpi2\*):** cpu_total ~29.6 % avg, **cpu1 pinned at ~93.8 % avg (max 100 %)**;
+**System (rpi2):** cpu_total ~29.6 % avg, **cpu1 saturated, avg ~93.8 % (max 100 %)**;
 temp avg **60.4 °C** (max 62.3 °C), **throttled 0 / 12 samples**; mem ~2292 MB used
 / 16 GB total; freq 2400 MHz.
 
@@ -418,7 +418,7 @@ Files: [csv](../../src/logs/EXP-02/log_20260615_165612.csv) ·
 = **1024 exactly** (no backlog accumulation). exec > deadline: **0 / 1142**.
 backlog (>1.5× SPF): **0 / 1142**.
 
-**System (rpi2\*):** cpu_total ~29.2 % avg, **cpu0 pinned at ~92.7 % avg (max 99.6 %)**;
+**System (rpi2):** cpu_total ~29.2 % avg, **cpu0 saturated, avg ~92.7 % (max 99.6 %)**;
 temp avg **61.3 °C** (max 62.8 °C), **throttled 0 / 11 samples**; mem ~850 MB used
 / 16 GB total; freq 2400 MHz.
 
@@ -468,7 +468,7 @@ T2 = DSP Offload Thread).
 | backlog (>1.5× SPF) | 273/1288 (21 %) | 352/1244 (28 %) | **0/1224** | **0/1142** |
 | samples (avg) | 1245 | 1329 | 1024 | 1024 |
 | bg/fg fps | 46.9 / 38.5 | 43.5 / 33.4 | 43.3 / 43.3 | 43.1 / 43.1 |
-| pinned core | cpu3 ~99 % | cpu1 ~91 % | cpu1 ~94 % | cpu0 ~93 % |
+| busiest core (avg) | cpu3 ~99 % | cpu1 ~91 % | cpu1 ~94 % | cpu0 ~93 % |
 | temp avg (°C) | 60.3 | 60.0 | 60.4 | 61.3 |
 | throttled | 0/12 | 0/12 | 0/12 | 0/11 |
 | real-time | marginal FAIL | exec OK, wait high | **ideal** | **ideal** |
