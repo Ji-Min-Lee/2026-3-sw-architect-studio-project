@@ -287,6 +287,29 @@ void MainWindow::DisplayResults(const Measurement &m)
     ui->Results->setText(warning + "POS " + mActivePosition + "   RATE " + rateStr +
                          " s/d   AMPLITUDE " + ampStr +
                          "   BEAT ERROR " + beatStr + " ms   BEAT " + bphStr + " bph" + derived);
+
+    DiagnosisInput diagInput;
+    diagInput.rate_valid       = m.rateValid;
+    diagInput.rate_spd         = m.rateErrorSpd;
+    diagInput.amplitude_valid  = m.amplitudeValid;
+    diagInput.amplitude_deg    = m.amplitudeDeg;
+    diagInput.beat_error_valid = m.beatErrorValid;
+    diagInput.beat_error_ms    = m.beatErrorMs;
+    diagInput.watch_type       = mWatchType;
+    DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
+    ui->DiagnosisLabel->setText(diagResult.label);
+    QColor diagColor = DiagnosisColor(diagResult.level);
+    ui->DiagnosisLabel->setStyleSheet(
+        QString("background-color: %1; color: white; border-radius: 4px;")
+            .arg(diagColor.name()));
+    if (diagResult.level != mLastDiagnosisLevel)
+    {
+        qInfo() << "[WatchDiagnostics]" << diagResult.label
+                 << "rate=" << diagInput.rate_spd
+                 << "amplitude=" << diagInput.amplitude_deg
+                 << "beatError=" << diagInput.beat_error_ms;
+        mLastDiagnosisLevel = diagResult.level;
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -883,6 +906,11 @@ void MainWindow::on_UseConsetCheckBox_toggled(bool checked)
 void MainWindow::on_AveragingPeriodComboBox_currentIndexChanged(int)
 {
     mAveragingPeriod = AveragingPeriodList[ui->AveragingPeriodComboBox->currentIndex()];
+}
+void MainWindow::on_WatchTypeComboBox_currentIndexChanged(int index)
+{
+    mWatchType = (index == 1) ? WatchType::Women : WatchType::Men;
+    qInfo() << "Watch Type=" << ui->WatchTypeComboBox->currentText();
 }
 void MainWindow::on_MicrophoneHorizontalSlider_sliderMoved(int)
 {

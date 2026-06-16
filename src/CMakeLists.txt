@@ -64,6 +64,8 @@ set(ENGINE_SOURCES
     engine/RollingAverage.cpp
     engine/WatchMath.h
     engine/WatchMath.cpp
+    engine/WatchDiagnostics.h
+    engine/WatchDiagnostics.cpp
 )
 
 set(TABS_SOURCES
@@ -414,5 +416,6 @@ target_include_directories(EngineFileCheck PRIVATE
 )
 target_link_libraries(EngineFileCheck PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Gui
     kissfft
 )
