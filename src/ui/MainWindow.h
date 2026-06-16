@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QMainWindow>
 #include <QComboBox>
+#include <QElapsedTimer>
 #include <QMessageBox>
 #include "AudioWorker.h"
 #include "PlaybackWorker.h"
@@ -172,6 +173,13 @@ private:
     int       mCurrentSamplesPerSecond  = 48000;
     int       mRateBeforePlaybackOrSim  = 48000;
     QString   mDeviceNameBeforePlaybackOrSim;
+
+    // CLI automation flags (--autostart, --no-record, --rate N, --duration N)
+    bool          mNoRecord       = false;
+    bool          mCmdAutoStart   = false;
+    int           mCmdRate        = 0;
+    int           mCmdDurationSec = 0;
+    QElapsedTimer mCmdDurationTimer;
 
     // FPS stats (updated from DSPWorker::frameLogged)
     double mBackgroundLastFPS = 0.0;

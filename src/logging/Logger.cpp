@@ -36,7 +36,7 @@ void Logger::writeHeader()
          << " kernel="    << QSysInfo::kernelType()
          << " host="      << QSysInfo::machineHostName()
          << " sample_rate=" << mSampleRate << '\n';
-    mOut << "frame,samples,total_ms,wait_ms,exec_ms,"
+    mOut << "frame,samples,block_drops,buffer_pct,total_ms,wait_ms,exec_ms,"
          << "copy_ms,sound_ms,tg_ms,ui_ms,plot_ms,"
          << "bg_fps,bg_sps,bg_spf,fg_fps,fg_sps,fg_spf,"
          << "replot_count,fg_wait_ms\n";
@@ -62,6 +62,8 @@ void Logger::flushBatch()
     for (const Frame &frame : mBatch) {
         mOut << mTotalFrames - mBatch.size() + (&frame - mBatch.data()) + 1 << ','
              << frame.samples << ','
+             << frame.block_drops << ','
+             << QString::number(frame.buffer_pct, 'f', 1) << ','
              << QString::number((frame.wait_us + frame.exec_us) / 1000.0, 'f', 3) << ','
              << QString::number(frame.wait_us  / 1000.0, 'f', 3) << ','
              << QString::number(frame.exec_us  / 1000.0, 'f', 3) << ','

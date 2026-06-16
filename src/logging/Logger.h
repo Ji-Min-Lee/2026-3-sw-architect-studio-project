@@ -44,7 +44,9 @@ class Logger
 {
 public:
     struct Frame {
-        int     samples  = 0;
+        int     samples     = 0;
+        int     block_drops = 0;  // samples overwritten before read (WriteIndex lapped ReadIndex)
+        double  buffer_pct  = 0.0; // ring buffer fill level 0-100%
         int64_t wait_us  = 0;   // AudioDataReady emit → HandleInputData start
         int64_t exec_us  = 0;   // HandleInputData start → end
         // exec breakdown

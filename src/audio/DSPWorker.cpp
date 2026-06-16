@@ -33,7 +33,12 @@ void DSPWorker::onDataReady(int64_t ts1)
     int samplesToAdd = static_cast<int>(totalWritten - mRaw->MainThrd_LastTotalSamplesWritten);
 
     Logger::Frame frame;
-    frame.samples = samplesToAdd;
+    frame.samples     = samplesToAdd;
+    frame.block_drops = (samplesToAdd > mRaw->NumberOfAudioSamples)
+                        ? samplesToAdd - mRaw->NumberOfAudioSamples : 0;
+    frame.buffer_pct  = (samplesToAdd >= mRaw->NumberOfAudioSamples)
+                        ? 100.0
+                        : (double)samplesToAdd / mRaw->NumberOfAudioSamples * 100.0;
     frame.wait_us = dspStart - ts1;  // Worker emit → DSP thread pickup (queue + sched)
 
     if (!mTimerStarted) {
