@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QDebug>
 #include "SimWorker.h"
+#include "Logger.h"   // nowUs() / TG_NOW()
 
 #if defined(Q_OS_WIN)
 #define SIM_SAMPLE_PERIOD_MSEC 10

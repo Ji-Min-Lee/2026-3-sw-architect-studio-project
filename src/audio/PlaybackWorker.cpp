@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QDebug>
 #include "PlaybackWorker.h"
+#include "Logger.h"   // nowUs() / TG_NOW()
 #include "WaveHeader.h"
 
 #if defined(Q_OS_WIN)

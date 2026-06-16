@@ -1,5 +1,6 @@
 // AudioWorker.cpp
 #include "AudioWorker.h"
+#include "Logger.h"   // nowUs() / TG_NOW()
 #include <QThread>
 
 

@@ -2,6 +2,14 @@
 
 LG SW Architect Training Program × CMU MSE | 2026-05-27 ~ 2026-07-01
 
+### Engineering docs
+
+| Document | What it covers |
+|----------|----------------|
+| [logging-design.md](logging-design.md) | Performance logging facility (`ENABLE_LOGGING` / `--log`, zero-overhead design, CSV format) |
+| [metrics-explained.md](metrics-explained.md) | What a *frame* is, FPS/SPS/SPF, and every analysis graph panel |
+| [../src/tools/README.md](../src/tools/README.md) | Build & run scripts (Windows / RPi / Docker) |
+
 ---
 
 ## Milestone 1 — `2026-06-09 (Tue)`

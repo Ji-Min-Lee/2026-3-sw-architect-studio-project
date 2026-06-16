@@ -1,5 +1,7 @@
 # Build output
 build/
+build-log/
+build-rpi/
 
 # Qt Creator 자동 생성 파일
 *.user
