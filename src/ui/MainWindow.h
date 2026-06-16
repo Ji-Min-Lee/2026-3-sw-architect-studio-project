@@ -27,6 +27,7 @@
 #include "WaveformCompTab.h"
 #include "SweepScopeTab.h"
 #include "FilterScopeTab.h"
+#include "RadarChartTab.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -139,6 +140,7 @@ private:
     WaveformCompTab  *mWaveformCompTab  = nullptr;
     SweepScopeTab    *mSweepScopeTab    = nullptr;
     FilterScopeTab   *mFilterScopeTab   = nullptr;
+    RadarChartTab    *mRadarChartTab    = nullptr;  // bonus: multi-position radar
     QList<BaseGraphTab *> mAllTabs;     // for global pause + reset
 
     // Watch-position testing (NIHS 95-10/ISO 3158)

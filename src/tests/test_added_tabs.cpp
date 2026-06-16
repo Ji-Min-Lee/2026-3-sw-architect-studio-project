@@ -10,6 +10,7 @@
 #include "BeatNoiseScopeTab.h"
 #include "WaveformCompTab.h"
 #include "SpectrogramTab.h"
+#include "RadarChartTab.h"
 #include "Measurement.h"
 
 static AcousticEvent makeA(double samplePos, float peak = 0.5f)
@@ -339,6 +340,76 @@ private slots:
         QVERIFY2(peakVal > -60.0, qPrintable(QString("no spectrogram energy (peak %1 dB)").arg(peakVal)));
         QVERIFY2(qAbs(rowFreq - freq) <= binHz * 2.0,
                  qPrintable(QString("peak row %1 → %2 Hz").arg(peakRow).arg(rowFreq)));
+    }
+
+    // ── SequenceTab → RadarChartTab data contract ───────────────────────────
+    void sequence_capturedReadings_reflectValues()
+    {
+        SequenceTab tab;
+        Measurement m;
+        m.rateValid = true;      m.rateErrorSpd = 4.0;
+        m.beatErrorValid = true; m.beatErrorMs  = 0.2;
+        m.amplitudeValid = true; m.amplitudeDeg = 285.0;
+        tab.setActivePosition("CH");
+        tab.onMeasurement(m);
+        tab.captureCurrent();
+
+        auto readings = tab.capturedReadings();
+        QCOMPARE(readings.size(), SequenceTab::positions().size());
+        QVERIFY(readings[0].valid);                  // CH captured
+        QCOMPARE(readings[0].rate, 4.0);
+        QCOMPARE(readings[0].amp,  285.0);
+        QVERIFY(!readings[1].valid);                 // CB not captured
+    }
+
+    void sequence_emitsSequenceUpdated_onCapture()
+    {
+        SequenceTab tab;
+        QSignalSpy spy(&tab, &SequenceTab::sequenceUpdated);
+        Measurement m;
+        m.amplitudeValid = true; m.amplitudeDeg = 280.0;
+        tab.onMeasurement(m);
+        tab.captureCurrent();
+        QCOMPARE(spy.count(), 1);
+    }
+
+    // ── RadarChartTab rendering against captured data ───────────────────────
+    void radar_plotsCapturedPositions_closedPolygon()
+    {
+        SequenceTab seq;
+        RadarChartTab radar(&seq);
+        radar.show();                                // lazy render needs visibility
+
+        auto cap = [&](const QString &pos, double amp) {
+            Measurement m; m.amplitudeValid = true; m.amplitudeDeg = amp;
+            seq.setActivePosition(pos);
+            seq.onMeasurement(m);
+            seq.captureCurrent();
+            radar.rebuild();
+        };
+        cap("CH", 285); cap("6H", 280); cap("3H", 290);
+
+        // 3 captured positions + 1 closing vertex
+        QCOMPARE(radar.dataGraph()->data()->size(), 4);
+        QVERIFY(radar.verdictText().contains("Balanced"));
+    }
+
+    void radar_flagsOutOfTolerance_inVerdict()
+    {
+        SequenceTab seq;
+        RadarChartTab radar(&seq);
+        radar.show();
+        auto cap = [&](const QString &pos, double amp) {
+            Measurement m; m.amplitudeValid = true; m.amplitudeDeg = amp;
+            seq.setActivePosition(pos);
+            seq.onMeasurement(m);
+            seq.captureCurrent();
+            radar.rebuild();
+        };
+        cap("CH", 285); cap("6H", 240); cap("3H", 290);  // 6H below 270° band
+
+        QVERIFY(radar.verdictText().contains("out of tolerance"));
+        QVERIFY(radar.verdictText().contains("6H"));
     }
 };
 

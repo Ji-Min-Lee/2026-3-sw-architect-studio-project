@@ -89,6 +89,8 @@ set(TABS_SOURCES
     tabs/SweepScopeTab.cpp
     tabs/FilterScopeTab.h
     tabs/FilterScopeTab.cpp
+    tabs/RadarChartTab.h
+    tabs/RadarChartTab.cpp
 )
 
 set(EXTERNAL_SOURCES
@@ -235,6 +237,7 @@ add_executable(TestAddedTabs
     tabs/BeatNoiseScopeTab.cpp
     tabs/WaveformCompTab.cpp
     tabs/SpectrogramTab.cpp
+    tabs/RadarChartTab.cpp
     tabs/BaseGraphTab.h
     external/qcustomplot.cpp
 )

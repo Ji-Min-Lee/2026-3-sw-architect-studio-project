@@ -102,6 +102,24 @@ void SequenceTab::captureCurrent()
     setCell(kColBeat, mLatest.beatErrorValid, mLatest.beatErrorMs,  1);
     setCell(kColAmp,  mLatest.amplitudeValid, mLatest.amplitudeDeg, 0);
     recomputeSummary();
+    emit sequenceUpdated();
+}
+
+QVector<SequenceTab::PositionReading> SequenceTab::capturedReadings() const
+{
+    QVector<PositionReading> out(kPositions.size());
+    for (int r = 0; r < kPositions.size(); r++) {
+        bool okR = false, okB = false, okA = false;
+        double rate = mTable->item(r, kColRate)->text().toDouble(&okR);
+        double beat = mTable->item(r, kColBeat)->text().toDouble(&okB);
+        double amp  = mTable->item(r, kColAmp)->text().toDouble(&okA);
+        // A position counts as captured if any of its three cells holds a value
+        out[r].valid = okR || okB || okA;
+        out[r].rate  = okR ? rate : 0.0;
+        out[r].beat  = okB ? beat : 0.0;
+        out[r].amp   = okA ? amp  : 0.0;
+    }
+    return out;
 }
 
 void SequenceTab::recomputeSummary()
@@ -166,4 +184,5 @@ void SequenceTab::reset()
         mCapturedAt[r] = QDateTime{};
     mHaveLatest = false;
     recomputeSummary();
+    emit sequenceUpdated();
 }

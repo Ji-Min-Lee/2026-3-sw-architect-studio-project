@@ -133,6 +133,9 @@ MainWindow::MainWindow(QWidget *parent)
     mWaveformCompTab   = new WaveformCompTab(this);
     mSweepScopeTab     = new SweepScopeTab(this);
     mFilterScopeTab    = new FilterScopeTab(this);
+    // Bonus: Radar reads SequenceTab's captured per-position data (event-driven,
+    // not wired into the per-block fan-out — see below).
+    mRadarChartTab     = new RadarChartTab(mSequenceTab, this);
 
     mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
     mWaveformCompTab->setLiftAngle(mLiftAngle);
@@ -148,8 +151,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->GraphicsTabWidget->addTab(mWaveformCompTab,   "Waveform");
     ui->GraphicsTabWidget->addTab(mSweepScopeTab,     "Sweep");
     ui->GraphicsTabWidget->addTab(mFilterScopeTab,    "Filters");
+    ui->GraphicsTabWidget->addTab(mRadarChartTab,     "Radar");
 
     // ── Observer: register() — connect Model → Views (AP-4) ──────────────────
+    // RadarChartTab is intentionally NOT in mAllTabs: it is event-driven (no
+    // per-block work), so it is not connected to measurementReady and adds no
+    // real-time cost. It rebuilds only when SequenceTab data changes.
     mAllTabs = {mRateScopeTab, mTraceTab, mSoundPrintTab, mBeatErrorTab,
                 mVarioTab, mSequenceTab, mBeatNoiseScopeTab, mLongTermTab,
                 mEscapementTab, mSpectrogramTab, mWaveformCompTab,
@@ -157,6 +164,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     QObject::connect(mSequenceTab, &SequenceTab::positionChanged,
                      this, [this](const QString &pos) { mActivePosition = pos; });
+    QObject::connect(mSequenceTab, &SequenceTab::sequenceUpdated,
+                     mRadarChartTab, &RadarChartTab::rebuild);
 
     // Results label subscription wired per-session in wireEngineToTabs() (T2)
 

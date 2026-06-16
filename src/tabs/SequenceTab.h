@@ -19,18 +19,32 @@ class SequenceTab : public BaseGraphTab
 {
     Q_OBJECT
 public:
+    // One captured row, indexed 1:1 with positions(). valid=false until captured.
+    struct PositionReading {
+        bool   valid = false;
+        double rate  = 0.0;   // s/d
+        double beat  = 0.0;   // ms
+        double amp   = 0.0;   // degrees
+    };
+
     explicit SequenceTab(QWidget *parent = nullptr);
     void reset() override;
 
     static QStringList positions();          // standard position order
     QString activePosition() const { return mActivePosition; }
     void captureCurrent();                   // record latest averages at active position
+
+    // Per-position captured readings (for the Radar/Polar view). Index matches
+    // positions(); entries with valid==false have not been captured yet.
+    QVector<PositionReading> capturedReadings() const;
+
 public slots:
     void onMeasurement(const Measurement &m) override;
     void setActivePosition(const QString &pos);
 
 signals:
     void positionChanged(const QString &pos); // notify MainWindow for Results label
+    void sequenceUpdated();                    // captured/cleared — Radar view rebuilds
 
 private:
     void recomputeSummary();
