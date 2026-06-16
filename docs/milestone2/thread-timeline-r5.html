@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thread Activity Timeline — R5 (frames 201–230, 96 kHz Sim)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; }
+  h2 { font-size: 14px; font-weight: 700; color: #94a3b8; margin-bottom: 14px;
+       letter-spacing: .07em; text-transform: uppercase; }
+  .subtitle { font-size: 12px; color: #64748b; margin-bottom: 20px; }
+  .legend { display: flex; gap: 20px; margin-bottom: 18px; flex-wrap: wrap; }
+  .leg { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #94a3b8; }
+  .leg-dot { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+  .chart-wrap { position: relative; background: #1e293b; border-radius: 8px; padding: 16px; }
+  canvas { display: block; width: 100%; }
+  .tooltip {
+    position: absolute; background: #0f172a; border: 1px solid #334155;
+    border-radius: 6px; padding: 9px 12px; font-size: 11px; pointer-events: none;
+    opacity: 0; transition: opacity .1s; min-width: 190px; color: #e2e8f0; z-index: 10;
+  }
+  .tooltip b { color: #60a5fa; display: block; margin-bottom: 5px; font-size: 12px; }
+  .tooltip span { display: block; line-height: 1.8; color: #cbd5e1; }
+  .footer { font-size: 11px; color: #475569; margin-top: 12px; text-align: center; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+  .stat { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 12px; }
+  .stat-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+  .stat-value { font-size: 20px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-sub { font-size: 10px; color: #64748b; }
+</style>
+</head>
+<body>
+<h2>Thread Activity Timeline — R5 (frames 201–230, 96 kHz Sim)</h2>
+<p class="subtitle">Branch: feature/measure_exe_time · Log: log_20260616_102418.csv · 4,501 total frames (sample shown: 30 frames)</p>
+
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#22d3ee"></div>AudioWorker fire (BG)</div>
+  <div class="leg"><div class="leg-dot" style="background:#4ade80"></div>DSPWorker exec (DSP)</div>
+  <div class="leg"><div class="leg-dot" style="background:#f97316;opacity:.35"></div>FG scheduling wait</div>
+  <div class="leg"><div class="leg-dot" style="background:#f97316"></div>MainWindow handle (FG)</div>
+</div>
+
+<div class="chart-wrap">
+  <canvas id="c"></canvas>
+  <div class="tooltip" id="tip"></div>
+</div>
+<div class="footer">X-axis: elapsed time (ms) · Each vertical band = 10 ms frame period (960 samples @ 96 kHz) · Hover for frame details</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">DSP wait avg</div>
+    <div class="stat-value" style="color:#22d3ee">0.015 ms</div>
+    <div class="stat-sub">BG emit → DSP pickup</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">DSP exec avg</div>
+    <div class="stat-value" style="color:#4ade80">0.107 ms</div>
+    <div class="stat-sub">max 0.222 ms</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">FG wait avg</div>
+    <div class="stat-value" style="color:#f97316">8.936 ms</div>
+    <div class="stat-sub">p99 = 20.5 ms</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">FG wait &gt; deadline</div>
+    <div class="stat-value" style="color:#fb923c">35%</div>
+    <div class="stat-sub">deadline = 10.667 ms</div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {f:201,bg:0,dsp_s:0.018,dsp_e:0.168,fg_s:1.174,fg_e:1.224,wait:0.018,exec:0.15,fg_wait:1.006},
+  {f:202,bg:10,dsp_s:10.009,dsp_e:10.082,fg_s:12.992,fg_e:13.042,wait:0.009,exec:0.073,fg_wait:2.91},
+  {f:203,bg:20,dsp_s:20.011,dsp_e:20.059,fg_s:24.444,fg_e:24.494,wait:0.011,exec:0.048,fg_wait:4.385},
+  {f:204,bg:30,dsp_s:30.016,dsp_e:30.062,fg_s:37.068,fg_e:37.118,wait:0.016,exec:0.046,fg_wait:7.006},
+  {f:205,bg:40,dsp_s:40.014,dsp_e:40.098,fg_s:48.222,fg_e:48.272,wait:0.014,exec:0.084,fg_wait:8.124},
+  {f:206,bg:50,dsp_s:50.015,dsp_e:50.151,fg_s:65.346,fg_e:65.396,wait:0.015,exec:0.136,fg_wait:15.195},
+  {f:207,bg:60,dsp_s:60.01,dsp_e:60.17,fg_s:65.725,fg_e:65.775,wait:0.01,exec:0.16,fg_wait:5.555},
+  {f:208,bg:70,dsp_s:70.014,dsp_e:70.135,fg_s:76.852,fg_e:76.902,wait:0.014,exec:0.121,fg_wait:6.717},
+  {f:209,bg:80,dsp_s:80.01,dsp_e:80.132,fg_s:88.946,fg_e:88.996,wait:0.01,exec:0.122,fg_wait:8.814},
+  {f:210,bg:90,dsp_s:90.014,dsp_e:90.155,fg_s:101.207,fg_e:101.257,wait:0.014,exec:0.141,fg_wait:11.052},
+  {f:211,bg:100,dsp_s:100.008,dsp_e:100.139,fg_s:101.588,fg_e:101.638,wait:0.008,exec:0.131,fg_wait:1.449},
+  {f:212,bg:110,dsp_s:110.014,dsp_e:110.15,fg_s:114.738,fg_e:114.788,wait:0.014,exec:0.136,fg_wait:4.588},
+  {f:213,bg:120,dsp_s:120.011,dsp_e:120.144,fg_s:126.689,fg_e:126.739,wait:0.011,exec:0.133,fg_wait:6.545},
+  {f:214,bg:130,dsp_s:130.01,dsp_e:130.129,fg_s:139.56,fg_e:139.61,wait:0.01,exec:0.119,fg_wait:9.431},
+  {f:215,bg:140,dsp_s:140.011,dsp_e:140.059,fg_s:150.899,fg_e:150.949,wait:0.011,exec:0.048,fg_wait:10.84},
+  {f:216,bg:150,dsp_s:150.008,dsp_e:150.061,fg_s:151.293,fg_e:151.343,wait:0.008,exec:0.053,fg_wait:1.232},
+  {f:217,bg:160,dsp_s:160.015,dsp_e:160.062,fg_s:162.789,fg_e:162.839,wait:0.015,exec:0.047,fg_wait:2.727},
+  {f:218,bg:170,dsp_s:170.01,dsp_e:170.127,fg_s:173.909,fg_e:173.959,wait:0.01,exec:0.117,fg_wait:3.782},
+  {f:219,bg:180,dsp_s:180.02,dsp_e:180.159,fg_s:192.03,fg_e:192.08,wait:0.02,exec:0.139,fg_wait:11.871},
+  {f:220,bg:190,dsp_s:190.01,dsp_e:190.139,fg_s:192.448,fg_e:192.498,wait:0.01,exec:0.129,fg_wait:2.309},
+  {f:221,bg:200,dsp_s:200.01,dsp_e:200.136,fg_s:204.819,fg_e:204.869,wait:0.01,exec:0.126,fg_wait:4.683},
+  {f:222,bg:210,dsp_s:210.013,dsp_e:210.176,fg_s:217.779,fg_e:217.829,wait:0.013,exec:0.163,fg_wait:7.603},
+  {f:223,bg:220,dsp_s:220.017,dsp_e:220.156,fg_s:230.771,fg_e:230.821,wait:0.017,exec:0.139,fg_wait:10.615},
+  {f:224,bg:230,dsp_s:230.015,dsp_e:230.149,fg_s:231.189,fg_e:231.239,wait:0.015,exec:0.134,fg_wait:1.04},
+  {f:225,bg:240,dsp_s:240.012,dsp_e:240.138,fg_s:243.758,fg_e:243.808,wait:0.012,exec:0.126,fg_wait:3.62},
+  {f:226,bg:250,dsp_s:250.01,dsp_e:250.144,fg_s:256.112,fg_e:256.162,wait:0.01,exec:0.134,fg_wait:5.968},
+  {f:227,bg:260,dsp_s:260.007,dsp_e:260.075,fg_s:268.334,fg_e:268.384,wait:0.007,exec:0.068,fg_wait:8.259},
+  {f:228,bg:270,dsp_s:270.013,dsp_e:270.061,fg_s:280.306,fg_e:280.356,wait:0.013,exec:0.048,fg_wait:10.245},
+  {f:229,bg:280,dsp_s:280.011,dsp_e:280.06,fg_s:280.741,fg_e:280.791,wait:0.011,exec:0.049,fg_wait:0.681},
+  {f:230,bg:290,dsp_s:290.008,dsp_e:290.082,fg_s:292.601,fg_e:292.651,wait:0.008,exec:0.074,fg_wait:2.519},
+];
+
+const TOTAL_MS = 300;
+const LANES = ['BG (AudioWorker)', 'DSP (DSPWorker)', 'FG (MainWindow)'];
+const LANE_H = 44;
+const LABEL_W = 148;
+const TOP_PAD = 12;
+const BOTTOM_PAD = 36;
+const DEADLINE = 10.667;
+
+function setup() {
+  const canvas = document.getElementById('c');
+  const wrap = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  const W = wrap.clientWidth || 900;
+  const H = TOP_PAD + LANES.length * LANE_H + BOTTOM_PAD;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return {ctx, W, H};
+}
+
+function msToX(ms, W) {
+  return LABEL_W + (ms / TOTAL_MS) * (W - LABEL_W - 8);
+}
+
+function laneY(i) {
+  return TOP_PAD + i * LANE_H + LANE_H / 2;
+}
+
+let W, H, ctx;
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Deadline reference (shade every other 10ms band)
+  for (let t = 0; t < TOTAL_MS; t += 20) {
+    ctx.fillStyle = 'rgba(255,255,255,0.02)';
+    ctx.fillRect(msToX(t, W), TOP_PAD, msToX(10, W) - msToX(0, W), LANES.length * LANE_H);
+  }
+
+  // Lane stripes
+  LANES.forEach((_, i) => {
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0)';
+    ctx.fillRect(LABEL_W, TOP_PAD + i * LANE_H, W - LABEL_W - 8, LANE_H);
+  });
+
+  // Grid lines every 30ms
+  for (let t = 0; t <= TOTAL_MS; t += 30) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(msToX(t, W), TOP_PAD);
+    ctx.lineTo(msToX(t, W), TOP_PAD + LANES.length * LANE_H);
+    ctx.stroke();
+  }
+
+  // Lane labels
+  ctx.font = '11px system-ui';
+  ctx.fillStyle = 'rgba(148,163,184,0.9)';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  LANES.forEach((name, i) => ctx.fillText(name, LABEL_W - 10, laneY(i)));
+
+  const BAR_H = 13;
+
+  DATA.forEach(d => {
+    // BG tick
+    const bgX = msToX(d.bg, W);
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bgX, laneY(0) - LANE_H / 2 + 6);
+    ctx.lineTo(bgX, laneY(0) + LANE_H / 2 - 6);
+    ctx.stroke();
+
+    // DSP exec bar
+    const dspX1 = msToX(d.dsp_s, W);
+    const dspX2 = Math.max(msToX(d.dsp_e, W), dspX1 + 2.5);
+    ctx.fillStyle = '#4ade80';
+    ctx.fillRect(dspX1, laneY(1) - BAR_H / 2, dspX2 - dspX1, BAR_H);
+
+    // FG scheduling wait bar
+    const fgWaitX1 = dspX2;
+    const fgWaitX2 = Math.max(msToX(d.fg_s, W), fgWaitX1 + 2.5);
+    // Color: amber if wait > deadline, else light orange
+    ctx.fillStyle = d.fg_wait > DEADLINE ? 'rgba(239,68,68,0.25)' : 'rgba(249,115,22,0.28)';
+    ctx.fillRect(fgWaitX1, laneY(2) - BAR_H / 2, fgWaitX2 - fgWaitX1, BAR_H);
+
+    // FG handle bar
+    const fgExX1 = fgWaitX2;
+    const fgExX2 = Math.max(msToX(d.fg_e, W), fgExX1 + 3.5);
+    ctx.fillStyle = d.fg_wait > DEADLINE ? '#ef4444' : '#f97316';
+    ctx.fillRect(fgExX1, laneY(2) - BAR_H / 2, fgExX2 - fgExX1, BAR_H);
+  });
+
+  // X-axis
+  ctx.fillStyle = 'rgba(100,116,139,0.7)';
+  ctx.font = '10px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  const yBase = TOP_PAD + LANES.length * LANE_H + 5;
+  for (let t = 0; t <= TOTAL_MS; t += 30) {
+    const x = msToX(t, W);
+    ctx.fillStyle = 'rgba(100,116,139,0.4)';
+    ctx.fillRect(x, yBase, 1, 4);
+    ctx.fillStyle = 'rgba(100,116,139,0.8)';
+    ctx.fillText(t + 'ms', x, yBase + 6);
+  }
+}
+
+const result = setup();
+W = result.W; H = result.H; ctx = result.ctx;
+draw();
+
+// Tooltip
+const tip = document.getElementById('tip');
+const canvas = document.getElementById('c');
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const ms = ((mx - LABEL_W) / (W - LABEL_W - 8)) * TOTAL_MS;
+  let hit = null;
+
+  for (const d of DATA) {
+    if (Math.abs(my - laneY(0)) < LANE_H / 2 && Math.abs(ms - d.bg) < 2) {
+      hit = {frame: d.f, lane: 'AudioWorker (BG)',
+             lines: [`fired at ${d.bg.toFixed(0)} ms`, `next DSP pickup in ${d.wait.toFixed(3)} ms`]};
+      break;
+    }
+    if (Math.abs(my - laneY(1)) < LANE_H / 2 && ms >= d.dsp_s - 0.5 && ms <= d.dsp_e + 0.5) {
+      hit = {frame: d.f, lane: 'DSPWorker exec (DSP)',
+             lines: [`exec: ${d.exec.toFixed(3)} ms`, `range: ${d.dsp_s.toFixed(3)} – ${d.dsp_e.toFixed(3)} ms`]};
+      break;
+    }
+    if (Math.abs(my - laneY(2)) < LANE_H / 2 && ms >= d.dsp_e - 0.5 && ms <= d.fg_e + 0.5) {
+      const over = d.fg_wait > DEADLINE;
+      hit = {frame: d.f, lane: 'MainWindow (FG)',
+             lines: [
+               `fg_wait: ${d.fg_wait.toFixed(3)} ms ${over ? '⚠ > deadline' : ''}`,
+               `handles at: ${d.fg_s.toFixed(3)} ms`,
+               `deadline: ${DEADLINE.toFixed(3)} ms`
+             ]};
+      break;
+    }
+  }
+
+  if (hit) {
+    tip.innerHTML = `<b>Frame ${hit.frame} · ${hit.lane}</b>${hit.lines.map(l => `<span>${l}</span>`).join('')}`;
+    let tx = mx + 14, ty = my + 14;
+    if (tx + 210 > W) tx = mx - 220;
+    if (ty + 90 > H) ty = my - 100;
+    tip.style.left = tx + 'px';
+    tip.style.top = ty + 'px';
+    tip.style.opacity = '1';
+  } else {
+    tip.style.opacity = '0';
+  }
+});
+canvas.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
+window.addEventListener('resize', () => {
+  const r = setup(); W = r.W; H = r.H; ctx = r.ctx; draw();
+});
+</script>
+</body>
+</html>
