@@ -197,9 +197,17 @@ for RATE in "${RATES[@]}"; do
         sleep 2.5   # give Qt time to open the dialog
 
         # ── Handle file dialog ────────────────────────────────
-        # Try "Open Document" title first; fall back to any QFileDialog window
-        DIALOG_ID=$(wait_for_window "Open Document" 8) || \
-            DIALOG_ID=$(xdotool search --class "QFileDialog" 2>/dev/null | tail -1) || true
+        # When PlaybackStart() opens QFileDialog, it steals focus from the main window.
+        # Poll getactivewindow until it differs from WIN_ID (= dialog appeared).
+        DIALOG_ID=""
+        for ((d=0; d<20; d++)); do
+            AW=$(xdotool getactivewindow 2>/dev/null)
+            if [ -n "$AW" ] && [ "$AW" != "$WIN_ID" ]; then
+                DIALOG_ID="$AW"
+                break
+            fi
+            sleep 0.5
+        done
 
         if [ -z "$DIALOG_ID" ]; then
             echo "  [error] File dialog not found — skipping run $RUN"
@@ -207,6 +215,7 @@ for RATE in "${RATES[@]}"; do
             sleep 1
             continue
         fi
+        echo "  [dialog=$DIALOG_ID]"
 
         xdotool windowactivate --sync "$DIALOG_ID"
         sleep 0.3
