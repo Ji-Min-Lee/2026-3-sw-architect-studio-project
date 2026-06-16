@@ -10,9 +10,9 @@
 | ID | Experiment | Runs | Latest Key Result | Status |
 |----|------------|:----:|-------------------|:------:|
 | EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps (48k/96k/192k) × all scheduling (default/RR/FIFO) — **QAS-1 Pass** | ✅ Done |
-| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | E2-7 (rpi2, E2-6 + fg_wait_ms): DSP E2E avg **2.2 ms** / max **4.8 ms** — **fg_wait avg 60.1 ms, p99 167.8 ms** (84 % > deadline): FG scheduling is the next bottleneck. | ⏳ In Progress |
-| EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | 📅 Planned |
-| EXP-04 | Signal Quality Warning Threshold Search | 0 | — | 📅 Planned |
+| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | E2-7 (rpi2, E2-6 + fg_wait_ms): DSP E2E avg **2.2 ms** / max **4.8 ms** — **fg_wait avg 60.1 ms, p99 167.8 ms** (84 % > deadline): FG scheduling is the next bottleneck. | ✅ Done |
+| EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | ⏳ In Progress |
+| EXP-04 | Signal Quality Warning Threshold Search | 0 | — | ⏳ In Progress |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
 
 > Status legend: ✅ Done · ⏳ In Progress · 📅 Planned · ⏸ Deferred · ❌ Cancelled  
@@ -126,7 +126,7 @@ EXP-04 (warning threshold) ────────────┘
 ## EXP-02: End-to-End Latency — 3-Segment Timestamp Measurement
 
 **Linked QA**: QAS-2 | **Linked Risk**: TR-03, TR-04  
-**Status**: ⏳ In Progress  
+**Status**: ✅ Done  
 **Prerequisite**: EXP-01 complete (SPS confirmed)
 
 **Question**: What is the end-to-end latency across the full pipeline (capture → DSP → render)? Does ② process→display exceed 30 ms with 11 tabs? Is 36k/43k BPH feasible?
@@ -153,15 +153,15 @@ reference.
 meta line by the logging build); tag shown in parens where applicable. Tactics
 R1/T2 are in `Role`.
 
-| Run | Date | Platform | Rate | E2E avg/max (ms) | Role | git_commit | Detail |
-|:---:|------|----------|:----:|:----------------:|------|------------|:------:|
-| E2-1 | 2026-06-12 | Windows | 48 kHz | 2.8 / 363.9 | Windows reference (dev) | `d40b8fc` | ▼ E2-1 below |
-| E2-2 | 2026-06-11 | **rpi1** | 48 kHz | 255.4 / 900.9 | rpi1 reference (1st unit) | `e7aaf4c` | ▼ E2-2 below |
-| E2-3 | 2026-06-15 | **rpi2** | 48 kHz | 57.2 / 208.9 | **rpi2 baseline** | `7298783` | ▼ E2-3 below |
-| E2-4 | 2026-06-15 | **rpi2** | 48 kHz | 80.1 / 258.7 | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-4 below |
-| E2-5 | 2026-06-15 | **rpi2** | 48 kHz | 2.1 / 11.1 | E2-4 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-5 below |
-| E2-6 | 2026-06-15 | **rpi2** | 48 kHz | 2.1 / 5.7 | E2-5 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-6 below |
-| E2-7 | 2026-06-16 | **rpi2** | 48 kHz | 2.2 / 4.8 | E2-6 + per-thread timing (`fg_wait_ms`) | `f4bfbb5` (tag `thread-timing-measurement`) | ▼ E2-7 below |
+| Run | Date | Rate | E2E avg/max (ms) | Role | git_commit | Detail |
+|:---:|------|:----:|:----------------:|------|------------|:------:|
+| E2-1 | 2026-06-12 | 48 kHz | 2.8 / 363.9 | Windows reference (dev) | `d40b8fc` | ▼ E2-1 below |
+| E2-2 | 2026-06-11 | 48 kHz | 255.4 / 900.9 | rpi1 reference (1st unit) | `e7aaf4c` | ▼ E2-2 below |
+| E2-3 | 2026-06-15 | 48 kHz | 57.2 / 208.9 | **rpi2 baseline** | `7298783` | ▼ E2-3 below |
+| E2-4 | 2026-06-15 | 48 kHz | 80.1 / 258.7 | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-4 below |
+| E2-5 | 2026-06-15 | 48 kHz | 2.1 / 11.1 | E2-4 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-5 below |
+| E2-6 | 2026-06-15 | 48 kHz | 2.1 / 5.7 | E2-5 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-6 below |
+| E2-7 | 2026-06-16 | 48 kHz | 2.2 / 4.8 | E2-6 + per-thread timing (`fg_wait_ms`) | `f4bfbb5` (tag `thread-timing-measurement`) | ▼ E2-7 below |
 
 > E2-2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
 > (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
@@ -698,9 +698,8 @@ T2 = DSP Offload Thread).
 ## EXP-03: Detector Parameter Optimization Under Noise Conditions
 
 **Linked QA**: QAS-3 | **Linked Risk**: TR-05  
-**Status**: 📅 Planned  
-**Prerequisite**: EXP-01 complete (SPS for measurement confirmed)  
-**Expected start**: After EXP-01 concludes
+**Status**: ⏳ In Progress  
+**Prerequisite**: EXP-01 complete (SPS for measurement confirmed)
 
 **Question**: Which combination of `onset_fraction` and `min_peak_fraction` minimizes Δ Rate / Δ Amplitude / Δ Beat Error across low / medium / high noise?
 
@@ -744,9 +743,8 @@ T2 = DSP Offload Thread).
 ## EXP-04: Signal Quality Warning Threshold Search
 
 **Linked QA**: QAS-4 | **Linked Risk**: TR-09  
-**Status**: 📅 Planned  
-**Prerequisite**: Observer pattern refactoring complete + `⚠ No signal` / `⚠ Noisy signal` warning UI implemented  
-**Expected start**: After warning UI is implemented
+**Status**: ⏳ In Progress  
+**Prerequisite**: Observer pattern refactoring complete + `⚠ No signal` / `⚠ Noisy signal` warning UI implemented
 
 **Questions**:
 - After removing the watch, within how many seconds should `⚠ No signal` appear?
