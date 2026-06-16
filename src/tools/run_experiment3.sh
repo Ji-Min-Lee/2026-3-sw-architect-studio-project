@@ -42,7 +42,10 @@ REPS=10
 SNR_LEVELS=(00 10 20 30 40 50 60)
 
 # ── UI coordinates (from MainWindow.ui, window fixed at 1280×750) ──
-# These are relative to the Qt window's client area (xdotool --window)
+# All coordinates are OFFSETS from the window's outer top-left corner.
+# TITLE_BAR_H accounts for the WM title bar (Openbox default ~22px).
+# If clicks miss, adjust TITLE_BAR_H (try 22, 26, 30) or run with --calibrate.
+TITLE_BAR_H=22
 MODE_COMBO_X=165   # ModeComboBox center X  (pos x=100 + w=131/2)
 MODE_COMBO_Y=161   # ModeComboBox center Y  (pos y=150 + h=22/2)
 START_BTN_X=40     # StartPushButton center X  (pos x=10 + w=61/2)
@@ -180,11 +183,19 @@ for RATE in "${RATES[@]}"; do
         fi
         echo "  [win=$WIN_ID] window ready"
 
+        # ── Get window screen position ────────────────────────
+        eval $(xdotool getwindowgeometry --shell "$WIN_ID")
+        WIN_X=$X; WIN_Y=$Y
+        # Absolute coords = window outer top-left + title bar + widget offset
+        ABS() { echo $(( WIN_X + $1 )); }
+        ABSY() { echo $(( WIN_Y + TITLE_BAR_H + $1 )); }
+
         # ── Select PLAYBACK mode ───────────────────────────────
-        # Click the ModeComboBox to open its dropdown
+        xdotool windowraise "$WIN_ID"
+        sleep 0.2
         xdotool windowactivate --sync "$WIN_ID"
-        sleep 0.3
-        xdotool mousemove --window "$WIN_ID" $MODE_COMBO_X $MODE_COMBO_Y
+        sleep 0.2
+        xdotool mousemove $(ABS $MODE_COMBO_X) $(ABSY $MODE_COMBO_Y)
         xdotool click 1
         sleep 0.3
         # Navigate dropdown: Home = first item (Live), Down = Playback, Enter = select
@@ -192,7 +203,7 @@ for RATE in "${RATES[@]}"; do
         sleep 0.3
 
         # ── Click Start ───────────────────────────────────────
-        xdotool mousemove --window "$WIN_ID" $START_BTN_X $START_BTN_Y
+        xdotool mousemove $(ABS $START_BTN_X) $(ABSY $START_BTN_Y)
         xdotool click 1
         sleep 2.5   # give Qt time to open the dialog
 
