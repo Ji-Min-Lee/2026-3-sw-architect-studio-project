@@ -1,0 +1,4 @@
+# Shell scripts and Python must always use LF (Unix line endings)
+# so they run correctly on Linux/RPi regardless of where they were edited.
+*.sh   text eol=lf
+*.py   text eol=lf

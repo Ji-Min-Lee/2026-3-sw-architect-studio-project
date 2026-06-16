@@ -17,3 +17,6 @@ CMakeLists.txt.user
 
 # macOS
 .DS_Store
+
+# Generated noise WAV files (large — regenerate with: python3 src/tools/add_pink_noise.py)
+src/TimeGrapherTestFilesWeishiMic/Noise/
