@@ -1,7 +1,7 @@
 # Experiment Results
 
 **Milestone**: M2 | **Due**: 2026-06-22 | **Status**: [x] Draft  [ ] Final  
-**Last Updated**: 2026-06-15
+**Last Updated**: 2026-06-16
 
 ---
 
@@ -10,7 +10,7 @@
 | ID | Experiment | Runs | Latest Key Result | Status |
 |----|------------|:----:|-------------------|:------:|
 | EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps (48k/96k/192k) × all scheduling (default/RR/FIFO) — **QAS-1 Pass** | ✅ Done |
-| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 6 | E2-6 (rpi2, E2-5 + R1 Lazy Rendering): E2E avg **2.1 ms**, max **5.7 ms** — tighter max than E2-5 (11.1 ms), zero backlog. | ⏳ In Progress |
+| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | E2-7 (rpi2, E2-6 + fg_wait_ms): DSP E2E avg **2.2 ms** / max **4.8 ms** — **fg_wait avg 60.1 ms, p99 167.8 ms** (84 % > deadline): FG scheduling is the next bottleneck. | ⏳ In Progress |
 | EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | 📅 Planned |
 | EXP-04 | Signal Quality Warning Threshold Search | 0 | — | 📅 Planned |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
@@ -161,6 +161,7 @@ R1/T2 are in `Role`.
 | E2-4 | 2026-06-15 | **rpi2** | 48 kHz | 80.1 / 258.7 | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-4 below |
 | E2-5 | 2026-06-15 | **rpi2** | 48 kHz | 2.1 / 11.1 | E2-4 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-5 below |
 | E2-6 | 2026-06-15 | **rpi2** | 48 kHz | 2.1 / 5.7 | E2-5 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-6 below |
+| E2-7 | 2026-06-16 | **rpi2** | 48 kHz | 2.2 / 4.8 | E2-6 + per-thread timing (`fg_wait_ms`) | `f4bfbb5` (tag `thread-timing-measurement`) | ▼ E2-7 below |
 
 > E2-2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
 > (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
@@ -186,6 +187,13 @@ R1/T2 are in `Role`.
 > build-error patch applied (`${CMAKE_CURRENT_SOURCE_DIR}/logging` in CMake). Same
 > sync as E2-5; R1 tightens worst-case max (5.7 ms vs E2-5's 11.1 ms). Busiest
 > core cpu0 (vs cpu1 in E2-4/E2-5), mem 0.85 GB.
+>
+> E2-7 (rpi2, E2-6 + per-thread timing) — tag `thread-timing-measurement` (`f4bfbb5`).
+> Adds `fg_wait_ms` column: time from DSPWorker `frameLogged` emit to MainWindow
+> `onFrameLogged` entry (FG Qt-scheduler pickup latency). DSP path unchanged
+> (E2E avg 2.2 ms, 0 deadline miss). Reveals new bottleneck: FG pickup avg **60.1 ms**,
+> p99 **167.8 ms**, 84 % of frames exceed the 21.33 ms deadline — Qt scheduler
+> on RPi is far slower to wake the FG thread than on macOS (macOS R5: avg 8.9 ms).
 
 > Dropped audio blocks and missed beat detections (required by the Low-Latency QA)
 > are not yet instrumented; backlog % in each detail block is the current proxy.
@@ -514,6 +522,84 @@ temp avg **61.3 °C** (max 62.8 °C), **throttled 0 / 11 samples**; mem ~850 MB 
 
 </details>
 
+<details>
+<summary><b>E2-7</b> — 2026-06-16 · rpi2 · 48 kHz · E2-6 + per-thread timing (fg_wait_ms) — DSP E2E avg 2.2 / max 4.8 ms · <b>fg_wait avg 60.1 ms · p99 167.8 ms · 84 % > deadline — FG scheduling bottleneck revealed</b></summary>
+
+**Context**: rpi2, **E2-6 + per-thread timing** — tag `thread-timing-measurement` (`f4bfbb5`).
+New column `fg_wait_ms` measures DSPWorker `frameLogged` emit → MainWindow `onFrameLogged`
+entry (Qt FG-scheduler pickup latency). DSP pipeline identical to E2-6.
+Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
+Files: [csv](../../src/logs/EXP-02/log_20260616_140850.csv) ·
+[plot](../../src/logs/EXP-02/log_20260616_140850.png) ·
+[sys plot](../../src/logs/EXP-02/log_20260616_140850_sys.png).
+
+**DSP path (wait + exec) per-frame metrics (1458 frames), ms:**
+
+| Metric | avg | max | min |
+|--------|----:|----:|----:|
+| total = ①+② | 2.168 | 4.819 | 0.234 |
+| ① wait (BG→DSP pickup) | 0.030 | 0.381 | 0.013 |
+| ② exec (DSP processing) | 2.139 | 4.438 | 0.206 |
+| ┄ copy | 0.007 | 0.028 | 0.006 |
+| ┄ sound | 0.000 | 0.000 | 0.000 |
+| ┄ tg (dominant) | 2.130 | 4.429 | 0.198 |
+| ┄ ui | 0.000 | 0.000 | 0.000 |
+| ┄ plot | 0.025 | 37.024 | 0.000 |
+
+**FG scheduling pickup (fg_wait_ms) — NEW metric:**
+
+| Metric | Value |
+|--------|------:|
+| fg_wait avg | **60.1 ms** 🔴 |
+| fg_wait p50 (median) | — |
+| fg_wait p95 | **144.0 ms** |
+| fg_wait p99 | **167.8 ms** |
+| fg_wait max | **183.6 ms** |
+| fg_wait > deadline (21.33 ms) | **1231 / 1458 (84 %)** 🔴 |
+
+**Throughput / health:** bg_fps avg 43.9 (max 47.4), fg_fps avg 43.9 (max 47.3)
+— **FG and BG perfectly matched** (bg_fps ≈ fg_fps, same as E2-5/E2-6). bg_sps avg 44939.
+samples = 1024 exactly every frame. exec > deadline: **0 / 1458**. backlog: **0 / 1458**.
+
+**System (rpi2):** cpu_total avg 30.0 % (max 32.4 %);
+**cpu1 saturated avg 95.0 % (max 99.5 %)** (DSP on cpu1);
+temp avg **57.9 °C** (max 59.5 °C) — cooler than E2-6 (61.3 °C); **throttled 0 / 14 samples**;
+mem 1362.7 MB used / 16214.9 MB; freq 2400 MHz (no throttling).
+
+![E2-7 plot](../../src/logs/EXP-02/log_20260616_140850.png)
+
+![E2-7 sys](../../src/logs/EXP-02/log_20260616_140850_sys.png)
+
+**Observations:**
+
+| Phase | Pattern | Interpretation |
+|-------|---------|----------------|
+| DSP wait | avg 0.030 ms (near-zero) | DSP thread picks up BG signal immediately — T2 working |
+| DSP exec | avg 2.14 ms, max 4.44 ms | tg sole cost; tighter max than E2-6 (5.6 ms) |
+| samples | exactly 1024 every frame | BG/FG DSP synchronized, no backlog |
+| **fg_wait** | **avg 60.1 ms**, **84 % > 21.33 ms** | Qt event loop on RPi is very slow to wake FG thread 🔴 |
+| fg_wait p99 | 167.8 ms ≈ 8× deadline | severe FG scheduling tail on RPi vs macOS (macOS p99 = 20.5 ms) |
+| cpu1 | avg 95 % saturated | DSP pinned to cpu1; other cores idle — FG scheduling delay not CPU-bound |
+| temp | 57.9 °C (vs E2-6's 61.3 °C) | slightly cooler; no throttling |
+
+**Conclusion:**
+
+- **DSP pipeline remains healthy**: DSP E2E avg 2.2 ms, max 4.8 ms, 0 deadline misses,
+  0 backlog — identical behavior to E2-6.
+- **FG scheduling is the revealed bottleneck**: `fg_wait_ms` exposes a new latency
+  invisible in E2-6. The Qt event loop takes avg **60 ms** on RPi to deliver
+  `frameLogged` to the FG thread — 84 % of frames exceed the 21.33 ms audio deadline.
+  On macOS (R5 in the macOS experiment series), the same metric was avg 8.9 ms, p99
+  20.5 ms — the RPi scheduler is ~7× slower to wake the FG thread.
+- **Not CPU-bounded**: cpu1 (DSP) is saturated at 95 %, but cpu0/2/3 are near-idle
+  (avg 7–12 %). FG has CPU headroom; the bottleneck is Qt event-loop scheduling
+  priority, not raw compute.
+- **Next step**: Apply T1 (SCHED_RR + CPU affinity) to the FG/DSP threads on RPi
+  to reduce `fg_wait_ms`, or investigate `QTimer`-based periodic FG polling as an
+  alternative to `frameLogged` signal delivery.
+
+</details>
+
 ### E2-3–E2-6 Tactic Progression Comparison (rpi2, same unit)
 
 All four runs are on rpi2 at 48 kHz; deadline ≈ 21.33 ms (SPF 1024 / SPS 48008).
@@ -563,21 +649,25 @@ T2 = DSP Offload Thread).
 
 ### Current Best
 
-**E2-6 (rpi2, E2-5 + R1 Lazy Rendering) — ideal real-time pipeline** ✅
-- E2E avg **2.1 ms** / max **5.7 ms** — tighter max than E2-5 (11.1 ms); matches Windows baseline (E2-1: 2.8 ms)
-- ① wait avg **0.029 ms** (near-zero); samples exactly 1024 every frame
-- exec avg **2.0 ms**, max **5.6 ms** — **0 / 1142** deadline overruns
-- backlog **0 / 1142** — FG and BG perfectly synchronized (from T2)
-- temp 61.3 °C, no throttling, mem 0.85 GB / 16 GB
+**E2-7 (rpi2, E2-6 + per-thread timing) — DSP healthy, FG scheduling bottleneck revealed** ⚠️
+- DSP E2E avg **2.2 ms** / max **4.8 ms** — 0 deadline misses, 0 backlog (same as E2-6)
+- ① wait avg **0.030 ms** (near-zero); samples exactly 1024 every frame
+- exec avg **2.1 ms**, max **4.4 ms** — **0 / 1458** deadline overruns
+- backlog **0 / 1458** — FG and BG DSP perfectly synchronized
+- **fg_wait avg 60.1 ms, p99 167.8 ms, 84 % > deadline** 🔴 — NEW bottleneck identified
+- temp 57.9 °C, no throttling, mem 1.36 GB / 16 GB
 
+> E2-6 (E2-5 + R1): DSP E2E avg 2.1 ms, max 5.7 ms — R1 trims tail latency; fg_wait not yet measured.  
 > E2-5 (E2-4 + T2): E2E avg 2.1 ms, max 11.1 ms — T2 yields the sync fix (backlog 0).  
 > E2-4 (rpi2 baseline + multi-graph): E2E avg 80 ms, backlog 28 % — FG scheduling lag.  
 > E2-3 (rpi2 baseline): exec 15.2 ms, 4.4 % overruns — `plot` bottleneck in audio path.  
 > E2-1 (Windows baseline): E2E avg 2.8 ms — E2-6 reaches parity with tighter max.
 
-- **Decisive tactic**: **T2 (DSP Offload)** — E2-4 → E2-5 drops E2E 80 ms → 2.1 ms (sync, backlog 0)
-- **R1 (Lazy Rendering)**: trims worst-case max (E2-5 11.1 → E2-6 5.7 ms)
-- **Recommended combo**: **T2 + R1** for the full-GUI build (E2E ~2 ms, 0 overruns, 0 backlog)
+- **Decisive tactic so far**: **T2 (DSP Offload)** — E2-4 → E2-5 drops E2E 80 ms → 2.1 ms (sync, backlog 0)
+- **R1 (Lazy Rendering)**: trims worst-case DSP max (E2-5 11.1 → E2-6 5.7 ms)
+- **New finding (E2-7)**: `fg_wait_ms` reveals Qt FG-scheduler pickup on RPi is avg 60 ms —
+  7× worse than macOS (avg 8.9 ms). FG latency is the next architecture concern.
+- **Next action**: Apply T1 (SCHED_RR + CPU affinity for FG thread) → measure E2-8
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
 
 ---
