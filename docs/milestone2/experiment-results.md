@@ -87,17 +87,17 @@ period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
 **R2 (RPi) is the baseline for all future experiments.** R1 (Windows) is kept
 only as a dev-machine reference.
 
-`Source` = git tag (· repo) or branch the run was built from. `Applied` = tools /
-patches applied on top (tactics R1/T2 are in `Role`).
+`Source` = git tag (immutable) or commit hash the run was built from. `Applied` =
+tools / patches applied on top (tactics R1/T2 are in `Role`).
 
 | Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Role | Source | Applied | Detail |
 |:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|------|--------|---------|:------:|
-| R1 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | Windows baseline | `baseline/experiments2` | tools | ▼ R1 below |
-| R2 | 2026-06-11 | **rpi1** | 48 kHz | ? | 255.4 / 900.9 | — | — | rpi1 baseline | `baseline/experiments2` | tools | ▼ R2 below |
-| R3 | 2026-06-15 | **rpi2** | 48 kHz | ? | 57.2 / 208.9 | — | — | rpi2 baseline | `baseline/experiments2` | tools | ▼ R3 below |
-| R4 | 2026-06-15 | **rpi2** | 48 kHz | — | 80.1 / 258.7 | — | — | rpi2 baseline + multi-graph | tag `macos_ex_baseline` · project | tools | ▼ R4 below |
-| R5 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 11.1 | — | — | R4 + T2 (DSP Offload) | tag `macos_ex_t2` · project-2 | tools | ▼ R5 below |
-| R6 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 5.7 | — | — | R5 + R1 (Lazy Rendering) | tag `macos_ex_r1` · project-3 | tools + build-fix | ▼ R6 below |
+| R1 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | Windows baseline | `d40b8fc` | tools | ▼ R1 below |
+| R2 | 2026-06-11 | **rpi1** | 48 kHz | ? | 255.4 / 900.9 | — | — | rpi1 baseline | `e7aaf4c` | tools | ▼ R2 below |
+| R3 | 2026-06-15 | **rpi2** | 48 kHz | ? | 57.2 / 208.9 | — | — | rpi2 baseline | `7298783` | tools | ▼ R3 below |
+| R4 | 2026-06-15 | **rpi2** | 48 kHz | — | 80.1 / 258.7 | — | — | rpi2 baseline + multi-graph | tag `macos_ex_baseline` (`6f741ec`) | tools | ▼ R4 below |
+| R5 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 11.1 | — | — | R4 + T2 (DSP Offload) | tag `macos_ex_t2` (`7c367c6`) | tools | ▼ R5 below |
+| R6 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 5.7 | — | — | R5 + R1 (Lazy Rendering) | tag `macos_ex_r1` (`39c1d1a`) | tools + build-fix | ▼ R6 below |
 
 > R2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
 > (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
@@ -109,19 +109,19 @@ patches applied on top (tactics R1/T2 are in `Role`).
 > (`device=rpi2` in the CSV `#` meta line). Same deadline (21.33 ms). Tabs unknown
 > (`?`). No thermal throttling observed — a key hardware difference from rpi1.
 >
-> R4 (rpi2, baseline + multi-graph) — `macos_ex_baseline` tag, `project` repo.
+> R4 (rpi2, baseline + multi-graph) — tag `macos_ex_baseline` (`6f741ec`).
 > CSV meta `platform=debian kernel=linux host=lg1 sample_rate=48000` (device
 > field predates this run; rpi2 confirmed by 16 GB mem + 60 °C no-throttle).
 > Measured `plot_ms`/`ui_ms` are 0 in the exec breakdown. `wait` is high (77 ms)
 > and backlog 28 % — FG falls behind without sync.
 >
-> R5 (rpi2, R4 + T2 DSP Offload) — `macos_ex_t2` tag, `project-2` repo. T2 makes
+> R5 (rpi2, R4 + T2 DSP Offload) — tag `macos_ex_t2` (`7c367c6`). T2 makes
 > FG and BG perfectly synchronized: samples fixed at exactly 1024, backlog
 > 0/1224, wait avg 0.027 ms → E2E avg 2.1 ms.
 >
-> R6 (rpi2, R5 + R1 Lazy Rendering) — `macos_ex_r1` tag, `project-3` repo
-> (build-error patch applied). Same sync as R5; R1 tightens worst-case max
-> (5.7 ms vs R5's 11.1 ms). Pinned core cpu0 (vs cpu1 in R4/R5), mem 0.85 GB.
+> R6 (rpi2, R5 + R1 Lazy Rendering) — tag `macos_ex_r1` (`39c1d1a`), build-error
+> patch applied. Same sync as R5; R1 tightens worst-case max (5.7 ms vs R5's
+> 11.1 ms). Busiest core cpu0 (vs cpu1 in R4/R5), mem 0.85 GB.
 
 > `Dropped` (audio blocks) and `Missed` (beat detections) are required by the
 > Low-Latency QA but not yet instrumented — shown as `—`. See backlog % in the
@@ -275,10 +275,9 @@ backlog (>1.5× SPF): **273 / 1288 (21.2 %)**.
 <details>
 <summary><b>R4</b> — 2026-06-15 · rpi2 · 48 kHz · baseline + multi-graph (tag macos_ex_baseline) — E2E avg 80.1 / max 258.7 ms · <b>exec OK (0/1244) but wait 77 ms, backlog 28 %</b></summary>
 
-**Context**: rpi2, baseline + multi-graph — tag `macos_ex_baseline`, repo
-`project`. `plot_ms` and `ui_ms` measure 0 in the exec breakdown (rendering is
-not on the measured exec path). Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
-Files:
+**Context**: rpi2, baseline + multi-graph — tag `macos_ex_baseline` (`6f741ec`).
+`plot_ms` and `ui_ms` measure 0 in the exec breakdown (rendering is not on the
+measured exec path). Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008). Files:
 [csv](../../src/logs/EXP-02/log_20260615_162055.csv) ·
 [plot](../../src/logs/EXP-02/log_20260615_162055.png) ·
 [sys plot](../../src/logs/EXP-02/log_20260615_162055_sys.png).
@@ -333,8 +332,8 @@ temp avg **60.0 °C** (max 61.7 °C), **throttled 0 / 12 samples**; mem ~2260 MB
 <details>
 <summary><b>R5</b> — 2026-06-15 · rpi2 · 48 kHz · R4 + T2 DSP Offload (tag macos_ex_t2) — E2E avg 2.1 / max 11.1 ms · <b>exec > deadline: 0 / 1224 · backlog: 0 / 1224 — ideal real-time</b></summary>
 
-**Context**: rpi2, **R4 + T2 (DSP Offload Thread)** — tag `macos_ex_t2`, repo
-`project-2`. T2 makes FG and BG threads perfectly synchronized — samples is
+**Context**: rpi2, **R4 + T2 (DSP Offload Thread)** — tag `macos_ex_t2`
+(`7c367c6`). T2 makes FG and BG threads perfectly synchronized — samples is
 exactly 1024 every frame with zero backlog. Deadline ≈ **21.33 ms**
 (SPF 1024 / SPS 48008). Files:
 [csv](../../src/logs/EXP-02/log_20260615_163106.csv) ·
@@ -395,10 +394,10 @@ temp avg **60.4 °C** (max 62.3 °C), **throttled 0 / 12 samples**; mem ~2292 MB
 <details>
 <summary><b>R6</b> — 2026-06-15 · rpi2 · 48 kHz · R5 + R1 Lazy Rendering (tag macos_ex_r1) — E2E avg 2.1 / max 5.7 ms · <b>exec > deadline: 0 / 1142 · backlog: 0 / 1142 — ideal real-time, tightest max</b></summary>
 
-**Context**: rpi2, **R5 + R1 (Lazy Rendering)** — tag `macos_ex_r1`, repo
-`project-3` (build-error patch: `${CMAKE_CURRENT_SOURCE_DIR}/logging` added to
-CMake). Same perfect sync as R5; R1 tightens worst-case max. Memory ~850 MB
-(vs R5 ~2292 MB). Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
+**Context**: rpi2, **R5 + R1 (Lazy Rendering)** — tag `macos_ex_r1` (`39c1d1a`),
+build-error patch: `${CMAKE_CURRENT_SOURCE_DIR}/logging` added to CMake. Same
+perfect sync as R5; R1 tightens worst-case max. Memory ~850 MB (vs R5 ~2292 MB).
+Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
 Files: [csv](../../src/logs/EXP-02/log_20260615_165612.csv) ·
 [plot](../../src/logs/EXP-02/log_20260615_165612.png) ·
 [sys plot](../../src/logs/EXP-02/log_20260615_165612_sys.png).
@@ -494,11 +493,9 @@ T2 = DSP Offload Thread).
 - Hardware note: R2 (rpi1) failed at 43 % overruns mainly due to thermal throttling
   (85 °C); rpi2 stays at 60 °C / 2400 MHz throughout (see R2 detail block).
 
-> Provenance (see `Source`/`Applied` columns in the Runs table): R4–R6 repos are
-> `~/user/k-bahn/2026-3-sw-architect-studio-project{,-2,-3}`. The R6 build-fix
-> added `${CMAKE_CURRENT_SOURCE_DIR}/logging` to CMake. All runs applied the
-> `baseline/experiments2` tools (logging facility); tactics R1/T2 per
-> [architectural-approaches.md](architectural-approaches.md).
+> Provenance is in the Runs table (`Source` = tag/commit, `Applied` = patches).
+> The R6 build-fix added `${CMAKE_CURRENT_SOURCE_DIR}/logging` to CMake. Tactics
+> R1/T2 are defined in [architectural-approaches.md](architectural-approaches.md).
 
 ### Current Best
 
