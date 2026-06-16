@@ -390,6 +390,16 @@ void MainWindow::StartPlaybackThread(const QString &FileName)
 void MainWindow::StartSimThread(WatchSynthStreamConfig cfg)
 {
     Reset();
+#ifdef ENABLE_LOGGING
+    delete mLogger;
+    {
+        QString logDir = QCoreApplication::applicationDirPath() + "/logs/EXP-02";
+        QDir().mkpath(logDir);
+        QString csvPath = logDir + "/log_" +
+                          QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+        mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+    }
+#endif
     if (mRawAudio) {
         if (mRawAudio->Samples) { delete[] mRawAudio->Samples; mRawAudio->Samples = nullptr; }
         delete mRawAudio; mRawAudio = nullptr;
