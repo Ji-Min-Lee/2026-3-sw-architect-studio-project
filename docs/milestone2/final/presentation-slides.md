@@ -39,23 +39,35 @@
 | Category | Goal | Quality Attribute |
 |----------|------|-------------------|
 | **On-Schedule Delivery** | Shorten dev machine ↔ RPi deploy cycle | Deployability |
-| | 11 graphs must exist before experiments can run | Modifiability |
 | | Apply architecture decisions fast enough to stay on schedule | Modifiability |
-| **Accuracy** | Pipeline must process beats without missing the 21ms deadline | Performance — Real-Time |
+| **Accuracy** | Computed Rate / Amplitude / Beat Error must match Witschi within tolerance | **Accuracy** ← governing |
+| | Pipeline must process beats without missing the 21ms deadline | Performance — Real-Time |
 | | Capture-to-detect latency must be low enough for correct timestamps | Performance — Latency |
 | | Correct results even under noise | Reliability |
 | **Usability** | Inputs the system cannot handle must be clearly communicated | Usability |
+
+### QA Priority Order
+
+| Rank | Quality Attribute | Rationale |
+|------|-------------------|-----------|
+| 1 | **Accuracy** — Witschi match | The governing criterion: Rate / Amplitude / Beat Error must match Witschi reference |
+| 2 | **Real-Time** | Missed 21ms deadline → dropped beat → wrong Rate/BPH |
+| 3 | **Latency** | Late timestamp → wrong Beat Error / Amplitude |
+| 4 | **Reliability** | False trigger → wrong everything |
+| 5 | **Modifiability** | Execution enabler — architecture changes must apply fast enough to stay on schedule |
+| 6 | **Usability** | Unhandled inputs must be clearly communicated |
 
 ### Accuracy as the Governing Goal
 
 > Accuracy is not one QA among equals. It is the criterion the entire architecture is evaluated against.
 
 ```
-Goal: Measurement Accuracy (Rate / Amplitude / Beat Error must match WeiShi No.1000)
-├── Enabler:       Modifiability      → 11 graphs must exist; architecture changes must apply fast
-├── Prerequisite:  Real-Time Perf.    → missed deadline = dropped beat = wrong Rate / BPH
-├── Prerequisite:  Low Latency        → late timestamp = wrong Beat Error / Amplitude
-└── Prerequisite:  Reliability        → false trigger = wrong everything
+Goal: Measurement Accuracy (Rate / Amplitude / Beat Error must match Witschi reference)
+├── Direct measure: Accuracy          → computed values within tolerance of Witschi
+├── Prerequisite:   Real-Time Perf.   → missed deadline = dropped beat = wrong Rate / BPH
+├── Prerequisite:   Low Latency       → late timestamp = wrong Beat Error / Amplitude
+├── Prerequisite:   Reliability       → false trigger = wrong everything
+└── Enabler:        Modifiability     → architecture changes must apply fast
 ```
 
 ---
@@ -68,10 +80,10 @@ Views are documented only when needed and useful to a specific reader (Merson pr
 
 | View | Type | Goal Addressed | Primary Reader |
 |------|------|----------------|----------------|
-| RPi 5 Deployment | Allocation | Deployability — shorten dev ↔ RPi cycle | Ops / hardware owners |
-| 4-Layer Allowed-to-Use | Module — Layered | Modifiability — parallel tab dev, fast architecture changes | Developers (11 tabs) |
-| Graph Tab Decomposition | Module — Decomposition | Modifiability — how to add a new tab | Developers (per-tab) |
-| DSP Pipeline Thread Model | Runtime / C&C | Accuracy — thread isolation, lazy rendering | Developers (perf / concurrency) |
+| Deployment: Build-Deploy Pipeline | Allocation | Deployability — shorten dev ↔ RPi cycle | Ops / hardware owners |
+| Layered: 4-Layer Allowed-to-Use | Module — Layered | Modifiability — parallel tab dev, fast architecture changes | Developers (11 tabs) |
+| Decomposition: Graph Tab | Module — Decomposition | Modifiability — how to add a new tab | Developers (per-tab) |
+| C&C: DSP Pipeline Thread Model | Runtime / C&C | Accuracy — thread isolation, lazy rendering | Developers (perf / concurrency) |
 
 ---
 
@@ -79,7 +91,7 @@ Views are documented only when needed and useful to a specific reader (Merson pr
 
 ---
 
-#### View 1 — RPi 5 Deployment View (Allocation)
+#### View 1 — Deployment View: Build-Deploy Pipeline
 
 > Which hardware runs which software? What is the deploy path from dev machine to RPi?
 
@@ -95,7 +107,7 @@ RPi → `git pull` → build + test + experiment
 
 ---
 
-#### View 2 — 4-Layer Allowed-to-Use (Module View)
+#### View 2 — Layered View: 4-Layer Allowed-to-Use
 
 > Which direction do dependencies flow? Which layer changes when a new tab is added?
 
@@ -109,7 +121,7 @@ This is how 11 graph tabs are built in parallel without team conflict.
 
 ---
 
-#### View 3 — Graph Tab Decomposition (Module — Zoom)
+#### View 3 — Decomposition View: Graph Tab
 
 > What is the internal structure of Presentation? How is a new tab added?
 
@@ -129,7 +141,7 @@ Each team member owns specific tabs independently. No cross-tab dependencies.
 
 ---
 
-#### View 4 — DSP Pipeline Thread Model (Runtime / C&C View)
+#### View 4 — C&C View: DSP Pipeline Thread Model
 
 > How do the two threads cooperate? Where do T2 and R1 operate at runtime?
 
@@ -229,7 +241,7 @@ Week 3 (6/16 – 6/19)
 | Outcome | Evidence |
 |---------|---------|
 | 4-Layer Allowed-to-Use structure established | Module View V1 committed |
-| `IGraphTab` interface + `GraphTabManager` pattern defined | View 2 — Tab Decomposition |
+| `IGraphTab` interface + `GraphTabManager` pattern defined | Decomposition View: Graph Tab |
 | AI-assisted unit test generation for domain-knowledge coverage | Unit test suite bootstrapped without deep domain expertise |
 | All 11 graph tabs implemented ✅ | GitHub — [board](references/github-project-status.md) |
 
@@ -245,7 +257,7 @@ Week 3 (6/16 – 6/19)
 |---------|---------|
 | Experiment runner scripts (`run_exp.sh`, `analyze_log.py`) | Deployment View — deploy path documented |
 | CSV-based structured logger built into DSP pipeline | EXP-02 logging infrastructure |
-| `git pull` → build → run workflow confirmed on RPi | Allocation View — RPi node |
+| `git pull` → build → run workflow confirmed on RPi | Deployment View — RPi node |
 
 ---
 
@@ -258,7 +270,7 @@ Week 3 (6/16 – 6/19)
 | EXP-02 complete — wait_ms, exec_ms, deadline miss measured | [EXP-02](references/experiments/exp-02-pipeline-latency.md) |
 | ADR-001 (T2 DSP Offload) — accepted with trade-off | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) |
 | ADR-002 (R1 Lazy Rendering) — accepted with trade-off | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) |
-| C&C View — DSP Pipeline Thread Model documented | View 3 committed |
+| C&C View: DSP Pipeline Thread Model documented | View 4 committed |
 
 > Trade-off accepted (ADR-002): Non-visible tabs show a stale frame on switch. Catch-up frame in `showEvent()` makes this imperceptible (< 21ms at 28,800 BPH).
 
@@ -312,16 +324,15 @@ Week 3 (6/16 – 6/19)
 | W5 Sprint 1 | 6/29–6/30 | RPi integration + WeiShi accuracy validation + Demo rehearsal |
 | **M3 Demo** | **7/1** | **Final Demo on Raspberry Pi** |
 
-### Phase Priority
+### Phase Status
 
-| Phase | Scope | Status | Must? |
-|-------|-------|:------:|:-----:|
-| Graphs | All 11 graph tabs | ✅ Complete | ✅ |
-| A | Core pipeline: capture → DSP → WeiShi accuracy validation on RPi | ⏳ 06/29 | ✅ |
-| Experiments | EXP-01/02/03/05 on RPi | ⏳ 06/23–06/26 | ✅ |
-| Demo | E2E latency documented + rehearsal | ⏳ 06/30 | ✅ |
+| Phase | Scope | Status |
+|-------|-------|:------:|
+| A | Core pipeline: capture → DSP → WeiShi accuracy validation on RPi | ⏳ 06/29 |
+| Experiments | EXP-01/02/03/05 on RPi | ⏳ 06/23–06/26 |
+| Demo | E2E latency documented + rehearsal | ⏳ 06/30 |
 
-**All graph tabs implemented. Critical path: RPi experiments → WeiShi validation → demo.**
+**Critical path: RPi experiments → WeiShi validation → demo.**
 
 ---
 
@@ -331,7 +342,8 @@ Week 3 (6/16 – 6/19)
 |-------------|:------:|
 | Updated Project Plan | ✅ |
 | Experiment Results (EXP-02 complete) | ✅ |
-| Architecture — Module View (×2: Layered + Decomposition) | ✅ |
-| Architecture — Runtime / C&C View (DSP Thread Model) | ✅ |
-| Architecture — Deployment View (RPi 5 Allocation) | ✅ |
+| Architecture — Layered View: 4-Layer Allowed-to-Use | ✅ |
+| Architecture — Decomposition View: Graph Tab | ✅ |
+| Architecture — C&C View: DSP Pipeline Thread Model | ✅ |
+| Architecture — Deployment View: Build-Deploy Pipeline | ✅ |
 | Construction Plan | ✅ |

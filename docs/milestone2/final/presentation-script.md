@@ -48,19 +48,21 @@ Every experiment now maps to a Risk ID, and every task has an owner and date on 
 
 We organized our goals into three categories — on-schedule delivery, accuracy, and usability.
 
-For on-schedule delivery: we need to shorten the dev machine to RPi deploy cycle, we need 11 graph tabs working before experiments can run, and we need to apply architecture decisions quickly enough to stay on schedule. These are Deployability and Modifiability concerns.
+For on-schedule delivery: we need to shorten the dev machine to RPi deploy cycle, and we need to apply architecture decisions quickly enough to stay on schedule. These are Deployability and Modifiability concerns.
 
-For accuracy: the pipeline must process each beat within the 21ms window or we drop a beat and lose Rate computation for that cycle. Latency must be low enough that timestamps are correct, because Beat Error is computed from timestamp deltas. And the system must produce correct results even under noise.
+For accuracy: we have four QAs, in priority order. First, Accuracy itself — computed Rate, Amplitude, and Beat Error must match the Witschi reference instrument within tolerance. This is the governing criterion we validate against. Second, Real-Time Performance — the pipeline must process each beat within the 21ms window or we drop a beat and lose Rate. Third, Latency — capture-to-detect latency must be low enough that timestamps are correct, because Beat Error is computed from timestamp deltas. Fourth, Reliability — the system must produce correct results even under noise.
 
 For usability: inputs the system cannot handle — signal too weak, device not connected — must be clearly communicated to the user.
 
+[point to QA priority table]
+
+Our QA priority order is: Accuracy, Real-Time, Latency, Reliability, Modifiability, Usability.
+
 [point to QA dependency tree]
 
-Now here is the key reframe from M1. Measurement Accuracy is not one QA among equals. It is the criterion the entire architecture is evaluated against. Rate, Amplitude, Beat Error — they must match the WeiShi No.1000 reference.
+Now here is the key reframe from M1. Measurement Accuracy is not one QA among equals — and in M2 we made it explicit as its own measurable QA. Rate, Amplitude, Beat Error must match the Witschi reference. Real-Time Performance and Low Latency are mathematical prerequisites to getting that number right — miss the deadline or shift the timestamp, and the computed value is simply wrong. Reliability handles the false trigger case. Modifiability is the execution enabler — without a clean layer structure, architecture changes cannot be applied fast enough to stay on schedule.
 
-Every other QA is a structural prerequisite to accuracy. Modifiability is the execution enabler — without a clean layer structure, we cannot build 11 tabs in parallel on schedule. Real-Time Performance and Low Latency are mathematical prerequisites — miss the deadline or shift the timestamp, and the computed value is simply wrong. Reliability handles the false trigger case.
-
-This hierarchy is what drove every architecture decision we made in M2.
+This priority order is what drove every architecture decision we made in M2.
 
 ---
 
