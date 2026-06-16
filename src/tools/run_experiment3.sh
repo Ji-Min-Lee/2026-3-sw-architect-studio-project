@@ -3,7 +3,7 @@
 # run_experiment3.sh — EXP-03: Detector Robustness Under Noise
 #
 # Automates TimeGrapher in PLAYBACK mode via xdotool (no C++ changes).
-# Runs 3235_Starbucks noise WAVs at 7 SNR levels × 10 reps = 70 runs × 60s.
+# Runs 3235_Starbucks noise WAVs at 3 rates × 7 SNR levels × 10 reps = 210 runs × 60s.
 #
 # Strategy:
 #   1. Pre-extend NH35 noise WAVs to WAV_PAD_SEC using sox (once)
@@ -35,7 +35,7 @@ RAW_LOG_DIR="$SRC_DIR/logs"
 LOG_DIR="$SRC_DIR/logs/EXP-03"
 
 # ── Experiment parameters ──────────────────────────────────────
-RATE=96000
+RATES=(48000 96000 192000)
 DURATION=60          # seconds of actual measurement per run
 WAV_PAD_SEC=75       # extended WAV length — must be > DURATION
 REPS=10
@@ -55,6 +55,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --duration) DURATION="$2"; WAV_PAD_SEC=$(( DURATION + 15 )); shift 2 ;;
         --reps)     REPS="$2"; shift 2 ;;
+        --rates)    IFS=',' read -ra RATES <<< "$2"; shift 2 ;;
         *) echo "[warn] Unknown arg: $1"; shift ;;
     esac
 done
@@ -133,10 +134,10 @@ wait_for_window() {
 }
 
 # ── Step 2: Run experiments ───────────────────────────────────
-TOTAL_RUNS=$(( ${#SNR_LEVELS[@]} * REPS ))
+TOTAL_RUNS=$(( ${#RATES[@]} * ${#SNR_LEVELS[@]} * REPS ))
 echo "============================================================"
 echo " EXP-03: Noise Robustness Test"
-echo " Rate    : ${RATE} Hz"
+echo " Rates   : ${RATES[*]} Hz"
 echo " Duration: ${DURATION}s per run"
 echo " SNR     : ${SNR_LEVELS[*]} dB  (${#SNR_LEVELS[@]} levels)"
 echo " Reps    : ${REPS}"
@@ -145,13 +146,14 @@ echo "============================================================"
 echo ""
 
 RUN=0
-for SNR in "${SNR_LEVELS[@]}"; do
+for RATE in "${RATES[@]}"; do
+  for SNR in "${SNR_LEVELS[@]}"; do
     WAV_EXT="$EXTENDED_DIR/28800BPH_3235_Starbucks_snr${SNR}db_ext.wav"
 
     for REP in $(seq 1 "$REPS"); do
         RUN=$((RUN + 1))
-        LABEL="snr${SNR}db_r${REP}"
-        echo "── Run $RUN/$TOTAL_RUNS: SNR=${SNR}dB  rep=${REP}/${REPS} ──────────"
+        LABEL="snr${SNR}db_${RATE}hz_r${REP}"
+        echo "── Run $RUN/$TOTAL_RUNS: rate=${RATE}Hz  SNR=${SNR}dB  rep=${REP}/${REPS} ──"
 
         # Kill any stale instance
         pkill -x TimeGrapher 2>/dev/null || true
@@ -247,6 +249,7 @@ for SNR in "${SNR_LEVELS[@]}"; do
         fi
         echo ""
     done
+  done
 done
 
 echo "============================================================"
@@ -255,73 +258,81 @@ echo "============================================================"
 echo ""
 
 # ── Step 3: Summary ───────────────────────────────────────────
-echo " Generating per-SNR summary..."
+echo " Generating summary (by rate × SNR)..."
 echo ""
 
-python3 - "$LOG_DIR" "${SNR_LEVELS[@]}" "$REPS" <<'PYEOF'
+python3 - "$LOG_DIR" "${RATES[@]}" "---" "${SNR_LEVELS[@]}" "$REPS" <<'PYEOF'
 import sys, os, csv, glob
 
-log_dir    = sys.argv[1]
-snr_levels = sys.argv[2:-1]
-reps       = int(sys.argv[-1])
+args       = sys.argv[1:]
+log_dir    = args[0]
+sep        = args.index("---")
+rates      = args[1:sep]
+snr_levels = args[sep+1:-1]
+reps       = int(args[-1])
 
-print(f"{'SNR':>6}  {'Rep':>4}  {'Frames':>7}  {'drops_mean':>11}  {'buf_pct_mean':>13}  {'fps_mean':>9}")
-print("-" * 65)
-
-snr_summary = {}
-
-for snr in snr_levels:
-    snr_summary[snr] = []
-    files = sorted(f for f in glob.glob(os.path.join(log_dir, f"*_snr{snr}db_r*.csv"))
-                   if "_sys.csv" not in f)
-
-    for f in files[:reps]:
-        rep_tag = os.path.basename(f).split("_r")[-1].replace(".csv", "")
-        rows = []
-        try:
-            with open(f, newline="") as fh:
-                for row in csv.DictReader(fh):
-                    try:
-                        if float(row.get("fg_fps", 0)) >= 5:
-                            rows.append(row)
-                    except (ValueError, KeyError):
-                        pass
-        except Exception as e:
-            print(f"  [warn] {os.path.basename(f)}: {e}")
-            continue
-
-        if not rows:
-            continue
-
-        def mean(col):
-            vals = [float(r[col]) for r in rows if r.get(col) not in (None, "")]
-            return sum(vals) / len(vals) if vals else 0.0
-
-        dm, bm, fm = mean("block_drops"), mean("buffer_pct"), mean("fg_fps")
-        snr_summary[snr].append((dm, bm, fm))
-        print(f"{snr:>6}  {rep_tag:>4}  {len(rows):>7}  {dm:>11.4f}  {bm:>13.4f}  {fm:>9.2f}")
-
-    if snr_summary[snr]:
-        n = len(snr_summary[snr])
-        print(f"{'':>6}  {'AVG':>4}  {'':>7}  "
-              f"{sum(r[0] for r in snr_summary[snr])/n:>11.4f}  "
-              f"{sum(r[1] for r in snr_summary[snr])/n:>13.4f}  "
-              f"{sum(r[2] for r in snr_summary[snr])/n:>9.2f}")
-    print()
-
-print("=" * 65)
-print("Average by SNR level:")
-print(f"{'SNR':>6}  {'N':>3}  {'drops_mean':>11}  {'buf_pct_mean':>13}  {'fps_mean':>9}")
-print("-" * 48)
-for snr in snr_levels:
-    rows = snr_summary[snr]
+def read_mean(f):
+    rows = []
+    try:
+        with open(f, newline="") as fh:
+            for row in csv.DictReader(fh):
+                try:
+                    if float(row.get("fg_fps", 0)) >= 5:
+                        rows.append(row)
+                except (ValueError, KeyError):
+                    pass
+    except Exception as e:
+        print(f"  [warn] {os.path.basename(f)}: {e}")
+        return None
     if not rows:
-        print(f"{snr:>6}  {'0':>3}  {'N/A':>11}  {'N/A':>13}  {'N/A':>9}")
-        continue
-    n = len(rows)
-    print(f"{snr:>6}  {n:>3}  "
-          f"{sum(r[0] for r in rows)/n:>11.4f}  "
-          f"{sum(r[1] for r in rows)/n:>13.4f}  "
-          f"{sum(r[2] for r in rows)/n:>9.2f}")
-print("=" * 65)
+        return None
+    def mean(col):
+        vals = [float(r[col]) for r in rows if r.get(col) not in (None, "")]
+        return sum(vals) / len(vals) if vals else 0.0
+    return len(rows), mean("block_drops"), mean("buffer_pct"), mean("fg_fps")
+
+for rate in rates:
+    print(f"{'='*70}")
+    print(f" Rate: {rate} Hz")
+    print(f"{'='*70}")
+    print(f"{'SNR':>6}  {'Rep':>4}  {'Frames':>7}  {'drops_mean':>11}  {'buf_pct':>9}  {'fps':>7}")
+    print("-" * 55)
+
+    rate_summary = {}
+    for snr in snr_levels:
+        rate_summary[snr] = []
+        pattern = os.path.join(log_dir, f"*_snr{snr}db_{rate}hz_r*.csv")
+        files = sorted(f for f in glob.glob(pattern) if "_sys.csv" not in f)
+
+        for f in files[:reps]:
+            rep_tag = os.path.basename(f).split("_r")[-1].replace(".csv", "")
+            result = read_mean(f)
+            if result is None:
+                continue
+            nf, dm, bm, fm = result
+            rate_summary[snr].append((dm, bm, fm))
+            print(f"{snr:>6}  {rep_tag:>4}  {nf:>7}  {dm:>11.4f}  {bm:>9.4f}  {fm:>7.2f}")
+
+        if rate_summary[snr]:
+            n = len(rate_summary[snr])
+            print(f"{'':>6}  {'AVG':>4}  {'':>7}  "
+                  f"{sum(r[0] for r in rate_summary[snr])/n:>11.4f}  "
+                  f"{sum(r[1] for r in rate_summary[snr])/n:>9.4f}  "
+                  f"{sum(r[2] for r in rate_summary[snr])/n:>7.2f}")
+        print()
+
+    print(f" Average by SNR ({rate} Hz):")
+    print(f"{'SNR':>6}  {'N':>3}  {'drops_mean':>11}  {'buf_pct':>9}  {'fps':>7}")
+    print("-" * 40)
+    for snr in snr_levels:
+        rows = rate_summary[snr]
+        if not rows:
+            print(f"{snr:>6}  {'0':>3}  {'N/A':>11}  {'N/A':>9}  {'N/A':>7}")
+            continue
+        n = len(rows)
+        print(f"{snr:>6}  {n:>3}  "
+              f"{sum(r[0] for r in rows)/n:>11.4f}  "
+              f"{sum(r[1] for r in rows)/n:>9.4f}  "
+              f"{sum(r[2] for r in rows)/n:>7.2f}")
+    print()
 PYEOF
