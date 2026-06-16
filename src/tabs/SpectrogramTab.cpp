@@ -1,3 +1,4 @@
+#include "ReplotCounter.h"
 #include "SpectrogramTab.h"
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -220,7 +221,7 @@ void SpectrogramTab::reset()
     const QCPRange fullRange(kDbMin, kDbMax);
     mMap->setDataRange(fullRange);
     mScale->setDataRange(fullRange);
-    mPlot->replot();
+    { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }
 
 std::vector<double> SpectrogramTab::computeMagnitudes(const float *pcm) const

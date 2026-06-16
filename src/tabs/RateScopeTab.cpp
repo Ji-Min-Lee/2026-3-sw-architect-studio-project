@@ -70,9 +70,9 @@ void RateScopeTab::reset()
     mRatePlot->yAxis->setRange(-ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
     mRatePlot->xAxis->setRange(0, mMaxPoints);
     for (int i = 0; i < mRatePlot->graphCount(); i++) mRatePlot->graph(i)->data()->clear();
-    mRatePlot->clearItems(); mRatePlot->replot();
+    mRatePlot->clearItems(); { int64_t _pt=TG_NOW(); mRatePlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
     for (int i = 0; i < mScopePlot->graphCount(); i++) mScopePlot->graph(i)->data()->clear();
-    mScopePlot->clearItems(); mScopePlot->replot();
+    mScopePlot->clearItems(); { int64_t _pt=TG_NOW(); mScopePlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }
 
 void RateScopeTab::onMeasurement(const Measurement &m)
@@ -135,7 +135,7 @@ void RateScopeTab::onMeasurement(const Measurement &m)
 
 void RateScopeTab::replotAll()
 {
-    mRatePlot->replot(); mScopePlot->replot();
+    { int64_t _pt=TG_NOW(); mRatePlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }; { int64_t _pt=TG_NOW(); mScopePlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }
 
 void RateScopeTab::purgeScopeHistory(int sps)

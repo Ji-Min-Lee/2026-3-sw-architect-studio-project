@@ -9,4 +9,7 @@
 // onMeasurementReady). No cross-thread race.
 //
 #include <atomic>
-inline std::atomic<int> g_replotCount{0};
+#include <cstdint>
+#include "Logger.h"   // TG_NOW(), nowUs()
+inline std::atomic<int>     g_replotCount{0};
+inline std::atomic<int64_t> g_plotUs{0};     // accumulated replot() wall time (us) per beat

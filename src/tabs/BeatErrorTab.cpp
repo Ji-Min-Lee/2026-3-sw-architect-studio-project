@@ -75,7 +75,7 @@ BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
                 if (mPaused) return;
                 double hi = qMax(mTimeElapsed, windowSec());
                 mPlot->xAxis->setRange(hi - windowSec(), hi);
-                mPlot->replot();
+                { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
             });
 
     // Legend in its own row above the graphs so it never covers the trace
@@ -96,7 +96,7 @@ void BeatErrorTab::reset()
     mTicGraph->data()->clear();
     mTocGraph->data()->clear();
     updateHeader(Measurement{});
-    mPlot->replot();
+    { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }
 
 void BeatErrorTab::updateHeader(const Measurement &m)
@@ -180,7 +180,7 @@ void BeatErrorTab::onMeasurement(const Measurement &m)
     mPlot->replot(QCustomPlot::rpQueuedReplot);
 }
 
-void BeatErrorTab::replotAll() { mPlot->replot(); }
+void BeatErrorTab::replotAll() { { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }; }
 
 double BeatErrorTab::windowSec() const
 {

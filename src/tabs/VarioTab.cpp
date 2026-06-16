@@ -143,7 +143,7 @@ void VarioTab::reset()
             a->setVisible(false);
         s->meanStripe->setVisible(false);
         s->plot->xAxis->setRange(s->nomLo, s->nomHi);
-        s->plot->replot();
+        { int64_t _pt=TG_NOW(); s->plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
     }
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, false, 0);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, false, 0);
@@ -181,5 +181,5 @@ void VarioTab::replotAll()
 {
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, mHaveRateNow, mRateNow);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, mHaveAmpNow, mAmpNow);
-    mRateScale.plot->replot(); mAmpScale.plot->replot();
+    { int64_t _pt=TG_NOW(); mRateScale.plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }; { int64_t _pt=TG_NOW(); mAmpScale.plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }

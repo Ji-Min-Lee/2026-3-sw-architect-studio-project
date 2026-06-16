@@ -286,8 +286,8 @@ void BeatNoiseScopeTab::redrawScope2()
 
 void BeatNoiseScopeTab::replotAll()
 {
-    if (mStack->currentIndex() == 0) mPlot1->replot();
-    else                             mPlot2->replot();
+    if (mStack->currentIndex() == 0) { int64_t _pt=TG_NOW(); mPlot1->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }
+    else                             { int64_t _pt=TG_NOW(); mPlot2->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }
 }
 
 void BeatNoiseScopeTab::reset()
@@ -308,7 +308,7 @@ void BeatNoiseScopeTab::reset()
     mTicGraph2->data()->clear();
     mTocGraph2->data()->clear();
     mStripBar->setStrips({}, 0);
-    mPlot1->replot();
-    mPlot2->replot();
+    { int64_t _pt=TG_NOW(); mPlot1->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
+    { int64_t _pt=TG_NOW(); mPlot2->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
     setLiftAngle(mLiftAngle);
 }

@@ -179,6 +179,7 @@ MainWindow::~MainWindow()
 void MainWindow::onMeasurementReady(const Measurement &m)
 {
     mLastReplotCount = g_replotCount.exchange(0);
+    mLastPlotUs      = g_plotUs.exchange(0);
     DisplayResults(m);
 }
 
@@ -219,7 +220,9 @@ void MainWindow::wireEngineToTabs()
 void MainWindow::onFrameLogged(Logger::Frame frame)
 {
 #ifdef ENABLE_LOGGING
+    frame.fg_wait_us   = TG_NOW() - frame.dsp_emit_ts;
     frame.replot_count = mLastReplotCount;
+    frame.plot_us      = mLastPlotUs;
     if (mLogger && frame.samples > 0)
         mLogger->record(frame);
 #else
