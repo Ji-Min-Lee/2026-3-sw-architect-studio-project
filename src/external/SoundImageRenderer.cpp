@@ -425,27 +425,27 @@ QRgb SoundImageRenderer::lerpColor(QRgb bg, QRgb fg, float t)
         lerp1(qAlpha(bg), qAlpha(fg)));
 }
 
-int SoundImageRenderer::argmaxSmoothed5(const std::vector<float> &v)
+int SoundImageRenderer::argmaxSmoothed5(const std::vector<float> &binValues)
 {
-    if (v.empty()) {
+    if (binValues.empty()) {
         return 0;
     }
 
     int best_idx = 0;
     float best_val = -std::numeric_limits<float>::infinity();
 
-    for (int i = 0; i < static_cast<int>(v.size()); ++i) {
+    for (int i = 0; i < static_cast<int>(binValues.size()); ++i) {
         const int lo = std::max(0, i - 2);
-        const int hi = std::min(static_cast<int>(v.size()) - 1, i + 2);
+        const int hi = std::min(static_cast<int>(binValues.size()) - 1, i + 2);
 
         float sum = 0.0f;
-        int n = 0;
+        int neighborCount = 0;
         for (int j = lo; j <= hi; ++j) {
-            sum += v[static_cast<std::size_t>(j)];
-            ++n;
+            sum += binValues[static_cast<std::size_t>(j)];
+            ++neighborCount;
         }
 
-        const float avg = (n > 0) ? (sum / static_cast<float>(n)) : 0.0f;
+        const float avg = (neighborCount > 0) ? (sum / static_cast<float>(neighborCount)) : 0.0f;
         if (avg > best_val) {
             best_val = avg;
             best_idx = i;
@@ -537,21 +537,21 @@ void SoundImageRenderer::renderBinsToColumn(int x,
     clearColumn(x, cfg_.background_color);
 
     for (int natural_bucket = 0; natural_bucket < height_; ++natural_bucket) {
-        float v = bins[natural_bucket];
-        if (v < 0.0f) {
-            v = 0.0f;
+        float binValue = bins[natural_bucket];
+        if (binValue < 0.0f) {
+            binValue = 0.0f;
         }
-        if (v > 1.0f) {
-            v = 1.0f;
+        if (binValue > 1.0f) {
+            binValue = 1.0f;
         }
 
-        v = std::pow(v, cfg_.gamma);
+        binValue = std::pow(binValue, cfg_.gamma);
 
         const int display_bucket = applyVerticalOffset(natural_bucket, meta.vertical_offset_rows);
         const int y = bucketToY(display_bucket);
 
         QRgb *row = reinterpret_cast<QRgb *>(image_->scanLine(y));
-        row[x] = lerpColor(cfg_.background_color, cfg_.sound_color, v);
+        row[x] = lerpColor(cfg_.background_color, cfg_.sound_color, binValue);
     }
 
     rendered_columns_[static_cast<std::size_t>(x)] = meta;
@@ -805,16 +805,16 @@ void SoundImageRenderer::processSamples(const float *samples, std::size_t count)
             }
         }
 
-        float z = mag / peak_env_;
-        if (z > 1.0f) {
-            z = 1.0f;
+        float normalizedMag = mag / peak_env_;
+        if (normalizedMag > 1.0f) {
+            normalizedMag = 1.0f;
         }
 
         const int natural_bucket =
             sampleToBucketInRange(abs_index, active_start_sample_, active_end_sample_);
 
-        if (z > current_column_[static_cast<std::size_t>(natural_bucket)]) {
-            current_column_[static_cast<std::size_t>(natural_bucket)] = z;
+        if (normalizedMag > current_column_[static_cast<std::size_t>(natural_bucket)]) {
+            current_column_[static_cast<std::size_t>(natural_bucket)] = normalizedMag;
         }
 
         ++processed_samples_since_reset_;
@@ -977,16 +977,16 @@ void SoundImageRenderer::addPersistentMarkerFromAbsoluteSample(quint64 absolute_
             absolute_sample_index is not adjusted here. The caller must pass the
             original event sample index in the same clock used by processSamples().
     */
-    Marker m;
-    m.absolute_sample_index = absolute_sample_index;
-    m.color = color;
-    m.side = normalizeMarkerSidePixels(marker_side_pixels);
-    active_markers_.push_back(m);
+    Marker eventMarker;
+    eventMarker.absolute_sample_index = absolute_sample_index;
+    eventMarker.color = color;
+    eventMarker.side = normalizeMarkerSidePixels(marker_side_pixels);
+    active_markers_.push_back(eventMarker);
 
     int x = -1;
     int y = -1;
     if (mapRenderedSampleToPixel(absolute_sample_index, &x, &y)) {
-        drawCenteredMarkerBlock(x, y, color, m.side);
+        drawCenteredMarkerBlock(x, y, color, eventMarker.side);
     }
 }
 

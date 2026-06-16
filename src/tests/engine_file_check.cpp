@@ -16,12 +16,12 @@ static bool readWavFloatMono(const QString &path, QVector<float> &samples, int &
 {
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly)) return false;
-    QByteArray d = f.readAll();
-    if (d.size() < 44 || memcmp(d.constData(), "RIFF", 4) || memcmp(d.constData() + 8, "WAVE", 4))
+    QByteArray fileData = f.readAll();
+    if (fileData.size() < 44 || memcmp(fileData.constData(), "RIFF", 4) || memcmp(fileData.constData() + 8, "WAVE", 4))
         return false;
     int pos = 12, fmt = 0, channels = 0, bits = 0;
-    const char *p = d.constData();
-    while (pos + 8 <= d.size()) {
+    const char *p = fileData.constData();
+    while (pos + 8 <= fileData.size()) {
         quint32 sz; memcpy(&sz, p + pos + 4, 4);
         if (!memcmp(p + pos, "fmt ", 4)) {
             quint16 v16; quint32 v32;
@@ -31,13 +31,13 @@ static bool readWavFloatMono(const QString &path, QVector<float> &samples, int &
             memcpy(&v16, p + pos + 22, 2); bits = v16;
         } else if (!memcmp(p + pos, "data", 4)) {
             if ((fmt != 3 && fmt != 1) || channels != 1) return false; // float or pcm16, mono
-            int n = (int)sz / (bits / 8);
-            samples.resize(n);
+            int sampleCount = (int)sz / (bits / 8);
+            samples.resize(sampleCount);
             if (fmt == 3 && bits == 32) {
-                memcpy(samples.data(), p + pos + 8, (size_t)n * 4);
+                memcpy(samples.data(), p + pos + 8, (size_t)sampleCount * 4);
             } else if (fmt == 1 && bits == 16) {
-                const qint16 *s = (const qint16 *)(p + pos + 8);
-                for (int i = 0; i < n; i++) samples[i] = s[i] / 32768.0f;
+                const qint16 *rawSamples = (const qint16 *)(p + pos + 8);
+                for (int i = 0; i < sampleCount; i++) samples[i] = rawSamples[i] / 32768.0f;
             } else return false;
             return true;
         }
@@ -91,8 +91,8 @@ int main(int argc, char *argv[])
     if (aEventTimes.size() > 10) {
         QVector<double> iv;
         for (int i = 1; i < aEventTimes.size(); i++) {
-            double d = aEventTimes[i] - aEventTimes[i - 1];
-            if (d > 0.02 && d < 1.0) iv.append(d);
+            double interval = aEventTimes[i] - aEventTimes[i - 1];
+            if (interval > 0.02 && interval < 1.0) iv.append(interval);
         }
         std::sort(iv.begin(), iv.end());
         if (!iv.isEmpty()) bphFromEvents = 3600.0 / iv[iv.size() / 2];

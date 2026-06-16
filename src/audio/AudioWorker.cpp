@@ -25,9 +25,9 @@ TAudioWorker::~TAudioWorker()
     //qInfo() << "AudioWorker Destructor";
 }
 
-void TAudioWorker::stateChangeAudioInput(QAudio::State s)
+void TAudioWorker::stateChangeAudioInput(QAudio::State newState)
 {
-    qDebug() << "Input Audio State change: " << s;
+    qDebug() << "Input Audio State change: " << newState;
 }
 
 void TAudioWorker::StartAudioRecording(QAudioDevice InputDevice,int SampleRate,float Volume)
@@ -68,16 +68,16 @@ void TAudioWorker::ProcessAudioInput()
     }
     double CurrentTime;
 
-    QByteArray ba =  mAudioInputDevice->readAll();
+    QByteArray audioBytes =  mAudioInputDevice->readAll();
 
-    unsigned int NumberOfSamples = ba.length() / SAMPLE_SIZE;
-    float *AudioSamples=(float *)ba.constData();
+    unsigned int NumberOfSamples = audioBytes.length() / SAMPLE_SIZE;
+    float *AudioSamples=(float *)audioBytes.constData();
     mRawAudio->Mutex.lock();
     unsigned int TempWriteIndex = mRawAudio->WriteIndex;
     mRawAudio->Mutex.unlock();
     int SamplesLeft=std::min(NumberOfSamples,mRawAudio->NumberOfAudioSamples-TempWriteIndex);
     memcpy(&mRawAudio->Samples[TempWriteIndex], AudioSamples, SamplesLeft * SAMPLE_SIZE);
-    //qInfo() << "Bytes in "<< ba.length();
+    //qInfo() << "Bytes in "<< audioBytes.length();
     if(SamplesLeft < NumberOfSamples)
     {
         memcpy(mRawAudio->Samples, &AudioSamples[SamplesLeft], (NumberOfSamples - SamplesLeft) * SAMPLE_SIZE);
@@ -92,10 +92,10 @@ void TAudioWorker::ProcessAudioInput()
     CurrentTime = Timer.elapsed()/1000.0;
     if (CurrentTime-LastTime > 2) // average fps over 2 seconds
     {
-        double fdelta;
-        fdelta=CurrentTime-LastTime;
-        mRawAudio->FPS=FrameCount/fdelta;
-        mRawAudio->SPS=SampleCount/fdelta;
+        double elapsedSeconds;
+        elapsedSeconds=CurrentTime-LastTime;
+        mRawAudio->FPS=FrameCount/elapsedSeconds;
+        mRawAudio->SPS=SampleCount/elapsedSeconds;
         mRawAudio->SPF=SampleCount/FrameCount;
         LastTime=CurrentTime;
         FrameCount=0;

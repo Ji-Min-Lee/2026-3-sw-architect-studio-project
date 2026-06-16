@@ -15,9 +15,9 @@ int    SettingsManager::averagingPeriod() const { return s().value("averagingPer
 bool   SettingsManager::useOnset()        const { return s().value("useOnset", false).toBool(); }
 QString SettingsManager::deviceName()     const { return s().value("deviceName", "").toString(); }
 
-void SettingsManager::setBph(int v)              { s().setValue("bph", v); }
-void SettingsManager::setSampleRate(int v)        { s().setValue("sampleRate", v); }
-void SettingsManager::setLiftAngle(double v)      { s().setValue("liftAngle", v); }
-void SettingsManager::setAveragingPeriod(int v)   { s().setValue("averagingPeriod", v); }
-void SettingsManager::setUseOnset(bool v)         { s().setValue("useOnset", v); }
-void SettingsManager::setDeviceName(const QString &v) { s().setValue("deviceName", v); }
+void SettingsManager::setBph(int value)              { s().setValue("bph", value); }
+void SettingsManager::setSampleRate(int value)        { s().setValue("sampleRate", value); }
+void SettingsManager::setLiftAngle(double value)      { s().setValue("liftAngle", value); }
+void SettingsManager::setAveragingPeriod(int value)   { s().setValue("averagingPeriod", value); }
+void SettingsManager::setUseOnset(bool value)         { s().setValue("useOnset", value); }
+void SettingsManager::setDeviceName(const QString &value) { s().setValue("deviceName", value); }

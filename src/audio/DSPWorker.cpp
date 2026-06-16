@@ -45,17 +45,17 @@ void DSPWorker::onDataReady(int64_t ts1)
         while (samplesToAdd > 0) {
             int slice = std::min(samplesToAdd, static_cast<int>(kBlockSize));
 
-            int64_t ts = TG_NOW();
+            int64_t copyStart = TG_NOW();
             for (int i = 0; i < slice; i++) {
                 mInputBlock[i] = mRaw->Samples[mRaw->MainThrd_LastWriteIndex];
                 mRaw->MainThrd_LastWriteIndex =
                     (mRaw->MainThrd_LastWriteIndex + 1) % mRaw->NumberOfAudioSamples;
             }
-            frame.copy_us += TG_NOW() - ts;
+            frame.copy_us += TG_NOW() - copyStart;
 
-            ts = TG_NOW();
+            int64_t tgStart = TG_NOW();
             mEngine->processBlock(mInputBlock, slice);
-            frame.tg_us += TG_NOW() - ts;
+            frame.tg_us += TG_NOW() - tgStart;
 
             mSampleCount += static_cast<uint64_t>(slice);
             samplesToAdd -= slice;
@@ -65,9 +65,9 @@ void DSPWorker::onDataReady(int64_t ts1)
         mFrameCount++;
         double now = mTimer.elapsed() / 1000.0;
         if (now - mLastTime > 2.0) {
-            double dt = now - mLastTime;
-            mDspFPS = mFrameCount  / dt;
-            mDspSPS = mSampleCount / dt;
+            double elapsedSec = now - mLastTime;
+            mDspFPS = mFrameCount  / elapsedSec;
+            mDspSPS = mSampleCount / elapsedSec;
             mDspSPF = mSampleCount / static_cast<double>(mFrameCount);
             mLastTime     = now;
             mFrameCount   = 0;

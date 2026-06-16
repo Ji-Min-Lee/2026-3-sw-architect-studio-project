@@ -102,142 +102,142 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
 {
     if (!mCtx) return;
 
-    tg_result_t r;
-    if (tg_process(mCtx, pcm, numSamples, &r) != 0) {
+    tg_result_t tgResult;
+    if (tg_process(mCtx, pcm, numSamples, &tgResult) != 0) {
         qWarning() << "MeasurementEngine: tg_process failed";
         return;
     }
 
-    Measurement m;
-    m.samplesPerSecond = mSamplesPerSecond;
-    m.graphTickStart   = mGraphTicks;
-    m.synced           = (r.sync_status == TG_SYNC_SYNCED);
-    m.detectedBph      = r.detected_bph;
+    Measurement measurement;
+    measurement.samplesPerSecond = mSamplesPerSecond;
+    measurement.graphTickStart   = mGraphTicks;
+    measurement.synced           = (tgResult.sync_status == TG_SYNC_SYNCED);
+    measurement.detectedBph      = tgResult.detected_bph;
 
     // Raw PCM for SoundPrintTab (copy before any DSP transformation)
-    m.rawPcm.reserve(numSamples);
-    for (int i = 0; i < numSamples; i++) m.rawPcm.append(pcm[i]);
+    measurement.rawPcm.reserve(numSamples);
+    for (int i = 0; i < numSamples; i++) measurement.rawPcm.append(pcm[i]);
 
     // Processed PCM + threshold for ScopePlot
-    m.pcm.reserve(r.processed_pcm_len);
-    m.threshold.reserve(r.processed_pcm_len);
-    m.hpfPcm.reserve(r.filtered_pcm_len);
-    for (int i = 0; i < r.processed_pcm_len; i++) {
-        m.pcm.append(r.processed_pcm[i]);
-        m.threshold.append(r.onset_threshold);
+    measurement.pcm.reserve(tgResult.processed_pcm_len);
+    measurement.threshold.reserve(tgResult.processed_pcm_len);
+    measurement.hpfPcm.reserve(tgResult.filtered_pcm_len);
+    for (int i = 0; i < tgResult.processed_pcm_len; i++) {
+        measurement.pcm.append(tgResult.processed_pcm[i]);
+        measurement.threshold.append(tgResult.onset_threshold);
     }
-    for (size_t i = 0; i < r.filtered_pcm_len; i++) {
-        m.hpfPcm.append(r.filtered_pcm[i]);
+    for (size_t i = 0; i < tgResult.filtered_pcm_len; i++) {
+        measurement.hpfPcm.append(tgResult.filtered_pcm[i]);
     }
-    mGraphTicks    += r.processed_pcm_len;
-    m.graphTickEnd  = mGraphTicks;
+    mGraphTicks              += tgResult.processed_pcm_len;
+    measurement.graphTickEnd  = mGraphTicks;
 
     // Process each A/C event
-    for (int i = 0; i < r.num_events; i++) {
-        const tg_event_t &ev = r.events[i];
-        AcousticEvent ae;
-        ae.cOnsetValid       = false;
-        ae.hasRatePoint      = false;
-        ae.wrappedRateError  = 0.0;
-        ae.isTic             = false;
-        ae.hasEscapementMs   = false;
-        ae.escapementMs      = 0.0;
-        ae.hasAmpSplit       = false;
-        ae.ticAmpDeg         = 0.0;
-        ae.tocAmpDeg         = 0.0;
+    for (int i = 0; i < tgResult.num_events; i++) {
+        const tg_event_t &ev = tgResult.events[i];
+        AcousticEvent acousticEvent;
+        acousticEvent.cOnsetValid       = false;
+        acousticEvent.hasRatePoint      = false;
+        acousticEvent.wrappedRateError  = 0.0;
+        acousticEvent.isTic             = false;
+        acousticEvent.hasEscapementMs   = false;
+        acousticEvent.escapementMs      = 0.0;
+        acousticEvent.hasAmpSplit       = false;
+        acousticEvent.ticAmpDeg         = 0.0;
+        acousticEvent.tocAmpDeg         = 0.0;
 
         if (ev.type == TG_EVENT_A) {
-            ae.isA       = true;
-            ae.samplePos = ev.sample_index + ev.sub_sample_offset;
-            ae.peakValue = ev.peak_value;
+            acousticEvent.isA       = true;
+            acousticEvent.samplePos = ev.sample_index + ev.sub_sample_offset;
+            acousticEvent.peakValue = ev.peak_value;
 
             // QAS-4: reset no-signal timer on each A-event
             mNoSignalTimer.restart();
             mNoSignalTimerStarted = true;
 
-            computeRateError(ae.samplePos, m.synced, r.detected_bph, ae);
-            computeBeatError(ae.samplePos, m.synced, r.detected_bph);
+            computeRateError(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph, acousticEvent);
+            computeBeatError(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph);
 
             // Derived measures: per-beat duration vs nominal
             if (mDerived.havePrevA) {
-                double durMs = (ae.samplePos - mDerived.prevA) / mSamplesPerSecond * 1000.0;
+                double durMs = (acousticEvent.samplePos - mDerived.prevA) / mSamplesPerSecond * 1000.0;
                 if (mDerived.parity == TIC) mDerived.ticDur->Add(durMs);
                 else                        mDerived.tocDur->Add(durMs);
                 mDerived.parity ^= 1;
-                if (m.synced && r.detected_bph > 0) {
-                    double nominalMs = 3600000.0 / r.detected_bph;
+                if (measurement.synced && tgResult.detected_bph > 0) {
+                    double nominalMs = 3600000.0 / tgResult.detected_bph;
                     mDerived.diffP->Add(durMs - nominalMs);
                     mDerived.cumSum += durMs - nominalMs;
                     mDerived.cumN++;
                 }
             }
             mDerived.havePrevA = true;
-            mDerived.prevA     = ae.samplePos;
+            mDerived.prevA     = acousticEvent.samplePos;
 
             mAmp.haveA = true;
-            mAmp.lastA = ae.samplePos;
+            mAmp.lastA = acousticEvent.samplePos;
             mHaveLastA = true;
-            mLastA     = ae.samplePos;
+            mLastA     = acousticEvent.samplePos;
         } else if (ev.type == TG_EVENT_C) {
-            ae.isA         = false;
-            ae.peakValue   = ev.peak_value;
-            ae.cOnsetValid = ev.onset_valid;
-            ae.cOnsetPos   = ev.onset_sample_index + ev.onset_sub_sample_offset;
+            acousticEvent.isA         = false;
+            acousticEvent.peakValue   = ev.peak_value;
+            acousticEvent.cOnsetValid = ev.onset_valid;
+            acousticEvent.cOnsetPos   = ev.onset_sample_index + ev.onset_sub_sample_offset;
 
             if (mUseOnset && ev.onset_valid)
-                ae.samplePos = ae.cOnsetPos;
+                acousticEvent.samplePos = acousticEvent.cOnsetPos;
             else
-                ae.samplePos = ev.sample_index + ev.sub_sample_offset;
+                acousticEvent.samplePos = ev.sample_index + ev.sub_sample_offset;
 
             // Escapement: T1→T3 interval
             if (mHaveLastA) {
-                ae.hasEscapementMs = true;
-                ae.escapementMs    = (ae.samplePos - mLastA) / mSamplesPerSecond * 1000.0;
+                acousticEvent.hasEscapementMs = true;
+                acousticEvent.escapementMs    = (acousticEvent.samplePos - mLastA) / mSamplesPerSecond * 1000.0;
             }
 
-            computeAmplitude(ae.samplePos, m.synced, r.detected_bph, m, ae);
+            computeAmplitude(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph, measurement, acousticEvent);
         } else {
             qWarning() << "MeasurementEngine: unknown event type";
             continue;
         }
-        m.events.append(ae);
+        measurement.events.append(acousticEvent);
     }
 
-    m.rateValid      = mRate.rateValid;
-    m.rateErrorSpd   = mRate.rateSpd;
-    m.beatErrorValid = (mBeat.roll->CurrentSize() > 0);
-    m.beatErrorMs    = m.beatErrorValid ? mBeat.roll->GetAverage() : 0.0;
-    m.amplitudeValid = (mAmp.roll->CurrentSize() > 0);
-    m.amplitudeDeg   = m.amplitudeValid ? mAmp.roll->GetAverage() : 0.0;
-    m.noSignal       = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
+    measurement.rateValid      = mRate.rateValid;
+    measurement.rateErrorSpd   = mRate.rateSpd;
+    measurement.beatErrorValid = (mBeat.roll->CurrentSize() > 0);
+    measurement.beatErrorMs    = measurement.beatErrorValid ? mBeat.roll->GetAverage() : 0.0;
+    measurement.amplitudeValid = (mAmp.roll->CurrentSize() > 0);
+    measurement.amplitudeDeg   = measurement.amplitudeValid ? mAmp.roll->GetAverage() : 0.0;
+    measurement.noSignal       = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
 
     if (mDerived.ticDur->CurrentSize() > 0 && mDerived.tocDur->CurrentSize() > 0) {
-        m.derivedValid = true;
-        m.diffTicTacMs = mDerived.ticDur->GetAverage() - mDerived.tocDur->GetAverage();
-        m.diffPeriodMs = mDerived.diffP->CurrentSize() > 0 ? mDerived.diffP->GetAverage() : 0.0;
-        m.avgPeriodMs  = mDerived.cumN > 0 ? mDerived.cumSum / mDerived.cumN : 0.0;
+        measurement.derivedValid = true;
+        measurement.diffTicTacMs = mDerived.ticDur->GetAverage() - mDerived.tocDur->GetAverage();
+        measurement.diffPeriodMs = mDerived.diffP->CurrentSize() > 0 ? mDerived.diffP->GetAverage() : 0.0;
+        measurement.avgPeriodMs  = mDerived.cumN > 0 ? mDerived.cumSum / mDerived.cumN : 0.0;
     }
 
-    emit measurementReady(m);
+    emit measurementReady(measurement);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Private helpers  (extracted from MainWindow)
 // ──────────────────────────────────────────────────────────────────────────────
-double MeasurementEngine::wrapInRange(double n, double lo, double hi) const
+double MeasurementEngine::wrapInRange(double value, double lo, double hi) const
 {
     double range  = hi - lo;
-    double shifted = fmod(n - lo, range);
+    double shifted = fmod(value - lo, range);
     if (shifted < 0) shifted += range;
     return shifted + lo;
 }
 
 void MeasurementEngine::addOrOverwrite(QVector<double> &xv, QVector<double> &yv,
-                                        double val, int maxS, int &idx)
+                                        double val, int maxSize, int &idx)
 {
-    if (yv.size() < maxS) { yv.append(val); xv.append(idx); }
+    if (yv.size() < maxSize) { yv.append(val); xv.append(idx); }
     else { yv[idx] = val; }
-    idx = (idx + 1) % maxS;
+    idx = (idx + 1) % maxSize;
 }
 
 void MeasurementEngine::computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae)

@@ -70,22 +70,22 @@ void SweepScopeTab::onMeasurement(const Measurement &m)
 
 void SweepScopeTab::redraw()
 {
-    const int n = mSweep.size();
-    if (n == 0) return;
+    const int sweepSize = mSweep.size();
+    if (sweepSize == 0) return;
 
     // Decimate to ~2000 points for cheap replots (QAS-1)
-    const int step = qMax(1, n / 2000);
+    const int step = qMax(1, sweepSize / 2000);
     QVector<double> xs, ys;
-    xs.reserve(n / step + 1);
-    ys.reserve(n / step + 1);
-    for (int i = 0; i < n; i += step) {
+    xs.reserve(sweepSize / step + 1);
+    ys.reserve(sweepSize / step + 1);
+    for (int i = 0; i < sweepSize; i += step) {
         double peak = 0;
-        for (int k = i; k < qMin(n, i + step); k++) peak = qMax(peak, mSweep[k]);
+        for (int k = i; k < qMin(sweepSize, i + step); k++) peak = qMax(peak, mSweep[k]);
         xs.append((double)i / mSps * 1000.0);
         ys.append(peak);
     }
     mPlot->graph(0)->setData(xs, ys, true);
-    mPlot->xAxis->setRange(0, (double)n / mSps * 1000.0);
+    mPlot->xAxis->setRange(0, (double)sweepSize / mSps * 1000.0);
     mPlot->yAxis->rescale();
     g_replotCount++;
     mPlot->replot(QCustomPlot::rpQueuedReplot);

@@ -96,11 +96,11 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    QDir temp;
+    QDir testDir;
     mCurrentDir = QDir::current();
-    temp = mCurrentDir;
-    temp.cd("../../TimeGrapherTestFilesWeishiMic");
-    if (temp.exists()) mCurrentDir = temp;
+    testDir = mCurrentDir;
+    testDir.cd("../../TimeGrapherTestFilesWeishiMic");
+    if (testDir.exists()) mCurrentDir = testDir;
 
     mCurrentSamplesPerSecond = 48000;
     mLiftAngle               = 52;
@@ -268,8 +268,8 @@ void MainWindow::Reset(void)
 // ─────────────────────────────────────────────────────────────────────────────
 void MainWindow::StartAudioThread(void)
 {
-    QVariant v = ui->InputDeviceComboBox->currentData();
-    QAudioDevice InputDevice = v.value<QAudioDevice>();
+    QVariant deviceData = ui->InputDeviceComboBox->currentData();
+    QAudioDevice InputDevice = deviceData.value<QAudioDevice>();
     Reset();
 #ifdef ENABLE_LOGGING
     delete mLogger;
@@ -496,18 +496,18 @@ void MainWindow::LoadAudioDevices(void)
     const QList<QAudioDevice> inputDevices = QMediaDevices::audioInputs();
     ui->InputDeviceComboBox->clear();
     int renameLen = sizeof RenameAudioDevices / sizeof RenameAudioDevices[0];
-    for (const QAudioDevice &d : inputDevices) {
-        QString desc = d.description();
+    for (const QAudioDevice &device : inputDevices) {
+        QString desc = device.description();
         for (int i = 0; i < renameLen; i++) {
             if (desc.contains(RenameAudioDevices[i][0], Qt::CaseSensitive)) {
                 desc = RenameAudioDevices[i][1]; break;
             }
         }
-        ui->InputDeviceComboBox->addItem(desc, QVariant::fromValue(d));
+        ui->InputDeviceComboBox->addItem(desc, QVariant::fromValue(device));
     }
     ui->InputDeviceComboBox->addItem(PLAYBACK_OR_SIM_PCM);
-    int len = std::size(PreferredAudioDevices);
-    for (int i = 0; i < len; i++) {
+    int preferredCount = std::size(PreferredAudioDevices);
+    for (int i = 0; i < preferredCount; i++) {
         int idx = ui->InputDeviceComboBox->findText(PreferredAudioDevices[i], Qt::MatchContains);
         if (idx != -1) { ui->InputDeviceComboBox->setCurrentIndex(idx); break; }
     }
@@ -544,10 +544,10 @@ void MainWindow::LoadSimBPH(void)
 void MainWindow::LoadMode(void)
 {
     int start = 0;
-    int len   = std::size(ModeStrings);
+    int modeCount = std::size(ModeStrings);
     ui->ModeComboBox->clear();
     if (ui->InputDeviceComboBox->count() == 1) start++;
-    for (int i = start; i < len; i++)
+    for (int i = start; i < modeCount; i++)
         ui->ModeComboBox->addItem(ModeStrings[i], i);
     ui->ModeComboBox->setCurrentIndex(0);
 }
@@ -641,8 +641,8 @@ bool MainWindow::RecordSessionCheck(void)
     msgBox.setInformativeText("Do you want to record this session?");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::No);
-    int ret = msgBox.exec();
-    if (ret == QMessageBox::Yes) {
+    int dialogResult = msgBox.exec();
+    if (dialogResult == QMessageBox::Yes) {
         QString fileName = QFileDialog::getSaveFileName(
             this, tr("Save Output File"), "../../Output/", tr("Wav Files (*.wav);;All Files (*)"));
         if (fileName.isEmpty()) return false;
@@ -653,7 +653,7 @@ bool MainWindow::RecordSessionCheck(void)
         }
         return true;
     }
-    return (ret == QMessageBox::No);
+    return (dialogResult == QMessageBox::No);
 }
 void MainWindow::AudioCloseCheck(void)
 {

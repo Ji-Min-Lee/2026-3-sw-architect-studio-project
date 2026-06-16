@@ -16,9 +16,9 @@ double amplitudeDeg(double aPos, double cPos, int fs, double liftAngle, int bph)
     double t_AC   = (cPos - aPos) / static_cast<double>(fs);
     double period = 7200.0 / bph;  // same-phase period in seconds
     double arg    = (2.0 * M_PI * t_AC) / period;
-    double s      = std::sin(arg);
-    if (std::abs(s) < 1e-12) return -1.0;  // degenerate
-    double amp = liftAngle / s;
+    double sinValue = std::sin(arg);
+    if (std::abs(sinValue) < 1e-12) return -1.0;  // degenerate
+    double amp = liftAngle / sinValue;
     if (amp >= 360.0 || amp <= 0.0) return -1.0;
     return amp;
 }
@@ -28,10 +28,10 @@ double escapementMs(double aPos, double cPos, int fs)
     return (cPos - aPos) / static_cast<double>(fs) * 1000.0;
 }
 
-double wrapInRange(double n, double lo, double hi)
+double wrapInRange(double value, double lo, double hi)
 {
     double range   = hi - lo;
-    double shifted = std::fmod(n - lo, range);
+    double shifted = std::fmod(value - lo, range);
     if (shifted < 0) shifted += range;
     return shifted + lo;
 }
@@ -46,10 +46,10 @@ double halfBeatInterval(int bph)
     return 3600.0 / bph;
 }
 
-double instErrorSec(double timeMeasured, double tStart, int n, int bph)
+double instErrorSec(double timeMeasured, double tStart, int beatIndex, int bph)
 {
     double itarget = halfBeatInterval(bph);
-    return timeMeasured - (tStart + n * itarget);
+    return timeMeasured - (tStart + beatIndex * itarget);
 }
 
 double rateSpdFromPhase(double tTicSec, double tTacSec, int bph)

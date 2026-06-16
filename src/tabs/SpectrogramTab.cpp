@@ -19,16 +19,16 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
         "QProgressBar { background-color: #1a1a22; border: 1px solid #444; height: 14px; }"
         "QProgressBar::chunk { background-color: #3ecf6e; }"));
 
-    auto *lay = new QVBoxLayout(this);
-    lay->setContentsMargins(6, 6, 6, 6);
-    lay->setSpacing(4);
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(6, 6, 6, 6);
+    mainLayout->setSpacing(4);
 
     mTitleLabel = new QLabel(tr("Time and Frequency Reassigned Spectrogram"), this);
     QFont titleFont = mTitleLabel->font();
     titleFont.setPointSize(11);
     titleFont.setBold(true);
     mTitleLabel->setFont(titleFont);
-    lay->addWidget(mTitleLabel);
+    mainLayout->addWidget(mTitleLabel);
 
     auto *meterRow = new QHBoxLayout;
     mPeakMeterCheck = new QCheckBox(tr("True Peak Programme Meter"), this);
@@ -43,7 +43,7 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
     mPeakBar->setFixedWidth(180);
     meterRow->addWidget(mPeakBar);
     meterRow->addStretch(1);
-    lay->addLayout(meterRow);
+    mainLayout->addLayout(meterRow);
 
     auto *controls = new QHBoxLayout;
     controls->addWidget(new QLabel(tr("Spectrograms"), this));
@@ -70,10 +70,10 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
     mAutoScaleCheck = new QCheckBox(tr("Auto-scale dB"), this);
     controls->addWidget(mAutoScaleCheck);
     controls->addStretch(1);
-    lay->addLayout(controls);
+    mainLayout->addLayout(controls);
 
     mPlot = new QCustomPlot(this);
-    lay->addWidget(mPlot, 1);
+    mainLayout->addWidget(mPlot, 1);
 
     mPlot->setBackground(QBrush(QColor(0x12, 0x12, 0x18)));
     mPlot->axisRect()->setBackground(QBrush(QColor(0x3a, 0x3a, 0x3e)));
@@ -120,8 +120,8 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
         }
     });
     connect(mWindowSpin, qOverload<double>(&QDoubleSpinBox::valueChanged),
-            this, [this](double v) {
-        mWindowSec = v;
+            this, [this](double windowSec) {
+        mWindowSec = windowSec;
         rebuildAxisRanges();
         if (!mPaused) {
             mPlot->replot(QCustomPlot::rpQueuedReplot);
@@ -257,19 +257,19 @@ void SpectrogramTab::shiftColumnsAndAppend(const std::vector<double> &magnitudes
     const int valSize = data->valueSize();
 
     for (int k = 0; k < keySize - 1; ++k) {
-        for (int v = 0; v < valSize; ++v) {
-            data->setCell(k, v, data->cell(k + 1, v));
+        for (int binRow = 0; binRow < valSize; ++binRow) {
+            data->setCell(k, binRow, data->cell(k + 1, binRow));
         }
     }
 
     const int newCol = keySize - 1;
     const int binsToStore = std::min(valSize, static_cast<int>(magnitudes.size()));
-    for (int v = 0; v < binsToStore; ++v) {
-        data->setCell(newCol, v,
-                      binMagnitudeToDb(magnitudes[static_cast<size_t>(v)], v));
+    for (int binRow = 0; binRow < binsToStore; ++binRow) {
+        data->setCell(newCol, binRow,
+                      binMagnitudeToDb(magnitudes[static_cast<size_t>(binRow)], binRow));
     }
-    for (int v = binsToStore; v < valSize; ++v) {
-        data->setCell(newCol, v, kDbMin);
+    for (int binRow = binsToStore; binRow < valSize; ++binRow) {
+        data->setCell(newCol, binRow, kDbMin);
     }
 }
 
@@ -338,9 +338,9 @@ void SpectrogramTab::rebuildLastBeatView()
         const std::vector<double> magnitudes =
             computeMagnitudes(mPcmBuffer.data() + offset + start);
         const int binsToStore = std::min(mFreqBins, static_cast<int>(magnitudes.size()));
-        for (int v = 0; v < binsToStore; ++v) {
-            mMap->data()->setCell(col, v,
-                                  binMagnitudeToDb(magnitudes[static_cast<size_t>(v)], v));
+        for (int binRow = 0; binRow < binsToStore; ++binRow) {
+            mMap->data()->setCell(col, binRow,
+                                  binMagnitudeToDb(magnitudes[static_cast<size_t>(binRow)], binRow));
         }
         ++col;
     }

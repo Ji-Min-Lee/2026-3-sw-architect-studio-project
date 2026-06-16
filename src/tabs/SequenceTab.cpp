@@ -15,7 +15,7 @@ QStringList SequenceTab::positions() { return kPositions; }
 
 SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
 {
-    auto *lay = new QVBoxLayout(this);
+    auto *mainLayout = new QVBoxLayout(this);
 
     auto *top = new QHBoxLayout;
     mHeaderLabel = new QLabel(this);
@@ -29,7 +29,7 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
     top->addWidget(mPositionCombo);
     top->addWidget(mCaptureButton);
     top->addWidget(clearButton);
-    lay->addLayout(top);
+    mainLayout->addLayout(top);
 
     mTable = new QTableWidget(kPositions.size() + 3, 3, this);
     mTable->setHorizontalHeaderLabels({"Rate (s/d)", "Beat (ms)", "Ampl (°)"});
@@ -43,13 +43,13 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
             auto *it = new QTableWidgetItem("—");
             it->setTextAlignment(Qt::AlignCenter);
             if (r >= kPositions.size()) {
-                QFont f = it->font(); f.setBold(true); it->setFont(f);
+                QFont summaryFont = it->font(); summaryFont.setBold(true); it->setFont(summaryFont);
                 it->setBackground(QColor(235, 235, 235));
                 it->setForeground(QColor(30, 30, 30));
             }
             mTable->setItem(r, c, it);
         }
-    lay->addWidget(mTable, 1);
+    mainLayout->addWidget(mTable, 1);
 
     connect(mPositionCombo, &QComboBox::currentTextChanged,
             this, [this](const QString &pos) {
@@ -91,16 +91,16 @@ void SequenceTab::captureCurrent()
     if (row < 0) return;
 
     mCapturedAt[row] = QDateTime::currentDateTime();
-    QString ts = mCapturedAt[row].toString("HH:mm:ss");
+    QString timestamp = mCapturedAt[row].toString("HH:mm:ss");
 
-    auto set = [&](int col, bool valid, double v, int dec) {
+    auto setCell = [&](int col, bool valid, double cellValue, int dec) {
         auto *it = mTable->item(row, col);
-        it->setText(valid ? QString::number(v, 'f', dec) : "—");
-        it->setToolTip("Captured at " + ts);
+        it->setText(valid ? QString::number(cellValue, 'f', dec) : "—");
+        it->setToolTip("Captured at " + timestamp);
     };
-    set(kColRate, mLatest.rateValid,      mLatest.rateErrorSpd, 1);
-    set(kColBeat, mLatest.beatErrorValid, mLatest.beatErrorMs,  1);
-    set(kColAmp,  mLatest.amplitudeValid, mLatest.amplitudeDeg, 0);
+    setCell(kColRate, mLatest.rateValid,      mLatest.rateErrorSpd, 1);
+    setCell(kColBeat, mLatest.beatErrorValid, mLatest.beatErrorMs,  1);
+    setCell(kColAmp,  mLatest.amplitudeValid, mLatest.amplitudeDeg, 0);
     recomputeSummary();
 }
 
@@ -113,33 +113,33 @@ void SequenceTab::recomputeSummary()
     for (int c = 0; c < 3; c++) {
         QVector<double> vals;
         for (int r = 0; r < kPositions.size(); r++) {
-            bool ok = false;
-            double v = mTable->item(r, c)->text().toDouble(&ok);
-            if (ok) vals.append(v);
+            bool parseOk = false;
+            double cellValue = mTable->item(r, c)->text().toDouble(&parseOk);
+            if (parseOk) vals.append(cellValue);
         }
         if (vals.isEmpty()) {
             mTable->item(xRow, c)->setText("—");
             mTable->item(dRow, c)->setText("—");
             continue;
         }
-        double sum = 0, lo = vals[0], hi = vals[0];
-        for (double v : vals) { sum += v; lo = qMin(lo, v); hi = qMax(hi, v); }
+        double sum = 0, minVal = vals[0], maxVal = vals[0];
+        for (double val : vals) { sum += val; minVal = qMin(minVal, val); maxVal = qMax(maxVal, val); }
         int dec = (c == kColAmp) ? 0 : 1;
         mTable->item(xRow, c)->setText(QString::number(sum / vals.size(), 'f', dec));
-        mTable->item(dRow, c)->setText(QString::number(hi - lo, 'f', dec));
+        mTable->item(dRow, c)->setText(QString::number(maxVal - minVal, 'f', dec));
     }
 
     // DVH: Vertical mean − Horizontal mean (Rate + Ampl only; Beat left blank)
     auto groupMean = [&](const QStringList &group, int col, bool &ok) {
-        double sum = 0; int n = 0;
+        double sum = 0; int count = 0;
         for (const QString &p : group) {
             int r = rowOfPosition(p);
             bool conv = false;
-            double v = mTable->item(r, col)->text().toDouble(&conv);
-            if (conv) { sum += v; n++; }
+            double cellValue = mTable->item(r, col)->text().toDouble(&conv);
+            if (conv) { sum += cellValue; count++; }
         }
-        ok = n > 0;
-        return ok ? sum / n : 0.0;
+        ok = count > 0;
+        return ok ? sum / count : 0.0;
     };
     for (int c = 0; c < 3; c++) {
         if (c == kColBeat) {

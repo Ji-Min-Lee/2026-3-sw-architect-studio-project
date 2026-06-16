@@ -73,12 +73,12 @@ void RollingLeastSquares::AddPoint(double x, double y)
  {
   if (size < 2) return false;
 
-  double n = static_cast<double>(size);
-  double denominator = (n * sumX2 - sumX * sumX);
+  double sampleCount = static_cast<double>(size);
+  double denominator = (sampleCount * sumX2 - sumX * sumX);
 
   if (std::abs(denominator) < 1e-10) return false; // Singular matrix
 
-  slope = (n * sumXY - sumX * sumY) / denominator;
+  slope = (sampleCount * sumXY - sumX * sumY) / denominator;
   return true;
 }
 

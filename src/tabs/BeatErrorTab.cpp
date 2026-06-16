@@ -9,27 +9,27 @@ constexpr double kGoodBeatErrorMs = 0.6;  // "values under 0.6 ms generally good
 
 BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
 {
-    auto *lay = new QVBoxLayout(this);
-    lay->setContentsMargins(0, 0, 0, 0);
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
 
     mHeaderLabel = new QLabel(this);
     mHeaderLabel->setAlignment(Qt::AlignHCenter);
-    lay->addWidget(mHeaderLabel);
+    mainLayout->addWidget(mHeaderLabel);
 
-    auto *row = new QHBoxLayout;
-    row->setContentsMargins(4, 0, 4, 0);
-    row->addWidget(new QLabel("Window:", this));
+    auto *controlsLayout = new QHBoxLayout;
+    controlsLayout->setContentsMargins(4, 0, 4, 0);
+    controlsLayout->addWidget(new QLabel("Window:", this));
     mZoomCombo = new QComboBox(this);
     mZoomCombo->addItems({"10 min", "5 min", "2.5 min", "75 s", "30 s"});
     mZoomCombo->setCurrentIndex(4);  // scrolling visible with ~45 s test files
-    row->addWidget(mZoomCombo);
+    controlsLayout->addWidget(mZoomCombo);
     mAlertLabel = new QLabel(this);
     mAlertLabel->setAlignment(Qt::AlignHCenter);
-    row->addWidget(mAlertLabel, 1);
-    lay->addLayout(row);
+    controlsLayout->addWidget(mAlertLabel, 1);
+    mainLayout->addLayout(controlsLayout);
 
     mPlot = new QCustomPlot(this);
-    lay->addWidget(mPlot, 1);
+    mainLayout->addWidget(mPlot, 1);
 
     // Top rect (default axes): beat error rolling average — graph(0)
     mPlot->addGraph();
@@ -101,13 +101,13 @@ void BeatErrorTab::reset()
 
 void BeatErrorTab::updateHeader(const Measurement &m)
 {
-    auto fmt = [](bool valid, double v, int dec, const QString &unit) {
-        return valid ? QString("%1 %2").arg(v, 0, 'f', dec).arg(unit) : QString("--- %1").arg(unit);
+    auto formatValue = [](bool valid, double value, int dec, const QString &unit) {
+        return valid ? QString("%1 %2").arg(value, 0, 'f', dec).arg(unit) : QString("--- %1").arg(unit);
     };
     mHeaderLabel->setText(QString("<b>RATE %1   AMPLITUDE %2   BEAT ERROR %3   BEAT %4</b>")
-                              .arg(fmt(m.rateValid, m.rateErrorSpd, 1, "s/d"),
-                                   fmt(m.amplitudeValid, m.amplitudeDeg, 0, "°"),
-                                   fmt(m.beatErrorValid, m.beatErrorMs, 2, "ms"),
+                              .arg(formatValue(m.rateValid, m.rateErrorSpd, 1, "s/d"),
+                                   formatValue(m.amplitudeValid, m.amplitudeDeg, 0, "°"),
+                                   formatValue(m.beatErrorValid, m.beatErrorMs, 2, "ms"),
                                    m.synced ? QString("%1 bph").arg(m.detectedBph) : "----- bph"));
 
     QStringList alerts;
@@ -118,22 +118,22 @@ void BeatErrorTab::updateHeader(const Measurement &m)
     // Slope check: linear fit of the recent diagnostic trace, converted to
     // on-screen angle using the current axis ranges (>45° = major fault)
     auto data = mTicGraph->data();
-    int n = data->size();
-    if (n >= 10) {
-        double sx = 0, sy = 0, sxx = 0, sxy = 0;
-        int from = n - qMin(n, 50);
-        int cnt = 0;
-        for (int i = from; i < n; i++) {
-            double x = data->at(i)->key, y = data->at(i)->value;
-            sx += x; sy += y; sxx += x * x; sxy += x * y; cnt++;
+    int dataCount = data->size();
+    if (dataCount >= 10) {
+        double sumX = 0, sumY = 0, sumXX = 0, sumXY = 0;
+        int from = dataCount - qMin(dataCount, 50);
+        int pointCount = 0;
+        for (int i = from; i < dataCount; i++) {
+            double beatIndex = data->at(i)->key, offsetMs = data->at(i)->value;
+            sumX += beatIndex; sumY += offsetMs; sumXX += beatIndex * beatIndex; sumXY += beatIndex * offsetMs; pointCount++;
         }
-        double denom = cnt * sxx - sx * sx;
+        double denom = pointCount * sumXX - sumX * sumX;
         if (std::abs(denom) > 1e-12) {
-            double slope = (cnt * sxy - sx * sy) / denom;   // ms per beat
-            QCPAxis *xa = mTraceRect->axis(QCPAxis::atBottom);
-            QCPAxis *ya = mTraceRect->axis(QCPAxis::atLeft);
-            double pxPerBeat = mTraceRect->width()  / qMax(1.0, xa->range().size());
-            double pxPerMs   = mTraceRect->height() / qMax(1.0, ya->range().size());
+            double slope = (pointCount * sumXY - sumX * sumY) / denom;   // ms per beat
+            QCPAxis *xAxis = mTraceRect->axis(QCPAxis::atBottom);
+            QCPAxis *yAxis = mTraceRect->axis(QCPAxis::atLeft);
+            double pxPerBeat = mTraceRect->width()  / qMax(1.0, xAxis->range().size());
+            double pxPerMs   = mTraceRect->height() / qMax(1.0, yAxis->range().size());
             double screenSlope = std::abs(slope) * pxPerMs / qMax(1.0, pxPerBeat);
             if (screenSlope > 1.0)  // tan(45°)
                 alerts << "<span style='color:#c01e1e'><b>✖ MAJOR FAULT — trace slope "

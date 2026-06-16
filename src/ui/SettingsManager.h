@@ -17,10 +17,10 @@ public:
     bool   useOnset()        const;
     QString deviceName()     const;
 
-    void setBph(int v);
-    void setSampleRate(int v);
-    void setLiftAngle(double v);
-    void setAveragingPeriod(int v);
-    void setUseOnset(bool v);
-    void setDeviceName(const QString &v);
+    void setBph(int value);
+    void setSampleRate(int value);
+    void setLiftAngle(double value);
+    void setAveragingPeriod(int value);
+    void setUseOnset(bool value);
+    void setDeviceName(const QString &value);
 };

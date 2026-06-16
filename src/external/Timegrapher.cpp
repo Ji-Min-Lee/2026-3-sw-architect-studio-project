@@ -524,11 +524,11 @@ int tg_process(tg_context_t *ctx,
                                            TG_AUTO_BPH_LIST, TG_AUTO_BPH_COUNT,
                                            0.7, &phase_score, &matched_period);
         } else {
-            int u = ctx->cfg.manual_bph;
-            double T = 3600.0 / (double)u;
+            int manualBph = ctx->cfg.manual_bph;
+            double T = 3600.0 / (double)manualBph;
             phase_score = tg_phase_score(tmp, ctx->ev_history_count, T);
             if (phase_score >= 0.7) {
-                matched = u; matched_period = T;
+                matched = manualBph; matched_period = T;
             }
         }
         if (matched) {

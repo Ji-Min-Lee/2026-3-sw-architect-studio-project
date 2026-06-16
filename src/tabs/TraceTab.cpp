@@ -111,9 +111,9 @@ void TraceTab::reset()
 double TraceTab::rollingAvg(const QVector<QPair<double, double>> &buf) const
 {
     if (buf.isEmpty()) return 0.0;
-    double s = 0;
-    for (const auto &p : buf) s += p.second;
-    return s / buf.size();
+    double runningSum = 0;
+    for (const auto &entry : buf) runningSum += entry.second;
+    return runningSum / buf.size();
 }
 
 void TraceTab::updateAlerts()

@@ -34,9 +34,9 @@ signals:
     void measurementReady(const Measurement &m);
 
 private:
-    double wrapInRange(double n, double lo, double hi) const;
+    double wrapInRange(double value, double lo, double hi) const;
     void   addOrOverwrite(QVector<double> &xv, QVector<double> &yv,
-                          double val, int maxS, int &idx);
+                          double val, int maxSize, int &idx);
     void   computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae);
     void   computeBeatError(double evTime, bool synced, int bph);
     void   computeAmplitude(double cTime, bool synced, int bph, Measurement &m, AcousticEvent &ae);

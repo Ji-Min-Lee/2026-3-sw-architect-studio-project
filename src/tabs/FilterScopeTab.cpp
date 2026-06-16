@@ -19,14 +19,14 @@ FilterScopeTab::FilterScopeTab(QWidget *parent) : BaseGraphTab(parent)
 {
     setStyleSheet(QStringLiteral("FilterScopeTab { background-color: #ffffff; }"));
 
-    auto *lay = new QVBoxLayout(this);
-    lay->setContentsMargins(6, 4, 6, 4);
-    lay->setSpacing(4);
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(6, 4, 6, 4);
+    mainLayout->setSpacing(4);
 
     mBlockLabel = new QLabel(this);
     mBlockLabel->setAlignment(Qt::AlignHCenter);
     mBlockLabel->setStyleSheet(QStringLiteral("color: #000000; font-weight: bold;"));
-    lay->addWidget(mBlockLabel);
+    mainLayout->addWidget(mBlockLabel);
 
     for (int i = 0; i < kFilterPanels; ++i) {
         FilterPanel panel;
@@ -34,11 +34,11 @@ FilterScopeTab::FilterScopeTab(QWidget *parent) : BaseGraphTab(parent)
         panel.title = new QLabel(kPanelTitles[i], this);
         panel.title->setStyleSheet(QStringLiteral(
             "font-weight: bold; padding-left: 4px; color: #000000;"));
-        lay->addWidget(panel.title);
+        mainLayout->addWidget(panel.title);
 
         panel.plot = new QCustomPlot(this);
         panel.plot->setMinimumHeight(90);
-        lay->addWidget(panel.plot, 1);
+        mainLayout->addWidget(panel.plot, 1);
 
         panel.posGraph = panel.plot->addGraph();
         panel.posGraph->setPen(QPen(QColor(190, 170, 30), 1.3));
@@ -80,44 +80,44 @@ void FilterScopeTab::stylePanel(FilterPanel &panel, bool showXLabel)
 
 FilterScopeTab::FilterStages FilterScopeTab::computeFilterStages(const QVector<float> &pcm)
 {
-    const int n = pcm.size();
+    const int sampleCount = pcm.size();
     FilterStages stages;
-    if (n == 0) {
+    if (sampleCount == 0) {
         return stages;
     }
 
-    stages.f0.resize(n);
-    stages.f1.resize(n);
-    stages.f2.resize(n);
-    stages.f3.resize(n);
+    stages.f0.resize(sampleCount);
+    stages.f1.resize(sampleCount);
+    stages.f2.resize(sampleCount);
+    stages.f3.resize(sampleCount);
 
     double mean = 0.0;
-    for (float v : pcm) {
-        mean += v;
+    for (float sample : pcm) {
+        mean += sample;
     }
-    mean /= n;
+    mean /= sampleCount;
 
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < sampleCount; ++i) {
         stages.f0[i] = static_cast<double>(pcm[i]) - mean;
     }
 
-    double acc = 0.0;
-    for (int i = 0; i < n; ++i) {
-        acc += std::abs(stages.f0[i]);
+    double movingAvgSum = 0.0;
+    for (int i = 0; i < sampleCount; ++i) {
+        movingAvgSum += std::abs(stages.f0[i]);
         if (i >= kMovingAvgWin) {
-            acc -= std::abs(stages.f0[i - kMovingAvgWin]);
+            movingAvgSum -= std::abs(stages.f0[i - kMovingAvgWin]);
         }
-        stages.f1[i] = acc / qMin(i + 1, kMovingAvgWin);
+        stages.f1[i] = movingAvgSum / qMin(i + 1, kMovingAvgWin);
     }
 
     double prev = 0.0;
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < sampleCount; ++i) {
         stages.f2[i] = (stages.f1[i] >= prev) ? stages.f1[i] : prev * kFallDecay;
         prev = stages.f2[i];
     }
 
     prev = 0.0;
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < sampleCount; ++i) {
         const double upper = qMax(0.0, stages.f0[i]);
         stages.f3[i] = (upper >= prev) ? upper : prev * kFallDecay;
         prev = stages.f3[i];
@@ -130,13 +130,13 @@ void FilterScopeTab::drawPanel(FilterPanel &panel, int mode,
                                const QVector<double> &xs, const QVector<double> &ys,
                                const Measurement &m)
 {
-    const int n = ys.size();
+    const int sampleCount = ys.size();
     const bool mirrored = (mode != 3);
 
     if (mirrored) {
-        QVector<double> pos(n);
-        QVector<double> neg(n);
-        for (int i = 0; i < n; ++i) {
+        QVector<double> pos(sampleCount);
+        QVector<double> neg(sampleCount);
+        for (int i = 0; i < sampleCount; ++i) {
             pos[i] = std::abs(ys[i]);
             neg[i] = -std::abs(ys[i]);
         }
@@ -147,8 +147,8 @@ void FilterScopeTab::drawPanel(FilterPanel &panel, int mode,
         panel.negGraph->data()->clear();
     }
 
-    for (QCPItemLine *mk : panel.markers) {
-        mk->setVisible(false);
+    for (QCPItemLine *marker : panel.markers) {
+        marker->setVisible(false);
     }
 
     int used = 0;
@@ -160,16 +160,16 @@ void FilterScopeTab::drawPanel(FilterPanel &panel, int mode,
             continue;
         }
         if (used >= panel.markers.size()) {
-            auto *mk = new QCPItemLine(panel.plot);
-            mk->start->setTypeY(QCPItemPosition::ptAxisRectRatio);
-            mk->end->setTypeY(QCPItemPosition::ptAxisRectRatio);
-            panel.markers.append(mk);
+            auto *marker = new QCPItemLine(panel.plot);
+            marker->start->setTypeY(QCPItemPosition::ptAxisRectRatio);
+            marker->end->setTypeY(QCPItemPosition::ptAxisRectRatio);
+            panel.markers.append(marker);
         }
-        QCPItemLine *mk = panel.markers[used++];
-        mk->setPen(QPen(ev.isA ? Qt::darkGreen : Qt::red, 1.5, Qt::DashLine));
-        mk->start->setCoords(xMs, 0.0);
-        mk->end->setCoords(xMs, 1.0);
-        mk->setVisible(true);
+        QCPItemLine *marker = panel.markers[used++];
+        marker->setPen(QPen(ev.isA ? Qt::darkGreen : Qt::red, 1.5, Qt::DashLine));
+        marker->start->setCoords(xMs, 0.0);
+        marker->end->setCoords(xMs, 1.0);
+        marker->setVisible(true);
     }
 
     panel.plot->xAxis->setRange(0.0, xMax);
@@ -189,15 +189,15 @@ void FilterScopeTab::redraw()
 
     const Measurement &m = mLatest;
     const QVector<float> &pcm = !m.hpfPcm.isEmpty() ? m.hpfPcm : m.rawPcm;
-    const int n = pcm.size();
-    if (n == 0) {
+    const int pcmSampleCount = pcm.size();
+    if (pcmSampleCount == 0) {
         return;
     }
 
     const FilterStages stages = computeFilterStages(pcm);
 
-    QVector<double> xs(n);
-    for (int i = 0; i < n; ++i) {
+    QVector<double> xs(pcmSampleCount);
+    for (int i = 0; i < pcmSampleCount; ++i) {
         xs[i] = static_cast<double>(i) / m.samplesPerSecond * 1000.0;
     }
 
@@ -205,7 +205,7 @@ void FilterScopeTab::redraw()
     mBlockLabel->setText(
         tr("Filter scope — block %1 ms  (%2 samples @ %3 Hz)")
             .arg(blockMs, 0, 'f', 1)
-            .arg(n)
+            .arg(pcmSampleCount)
             .arg(m.samplesPerSecond));
 
     const QVector<double> *stageYs[] = {&stages.f0, &stages.f1, &stages.f2, &stages.f3};

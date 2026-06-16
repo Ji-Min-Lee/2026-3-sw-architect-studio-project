@@ -33,19 +33,19 @@ WaveformCompTab::WaveformCompTab(QWidget *parent) : BaseGraphTab(parent)
     setStyleSheet(QStringLiteral(
         "WaveformCompTab { background-color: #ffffff; }"));
 
-    auto *lay = new QVBoxLayout(this);
-    lay->setContentsMargins(6, 4, 6, 4);
-    lay->setSpacing(4);
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(6, 4, 6, 4);
+    mainLayout->setSpacing(4);
 
     mValuesLabel = new QLabel(this);
     mValuesLabel->setAlignment(Qt::AlignHCenter);
     mValuesLabel->setStyleSheet(QStringLiteral("color: #000000; font-weight: bold;"));
-    lay->addWidget(mValuesLabel);
+    mainLayout->addWidget(mValuesLabel);
 
     mTacLabel = new QLabel(this);
     mTacLabel->setAlignment(Qt::AlignHCenter);
     mTacLabel->setStyleSheet(QStringLiteral("color: #000000;"));
-    lay->addWidget(mTacLabel);
+    mainLayout->addWidget(mTacLabel);
 
     for (int i = 0; i < kBeatPlots; ++i) {
         BeatWindow win;
@@ -54,11 +54,11 @@ WaveformCompTab::WaveformCompTab(QWidget *parent) : BaseGraphTab(parent)
         win.title->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         win.title->setStyleSheet(QStringLiteral(
             "font-weight: bold; padding-left: 4px; color: #000000;"));
-        lay->addWidget(win.title);
+        mainLayout->addWidget(win.title);
 
         win.plot = new QCustomPlot(this);
         win.plot->setMinimumHeight(120);
-        lay->addWidget(win.plot, 1);
+        mainLayout->addWidget(win.plot, 1);
 
         win.hpfGraph = win.plot->addGraph();
         win.hpfGraph->setPen(QPen(QColor(180, 140, 0), 1.4));
@@ -160,26 +160,26 @@ void WaveformCompTab::reset()
     mBufStartAbs = 0.0;
 
     for (int i = 0; i < mWindows.size(); ++i) {
-        BeatWindow &w = mWindows[i];
-        w.hpfGraph->data()->clear();
-        w.cMarker->setVisible(false);
-        w.tAcLabel->setVisible(false);
-        w.title->setText(tr("Beat %1 — (waiting)").arg(i + 1));
-        w.plot->xAxis->setRange(0.0, kWindowMs);
-        w.plot->yAxis->setRange(-1.0, 1.0);
-        w.zeroLine->start->setCoords(0.0, 0.0);
-        w.zeroLine->end->setCoords(kWindowMs, 0.0);
-        w.aMarker->start->setCoords(kPreMs, -1.0);
-        w.aMarker->end->setCoords(kPreMs,  1.0);
-        w.aMarker->setVisible(false);
-        for (int gi = 0; gi < w.msGrid.size(); ++gi) {
-            double ms = gi * 5.0;
-            w.msGrid[gi]->start->setCoords(ms, -1.0);
-            w.msGrid[gi]->end->setCoords(ms,  1.0);
-            w.msGrid[gi]->setVisible(false);
+        BeatWindow &beatWindow = mWindows[i];
+        beatWindow.hpfGraph->data()->clear();
+        beatWindow.cMarker->setVisible(false);
+        beatWindow.tAcLabel->setVisible(false);
+        beatWindow.title->setText(tr("Beat %1 — (waiting)").arg(i + 1));
+        beatWindow.plot->xAxis->setRange(0.0, kWindowMs);
+        beatWindow.plot->yAxis->setRange(-1.0, 1.0);
+        beatWindow.zeroLine->start->setCoords(0.0, 0.0);
+        beatWindow.zeroLine->end->setCoords(kWindowMs, 0.0);
+        beatWindow.aMarker->start->setCoords(kPreMs, -1.0);
+        beatWindow.aMarker->end->setCoords(kPreMs,  1.0);
+        beatWindow.aMarker->setVisible(false);
+        for (int gridIdx = 0; gridIdx < beatWindow.msGrid.size(); ++gridIdx) {
+            double ms = gridIdx * 5.0;
+            beatWindow.msGrid[gridIdx]->start->setCoords(ms, -1.0);
+            beatWindow.msGrid[gridIdx]->end->setCoords(ms,  1.0);
+            beatWindow.msGrid[gridIdx]->setVisible(false);
         }
-        updateDegreeAxis(w);
-        { int64_t _pt=TG_NOW(); w.plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
+        updateDegreeAxis(beatWindow);
+        { int64_t _pt=TG_NOW(); beatWindow.plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
     }
 
     mValuesLabel->setText(tr("RATE --- s/d   BEAT ERROR --- ms   BEAT ----- bph"));
@@ -248,15 +248,15 @@ void WaveformCompTab::fulfillPending()
             continue;
         }
 
-        BeatWave bw;
-        if (!extractBeatWindow(aPos, bw)) {
+        BeatWave beatWave;
+        if (!extractBeatWindow(aPos, beatWave)) {
             continue;
         }
 
         if (!mBeats.isEmpty() && !mBeats.front().hasC) {
             mBeats.removeFirst();
         }
-        pushBeat(bw);
+        pushBeat(beatWave);
         mPending.removeAt(i);
     }
 }
@@ -295,8 +295,8 @@ void WaveformCompTab::updateTacStats()
     const double mean = sum / tac.size();
     double var = 0.0;
     for (double v : tac) {
-        const double d = v - mean;
-        var += d * d;
+        const double deviation = v - mean;
+        var += deviation * deviation;
     }
     const double sigma = std::sqrt(var / tac.size());
 
@@ -308,72 +308,72 @@ void WaveformCompTab::updateTacStats()
             .arg(mLiftAngle, 0, 'f', 1));
 }
 
-void WaveformCompTab::updatePlotGuides(BeatWindow &w, const BeatWave *beat,
+void WaveformCompTab::updatePlotGuides(BeatWindow &beatWindow, const BeatWave *beat,
                                        double yMin, double yMax)
 {
-    w.zeroLine->start->setCoords(0.0, 0.0);
-    w.zeroLine->end->setCoords(kWindowMs, 0.0);
+    beatWindow.zeroLine->start->setCoords(0.0, 0.0);
+    beatWindow.zeroLine->end->setCoords(kWindowMs, 0.0);
 
-    int gi = 0;
-    for (double ms = 0.0; ms <= kWindowMs + 0.001 && gi < w.msGrid.size(); ms += 5.0) {
-        w.msGrid[gi]->start->setCoords(ms, yMin);
-        w.msGrid[gi]->end->setCoords(ms, yMax);
-        w.msGrid[gi]->setVisible(beat != nullptr);
-        ++gi;
+    int gridIdx = 0;
+    for (double ms = 0.0; ms <= kWindowMs + 0.001 && gridIdx < beatWindow.msGrid.size(); ms += 5.0) {
+        beatWindow.msGrid[gridIdx]->start->setCoords(ms, yMin);
+        beatWindow.msGrid[gridIdx]->end->setCoords(ms, yMax);
+        beatWindow.msGrid[gridIdx]->setVisible(beat != nullptr);
+        ++gridIdx;
     }
 
     if (!beat) {
-        w.aMarker->setVisible(false);
-        w.cMarker->setVisible(false);
-        w.tAcLabel->setVisible(false);
+        beatWindow.aMarker->setVisible(false);
+        beatWindow.cMarker->setVisible(false);
+        beatWindow.tAcLabel->setVisible(false);
         return;
     }
 
-    w.aMarker->start->setCoords(kPreMs, 0.0);
-    w.aMarker->end->setCoords(kPreMs, 1.0);
-    w.aMarker->setVisible(true);
+    beatWindow.aMarker->start->setCoords(kPreMs, 0.0);
+    beatWindow.aMarker->end->setCoords(kPreMs, 1.0);
+    beatWindow.aMarker->setVisible(true);
 
     if (beat->hasC && beat->cMs <= kWindowMs + 0.001) {
-        w.cMarker->start->setCoords(beat->cMs, 0.0);
-        w.cMarker->end->setCoords(beat->cMs, 1.0);
-        w.cMarker->setVisible(true);
-        w.tAcLabel->setText(QStringLiteral("t_AC %1 ms").arg(beat->tAcMs, 0, 'f', 2));
-        w.tAcLabel->position->setCoords(beat->cMs, 0.95);
-        w.tAcLabel->setVisible(true);
+        beatWindow.cMarker->start->setCoords(beat->cMs, 0.0);
+        beatWindow.cMarker->end->setCoords(beat->cMs, 1.0);
+        beatWindow.cMarker->setVisible(true);
+        beatWindow.tAcLabel->setText(QStringLiteral("t_AC %1 ms").arg(beat->tAcMs, 0, 'f', 2));
+        beatWindow.tAcLabel->position->setCoords(beat->cMs, 0.95);
+        beatWindow.tAcLabel->setVisible(true);
     } else {
-        w.cMarker->setVisible(false);
-        w.tAcLabel->setVisible(false);
+        beatWindow.cMarker->setVisible(false);
+        beatWindow.tAcLabel->setVisible(false);
     }
 }
 
 void WaveformCompTab::redrawPlots()
 {
     for (int i = 0; i < kBeatPlots; ++i) {
-        BeatWindow &w = mWindows[i];
+        BeatWindow &beatWindow = mWindows[i];
         const BeatWave *beat = (i < mBeats.size()) ? &mBeats[i] : nullptr;
 
         if (beat) {
-            w.hpfGraph->setData(beat->xs, beat->hpfYs, true);
+            beatWindow.hpfGraph->setData(beat->xs, beat->hpfYs, true);
 
             if (beat->hasC) {
-                w.title->setText(tr("Beat %1 — t_AC = %2 ms")
+                beatWindow.title->setText(tr("Beat %1 — t_AC = %2 ms")
                                      .arg(i + 1)
                                      .arg(beat->tAcMs, 0, 'f', 2));
             } else {
-                w.title->setText(tr("Beat %1 — (waiting for C)").arg(i + 1));
+                beatWindow.title->setText(tr("Beat %1 — (waiting for C)").arg(i + 1));
             }
         } else {
-            w.hpfGraph->data()->clear();
-            w.title->setText(tr("Beat %1 — (waiting)").arg(i + 1));
+            beatWindow.hpfGraph->data()->clear();
+            beatWindow.title->setText(tr("Beat %1 — (waiting)").arg(i + 1));
         }
 
-        w.plot->xAxis->setRange(0.0, kWindowMs);
-        rescaleBipolarY(w.plot->yAxis, w.hpfGraph);
-        const QCPRange yr = w.plot->yAxis->range();
-        updatePlotGuides(w, beat, yr.lower, yr.upper);
-        updateDegreeAxis(w);
+        beatWindow.plot->xAxis->setRange(0.0, kWindowMs);
+        rescaleBipolarY(beatWindow.plot->yAxis, beatWindow.hpfGraph);
+        const QCPRange yr = beatWindow.plot->yAxis->range();
+        updatePlotGuides(beatWindow, beat, yr.lower, yr.upper);
+        updateDegreeAxis(beatWindow);
         g_replotCount++;
-        w.plot->replot(QCustomPlot::rpQueuedReplot);
+        beatWindow.plot->replot(QCustomPlot::rpQueuedReplot);
     }
 }
 
@@ -399,10 +399,10 @@ void WaveformCompTab::onMeasurement(const Measurement &m)
             mPending.append(pb);
             changed = true;
         } else if (!mBeats.isEmpty() && !mBeats.front().hasC) {
-            BeatWave &bw = mBeats.front();
-            bw.tAcMs = (ev.samplePos - bw.aSamplePos) * 1000.0 / static_cast<double>(mSps);
-            bw.cMs = kPreMs + bw.tAcMs;
-            bw.hasC = true;
+            BeatWave &beatWave = mBeats.front();
+            beatWave.tAcMs = (ev.samplePos - beatWave.aSamplePos) * 1000.0 / static_cast<double>(mSps);
+            beatWave.cMs = kPreMs + beatWave.tAcMs;
+            beatWave.hasC = true;
             changed = true;
         }
     }

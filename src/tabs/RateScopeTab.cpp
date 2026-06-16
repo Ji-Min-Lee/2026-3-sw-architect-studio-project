@@ -99,14 +99,14 @@ void RateScopeTab::onMeasurement(const Measurement &m)
             mLastA = ev.samplePos; mHaveLastA = true;
 
             if (ev.hasRatePoint) {
-                int g = ev.isTic ? 0 : 1;
+                int graphIdx = ev.isTic ? 0 : 1;
                 QVector<double> &xv = ev.isTic ? mXTic : mXToc;
                 QVector<double> &yv = ev.isTic ? mYTic : mYToc;
                 int             &idx = ev.isTic ? mXTicIdx : mXTocIdx;
                 if (yv.size() < mMaxPoints) { yv.append(ev.wrappedRateError); xv.append(idx); }
                 else { yv[idx] = ev.wrappedRateError; }
                 idx = (idx + 1) % mMaxPoints;
-                mRatePlot->graph(g)->setData(xv, yv);
+                mRatePlot->graph(graphIdx)->setData(xv, yv);
                 g_replotCount++;
                 mRatePlot->replot(QCustomPlot::rpQueuedReplot);
             }
@@ -155,35 +155,35 @@ void RateScopeTab::purgeScopeHistory(int sps)
 
 void RateScopeTab::addVerticalMarker(double x, double height, const QColor &color)
 {
-    QCPItemLine *l = new QCPItemLine(mScopePlot);
-    l->start->setCoords(x, 0.0); l->end->setCoords(x, height);
+    QCPItemLine *line = new QCPItemLine(mScopePlot);
+    line->start->setCoords(x, 0.0); line->end->setCoords(x, height);
     QPen pen; pen.setColor(color); pen.setWidth(2); pen.setStyle(Qt::DashLine);
-    l->setPen(pen);
+    line->setPen(pen);
 }
 void RateScopeTab::addText(double x, double height, const QString &text,
                              const QColor &color, Qt::Alignment align)
 {
-    QCPItemText *t = new QCPItemText(mScopePlot);
-    t->setColor(color);
-    t->setPositionAlignment(align);
-    t->position->setType(QCPItemPosition::ptPlotCoords);
-    t->position->setCoords(x, height);
-    t->setText(text);
-    t->setPen(QPen(color));
+    QCPItemText *textItem = new QCPItemText(mScopePlot);
+    textItem->setColor(color);
+    textItem->setPositionAlignment(align);
+    textItem->position->setType(QCPItemPosition::ptPlotCoords);
+    textItem->position->setCoords(x, height);
+    textItem->setText(text);
+    textItem->setPen(QPen(color));
 }
-void RateScopeTab::addHorizontalMarkerOutward(double xL, double xR, double h, const QColor &c)
+void RateScopeTab::addHorizontalMarkerOutward(double xL, double xR, double h, const QColor &color)
 {
-    QCPItemLine *l = new QCPItemLine(mScopePlot);
-    l->start->setCoords(xL, h); l->end->setCoords(xR, h);
-    QPen pen; pen.setColor(c); pen.setWidth(1); pen.setStyle(Qt::SolidLine);
-    l->setHead(QCPLineEnding::esSpikeArrow);
-    l->setTail(QCPLineEnding::esSpikeArrow);
-    l->setPen(pen);
+    QCPItemLine *line = new QCPItemLine(mScopePlot);
+    line->start->setCoords(xL, h); line->end->setCoords(xR, h);
+    QPen pen; pen.setColor(color); pen.setWidth(1); pen.setStyle(Qt::SolidLine);
+    line->setHead(QCPLineEnding::esSpikeArrow);
+    line->setTail(QCPLineEnding::esSpikeArrow);
+    line->setPen(pen);
 }
 void RateScopeTab::addHorizontalMarkerInward(double xL, double xR, double len,
-                                              double h, const QColor &c)
+                                              double h, const QColor &color)
 {
-    QPen pen; pen.setColor(c); pen.setWidth(1); pen.setStyle(Qt::SolidLine);
+    QPen pen; pen.setColor(color); pen.setWidth(1); pen.setStyle(Qt::SolidLine);
     QCPItemLine *left = new QCPItemLine(mScopePlot);
     left->start->setCoords(xL - len, h); left->end->setCoords(xL, h);
     left->setHead(QCPLineEnding::esSpikeArrow); left->setPen(pen);
@@ -195,12 +195,12 @@ void RateScopeTab::removeMarkersAndText(double lo, double hi)
 {
     for (int i = mScopePlot->itemCount() - 1; i >= 0; --i) {
         auto *item = mScopePlot->item(i);
-        if (auto *l = qobject_cast<QCPItemLine *>(item)) {
-            double sk = l->start->coords().x(), ek = l->end->coords().x();
-            if ((sk >= lo && sk <= hi) || (ek >= lo && ek <= hi)) mScopePlot->removeItem(l);
-        } else if (auto *t = qobject_cast<QCPItemText *>(item)) {
-            double k = t->position->coords().x();
-            if (k >= lo && k <= hi) mScopePlot->removeItem(t);
+        if (auto *line = qobject_cast<QCPItemLine *>(item)) {
+            double startKey = line->start->coords().x(), endKey = line->end->coords().x();
+            if ((startKey >= lo && startKey <= hi) || (endKey >= lo && endKey <= hi)) mScopePlot->removeItem(line);
+        } else if (auto *textItem = qobject_cast<QCPItemText *>(item)) {
+            double textX = textItem->position->coords().x();
+            if (textX >= lo && textX <= hi) mScopePlot->removeItem(textItem);
         }
     }
 }

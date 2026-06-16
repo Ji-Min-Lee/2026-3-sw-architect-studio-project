@@ -43,41 +43,41 @@ void Logger::writeHeader()
     mOut.flush();
 }
 
-void Logger::record(const Frame &f)
+void Logger::record(const Frame &frame)
 {
-    mBatch.push_back(f);
+    mBatch.push_back(frame);
     ++mTotalFrames;
     if ((int)mBatch.size() >= mConsoleEvery) {
         consoleSummary();
         flushBatch();
-        SysSample s = mSys.sample();
-        if (s.valid)
-            mSysSamples.emplace_back(mTotalFrames, s);
+        SysSample sysSample = mSys.sample();
+        if (sysSample.valid)
+            mSysSamples.emplace_back(mTotalFrames, sysSample);
     }
 }
 
 void Logger::flushBatch()
 {
     if (mBatch.empty() || !mFile.isOpen()) return;
-    for (const Frame &f : mBatch) {
-        mOut << mTotalFrames - mBatch.size() + (&f - mBatch.data()) + 1 << ','
-             << f.samples << ','
-             << QString::number((f.wait_us + f.exec_us) / 1000.0, 'f', 3) << ','
-             << QString::number(f.wait_us  / 1000.0, 'f', 3) << ','
-             << QString::number(f.exec_us  / 1000.0, 'f', 3) << ','
-             << QString::number(f.copy_us  / 1000.0, 'f', 3) << ','
-             << QString::number(f.sound_us / 1000.0, 'f', 3) << ','
-             << QString::number(f.tg_us    / 1000.0, 'f', 3) << ','
-             << QString::number(f.ui_us    / 1000.0, 'f', 3) << ','
-             << QString::number(f.plot_us  / 1000.0, 'f', 3) << ','
-             << QString::number(f.bg_fps, 'f', 1) << ','
-             << QString::number(f.bg_sps, 'f', 1) << ','
-             << QString::number(f.bg_spf, 'f', 1) << ','
-             << QString::number(f.fg_fps, 'f', 1) << ','
-             << QString::number(f.fg_sps, 'f', 1) << ','
-             << QString::number(f.fg_spf, 'f', 1) << ','
-             << f.replot_count << ','
-             << QString::number(f.fg_wait_us / 1000.0, 'f', 3) << '\n';
+    for (const Frame &frame : mBatch) {
+        mOut << mTotalFrames - mBatch.size() + (&frame - mBatch.data()) + 1 << ','
+             << frame.samples << ','
+             << QString::number((frame.wait_us + frame.exec_us) / 1000.0, 'f', 3) << ','
+             << QString::number(frame.wait_us  / 1000.0, 'f', 3) << ','
+             << QString::number(frame.exec_us  / 1000.0, 'f', 3) << ','
+             << QString::number(frame.copy_us  / 1000.0, 'f', 3) << ','
+             << QString::number(frame.sound_us / 1000.0, 'f', 3) << ','
+             << QString::number(frame.tg_us    / 1000.0, 'f', 3) << ','
+             << QString::number(frame.ui_us    / 1000.0, 'f', 3) << ','
+             << QString::number(frame.plot_us  / 1000.0, 'f', 3) << ','
+             << QString::number(frame.bg_fps, 'f', 1) << ','
+             << QString::number(frame.bg_sps, 'f', 1) << ','
+             << QString::number(frame.bg_spf, 'f', 1) << ','
+             << QString::number(frame.fg_fps, 'f', 1) << ','
+             << QString::number(frame.fg_sps, 'f', 1) << ','
+             << QString::number(frame.fg_spf, 'f', 1) << ','
+             << frame.replot_count << ','
+             << QString::number(frame.fg_wait_us / 1000.0, 'f', 3) << '\n';
     }
     mOut.flush();
     mBatch.clear();
@@ -85,29 +85,29 @@ void Logger::flushBatch()
 
 void Logger::consoleSummary()
 {
-    const size_t cnt = (size_t)mConsoleEvery;
+    const size_t frameCount = (size_t)mConsoleEvery;
 
-    int64_t sWait=0, sExec=0, sCopy=0, sTg=0, sPlot=0, sFgWait=0, sSamp=0;
-    for (const Frame &f : mBatch) {
-        sSamp    += f.samples;  sWait   += f.wait_us;  sExec  += f.exec_us;
-        sCopy    += f.copy_us;  sTg     += f.tg_us;
-        sPlot    += f.plot_us;  sFgWait += f.fg_wait_us;
+    int64_t sumWaitUs=0, sumExecUs=0, sumCopyUs=0, sumTgUs=0, sumPlotUs=0, sumFgWaitUs=0, sumSamplesCount=0;
+    for (const Frame &frame : mBatch) {
+        sumSamplesCount += frame.samples;  sumWaitUs   += frame.wait_us;  sumExecUs   += frame.exec_us;
+        sumCopyUs       += frame.copy_us;  sumTgUs     += frame.tg_us;
+        sumPlotUs       += frame.plot_us;  sumFgWaitUs += frame.fg_wait_us;
     }
-    const double n = (double)cnt;
+    const double frameCountD = (double)frameCount;
     const Frame &last = mBatch.back();
 
     qInfo("[%06llu] avg_samples=%-7.1f  BG: fps=%-6.1f sps=%-8.1f spf=%-6.1f  DSP: fps=%-6.1f sps=%-8.1f spf=%-6.1f",
-          (unsigned long long)mTotalFrames, sSamp / n,
+          (unsigned long long)mTotalFrames, sumSamplesCount / frameCountD,
           last.bg_fps, last.bg_sps, last.bg_spf,
           last.fg_fps, last.fg_sps, last.fg_spf);
     qInfo("[%06llu] DSP: wait=%.2f exec=%.2f [copy=%.3f tg=%.3f] ms  |  FG: wait=%.2f plot=%.3f ms",
           (unsigned long long)mTotalFrames,
-          sWait   / n / 1000.0,
-          sExec   / n / 1000.0,
-          sCopy   / n / 1000.0,
-          sTg     / n / 1000.0,
-          sFgWait / n / 1000.0,
-          sPlot   / n / 1000.0);
+          sumWaitUs   / frameCountD / 1000.0,
+          sumExecUs   / frameCountD / 1000.0,
+          sumCopyUs   / frameCountD / 1000.0,
+          sumTgUs     / frameCountD / 1000.0,
+          sumFgWaitUs / frameCountD / 1000.0,
+          sumPlotUs   / frameCountD / 1000.0);
 }
 
 void Logger::writeSysCsv()
@@ -128,18 +128,18 @@ void Logger::writeSysCsv()
     for (int c = 0; c < cores; ++c) out << ",cpu" << c;
     out << ",mem_used_mb,mem_total_mb,temp_c,freq_mhz,throttled\n";
 
-    for (const auto &pr : mSysSamples) {
-        const SysSample &s = pr.second;
-        out << pr.first << ',' << QString::number(s.cpu_total, 'f', 1);
+    for (const auto &frameSampleEntry : mSysSamples) {
+        const SysSample &sysSample = frameSampleEntry.second;
+        out << frameSampleEntry.first << ',' << QString::number(sysSample.cpu_total, 'f', 1);
         for (int c = 0; c < cores; ++c) {
-            double v = (c < (int)s.cpu_cores.size()) ? s.cpu_cores[c] : 0.0;
-            out << ',' << QString::number(v, 'f', 1);
+            double coreUtil = (c < (int)sysSample.cpu_cores.size()) ? sysSample.cpu_cores[c] : 0.0;
+            out << ',' << QString::number(coreUtil, 'f', 1);
         }
-        out << ',' << QString::number(s.mem_used_mb,  'f', 1)
-            << ',' << QString::number(s.mem_total_mb, 'f', 1)
-            << ',' << QString::number(s.temp_c,       'f', 1)
-            << ',' << QString::number(s.freq_mhz,     'f', 1)
-            << ',' << QString::number((double)s.throttled, 'f', 0) << '\n';
+        out << ',' << QString::number(sysSample.mem_used_mb,  'f', 1)
+            << ',' << QString::number(sysSample.mem_total_mb, 'f', 1)
+            << ',' << QString::number(sysSample.temp_c,       'f', 1)
+            << ',' << QString::number(sysSample.freq_mhz,     'f', 1)
+            << ',' << QString::number((double)sysSample.throttled, 'f', 0) << '\n';
     }
     out.flush();
     file.close();

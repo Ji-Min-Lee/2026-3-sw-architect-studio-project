@@ -53,7 +53,7 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
 {
     int BytesIn;
     double CurrentTime;
-    qint64 Start,Delta,SleepTime;
+    qint64 Start,elapsedMs,SleepTime;
 
     if (!mTimerStarted)
     {
@@ -169,17 +169,17 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
         CurrentTime = mTimer.elapsed()/1000.0;
         if (CurrentTime-mLastTime > 2) // average fps over 2 seconds
         {
-            double fdelta;
-            fdelta=CurrentTime-mLastTime;
-            mRawAudio->FPS=mFrameCount/fdelta;
-            mRawAudio->SPS=mSampleCount/fdelta;
+            double elapsedSeconds;
+            elapsedSeconds=CurrentTime-mLastTime;
+            mRawAudio->FPS=mFrameCount/elapsedSeconds;
+            mRawAudio->SPS=mSampleCount/elapsedSeconds;
             mRawAudio->SPF=mSampleCount/mFrameCount;
             mLastTime=CurrentTime;
             mFrameCount=0;
             mSampleCount=0;
         }
-        Delta=(mTimer.elapsed()-Start)+DELAY_FUGE_TIME_MS;
-        SleepTime=PLAYBACK_SAMPLE_PERIOD_MSEC-Delta;
+        elapsedMs=(mTimer.elapsed()-Start)+DELAY_FUGE_TIME_MS;
+        SleepTime=PLAYBACK_SAMPLE_PERIOD_MSEC-elapsedMs;
         if (SleepTime<0) SleepTime=0;
         QThread::msleep(SleepTime);
     }

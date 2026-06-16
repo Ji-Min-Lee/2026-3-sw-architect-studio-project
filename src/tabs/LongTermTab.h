@@ -39,9 +39,9 @@ private:
     };
     Series makeSeries(int row, const QString &name, const QColor &c,
                       bool firstUsesDefaultRect);
-    void   addTolLine(Series &s, double yVal);
-    void   addPoint(Series &s, double t, double v);
-    void   updateOverlay(Series &s);
+    void   addTolLine(Series &series, double yVal);
+    void   addPoint(Series &series, double timeSec, double value);
+    void   updateOverlay(Series &series);
 
     QCustomPlot *mPlot;
     QLabel      *mSummaryLabel = nullptr;

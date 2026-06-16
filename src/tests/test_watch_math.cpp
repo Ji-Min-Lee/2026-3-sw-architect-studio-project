@@ -29,8 +29,8 @@ private slots:
         double A0 = 0.0;
         double A1 = 125.8 * fs / 1000.0;
         double A2 = A1 + 124.2 * fs / 1000.0;
-        double be = WatchMath::beatErrorMs(A0, A1, A2, fs);
-        QVERIFY(qAbs(be - 0.8) < 1e-3);
+        double beatErrorMs = WatchMath::beatErrorMs(A0, A1, A2, fs);
+        QVERIFY(qAbs(beatErrorMs - 0.8) < 1e-3);
     }
 
     void beatError_t1GreaterThanT2_positive()

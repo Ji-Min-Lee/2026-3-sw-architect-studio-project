@@ -62,7 +62,7 @@ EscapementTab::EscapementTab(QWidget *parent) : BaseGraphTab(parent)
     mALabel    = makeText(Qt::darkGreen);
     mCLabel    = makeText(Qt::red);
     mDeltaText = makeText(Qt::black);
-    QFont f = mDeltaText->font(); f.setBold(true); mDeltaText->setFont(f);
+    QFont deltaFont = mDeltaText->font(); deltaFont.setBold(true); mDeltaText->setFont(deltaFont);
 
     connect(mRefCombo, qOverload<int>(&QComboBox::currentIndexChanged),
             this, [this](int) { redraw(); });
@@ -104,9 +104,9 @@ void EscapementTab::onMeasurement(const Measurement &m)
         if (start >= mBufStartAbs && end <= bufEnd) {
             mPendingBeat.startAbs = start;
             int s0 = (int)(start - mBufStartAbs);
-            int n  = (int)(end - start);
-            mPendingBeat.ys.resize(n);
-            for (int i = 0; i < n; i++) mPendingBeat.ys[i] = mBuf[s0 + i];
+            int sampleCount  = (int)(end - start);
+            mPendingBeat.ys.resize(sampleCount);
+            for (int i = 0; i < sampleCount; i++) mPendingBeat.ys[i] = mBuf[s0 + i];
             mBeat = mPendingBeat;
             mHaveBeat   = true;
             mHavePending = false;
@@ -131,22 +131,22 @@ void EscapementTab::onMeasurement(const Measurement &m)
 void EscapementTab::redraw()
 {
     if (!mHaveBeat) return;
-    const Beat &b = mBeat;
+    const Beat &beat = mBeat;
 
-    const int n = b.ys.size();
-    QVector<double> xs(n);
-    double aMs = (b.aPos - b.startAbs) / mSps * 1000.0;
-    for (int i = 0; i < n; i++)
+    const int sampleCount = beat.ys.size();
+    QVector<double> xs(sampleCount);
+    double aMs = (beat.aPos - beat.startAbs) / mSps * 1000.0;
+    for (int i = 0; i < sampleCount; i++)
         xs[i] = (double)i / mSps * 1000.0 - aMs;        // x = 0 at A event
-    mPlot->graph(0)->setData(xs, b.ys, true);
+    mPlot->graph(0)->setData(xs, beat.ys, true);
     mPlot->xAxis->setRange(xs.first(), xs.last());
     mPlot->yAxis->rescale();
     double yTop = mPlot->yAxis->range().upper;
     double yBot = mPlot->yAxis->range().lower;
 
-    bool useOnset = mRefCombo->currentIndex() == 1 && b.cOnsetValid;
-    double cAbs   = useOnset ? b.cOnsetPos : b.cPeakPos;
-    double cMs    = (cAbs - b.aPos) / mSps * 1000.0;
+    bool useOnset = mRefCombo->currentIndex() == 1 && beat.cOnsetValid;
+    double cAbs   = useOnset ? beat.cOnsetPos : beat.cPeakPos;
+    double cMs    = (cAbs - beat.aPos) / mSps * 1000.0;
     mCurrentMs    = cMs;
 
     auto placeMarker = [&](QCPItemLine *mk, QCPItemText *label,
@@ -172,15 +172,15 @@ void EscapementTab::redraw()
     mDeltaLabel->setText(QString("A → C interval: <b>%1 ms</b>  (C reference: %2%3)")
                              .arg(cMs, 0, 'f', 2)
                              .arg(useOnset ? "onset" : "peak")
-                             .arg(mRefCombo->currentIndex() == 1 && !b.cOnsetValid
+                             .arg(mRefCombo->currentIndex() == 1 && !beat.cOnsetValid
                                       ? " — onset unavailable, using peak" : ""));
 
-    auto sigma = [](const QVector<double> &v) -> double {
-        if (v.size() < 2) return -1.0;
-        double mean = std::accumulate(v.begin(), v.end(), 0.0) / v.size();
+    auto sigma = [](const QVector<double> &values) -> double {
+        if (values.size() < 2) return -1.0;
+        double mean = std::accumulate(values.begin(), values.end(), 0.0) / values.size();
         double var  = 0.0;
-        for (double x : v) var += (x - mean) * (x - mean);
-        return std::sqrt(var / (v.size() - 1));
+        for (double x : values) var += (x - mean) * (x - mean);
+        return std::sqrt(var / (values.size() - 1));
     };
     double sPeak  = sigma(mPeakHistory);
     double sOnset = sigma(mOnsetHistory);

@@ -74,5 +74,5 @@ private:
     void redrawPlots();
     void stylePlot(BeatWindow &win);
     void updateDegreeAxis(BeatWindow &win);
-    void updatePlotGuides(BeatWindow &w, const BeatWave *beat, double yMin, double yMax);
+    void updatePlotGuides(BeatWindow &beatWindow, const BeatWave *beat, double yMin, double yMax);
 };

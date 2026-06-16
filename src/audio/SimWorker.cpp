@@ -52,16 +52,16 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
 {
     int                        BytesIn;
     double                     CurrentTime;
-    qint64                     Start,Delta,SleepTime;
-    char                       err[256];
+    qint64                     Start,elapsedMs,SleepTime;
+    char                       initError[256];
     WatchSynthStream           stream;
     WatchSynthStreamEvent      events[16];
-    WatchSynthStreamFillResult r;
+    WatchSynthStreamFillResult fillResult;
     cfg.sample_rate_hz=mSamplesPerSecond;
 
-    if (!watch_synth_stream_init(&stream, &cfg, err, sizeof(err)))
+    if (!watch_synth_stream_init(&stream, &cfg, initError, sizeof(initError)))
     {
-        fprintf(stderr, "init failed: %s\n", err);
+        fprintf(stderr, "init failed: %s\n", initError);
         emit SimDone();
         emit finished();
         return;
@@ -77,8 +77,8 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
     {
         Start=mTimer.elapsed();
 
-        r = watch_synth_stream_fill_f32(&stream,  (float *)mDataIn, mDataInSize, events, 16);
-        if (r.samples_written != mDataInSize) {
+        fillResult = watch_synth_stream_fill_f32(&stream,  (float *)mDataIn, mDataInSize, events, 16);
+        if (fillResult.samples_written != mDataInSize) {
             fprintf(stderr, "short fill\n");
             break;
         }
@@ -86,7 +86,7 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
         {
             break; // Exit loop early
         }
-        unsigned int NumberOfSamples=r.samples_written;
+        unsigned int NumberOfSamples=fillResult.samples_written;
 
         mRawAudio->Mutex.lock();
         unsigned int TempWriteIndex = mRawAudio->WriteIndex;
@@ -109,17 +109,17 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
         CurrentTime = mTimer.elapsed()/1000.0;
         if (CurrentTime-mLastTime > 2) // average fps over 2 seconds
         {
-            double fdelta;
-            fdelta=CurrentTime-mLastTime;
-            mRawAudio->FPS=mFrameCount/fdelta;
-            mRawAudio->SPS=mSampleCount/fdelta;
+            double elapsedSeconds;
+            elapsedSeconds=CurrentTime-mLastTime;
+            mRawAudio->FPS=mFrameCount/elapsedSeconds;
+            mRawAudio->SPS=mSampleCount/elapsedSeconds;
             mRawAudio->SPF=mSampleCount/mFrameCount;
             mLastTime=CurrentTime;
             mFrameCount=0;
             mSampleCount=0;
         }
-        Delta=(mTimer.elapsed()-Start)+DELAY_FUGE_TIME_MS;
-        SleepTime=SIM_SAMPLE_PERIOD_MSEC-Delta;
+        elapsedMs=(mTimer.elapsed()-Start)+DELAY_FUGE_TIME_MS;
+        SleepTime=SIM_SAMPLE_PERIOD_MSEC-elapsedMs;
         if (SleepTime<0) SleepTime=0;
         QThread::msleep(SleepTime);
     }

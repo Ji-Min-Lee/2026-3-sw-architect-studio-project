@@ -645,11 +645,11 @@ static HRESULT FindEndpointByOneName(EDataFlow flow,
 
         if (EqualsIgnoreCase(info.endpointFriendlyName, name))
         {
-            MatchCandidate c;
-            c.device = device;
-            c.info = info;
-            c.score = 10000;
-            exactEndpointFriendlyNameMatches.push_back(c);
+            MatchCandidate candidate;
+            candidate.device = device;
+            candidate.info = info;
+            candidate.score = 10000;
+            exactEndpointFriendlyNameMatches.push_back(candidate);
         }
     }
 
@@ -686,11 +686,11 @@ static HRESULT FindEndpointByOneName(EDataFlow flow,
 
         if (SingleNameMatchesDevice(info, name))
         {
-            MatchCandidate c;
-            c.device = device;
-            c.info = info;
-            c.score = SingleNameMatchScore(info, name);
-            matches.push_back(c);
+            MatchCandidate candidate;
+            candidate.device = device;
+            candidate.info = info;
+            candidate.score = SingleNameMatchScore(info, name);
+            matches.push_back(candidate);
         }
     }
 
@@ -770,11 +770,11 @@ static HRESULT FindEndpointByTwoNames(EDataFlow flow,
 
             if (deviceFilterMatches)
             {
-                MatchCandidate c;
-                c.device = device;
-                c.info = info;
-                c.score = 10000 + TwoNameMatchScore(info, micNameFilter, deviceNameFilter);
-                exactEndpointFriendlyNameMatches.push_back(c);
+                MatchCandidate candidate;
+                candidate.device = device;
+                candidate.info = info;
+                candidate.score = 10000 + TwoNameMatchScore(info, micNameFilter, deviceNameFilter);
+                exactEndpointFriendlyNameMatches.push_back(candidate);
             }
         }
     }
@@ -812,11 +812,11 @@ static HRESULT FindEndpointByTwoNames(EDataFlow flow,
 
         if (TwoNameMatchesDevice(info, micNameFilter, deviceNameFilter))
         {
-            MatchCandidate c;
-            c.device = device;
-            c.info = info;
-            c.score = TwoNameMatchScore(info, micNameFilter, deviceNameFilter);
-            matches.push_back(c);
+            MatchCandidate candidate;
+            candidate.device = device;
+            candidate.info = info;
+            candidate.score = TwoNameMatchScore(info, micNameFilter, deviceNameFilter);
+            matches.push_back(candidate);
         }
     }
 

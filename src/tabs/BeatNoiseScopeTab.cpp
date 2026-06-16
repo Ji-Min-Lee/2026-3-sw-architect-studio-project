@@ -129,7 +129,7 @@ void BeatNoiseScopeTab::appendSamples(const Measurement &m)
 {
     mSps = m.samplesPerSecond;
     if (mBuf.isEmpty()) mBufStartAbs = (double)m.graphTickStart;
-    for (double v : m.pcm) mBuf.append(std::abs(v));
+    for (double sample : m.pcm) mBuf.append(std::abs(sample));
     int maxLen = (int)(kBufSeconds * mSps);
     if (mBuf.size() > maxLen) {
         int drop = mBuf.size() - maxLen;
@@ -144,11 +144,11 @@ void BeatNoiseScopeTab::onMeasurement(const Measurement &m)
 
     for (const AcousticEvent &ev : m.events) {
         if (ev.isA) {
-            Beat b;
-            b.aPos  = ev.samplePos;
-            b.isTic = ev.hasRatePoint ? ev.isTic : (mParity == 0);
+            Beat beat;
+            beat.aPos  = ev.samplePos;
+            beat.isTic = ev.hasRatePoint ? ev.isTic : (mParity == 0);
             mParity ^= 1;
-            mPending.append(b);
+            mPending.append(beat);
             if (mPending.size() > 4) mPending.removeFirst();
         } else if (!mPending.isEmpty() && mPending.last().cPos < 0) {
             mPending.last().cPos = ev.samplePos;
@@ -163,33 +163,33 @@ void BeatNoiseScopeTab::onMeasurement(const Measurement &m)
 
 void BeatNoiseScopeTab::fulfillPending()
 {
-    const int pre  = (int)(kPreEventMs / 1000.0 * mSps);
-    const int len  = rangeSamples();
-    const int len2 = (int)(kScope2Ms / 1000.0 * mSps);
+    const int preSamples    = (int)(kPreEventMs / 1000.0 * mSps);
+    const int windowSamples = rangeSamples();
+    const int scope2Samples = (int)(kScope2Ms / 1000.0 * mSps);
     const double bufEndAbs = mBufStartAbs + mBuf.size();
 
     for (int i = mPending.size() - 1; i >= 0; i--) {
-        Beat &b = mPending[i];
-        double start = b.aPos - pre;
-        int    need  = qMax(len, len2);
+        Beat &beat = mPending[i];
+        double start = beat.aPos - preSamples;
+        int    need  = qMax(windowSamples, scope2Samples);
         if (start < mBufStartAbs) { mPending.removeAt(i); continue; }
         if (start + need > bufEndAbs) continue;        // wait for more samples
 
-        b.startAbs = start;
-        int s0 = (int)(start - mBufStartAbs);
-        b.ys.resize(need);
-        for (int k = 0; k < need; k++) b.ys[k] = mBuf[s0 + k];
+        beat.startAbs = start;
+        int bufOffset = (int)(start - mBufStartAbs);
+        beat.ys.resize(need);
+        for (int k = 0; k < need; k++) beat.ys[k] = mBuf[bufOffset + k];
 
         // Scope 2 accumulation (first 20 ms of the window)
-        QVector<double> *sum = b.isTic ? &mTicSum : &mTocSum;
-        int *cnt = b.isTic ? &mTicCount : &mTocCount;
-        if (*cnt < kAvgCycle) {
-            if (sum->size() != len2) { sum->fill(0.0, len2); *cnt = 0; }
-            for (int k = 0; k < len2; k++) (*sum)[k] += b.ys[k];
-            (*cnt)++;
+        QVector<double> *sum = beat.isTic ? &mTicSum : &mTocSum;
+        int *countPtr = beat.isTic ? &mTicCount : &mTocCount;
+        if (*countPtr < kAvgCycle) {
+            if (sum->size() != scope2Samples) { sum->fill(0.0, scope2Samples); *countPtr = 0; }
+            for (int k = 0; k < scope2Samples; k++) (*sum)[k] += beat.ys[k];
+            (*countPtr)++;
         }
 
-        mBeats.prepend(b);
+        mBeats.prepend(beat);
         if (mBeats.size() > 10) mBeats.removeLast();
         mPending.removeAt(i);
     }
@@ -202,38 +202,38 @@ void BeatNoiseScopeTab::fulfillPending()
 void BeatNoiseScopeTab::redrawScope1()
 {
     if (mBeats.isEmpty()) return;
-    int idx = qBound(0, mBeatCombo->currentIndex(), mBeats.size() - 1);
-    const Beat &b = mBeats[idx];
+    int beatIndex = qBound(0, mBeatCombo->currentIndex(), mBeats.size() - 1);
+    const Beat &beat = mBeats[beatIndex];
 
-    const int len = qMin(rangeSamples(), (int)b.ys.size());
-    if (len <= 0) return;
-    QVector<double> xs(len), ys(len);
-    for (int i = 0; i < len; i++) {
-        xs[i] = (double)i / mSps * 1000.0;
-        ys[i] = b.ys[i];
+    const int windowSamples = qMin(rangeSamples(), (int)beat.ys.size());
+    if (windowSamples <= 0) return;
+    QVector<double> timeMs(windowSamples), amplitudes(windowSamples);
+    for (int i = 0; i < windowSamples; i++) {
+        timeMs[i] = (double)i / mSps * 1000.0;
+        amplitudes[i] = beat.ys[i];
     }
-    mPlot1->graph(0)->setData(xs, ys, true);
-    mPlot1->xAxis->setRange(0, xs.last());
+    mPlot1->graph(0)->setData(timeMs, amplitudes, true);
+    mPlot1->xAxis->setRange(0, timeMs.last());
     mPlot1->yAxis->rescale();
 
     auto place = [&](QCPItemLine *mk, double absPos) {
         if (absPos < 0) { mk->setVisible(false); return; }
-        double xMs = (absPos - b.startAbs) / mSps * 1000.0;
+        double xMs = (absPos - beat.startAbs) / mSps * 1000.0;
         mk->start->setCoords(xMs, 0.0);
         mk->end->setCoords(xMs, 1.0);
-        mk->setVisible(xMs >= 0 && xMs <= xs.last());
+        mk->setVisible(xMs >= 0 && xMs <= timeMs.last());
     };
-    place(mAMarker, b.aPos);
-    place(mCMarker, b.cPos);
+    place(mAMarker, beat.aPos);
+    place(mCMarker, beat.cPos);
 
     mInfoLabel->setText(QString("Lift angle %1°   A=green C=red markers   beat %2 (%3)")
                             .arg(mLiftAngle, 0, 'f', 1)
-                            .arg(idx == 0 ? "latest" : QString("−%1").arg(idx))
-                            .arg(b.isTic ? "tic" : "tac"));
+                            .arg(beatIndex == 0 ? "latest" : QString("−%1").arg(beatIndex))
+                            .arg(beat.isTic ? "tic" : "tac"));
     QList<QVector<double>> strips;
-    for (const Beat &b : mBeats)
-        strips.append(b.ys.mid(0, qMin(rangeSamples(), (int)b.ys.size())));
-    mStripBar->setStrips(strips, idx);
+    for (const Beat &storedBeat : mBeats)
+        strips.append(storedBeat.ys.mid(0, qMin(rangeSamples(), (int)storedBeat.ys.size())));
+    mStripBar->setStrips(strips, beatIndex);
 
     g_replotCount++;
     mPlot1->replot(QCustomPlot::rpQueuedReplot);
@@ -241,18 +241,18 @@ void BeatNoiseScopeTab::redrawScope1()
 
 void BeatNoiseScopeTab::redrawScope2()
 {
-    const int len2 = (int)(kScope2Ms / 1000.0 * mSps);
+    const int scope2Samples = (int)(kScope2Ms / 1000.0 * mSps);
     auto trace = [&](bool tic) -> QVector<double> {
         if (mAvgCheck->isChecked()) {
             const QVector<double> &sum = tic ? mTicSum : mTocSum;
-            int cnt = tic ? mTicCount : mTocCount;
-            QVector<double> out(sum.size());
-            for (int i = 0; i < sum.size(); i++) out[i] = cnt ? sum[i] / cnt : 0.0;
-            return out;
+            int ticTocCount = tic ? mTicCount : mTocCount;
+            QVector<double> averaged(sum.size());
+            for (int i = 0; i < sum.size(); i++) averaged[i] = ticTocCount ? sum[i] / ticTocCount : 0.0;
+            return averaged;
         }
-        for (const Beat &b : mBeats)
-            if (b.isTic == tic)
-                return b.ys.mid(0, qMin(len2, (int)b.ys.size()));
+        for (const Beat &storedBeat : mBeats)
+            if (storedBeat.isTic == tic)
+                return storedBeat.ys.mid(0, qMin(scope2Samples, (int)storedBeat.ys.size()));
         return {};
     };
 

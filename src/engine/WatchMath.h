@@ -23,8 +23,8 @@ double amplitudeDeg(double aPos, double cPos, int fs, double liftAngle, int bph)
 // fs: sample rate in Hz.
 double escapementMs(double aPos, double cPos, int fs);
 
-// Wrap n into [lo, hi) with modulo arithmetic.
-double wrapInRange(double n, double lo, double hi);
+// Wrap value into [lo, hi) with modulo arithmetic.
+double wrapInRange(double value, double lo, double hi);
 
 // Normalize a rate error relative to the first observed error (zero-offset anchoring).
 // firstError: instErrorMs of beat 0 (the anchor).
@@ -36,9 +36,9 @@ double applyZeroOffset(double firstError, double currentError);
 // Formula (Part I): En = T_measured - (T_start + n * I_target)
 // timeMeasured: absolute timestamp of beat n in seconds.
 // tStart: timestamp of beat 0 in seconds.
-// n: beat index (0, 1, 2, ...).
+// beatIndex: beat index (0, 1, 2, ...).
 // bph: beats per hour (used to derive I_target = 3600 / BPH).
-double instErrorSec(double timeMeasured, double tStart, int n, int bph);
+double instErrorSec(double timeMeasured, double tStart, int beatIndex, int bph);
 
 // Nominal half-beat interval in seconds.
 // I_target = 3600 / BPH

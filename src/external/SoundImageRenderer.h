@@ -537,7 +537,7 @@ private:
     int bucketToY(int bucket) const;
 
     static QRgb lerpColor(QRgb bg, QRgb fg, float t);
-    static int argmaxSmoothed5(const std::vector<float> &v);
+    static int argmaxSmoothed5(const std::vector<float> &binValues);
     static int normalizeMarkerSidePixels(int requested_side);
 
     static int markerRadiusColumnsFromSide(int normalized_side);
