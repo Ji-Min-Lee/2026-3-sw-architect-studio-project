@@ -42,12 +42,15 @@ REPS=10
 SNR_LEVELS=(00 10 20 30 40 50 60)
 
 # ── UI coordinates (from MainWindow.ui, window fixed at 1280×750) ──
-# Coords are widget-center offsets within RunFrame (CentralWidget).
-# MENU_BAR_H: the empty QMenuBar in QMainWindow takes 20px (from .ui height property),
-# pushing CentralWidget down — added to all absolute-Y calculations.
-# Start button is pressed via keyboard Tab navigation (no coord needed).
+# Coords are widget-center offsets within RunFrame (= CentralWidget origin).
+# Clicks use --window WIN_ID so coords are window-client-relative (no getwindowgeometry Y needed).
+# MENU_BAR_H: empty QMenuBar runtime height on Qt6/Openbox = 22px.
+# (The .ui file says 20, but style renders it as 22 — confirmed by successful past runs.)
+MENU_BAR_H=22
 MODE_COMBO_X=165   # ModeComboBox center X  (pos x=100 + w=131/2)
 MODE_COMBO_Y=161   # ModeComboBox center Y  (pos y=150 + h=22/2)
+START_BTN_X=40     # StartPushButton center X  (pos x=10 + w=61/2)
+START_BTN_Y=220    # StartPushButton center Y  (pos y=210 + h=21/2)
 # File dialog: filename field is ~100px above dialog bottom edge
 FILE_FIELD_FROM_BOTTOM=100
 
@@ -181,36 +184,22 @@ for RATE in "${RATES[@]}"; do
         fi
         echo "  [win=$WIN_ID] window ready"
 
-        # ── Get window screen position ────────────────────────
-        eval $(xdotool getwindowgeometry --shell "$WIN_ID")
-        WIN_X=$X; WIN_Y=$Y
-        # MENU_BAR_H: empty QMenuBar in QMainWindow pushes CentralWidget down
-        # (declared as height=20 in .ui file; actual value may vary by style)
-        MENU_BAR_H=20
-        ABS_X() { echo $(( WIN_X + $1 )); }
-        ABS_Y() { echo $(( WIN_Y + MENU_BAR_H + $1 )); }
-
         # ── Select PLAYBACK mode ───────────────────────────────
+        # --window WIN_ID coords are relative to the X11 client area (no getwindowgeometry Y needed).
+        # Window-Y of widget = MENU_BAR_H + widget_y_in_CentralWidget.
         xdotool windowraise "$WIN_ID"
-        sleep 0.2
         xdotool windowactivate --sync "$WIN_ID"
         sleep 0.3
-        # Click the ModeComboBox (absolute screen coords)
-        xdotool mousemove $(ABS_X $MODE_COMBO_X) $(ABS_Y $MODE_COMBO_Y)
+        xdotool mousemove --window "$WIN_ID" $MODE_COMBO_X $(( MENU_BAR_H + MODE_COMBO_Y ))
         xdotool click 1
         sleep 0.4
         # Home = first item (Live), Down = Playback, Return = confirm
         xdotool key Home Down Return
-        sleep 0.3
+        sleep 0.4
 
-        # ── Press Start via keyboard (avoids all coordinate issues) ──
-        # After ModeComboBox selection, focus stays on ModeComboBox (tab index 7).
-        # Shift+Tab ×4: Mode→Averaging→SampleRates→Stop→Start (index 3)
-        # Space activates the focused QPushButton.
-        xdotool windowfocus --sync "$WIN_ID"
-        xdotool key shift+Tab shift+Tab shift+Tab shift+Tab
-        sleep 0.1
-        xdotool key space
+        # ── Click Start button ────────────────────────────────
+        xdotool mousemove --window "$WIN_ID" $START_BTN_X $(( MENU_BAR_H + START_BTN_Y ))
+        xdotool click 1
         sleep 2.5   # give Qt time to open the file dialog
 
         # ── Handle file dialog ────────────────────────────────
