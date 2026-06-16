@@ -572,25 +572,26 @@ mem 1362.7 MB used / 16214.9 MB; freq 2400 MHz (no throttling).
 
 **Thread Activity Timeline:**
 
-전체 1458 프레임 타임라인 (x축 = 프레임 번호, 1 슬롯 = 21.3 ms):
+Full-run overview — all 1458 frames (x-axis = frame number, 1 slot = 21.3 ms period):
 
 ![E2-7 timeline all](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png)
 
-대표 구간 확대 (frames 728–731, x축 = 실제 경과 시간 ms):
+Zoom view — representative 4-frame window (frames 728–731, x-axis = elapsed time ms):
 
 ![E2-7 timeline zoom](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_default.png)
 
-타임라인 생성 도구: `src/tools/thread_timeline_dark.py`
+Timeline tool: `src/tools/thread_timeline_dark.py`
 
-| Lane | 패턴 | 해석 |
-|------|------|------|
-| BG Thread (cyan) | 1458개 틱 균등 분포 | AudioWorker가 21.3 ms마다 정확히 fire — 오디오 클럭 안정 |
-| DSP Thread (green) | 프레임마다 가변 폭 바 | exec 0.2–4.4 ms, 크기 변동 있지만 deadline 초과 0건 |
-| Main FG (brown) | 갈색 바가 프레임 경계 3× 초과 | fg_wait avg 60 ms — 1 프레임 주기(21.3 ms)의 **3배** 지연 |
-| FG handle (gray) | 바 우측 끝 얇은 회색 마크 | Qt MainWindow onFrameLogged 진입 시점 |
+| Lane | Pattern | Interpretation |
+|------|---------|----------------|
+| BG Thread (cyan) | 1458 ticks evenly spaced | AudioWorker fires exactly every 21.3 ms — audio clock stable |
+| DSP Thread (green) | Variable-width bar per frame | exec 0.2–4.4 ms, variable but 0 deadline overruns |
+| Main FG (brown) | Brown bar spans 3× frame boundary | fg_wait avg 60 ms — **3× the frame period** (21.3 ms) |
+| FG handle (gray) | Thin gray mark at right edge of bar | Qt MainWindow onFrameLogged entry point |
 
-전체 뷰에서 **FG 갈색 바가 BG/DSP 경계를 지속적으로 침범**하는 패턴이 명확하게 보임.
-초반 ~200 프레임 구간은 fg_wait이 상대적으로 짧고, 이후 안정적으로 높은 수준 유지.
+In the full-run view, **FG brown bars consistently overflow into subsequent BG/DSP slots**,
+making the scheduling lag immediately visible. The first ~200 frames show slightly shorter
+fg_wait; thereafter the elevated level is sustained throughout the run.
 
 **Observations:**
 
