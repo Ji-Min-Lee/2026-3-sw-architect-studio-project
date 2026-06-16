@@ -3,7 +3,7 @@
 # run_experiment3.sh — EXP-03: Detector Robustness Under Noise
 #
 # Automates TimeGrapher in PLAYBACK mode via xdotool (no C++ changes).
-# Runs NH35 noise WAVs at 7 SNR levels × 10 reps = 70 runs × 60s.
+# Runs 3235_Starbucks noise WAVs at 7 SNR levels × 10 reps = 70 runs × 60s.
 #
 # Strategy:
 #   1. Pre-extend NH35 noise WAVs to WAV_PAD_SEC using sox (once)
@@ -75,7 +75,7 @@ if ! command -v sox &>/dev/null; then
 fi
 
 for SNR in "${SNR_LEVELS[@]}"; do
-    WAV="$NOISE_DIR/21600BPH_NH35_snr${SNR}db.wav"
+    WAV="$NOISE_DIR/28800BPH_3235_Starbucks_snr${SNR}db.wav"
     if [ ! -f "$WAV" ]; then
         echo "[error] Missing: $WAV"
         echo "        Generate noise WAVs first: python3 $SCRIPT_DIR/add_pink_noise.py"
@@ -97,8 +97,8 @@ echo " Preparing extended WAVs (${WAV_PAD_SEC}s) in $EXTENDED_DIR"
 echo "============================================================"
 
 for SNR in "${SNR_LEVELS[@]}"; do
-    IN="$NOISE_DIR/21600BPH_NH35_snr${SNR}db.wav"
-    OUT="$EXTENDED_DIR/21600BPH_NH35_snr${SNR}db_ext.wav"
+    IN="$NOISE_DIR/28800BPH_3235_Starbucks_snr${SNR}db.wav"
+    OUT="$EXTENDED_DIR/28800BPH_3235_Starbucks_snr${SNR}db_ext.wav"
 
     if [ -f "$OUT" ]; then
         echo "  [skip] snr${SNR}db_ext.wav already exists"
@@ -146,7 +146,7 @@ echo ""
 
 RUN=0
 for SNR in "${SNR_LEVELS[@]}"; do
-    WAV_EXT="$EXTENDED_DIR/21600BPH_NH35_snr${SNR}db_ext.wav"
+    WAV_EXT="$EXTENDED_DIR/28800BPH_3235_Starbucks_snr${SNR}db_ext.wav"
 
     for REP in $(seq 1 "$REPS"); do
         RUN=$((RUN + 1))
