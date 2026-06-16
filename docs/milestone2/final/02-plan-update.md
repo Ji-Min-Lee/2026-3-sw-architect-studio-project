@@ -18,15 +18,25 @@
 
 ## Revised QA Priority
 
-Based on M1 feedback and EXP-02 results, we revised our QA priority:
+**The governing goal of this project is Measurement Accuracy** — Rate, Amplitude, and Beat Error values must match the WeiShi No.1000 reference device. Every other QA in this system is a structural prerequisite for achieving that goal.
 
-| Priority | QA | Rationale |
-|:--------:|----|-----------|
-| **1** | **Modifiability** | Prerequisite for everything else. 11 graphs built in parallel requires a layer structure — without it, developers block each other. Also enables swapping tactics without touching other layers |
-| **2** | **Real-Time + Low Latency** | EXP-02 confirmed 43% deadline miss on RPi. Largest structural change required. T2 + R1 validated on macOS — clear path to fix |
-| **3** | **Usability** | Signal quality warnings, tab UX. Added after structure is solid. Optional for M2 |
+```
+Goal: Measurement Accuracy
+├── Prerequisite 1: Real-Time Performance  → missed deadline = dropped beat event = wrong Rate/BPH
+├── Prerequisite 2: Low Latency            → late timestamp = wrong Beat Error / Amplitude
+├── Prerequisite 3: Signal Quality (Noise) → false detection = wrong everything
+└── Enabler: Modifiability                 → 11 graphs in parallel without structural blocking
+```
 
-**Trade-off accepted**: BPH coverage narrowed (focus on 28,800 BPH). Accuracy is 4th priority — we favor *finishing a working system* over maximizing precision within 5 weeks.
+| Priority | QA | Role | Rationale |
+|:--------:|----|------|-----------|
+| **Goal** | **Measurement Accuracy** | Why this system exists | Rate / Amplitude / Beat Error must match WeiShi reference. This is the criterion the architecture is evaluated against |
+| **1** | **Real-Time Performance** | Structural prerequisite | If the pipeline misses the 21ms deadline, beat events are dropped. Dropped events mean Rate and BPH cannot be calculated correctly. EXP-02 confirmed 43% miss — largest structural fix required |
+| **2** | **Low Latency** | Structural prerequisite | If capture→detect latency exceeds one beat period, T1/T3 event timestamps are wrong. Wrong timestamps corrupt Beat Error and Amplitude calculations |
+| **3** | **Signal Quality / Noise** | Signal-level prerequisite | LP/HP filtering removes ambient noise and false triggers. Without it, the detector fires on non-beat events — undermining accuracy regardless of pipeline performance |
+| **4** | **Modifiability** | Execution enabler | Clean layer structure enables 11 graph tabs to be built in parallel by two teams, and allows filter/detection parameters to be swapped without touching other layers |
+
+**Trade-off accepted**: BPH coverage narrowed to 28,800 BPH for M3. Full BPH range (18,000–36,000) is an accuracy stretch goal, not a structural constraint.
 
 ---
 

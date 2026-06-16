@@ -9,9 +9,9 @@
 | Section | Slides | Est. Time |
 |---------|--------|:---------:|
 | Opening | 01 | 2 min |
-| Project Plan Update | 02 | 4 min |
-| Experiment Results | 03 | 7 min |
-| Architecture | 04 | 5 min |
+| Project Plan Update (incl. QA Priority reframe) | 02 | 4 min |
+| Experiment Results | 03 | 6 min |
+| Architecture (incl. QA Tradeoff) | 04 | 6 min |
 | Construction Plan | 05 | 2 min |
 
 ---
@@ -42,13 +42,21 @@ One structural fix worth calling out: our QA document in M1 had tactics mixed in
 
 ### Revised QA Priority
 
-This brings us to QA priority. We revised it based on both the M1 feedback and our EXP-02 results.
+This brings us to QA priority.
 
-Modifiability is now first — not because it's the most exciting, but because it's the prerequisite for everything else. Without a clean layer structure, 11 graph tabs built in parallel by two teams causes developer blocking. You can't swap tactics cleanly either.
+The governing goal of this project is Measurement Accuracy. Rate, Amplitude, and Beat Error must match the WeiShi No.1000 reference device. That is the criterion we evaluate the entire architecture against.
 
-Real-Time and Low Latency are second — EXP-02 gave us hard numbers showing 43% deadline miss on RPi. That required structural change.
+Every other QA in the table is a prerequisite for reaching that goal — not a goal in itself.
 
-The trade-off we accepted: we narrowed BPH coverage to 28,800 BPH and de-prioritized accuracy maximization. The rationale is straightforward — a working system within 5 weeks beats a theoretically accurate system that isn't finished.
+Real-Time Performance is first because: if the pipeline misses the 21ms deadline, a beat event is dropped. One dropped event means Rate and BPH cannot be calculated correctly for that cycle. You cannot be accurate if you're missing data.
+
+Low Latency is second because: if the time from capture to detection exceeds one beat period — about 20.8ms at 28,800 BPH — timestamps shift. Shifted timestamps corrupt Beat Error and Amplitude. These two measurements are derived entirely from timing.
+
+Signal Quality is third. The LP/HP filter chain removes ambient noise before the detector runs. A false positive creates a phantom beat event. The math engine will compute a valid-looking number that is simply wrong.
+
+Modifiability is the execution enabler. Without a clean layer structure, two teams building 11 graph tabs in parallel block each other. It also lets us swap filter parameters and detection thresholds without touching the DSP layer.
+
+The trade-off we accepted: BPH coverage narrowed to 28,800 BPH. Full range is an accuracy stretch goal for M3, not a structural constraint.
 
 ### Risk Status
 
@@ -137,6 +145,26 @@ The connectors between threads are shown with their types: ring buffer and Qt::Q
 From the left: dev machine compiles on macOS, deploys via SSH/SCP. From the right: USB sensor stand captures the watch microphone signal, feeds 96kHz PCM via ALSA to the executable. The rendered output goes HDMI to the 8-inch touchscreen. Touch events come back via USB HID.
 
 The orange warning box is there deliberately: AGC must be disabled on every RPi boot. If auto gain control is on, the signal amplitude fluctuates and Beat Error calculations become unreliable. This is an operational constraint, not a code issue.
+
+### QA Tradeoff Analysis
+
+Before we walk through the design decisions, I want to explicitly connect the architecture back to our governing goal: Accuracy.
+
+The four views we just showed are not independent choices. They all serve the same purpose.
+
+The 4-layer structure ensures that the DSP pipeline is insulated from display code. This matters for accuracy because if rendering runs in the same execution path as beat detection — which is what the original code does — a slow replot can delay the next capture callback. You drop frames. You miss beats. Your Rate calculation is wrong.
+
+The thread model — T2, DSP Offload — separates capture and DSP into their own thread. This ensures that the UI can never stall the measurement pipeline. Before T2, wait_ms was 420ms. After T2, it was 0.013ms. That 32,000x reduction is not a performance optimization. It is what makes accurate timestamping possible.
+
+The isVisible() guard — R1 — reduces replot frequency by 75 to 85%. That exec budget goes back to DSP processing. The measurement engine runs with more headroom. Fewer deadline misses. More accurate data.
+
+Two tradeoffs to name explicitly.
+
+Modifiability vs. performance: the abstraction boundary introduces one extra function call per domain query. We measured it — less than 0.1ms, under 0.5% of the exec budget. Accepted.
+
+Lazy Rendering vs. display freshness: a non-visible tab does not refresh. When you switch tabs, you see a stale frame for up to 21ms. We handle this with showEvent() and QTimer::singleShot(0), which delivers a catch-up frame on every tab switch. Accepted.
+
+---
 
 ### Design Decisions and Trade-offs
 

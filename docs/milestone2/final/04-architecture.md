@@ -70,6 +70,43 @@ AGC (Auto Gain Control) must be disabled on every RPi boot (`alsamixer` → Auto
 
 ---
 
+## Quality Attribute Tradeoff Analysis
+
+### Accuracy as the Governing Goal
+
+Accuracy is not one QA among equals — it is the criterion this entire architecture is evaluated against. The other QAs are the structural conditions that make accuracy possible.
+
+| QA | How It Connects to Accuracy |
+|----|-----------------------------|
+| **Real-Time Performance** | A missed 21ms deadline drops a beat event. One dropped event = one missing T1/T3 timestamp = Rate, BPH incorrect for that cycle |
+| **Low Latency** | If capture→detect latency exceeds one beat period (~20.8ms at 28,800 BPH), timestamps shift forward. Shifted timestamps corrupt Beat Error (time between T1 and T3) and Amplitude (derived from timing) |
+| **Signal Quality / Noise** | LP/HP filtering removes spurious triggers before the detector runs. A false positive creates a phantom beat event — the measurement engine computes valid-looking but wrong numbers |
+| **Modifiability** | Enables parallel development of 11 graph displays. Without it, developers block each other and the system that *shows* the accuracy evidence can't be built in time |
+
+### Key Tradeoff: Modifiability vs. Performance
+
+The 4-layer structure (Presentation → Domain → Signal Processing → Acquisition) introduces a strict abstraction boundary. This means:
+
+- **Benefit**: New graph tabs never touch DSP code. Filter parameters can be swapped at the Signal Processing layer without rippling into Presentation.
+- **Cost**: One additional function call per domain query. Measured overhead: negligible (< 0.1ms, confirmed EXP-02 R2).
+- **Decision**: Accepted. The abstraction cost is less than 0.5% of the exec budget. The modifiability gain is critical for the 10-day build schedule.
+
+### Key Tradeoff: R1 (Lazy Rendering) vs. Display Freshness
+
+- **Benefit**: 75–85% replot reduction → exec budget freed for DSP → fewer deadline misses → better accuracy.
+- **Cost**: Non-visible tabs do not refresh. A user switching tabs sees a stale frame for ~1 frame.
+- **Decision**: Accepted. `showEvent()` + `QTimer::singleShot(0)` delivers a catch-up frame on every tab switch. Stale display < 1 frame (< 21ms) is imperceptible.
+
+### What Accuracy Limitations Remain
+
+| Limitation | Root Cause | Mitigation |
+|------------|------------|------------|
+| BPH coverage: 28,800 only | Time constraint | Filter sweep (EXP-03) extends to other BPH in M3 |
+| Beat Error resolution ±0.1ms | 96kHz sample rate = 10.4µs/sample | Sufficient for WeiShi comparison; 192kHz stretch goal |
+| RPi accuracy not yet confirmed | T2+R1 unverified on target hardware | EXP-02 R5 on 06/23 |
+
+---
+
 ## Architecture Evaluation
 
 ### Experiment → Architecture Decision Map
