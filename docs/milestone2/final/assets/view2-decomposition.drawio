@@ -1,0 +1,131 @@
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="720" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+    <!-- Title -->
+    <mxCell id="t0" value="Graph Tab Decomposition View (Presentation Layer)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="50" y="12" width="820" height="28" as="geometry"/>
+    </mxCell>
+
+    <!-- Presentation layer boundary -->
+    <mxCell id="PRES" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=3;opacity=30;" vertex="1" parent="1">
+      <mxGeometry x="50" y="50" width="820" height="610" as="geometry"/>
+    </mxCell>
+    <mxCell id="PRES_LBL" value="&lt;&lt;layer&gt;&gt; Presentation" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=12;align=left;fontColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="58" y="55" width="240" height="22" as="geometry"/>
+    </mxCell>
+
+    <!-- MainWindow -->
+    <mxCell id="MW" value="MainWindow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="350" y="88" width="180" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- GraphTabManager -->
+    <mxCell id="GTM" value="GraphTabManager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="340" y="185" width="200" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- IGraphTab interface -->
+    <mxCell id="IGT" value="&lt;&lt;interface&gt;&gt;&#xa;IGraphTab" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=3;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="350" y="290" width="180" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- All 11 concrete tab classes (single group, no priority) -->
+    <mxCell id="GTABS" value="Concrete Graph Tabs (11 classes)" style="swimlane;fontStyle=1;align=center;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;rounded=1;arcSize=2;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="65" y="395" width="790" height="240" as="geometry"/>
+    </mxCell>
+    <!-- Row 1 -->
+    <mxCell id="T1"  value="TraceDisplay"        style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="14"  y="40" width="145" height="30" as="geometry"/></mxCell>
+    <mxCell id="T2"  value="VarioDisplay"        style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="169" y="40" width="145" height="30" as="geometry"/></mxCell>
+    <mxCell id="T3"  value="BeatErrorTrace"      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="324" y="40" width="145" height="30" as="geometry"/></mxCell>
+    <mxCell id="T4"  value="ScopeDisplay (amp)"  style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="479" y="40" width="145" height="30" as="geometry"/></mxCell>
+    <mxCell id="T5"  value="ScopeDisplay (rate)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="634" y="40" width="145" height="30" as="geometry"/></mxCell>
+    <!-- Row 2 -->
+    <mxCell id="T6"  value="LongTermPerf"         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="14"  y="95" width="145" height="30" as="geometry"/></mxCell>
+    <mxCell id="T7"  value="SequenceDisplay"      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="169" y="95" width="145" height="30" as="geometry"/></mxCell>
+    <mxCell id="T8"  value="EscapementAnalyzer"   style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="324" y="95" width="145" height="30" as="geometry"/></mxCell>
+    <mxCell id="T9"  value="Spectrogram"          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="479" y="95" width="145" height="30" as="geometry"/></mxCell>
+    <mxCell id="T10" value="WaveformComparison"   style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="634" y="95" width="145" height="30" as="geometry"/></mxCell>
+    <!-- Row 3 (last tab) -->
+    <mxCell id="T11" value="ScopeMode"            style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="GTABS"><mxGeometry x="14"  y="150" width="145" height="30" as="geometry"/></mxCell>
+
+    <!-- Connectors -->
+    <mxCell id="MW_GTM" value="manages" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=10;" edge="1" parent="1" source="MW" target="GTM">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="GTM_IGT" value="manages" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=10;" edge="1" parent="1" source="GTM" target="IGT">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="TABS_IGT" value="«realize»" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=block;endFill=0;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=10;" edge="1" parent="1" source="GTABS" target="IGT">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== LEGEND ===== -->
+    <mxCell id="LEG_BOX" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="1">
+      <mxGeometry x="897" y="50" width="480" height="430" as="geometry"/>
+    </mxCell>
+    <mxCell id="LEG_T" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="60" width="80" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- Relationships -->
+    <mxCell id="LGS1" value="Relationships" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="88" width="450" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGE1L" value="" style="ellipse;fillColor=#6c8ebf;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="912" y="115" width="6" height="6" as="geometry"/></mxCell>
+    <mxCell id="LGE1R" value="" style="ellipse;fillColor=#6c8ebf;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="968" y="115" width="6" height="6" as="geometry"/></mxCell>
+    <mxCell id="LGE1" value="" style="dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;strokeWidth=1.5;" edge="1" parent="1" source="LGE1L" target="LGE1R"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="LGT1" value="manages  (navigates to IGraphTab)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="982" y="108" width="390" height="18" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="LGE2L" value="" style="ellipse;fillColor=#666666;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="912" y="143" width="6" height="6" as="geometry"/></mxCell>
+    <mxCell id="LGE2R" value="" style="ellipse;fillColor=#666666;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="968" y="143" width="6" height="6" as="geometry"/></mxCell>
+    <mxCell id="LGE2" value="" style="dashed=1;endArrow=block;endFill=0;strokeColor=#666666;strokeWidth=1.5;" edge="1" parent="1" source="LGE2L" target="LGE2R"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="LGT2" value="«realize»  (concrete tab implements IGraphTab)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="982" y="136" width="390" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- Component Styles -->
+    <mxCell id="LGS2" value="Component Styles  (actual styles used in diagram)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="170" width="450" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGC1" value="«interface»&#xa;IGraphTab" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=3;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="190" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGT3" value="= interface  (gray, italic)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1070" y="202" width="310" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGC2" value="GraphTabManager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="242" width="150" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGT4" value="= Presentation class  (blue, bold)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1070" y="250" width="310" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGC3" value="TraceDisplay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="284" width="150" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGT5" value="= concrete tab  (same Presentation style)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1070" y="291" width="310" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- Extension Rule -->
+    <mxCell id="LGS4" value="Extension Rule" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="326" width="450" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGR" value="To add a new tab:&#xa;1. Create class implementing IGraphTab&#xa;2. Register in GraphTabManager&#xa;3. Zero changes to Domain or below" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="910" y="344" width="455" height="64" as="geometry"/>
+    </mxCell>
+
+    <!-- Notation note -->
+    <mxCell id="KNOTE" value="Notation: UML" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fontSize=10;fillColor=#ffffff;strokeColor=#999999;size=14;align=left;verticalAlign=top;" vertex="1" parent="1">
+      <mxGeometry x="910" y="420" width="150" height="36" as="geometry"/>
+    </mxCell>
+
+    <!-- Source -->
+    <mxCell id="KSRC" value="Source: TimeGrapher codebase (Qt / C++)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="50" y="672" width="760" height="16" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

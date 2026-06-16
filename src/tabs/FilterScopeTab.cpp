@@ -131,7 +131,7 @@ void FilterScopeTab::drawPanel(FilterPanel &panel, int mode,
                                const Measurement &m)
 {
     const int sampleCount = ys.size();
-    const bool mirrored = (mode != 3);
+    const bool mirrored = (mode == 0); // only F0 "raw mirrored" is a bipolar signal
 
     if (mirrored) {
         QVector<double> pos(sampleCount);
