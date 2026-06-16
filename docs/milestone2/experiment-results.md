@@ -1,7 +1,7 @@
 # Experiment Results
 
 **Milestone**: M2 | **Due**: 2026-06-22 | **Status**: [x] Draft  [ ] Final  
-**Last Updated**: 2026-06-15
+**Last Updated**: 2026-06-16
 
 ---
 
@@ -9,8 +9,8 @@
 
 | ID | Experiment | Runs | Latest Key Result | Status |
 |----|------------|:----:|-------------------|:------:|
-| EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 0 | — | ⏳ In Progress |
-| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 6 | E2-6 (rpi2, E2-5 + R1 Lazy Rendering): E2E avg **2.1 ms**, max **5.7 ms** — tighter max than E2-5 (11.1 ms), zero backlog. | ⏳ In Progress |
+| EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps (48k/96k/192k) × all scheduling (default/RR/FIFO) — **QAS-1 Pass** | ✅ Done |
+| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | E2-7 (rpi2, E2-6 + fg_wait_ms): DSP E2E avg **2.2 ms** / max **4.8 ms** — **fg_wait avg 60.1 ms, p99 167.8 ms** (84 % > deadline): FG scheduling is the next bottleneck. | ⏳ In Progress |
 | EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | 📅 Planned |
 | EXP-04 | Signal Quality Warning Threshold Search | 0 | — | 📅 Planned |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
@@ -36,28 +36,89 @@ EXP-04 (warning threshold) ────────────┘
 ## EXP-01: RPi Real-Time Performance — Dropped Block Measurement
 
 **Linked QA**: QAS-1 | **Linked Risk**: TR-01, TR-02  
-**Status**: ⏳ In Progress
+**Status**: ✅ Done  
+**Date**: 2026-06-15
 
 **Question**: Can RPi 5 achieve Dropped Block = 0 at 96,000 sps while running Qt GUI + DSP concurrently? If not, what is the maximum sps that can be processed stably?
 
+**Answer**: Yes. Dropped Block = 0 at all tested sps (48k / 96k / 192k) under all scheduling policies. QAS-1 Pass.
+
 ### Run History
 
-> Add a new row after each run. `Change` describes what was different from the previous run.
+> 3 runs executed 2026-06-15 on RPi (host=lg1, platform=debian). Each run covers all 3 sps
+> sequentially (run_experiment1.sh). Duration = 5 min per sps. Buffer = 30 s.  
+> Deadline: **21.33 ms for all sps** — ALSA scales SPF proportionally (48k: SPF=1024 · 96k: SPF=2048 · 192k: SPF=4096).  
+> exec > DL frames are absorbed by the 30 s ring buffer — Dropped stays 0 in all cases.  
+> **96k is the QAS-1 target sps**; compact table shows 96k figures. Full 3-sps breakdown in each detail block.
 
-| Run | Date | Change from Previous | 48k Dropped/min | 96k Dropped/min | 192k Dropped/min | SCHED_RR applied? | Better? | Next Action |
-|:---:|------|----------------------|:---------------:|:---------------:|:----------------:|:-----------------:|:-------:|-------------|
-| R1 | | Baseline | — | — | — | No | — | |
-| R2 | | | | | | | ↑/↓/= | |
-| R3 | | | | | | | ↑/↓/= | |
+| Run | sps | Scheduling | exec avg / max (ms) | exec > DL | Dropped | Detail |
+|:---:|:---:|-----------|:-------------------:|:---------:|:-------:|:------:|
+| R1 | 48k | default | 5.8 / 36.6 | 4.9 % | **0** | ▼ R1 below |
+| R1 | **96k** | default | **9.6 / 39.2** | **8.1 %** | **0** | ▼ R1 below |
+| R1 | 192k | default | 15.8 / 51.6 | 12.1 % | **0** | ▼ R1 below |
+| R2 | 48k | SCHED_RR p50 | 6.9 / 37.5 | 6.6 % | **0** | ▼ R2 below |
+| R2 | **96k** | SCHED_RR p50 | **9.8 / 39.9** | **8.4 %** | **0** | ▼ R2 below |
+| R2 | 192k | SCHED_RR p50 | 16.0 / 61.7 | 12.5 % | **0** | ▼ R2 below |
+| R3 | 48k | SCHED_FIFO p50 | 7.2 / 35.2 | 6.9 % | **0** | ▼ R3 below |
+| R3 | **96k** | SCHED_FIFO p50 | **9.9 / 41.4** | **8.6 %** | **0** | ▼ R3 below |
+| R3 | 192k | SCHED_FIFO p50 | 16.0 / 52.1 | 12.5 % | **0** | ▼ R3 below |
+
+### Per-Run Detail
+
+<details>
+<summary><b>R1</b> — 2026-06-15 · default scheduling · all sps</summary>
+
+**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv)
+
+| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU dominant |
+|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------:|
+| 48k | 11,810 | 5.8 / 36.6 | 578 / 11,810 (4.9 %) | 2,219 / 11,810 (18.8 %) | **0** | 83.7 / 85.9 | 111 | cpu2 46 % |
+| **96k** | **10,577** | **9.6 / 39.2** | **853 / 10,577 (8.1 %)** | **3,430 / 10,577 (32.4 %)** | **0** | **85.1 / 86.5** | **105** | **cpu2 66 %** |
+| 192k | 9,855 | 15.8 / 51.6 | 1,190 / 9,855 (12.1 %) | 4,069 / 9,855 (41.3 %) | **0** | 85.4 / 87.5 | 98 | cpu0/1 ~43 % |
+
+**Per-core CPU (avg)**: 48k: cpu0=14% cpu1=32% **cpu2=46%** cpu3=26% | 96k: cpu0=18% cpu1=18% **cpu2=66%** cpu3=12% | 192k: cpu0=46% cpu1=43% cpu2=16% cpu3=7%
+
+**Observations**: At 48k/96k, audio path is pinned to cpu2 (single-core pattern). At 192k load spreads across cpu0/1. Thermal throttling occurs in all runs (temp ≥ 85 °C). exec > DL grows with sps (4.9 % → 8.1 % → 12.1 %) as deadline tightens (21.3 ms → 10.7 ms → 5.3 ms); exec max spikes up to 51.6 ms are caused by throttling. Backlog rises correspondingly (19 % → 32 % → 41 %), but the 30 s ring buffer absorbs all overruns → Dropped = 0.
+
+</details>
+
+<details>
+<summary><b>R2</b> — 2026-06-15 · SCHED_RR priority 50 · all sps</summary>
+
+**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv)
+
+| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU pattern |
+|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------|
+| 48k | 10,357 | 6.9 / 37.5 | 682 / 10,357 (6.6 %) | 3,630 / 10,357 (35.1 %) | **0** | 84.7 / 86.5 | 103 | balanced (cpu0-3 ≈ 26-31 %) |
+| **96k** | **10,320** | **9.8 / 39.9** | **866 / 10,320 (8.4 %)** | **3,679 / 10,320 (35.6 %)** | **0** | **85.3 / 86.5** | **103** | **balanced (cpu0-3 ≈ 24-31 %)** |
+| 192k | 9,585 | 16.0 / 61.7 | 1,197 / 9,585 (12.5 %) | 4,258 / 9,585 (44.4 %) | **0** | 85.4 / 87.0 | 95 | balanced (cpu0-3 ≈ 21-31 %) |
+
+**Observation**: SCHED_RR distributes CPU load evenly across all 4 cores (no single-core dominance), but exec avg / max is marginally higher than R1 default at all sps — likely because the `vcgencmd get_throttled` subprocess is more expensive to fork under RT scheduling. Backlog is also higher (35–44 % vs R1's 19–41 %). Dropped = 0 unchanged.
+
+</details>
+
+<details>
+<summary><b>R3</b> — 2026-06-15 · SCHED_FIFO priority 50 · all sps</summary>
+
+**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv)
+
+| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU pattern |
+|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------|
+| 48k | 10,299 | 7.2 / 35.2 | 715 / 10,299 (6.9 %) | 3,708 / 10,299 (36.0 %) | **0** | 84.9 / 87.5 | 102 | balanced (cpu0-3 ≈ 24-30 %) |
+| **96k** | **9,921** | **9.9 / 41.4** | **858 / 9,921 (8.6 %)** | **4,067 / 9,921 (41.0 %)** | **0** | **85.4 / 87.0** | **99** | **balanced (cpu0-3 ≈ 27-30 %)** |
+| 192k | 9,596 | 16.0 / 52.1 | 1,197 / 9,596 (12.5 %) | 4,263 / 9,596 (44.4 %) | **0** | 85.4 / 87.0 | 95 | balanced (cpu0-3 ≈ 22-30 %) |
+
+**Observation**: Nearly identical to SCHED_RR in all metrics. No additional benefit over RR at any sps.
+
+</details>
 
 ### Current Best
 
-> Update this block after each run that improves the result.
-
-- **Run**: —
-- **Recommended sample rate**: — sps
-- **Graceful degradation fallback needed**: —
-- **SCHED_RR effect**: —
+- **Run**: R1 / R2 / R3 — all equivalent (Dropped = 0 in all conditions)
+- **Recommended sample rate**: **96k sps** (QAS-1 target; 0 drops confirmed, exec avg 9.6 ms well under 21.3 ms deadline)
+- **Graceful degradation fallback needed**: No — 192k also achieves 0 drops with 30 s buffer
+- **SCHED_RR effect**: No improvement in Dropped Block count. CPU load is distributed more evenly but exec time is marginally higher. **SCHED_RR not required.**
+- **Thermal throttling**: All runs operate at ≥ 85 °C with sustained throttling (95–111 events / 5 min). Cooling improvement would reduce throttling but does not affect drop count.
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
 
 ---
@@ -100,6 +161,7 @@ R1/T2 are in `Role`.
 | E2-4 | 2026-06-15 | **rpi2** | 48 kHz | 80.1 / 258.7 | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-4 below |
 | E2-5 | 2026-06-15 | **rpi2** | 48 kHz | 2.1 / 11.1 | E2-4 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-5 below |
 | E2-6 | 2026-06-15 | **rpi2** | 48 kHz | 2.1 / 5.7 | E2-5 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-6 below |
+| E2-7 | 2026-06-16 | **rpi2** | 48 kHz | 2.2 / 4.8 | E2-6 + per-thread timing (`fg_wait_ms`) | `f4bfbb5` (tag `thread-timing-measurement`) | ▼ E2-7 below |
 
 > E2-2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
 > (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
@@ -125,6 +187,13 @@ R1/T2 are in `Role`.
 > build-error patch applied (`${CMAKE_CURRENT_SOURCE_DIR}/logging` in CMake). Same
 > sync as E2-5; R1 tightens worst-case max (5.7 ms vs E2-5's 11.1 ms). Busiest
 > core cpu0 (vs cpu1 in E2-4/E2-5), mem 0.85 GB.
+>
+> E2-7 (rpi2, E2-6 + per-thread timing) — tag `thread-timing-measurement` (`f4bfbb5`).
+> Adds `fg_wait_ms` column: time from DSPWorker `frameLogged` emit to MainWindow
+> `onFrameLogged` entry (FG Qt-scheduler pickup latency). DSP path unchanged
+> (E2E avg 2.2 ms, 0 deadline miss). Reveals new bottleneck: FG pickup avg **60.1 ms**,
+> p99 **167.8 ms**, 84 % of frames exceed the 21.33 ms deadline — Qt scheduler
+> on RPi is far slower to wake the FG thread than on macOS (macOS R5: avg 8.9 ms).
 
 > Dropped audio blocks and missed beat detections (required by the Low-Latency QA)
 > are not yet instrumented; backlog % in each detail block is the current proxy.
@@ -453,6 +522,107 @@ temp avg **61.3 °C** (max 62.8 °C), **throttled 0 / 11 samples**; mem ~850 MB 
 
 </details>
 
+<details>
+<summary><b>E2-7</b> — 2026-06-16 · rpi2 · 48 kHz · E2-6 + per-thread timing (fg_wait_ms) — DSP E2E avg 2.2 / max 4.8 ms · <b>fg_wait avg 60.1 ms · p99 167.8 ms · 84 % > deadline — FG scheduling bottleneck revealed</b></summary>
+
+**Context**: rpi2, **E2-6 + per-thread timing** — tag `thread-timing-measurement` (`f4bfbb5`).
+New column `fg_wait_ms` measures DSPWorker `frameLogged` emit → MainWindow `onFrameLogged`
+entry (Qt FG-scheduler pickup latency). DSP pipeline identical to E2-6.
+Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
+Files: [csv](../../src/logs/EXP-02/log_20260616_140850.csv) ·
+[plot](../../src/logs/EXP-02/log_20260616_140850.png) ·
+[sys plot](../../src/logs/EXP-02/log_20260616_140850_sys.png).
+
+**DSP path (wait + exec) per-frame metrics (1458 frames), ms:**
+
+| Metric | avg | max | min |
+|--------|----:|----:|----:|
+| total = ①+② | 2.168 | 4.819 | 0.234 |
+| ① wait (BG→DSP pickup) | 0.030 | 0.381 | 0.013 |
+| ② exec (DSP processing) | 2.139 | 4.438 | 0.206 |
+| ┄ copy | 0.007 | 0.028 | 0.006 |
+| ┄ sound | 0.000 | 0.000 | 0.000 |
+| ┄ tg (dominant) | 2.130 | 4.429 | 0.198 |
+| ┄ ui | 0.000 | 0.000 | 0.000 |
+| ┄ plot | 0.025 | 37.024 | 0.000 |
+
+**FG scheduling pickup (fg_wait_ms) — NEW metric:**
+
+| Metric | Value |
+|--------|------:|
+| fg_wait avg | **60.1 ms** 🔴 |
+| fg_wait p50 (median) | — |
+| fg_wait p95 | **144.0 ms** |
+| fg_wait p99 | **167.8 ms** |
+| fg_wait max | **183.6 ms** |
+| fg_wait > deadline (21.33 ms) | **1231 / 1458 (84 %)** 🔴 |
+
+**Throughput / health:** bg_fps avg 43.9 (max 47.4), fg_fps avg 43.9 (max 47.3)
+— **FG and BG perfectly matched** (bg_fps ≈ fg_fps, same as E2-5/E2-6). bg_sps avg 44939.
+samples = 1024 exactly every frame. exec > deadline: **0 / 1458**. backlog: **0 / 1458**.
+
+**System (rpi2):** cpu_total avg 30.0 % (max 32.4 %);
+**cpu1 saturated avg 95.0 % (max 99.5 %)** (DSP on cpu1);
+temp avg **57.9 °C** (max 59.5 °C) — cooler than E2-6 (61.3 °C); **throttled 0 / 14 samples**;
+mem 1362.7 MB used / 16214.9 MB; freq 2400 MHz (no throttling).
+
+![E2-7 plot](../../src/logs/EXP-02/log_20260616_140850.png)
+
+![E2-7 sys](../../src/logs/EXP-02/log_20260616_140850_sys.png)
+
+**Thread Activity Timeline:**
+
+Full-run overview — all 1458 frames (x-axis = frame number, 1 slot = 21.3 ms period):
+
+![E2-7 timeline all](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png)
+
+Zoom view — representative 4-frame window (frames 728–731, x-axis = elapsed time ms):
+
+![E2-7 timeline zoom](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_default.png)
+
+Timeline tool: `src/tools/thread_timeline_dark.py`
+
+| Lane | Pattern | Interpretation |
+|------|---------|----------------|
+| BG Thread (cyan) | 1458 ticks evenly spaced | AudioWorker fires exactly every 21.3 ms — audio clock stable |
+| DSP Thread (green) | Variable-width bar per frame | exec 0.2–4.4 ms, variable but 0 deadline overruns |
+| Main FG (brown) | Brown bar spans 3× frame boundary | fg_wait avg 60 ms — **3× the frame period** (21.3 ms) |
+| FG handle (gray) | Thin gray mark at right edge of bar | Qt MainWindow onFrameLogged entry point |
+
+In the full-run view, **FG brown bars consistently overflow into subsequent BG/DSP slots**,
+making the scheduling lag immediately visible. The first ~200 frames show slightly shorter
+fg_wait; thereafter the elevated level is sustained throughout the run.
+
+**Observations:**
+
+| Phase | Pattern | Interpretation |
+|-------|---------|----------------|
+| DSP wait | avg 0.030 ms (near-zero) | DSP thread picks up BG signal immediately — T2 working |
+| DSP exec | avg 2.14 ms, max 4.44 ms | tg sole cost; tighter max than E2-6 (5.6 ms) |
+| samples | exactly 1024 every frame | BG/FG DSP synchronized, no backlog |
+| **fg_wait** | **avg 60.1 ms**, **84 % > 21.33 ms** | Qt event loop on RPi is very slow to wake FG thread 🔴 |
+| fg_wait p99 | 167.8 ms ≈ 8× deadline | severe FG scheduling tail on RPi vs macOS (macOS p99 = 20.5 ms) |
+| cpu1 | avg 95 % saturated | DSP pinned to cpu1; other cores idle — FG scheduling delay not CPU-bound |
+| temp | 57.9 °C (vs E2-6's 61.3 °C) | slightly cooler; no throttling |
+
+**Conclusion:**
+
+- **DSP pipeline remains healthy**: DSP E2E avg 2.2 ms, max 4.8 ms, 0 deadline misses,
+  0 backlog — identical behavior to E2-6.
+- **FG scheduling is the revealed bottleneck**: `fg_wait_ms` exposes a new latency
+  invisible in E2-6. The Qt event loop takes avg **60 ms** on RPi to deliver
+  `frameLogged` to the FG thread — 84 % of frames exceed the 21.33 ms audio deadline.
+  On macOS (R5 in the macOS experiment series), the same metric was avg 8.9 ms, p99
+  20.5 ms — the RPi scheduler is ~7× slower to wake the FG thread.
+- **Not CPU-bounded**: cpu1 (DSP) is saturated at 95 %, but cpu0/2/3 are near-idle
+  (avg 7–12 %). FG has CPU headroom; the bottleneck is Qt event-loop scheduling
+  priority, not raw compute.
+- **Next step**: Apply T1 (SCHED_RR + CPU affinity) to the FG/DSP threads on RPi
+  to reduce `fg_wait_ms`, or investigate `QTimer`-based periodic FG polling as an
+  alternative to `frameLogged` signal delivery.
+
+</details>
+
 ### E2-3–E2-6 Tactic Progression Comparison (rpi2, same unit)
 
 All four runs are on rpi2 at 48 kHz; deadline ≈ 21.33 ms (SPF 1024 / SPS 48008).
@@ -502,21 +672,25 @@ T2 = DSP Offload Thread).
 
 ### Current Best
 
-**E2-6 (rpi2, E2-5 + R1 Lazy Rendering) — ideal real-time pipeline** ✅
-- E2E avg **2.1 ms** / max **5.7 ms** — tighter max than E2-5 (11.1 ms); matches Windows baseline (E2-1: 2.8 ms)
-- ① wait avg **0.029 ms** (near-zero); samples exactly 1024 every frame
-- exec avg **2.0 ms**, max **5.6 ms** — **0 / 1142** deadline overruns
-- backlog **0 / 1142** — FG and BG perfectly synchronized (from T2)
-- temp 61.3 °C, no throttling, mem 0.85 GB / 16 GB
+**E2-7 (rpi2, E2-6 + per-thread timing) — DSP healthy, FG scheduling bottleneck revealed** ⚠️
+- DSP E2E avg **2.2 ms** / max **4.8 ms** — 0 deadline misses, 0 backlog (same as E2-6)
+- ① wait avg **0.030 ms** (near-zero); samples exactly 1024 every frame
+- exec avg **2.1 ms**, max **4.4 ms** — **0 / 1458** deadline overruns
+- backlog **0 / 1458** — FG and BG DSP perfectly synchronized
+- **fg_wait avg 60.1 ms, p99 167.8 ms, 84 % > deadline** 🔴 — NEW bottleneck identified
+- temp 57.9 °C, no throttling, mem 1.36 GB / 16 GB
 
+> E2-6 (E2-5 + R1): DSP E2E avg 2.1 ms, max 5.7 ms — R1 trims tail latency; fg_wait not yet measured.  
 > E2-5 (E2-4 + T2): E2E avg 2.1 ms, max 11.1 ms — T2 yields the sync fix (backlog 0).  
 > E2-4 (rpi2 baseline + multi-graph): E2E avg 80 ms, backlog 28 % — FG scheduling lag.  
 > E2-3 (rpi2 baseline): exec 15.2 ms, 4.4 % overruns — `plot` bottleneck in audio path.  
 > E2-1 (Windows baseline): E2E avg 2.8 ms — E2-6 reaches parity with tighter max.
 
-- **Decisive tactic**: **T2 (DSP Offload)** — E2-4 → E2-5 drops E2E 80 ms → 2.1 ms (sync, backlog 0)
-- **R1 (Lazy Rendering)**: trims worst-case max (E2-5 11.1 → E2-6 5.7 ms)
-- **Recommended combo**: **T2 + R1** for the full-GUI build (E2E ~2 ms, 0 overruns, 0 backlog)
+- **Decisive tactic so far**: **T2 (DSP Offload)** — E2-4 → E2-5 drops E2E 80 ms → 2.1 ms (sync, backlog 0)
+- **R1 (Lazy Rendering)**: trims worst-case DSP max (E2-5 11.1 → E2-6 5.7 ms)
+- **New finding (E2-7)**: `fg_wait_ms` reveals Qt FG-scheduler pickup on RPi is avg 60 ms —
+  7× worse than macOS (avg 8.9 ms). FG latency is the next architecture concern.
+- **Next action**: Apply T1 (SCHED_RR + CPU affinity for FG thread) → measure E2-8
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
 
 ---
@@ -649,9 +823,9 @@ T2 = DSP Offload Thread).
 
 | Decision | Source Experiment | QA Impacted | Decision Made | Date |
 |----------|:-----------------:|:-----------:|---------------|------|
-| QAS-1 Response Measure: confirmed max sps | EXP-01 | QAS-1 | — | — |
-| Graceful degradation fallback threshold | EXP-01 | QAS-1 | — | — |
-| SCHED_RR applied to audio capture thread | EXP-01 | QAS-1 | Yes / No | — |
+| QAS-1 Response Measure: confirmed max sps | EXP-01 | QAS-1 | 192k sps achieves 0 Dropped Block (30 s buffer). Recommended operating point: **96k sps**. | 2026-06-15 |
+| Graceful degradation fallback threshold | EXP-01 | QAS-1 | Not required — 0 drops at all tested sps with 30 s buffer. | 2026-06-15 |
+| SCHED_RR applied to audio capture thread | EXP-01 | QAS-1 | **No** — SCHED_RR/FIFO show no improvement in Dropped Block count; exec time marginally worse. | 2026-06-15 |
 | QAS-2 Response Measure: confirmed E2E latency target | EXP-02 | QAS-2 | Partial — 1-tab avg 11.5 ms; ② avg 1.5 ms (< 30 ms). 11-tab pending. | 2026-06-11 |
 | Lazy Rendering tactic: required or not | EXP-02 | QAS-2 | Inconclusive — 11-tab test required | 2026-06-11 |
 | `Detector.cpp` default params updated | EXP-03 | QAS-3 | — | — |

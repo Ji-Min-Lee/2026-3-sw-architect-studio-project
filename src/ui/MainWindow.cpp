@@ -24,6 +24,7 @@
 #include <QtMath>
 #include <QRandomGenerator>
 #include <QMessageBox>
+#include <QTimer>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <stdexcept>
@@ -174,6 +175,31 @@ MainWindow::MainWindow(QWidget *parent)
     LoadAudioDevices();
     LoadAverageingPeriod();
     DisplayResults(Measurement{}); // show blank results
+
+    // Parse CLI args for automated experiment runs:
+    //   --rate N       : set sample rate (48000 / 96000 / 192000)
+    //   --autostart    : click Start automatically after window opens
+    //   --no-record    : answer NO to the "Record session?" dialog
+    //   --duration N   : stop and exit after N seconds
+    {
+        QStringList cliArgs = QCoreApplication::arguments();
+        for (int i = 1; i < cliArgs.size(); ++i) {
+            if      (cliArgs[i] == "--rate"     && i + 1 < cliArgs.size()) mCmdRate        = cliArgs[++i].toInt();
+            else if (cliArgs[i] == "--autostart")                           mCmdAutoStart   = true;
+            else if (cliArgs[i] == "--no-record")                           mNoRecord       = true;
+            else if (cliArgs[i] == "--duration" && i + 1 < cliArgs.size()) mCmdDurationSec = cliArgs[++i].toInt();
+        }
+        if (mCmdAutoStart) {
+            QTimer::singleShot(500, this, [this]() {
+                if (mCmdRate > 0) SetAudioRate(mCmdRate);
+                int liveIdx = ui->ModeComboBox->findText(ModeStrings[LIVE]);
+                if (liveIdx >= 0) ui->ModeComboBox->setCurrentIndex(liveIdx);
+                on_StartPushButton_clicked();
+                if (mCmdDurationSec > 0)
+                    mCmdDurationTimer.start();
+            });
+        }
+    }
 }
 
 MainWindow::~MainWindow()
@@ -282,6 +308,14 @@ void MainWindow::wireEngineToTabs()
 // ─────────────────────────────────────────────────────────────────────────────
 void MainWindow::onFrameLogged(Logger::Frame frame)
 {
+    // Wall-clock duration check: exit once --duration seconds have elapsed.
+    if (mCmdDurationSec > 0 && mCmdDurationTimer.isValid() &&
+        mCmdDurationTimer.elapsed() >= (qint64)mCmdDurationSec * 1000)
+    {
+        close();
+        return;
+    }
+
 #ifdef ENABLE_LOGGING
     frame.fg_wait_us   = TG_NOW() - frame.dsp_emit_ts;
     frame.replot_count = mLastReplotCount;
@@ -699,6 +733,8 @@ void MainWindow::GetAudioDevice(QString &Name) { Name = ui->InputDeviceComboBox-
 
 bool MainWindow::RecordSessionCheck(void)
 {
+    if (mNoRecord) return true;   // --no-record CLI flag: skip dialog, answer NO
+
     QMessageBox msgBox;
     msgBox.setText("Record Session");
     msgBox.setInformativeText("Do you want to record this session?");
