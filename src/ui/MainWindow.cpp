@@ -180,13 +180,67 @@ void MainWindow::onMeasurementReady(const Measurement &m)
 {
     mLastReplotCount = g_replotCount.exchange(0);
     mLastPlotUs      = g_plotUs.exchange(0);
+    checkWatchDetached(m);  // update detached state before formatting the label
     DisplayResults(m);
+}
+
+// Live-mode only: if a watch was being measured and the signal is then lost
+// (watch removed from the microphone), raise a one-shot alarm. Re-arms when
+// the signal returns, so re-attaching and removing again alarms again.
+void MainWindow::checkWatchDetached(const Measurement &m)
+{
+    const bool liveRunning = ui->StopPushButton->isEnabled()
+                           && ui->ModeComboBox->currentText() == ModeStrings[LIVE];
+    if (!liveRunning) {
+        mHadWatchSignal = false;
+        mWatchDetached  = false;
+        if (mDetachAlarm) mDetachAlarm->hide();
+        return;
+    }
+
+    if (m.synced) {                 // a watch is currently being measured
+        mHadWatchSignal = true;
+        if (mWatchDetached && mDetachAlarm) mDetachAlarm->hide();  // reattached
+        mWatchDetached  = false;    // re-arm
+        return;
+    }
+
+    // No A-event for the no-signal threshold while we had a watch → detached
+    if (m.noSignal && mHadWatchSignal && !mWatchDetached) {
+        mWatchDetached = true;
+        raiseWatchDetachedAlarm();
+    }
+}
+
+void MainWindow::raiseWatchDetachedAlarm(void)
+{
+    QApplication::beep();           // audible alarm
+
+    statusBar()->showMessage("Watch detached", 5000);
+
+    if (!mDetachAlarm) {
+        mDetachAlarm = new QMessageBox(this);
+        mDetachAlarm->setIcon(QMessageBox::Warning);
+        mDetachAlarm->setWindowTitle("Watch Detached");
+        mDetachAlarm->setText("Watch detached");
+        mDetachAlarm->setInformativeText(
+            "The watch signal was lost during measurement. "
+            "Reattach the watch to the microphone to continue.");
+        mDetachAlarm->setStandardButtons(QMessageBox::Ok);
+        mDetachAlarm->setModal(false);  // non-blocking: keep measuring underneath
+    }
+    if (!mDetachAlarm->isVisible()) {
+        mDetachAlarm->show();
+        mDetachAlarm->raise();
+        mDetachAlarm->activateWindow();
+    }
 }
 
 void MainWindow::DisplayResults(const Measurement &m)
 {
     // View: format values for display — no domain logic here
-    QString warning  = m.noSignal ? "⚠ No signal   " : "";
+    QString warning  = mWatchDetached ? "⚠ Watch detached   "
+                     : m.noSignal      ? "⚠ No signal   " : "";
     QString bphStr   = m.synced ? QString("%1").arg(m.detectedBph, 5, 10, QChar(' ')) : "-----";
     QString rateStr  = m.rateValid ? QString::asprintf("%+6.1f", m.rateErrorSpd) : "------";
     QString beatStr  = m.beatErrorValid ? QString("%1").arg(m.beatErrorMs, 4, 'f', 1) : "----";

@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QMainWindow>
 #include <QComboBox>
+#include <QMessageBox>
 #include "AudioWorker.h"
 #include "PlaybackWorker.h"
 #include "SimWorker.h"
@@ -109,6 +110,11 @@ private:
     // Results display
     void   DisplayResults(const Measurement &m);
 
+    // Live-mode watch-detached alarm (QAS-4): edge-detect signal loss while
+    // measuring and raise a one-shot alarm + "Watch detached" message.
+    void   checkWatchDetached(const Measurement &m);
+    void   raiseWatchDetachedAlarm(void);
+
     void   Reset(void);
     void   wireEngineToTabs();
 
@@ -137,6 +143,11 @@ private:
 
     // Watch-position testing (NIHS 95-10/ISO 3158)
     QString mActivePosition = "CH";
+
+    // Live-mode watch-detached alarm state (edge detection)
+    bool         mHadWatchSignal = false;  // a watch was being measured this run
+    bool         mWatchDetached  = false;  // currently detached (alarm latched)
+    QMessageBox *mDetachAlarm    = nullptr;
 
     // Audio threads
     WavStreamWriter       *mWavWriter            = nullptr;
