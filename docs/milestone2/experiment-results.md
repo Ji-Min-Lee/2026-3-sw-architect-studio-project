@@ -87,14 +87,17 @@ period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
 **R2 (RPi) is the baseline for all future experiments.** R1 (Windows) is kept
 only as a dev-machine reference.
 
-| Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Role | Detail |
-|:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|------|:------:|
-| R1 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | Windows baseline | ▼ R1 below |
-| R2 | 2026-06-11 | **rpi1** | 48 kHz | ? | 255.4 / 900.9 | — | — | rpi1 baseline | ▼ R2 below |
-| R3 | 2026-06-15 | **rpi2** | 48 kHz | ? | 57.2 / 208.9 | — | — | rpi2 baseline | ▼ R3 below |
-| R4 | 2026-06-15 | **rpi2** | 48 kHz | — | 80.1 / 258.7 | — | — | rpi2 baseline + multi-graph | ▼ R4 below |
-| R5 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 11.1 | — | — | R4 + T2 (DSP Offload) | ▼ R5 below |
-| R6 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 5.7 | — | — | R5 + R1 (Lazy Rendering) | ▼ R6 below |
+`Source` = git tag (· repo) or branch the run was built from. `Applied` = tools /
+patches applied on top (tactics R1/T2 are in `Role`).
+
+| Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Role | Source | Applied | Detail |
+|:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|------|--------|---------|:------:|
+| R1 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | Windows baseline | `baseline/experiments2` | tools | ▼ R1 below |
+| R2 | 2026-06-11 | **rpi1** | 48 kHz | ? | 255.4 / 900.9 | — | — | rpi1 baseline | `baseline/experiments2` | tools | ▼ R2 below |
+| R3 | 2026-06-15 | **rpi2** | 48 kHz | ? | 57.2 / 208.9 | — | — | rpi2 baseline | `baseline/experiments2` | tools | ▼ R3 below |
+| R4 | 2026-06-15 | **rpi2** | 48 kHz | — | 80.1 / 258.7 | — | — | rpi2 baseline + multi-graph | tag `macos_ex_baseline` · project | tools | ▼ R4 below |
+| R5 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 11.1 | — | — | R4 + T2 (DSP Offload) | tag `macos_ex_t2` · project-2 | tools | ▼ R5 below |
+| R6 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 5.7 | — | — | R5 + R1 (Lazy Rendering) | tag `macos_ex_r1` · project-3 | tools + build-fix | ▼ R6 below |
 
 > R2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
 > (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
@@ -491,19 +494,11 @@ T2 = DSP Offload Thread).
 - Hardware note: R2 (rpi1) failed at 43 % overruns mainly due to thermal throttling
   (85 °C); rpi2 stays at 60 °C / 2400 MHz throughout (see R2 detail block).
 
-### Provenance (R3–R6)
-
-All runs used the latest **tools** from branch `baseline/experiments2`
-(logging facility + `run_timegrapher.sh`). R4–R6 were run on rpi2 from the tagged
-team repos; tactics R1/T2 per
-[architectural-approaches.md](architectural-approaches.md).
-
-| Run | Repo | Tag | Branch / tools | Applied |
-|:---:|------|-----|----------------|---------|
-| R3 | project (`~/user/k-bahn/2026-3-sw-architect-studio-project`) | — | `baseline/experiments2` tools | rpi2 baseline (full GUI), no tactic |
-| R4 | project | `macos_ex_baseline` | `baseline/experiments2` tools | rpi2 baseline + multi-graph, no tactic |
-| R5 | project-2 (`...-2`) | `macos_ex_t2` | `baseline/experiments2` tools | tools + **T2** (DSP Offload) |
-| R6 | project-3 (`...-3`) | `macos_ex_r1` | `baseline/experiments2` tools | tools + **T2 + R1** (DSP Offload + Lazy Rendering); build-error patch (`${CMAKE_CURRENT_SOURCE_DIR}/logging` added to CMake) |
+> Provenance (see `Source`/`Applied` columns in the Runs table): R4–R6 repos are
+> `~/user/k-bahn/2026-3-sw-architect-studio-project{,-2,-3}`. The R6 build-fix
+> added `${CMAKE_CURRENT_SOURCE_DIR}/logging` to CMake. All runs applied the
+> `baseline/experiments2` tools (logging facility); tactics R1/T2 per
+> [architectural-approaches.md](architectural-approaches.md).
 
 ### Current Best
 
