@@ -84,21 +84,22 @@ Core comparison only — full per-run numbers and analysis are in the collapsibl
 detail blocks below. `E2E = ① wait + ② exec` (avg / max, ms). Deadline = chunk
 period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
 
-**E2-2 (RPi) is the baseline for all future experiments.** E2-1 (Windows) is kept
-only as a dev-machine reference.
+**E2-3 (rpi2) is the baseline for all future experiments.** E2-1 (Windows) is kept
+as a dev-machine reference and E2-2 (rpi1) as a 1st-unit (thermal-throttling)
+reference.
 
 `git_commit` = the build commit the run came from (auto-recorded in the CSV `#`
 meta line by the logging build); tag shown in parens where applicable. Tactics
 R1/T2 are in `Role`.
 
-| Run | Date | Platform | Rate | Tabs | E2E avg/max (ms) | Dropped | Missed | Role | git_commit | Detail |
-|:---:|------|----------|:----:|:----:|:----------------:|:-------:|:------:|------|------------|:------:|
-| E2-1 | 2026-06-12 | Windows | 48 kHz | 1 | 2.8 / 363.9 | — | — | Windows baseline | `d40b8fc` | ▼ E2-1 below |
-| E2-2 | 2026-06-11 | **rpi1** | 48 kHz | ? | 255.4 / 900.9 | — | — | rpi1 baseline | `e7aaf4c` | ▼ E2-2 below |
-| E2-3 | 2026-06-15 | **rpi2** | 48 kHz | ? | 57.2 / 208.9 | — | — | rpi2 baseline | `7298783` | ▼ E2-3 below |
-| E2-4 | 2026-06-15 | **rpi2** | 48 kHz | — | 80.1 / 258.7 | — | — | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-4 below |
-| E2-5 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 11.1 | — | — | E2-4 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-5 below |
-| E2-6 | 2026-06-15 | **rpi2** | 48 kHz | — | 2.1 / 5.7 | — | — | E2-5 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-6 below |
+| Run | Date | Platform | Rate | E2E avg/max (ms) | Role | git_commit | Detail |
+|:---:|------|----------|:----:|:----------------:|------|------------|:------:|
+| E2-1 | 2026-06-12 | Windows | 48 kHz | 2.8 / 363.9 | Windows reference (dev) | `d40b8fc` | ▼ E2-1 below |
+| E2-2 | 2026-06-11 | **rpi1** | 48 kHz | 255.4 / 900.9 | rpi1 reference (1st unit) | `e7aaf4c` | ▼ E2-2 below |
+| E2-3 | 2026-06-15 | **rpi2** | 48 kHz | 57.2 / 208.9 | **rpi2 baseline** | `7298783` | ▼ E2-3 below |
+| E2-4 | 2026-06-15 | **rpi2** | 48 kHz | 80.1 / 258.7 | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-4 below |
+| E2-5 | 2026-06-15 | **rpi2** | 48 kHz | 2.1 / 11.1 | E2-4 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-5 below |
+| E2-6 | 2026-06-15 | **rpi2** | 48 kHz | 2.1 / 5.7 | E2-5 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-6 below |
 
 > E2-2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
 > (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
@@ -125,9 +126,8 @@ R1/T2 are in `Role`.
 > sync as E2-5; R1 tightens worst-case max (5.7 ms vs E2-5's 11.1 ms). Busiest
 > core cpu0 (vs cpu1 in E2-4/E2-5), mem 0.85 GB.
 
-> `Dropped` (audio blocks) and `Missed` (beat detections) are required by the
-> Low-Latency QA but not yet instrumented — shown as `—`. See backlog % in the
-> detail block as the current proxy for "falling behind".
+> Dropped audio blocks and missed beat detections (required by the Low-Latency QA)
+> are not yet instrumented; backlog % in each detail block is the current proxy.
 
 ### Run details
 
@@ -182,7 +182,7 @@ backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
 </details>
 
 <details>
-<summary><b>E2-2</b> — 2026-06-11 · rpi1 (1st unit) · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>baseline · real-time FAIL</b></summary>
+<summary><b>E2-2</b> — 2026-06-11 · rpi1 (1st unit) · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>rpi1 reference · real-time FAIL</b></summary>
 
 **Context**: RPi run, before platform auto-metadata. Deadline ≈ **21.33 ms**
 (SPF 1024 / SPS 48008). Files:
@@ -215,7 +215,8 @@ backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
 (plot ~16 ms) overruns the 21 ms deadline 43 % of the time; one core (cpu2)
 saturated (~92 %) while the others idle; SoC thermally throttled (85 °C)
 throughout. The bottleneck is structural: heavy `plot`, single-core audio path,
-thermal throttling. **This run is the baseline for all future RPi experiments.**
+thermal throttling. **This run is the rpi1 (1st-unit) reference; the rpi2 baseline
+for future experiments is E2-3.**
 
 </details>
 
@@ -495,9 +496,9 @@ T2 = DSP Offload Thread).
 - Hardware note: E2-2 (rpi1) failed at 43 % overruns mainly due to thermal throttling
   (85 °C); rpi2 stays at 60 °C / 2400 MHz throughout (see E2-2 detail block).
 
-> Provenance is in the Runs table (`Source` = tag/commit, `Applied` = patches).
-> The E2-6 build-fix added `${CMAKE_CURRENT_SOURCE_DIR}/logging` to CMake. Tactics
-> R1/T2 are defined in [architectural-approaches.md](architectural-approaches.md).
+> Provenance is in the Runs table (`git_commit` column; tag in parens). The E2-6
+> build-fix added `${CMAKE_CURRENT_SOURCE_DIR}/logging` to CMake. Tactics R1/T2
+> are defined in [architectural-approaches.md](architectural-approaches.md).
 
 ### Current Best
 
