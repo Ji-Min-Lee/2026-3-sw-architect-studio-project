@@ -20,6 +20,7 @@
 #include <QtMath>
 #include <QRandomGenerator>
 #include <QMessageBox>
+#include <QTimer>
 #include <stdexcept>
 
 #define  LIVE     0
@@ -131,16 +132,36 @@ MainWindow::MainWindow(QWidget *parent)
     DisplayResults();
 
 #ifdef ENABLE_LOGGING
-    // Logging facility: console summary + CSV (one row per 100 frames).
-    // Write to src/logs/ deterministically: the binary lives in src/build[-log]/,
-    // so ../logs resolves to src/logs/ regardless of the current working directory.
+    // Pre-create the logs directory so StartAudioThread() can write immediately.
     QString logDir = QCoreApplication::applicationDirPath() + "/../logs";
     QDir().mkpath(logDir);
-    QString csvPath = QString("%1/log_%2.csv")
-                          .arg(logDir)
-                          .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
-    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
 #endif
+
+    // Parse CLI args for automated experiment runs:
+    //   --rate N       : set sample rate (48000 / 96000 / 192000)
+    //   --autostart    : click Start automatically after window opens
+    //   --no-record    : answer NO to the "Record session?" dialog
+    //   --duration N   : stop and exit after N seconds
+    {
+        QStringList cliArgs = QCoreApplication::arguments();
+        for (int i = 1; i < cliArgs.size(); ++i) {
+            if      (cliArgs[i] == "--rate"     && i + 1 < cliArgs.size()) mCmdRate        = cliArgs[++i].toInt();
+            else if (cliArgs[i] == "--autostart")                           mCmdAutoStart   = true;
+            else if (cliArgs[i] == "--no-record")                           mNoRecord       = true;
+            else if (cliArgs[i] == "--duration" && i + 1 < cliArgs.size()) mCmdDurationSec = cliArgs[++i].toInt();
+        }
+        if (mCmdAutoStart) {
+            QTimer::singleShot(500, this, [this]() {
+                if (mCmdRate > 0) SetAudioRate(mCmdRate);
+                // Ensure LIVE mode
+                int liveIdx = ui->ModeComboBox->findText(ModeStrings[LIVE]);
+                if (liveIdx >= 0) ui->ModeComboBox->setCurrentIndex(liveIdx);
+                on_StartPushButton_clicked();
+                if (mCmdDurationSec > 0)
+                    mCmdDurationTimer.start();  // wall-clock checked in HandleInputData
+            });
+        }
+    }
 }
 void   MainWindow::ConfigureSoundCard(void)
 {
@@ -617,6 +638,17 @@ MainWindow::~MainWindow()
 
 void MainWindow::StartAudioThread(void)
 {
+#ifdef ENABLE_LOGGING
+    // Create Logger here so mCurrentSamplesPerSecond is already the correct rate
+    // (CLI --rate is applied before on_StartPushButton_clicked fires this).
+    delete mLogger;
+    QString logDir = QCoreApplication::applicationDirPath() + "/../logs";
+    QString csvPath = QString("%1/log_%2.csv")
+                          .arg(logDir)
+                          .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
+    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+#endif
+
     QVariant v = ui->InputDeviceComboBox->currentData();
     QAudioDevice InputDevice = v.value<QAudioDevice>();
     Reset();
@@ -847,6 +879,15 @@ void MainWindow::RemoveMarkersAndText(QCustomPlot *Plot,double rangeMin,double r
 
 void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emitTimestampUs)
 {
+        // Wall-clock duration check: exit as soon as --duration seconds have elapsed,
+        // even if the event queue is backed up with many pending AudioDataReady signals.
+        if (mCmdDurationSec > 0 && mCmdDurationTimer.isValid() &&
+            mCmdDurationTimer.elapsed() >= (qint64)mCmdDurationSec * 1000)
+        {
+            close();
+            return;
+        }
+
         // fg_handler_start: FG begins handling. wait = queue + scheduling delay.
         int64_t fgStart = TG_NOW();
         int64_t waitUs  = fgStart - emitTimestampUs;
@@ -942,6 +983,13 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr, Logger::Fram
 {
     int    SamplesToAdd=mLocalTotalSamplesWritten-SharedDataPtr->MainThrd_LastTotalSamplesWritten;
     bd.samples = SamplesToAdd;   // backlog snapshot before the loop consumes it
+
+    // Block drops: writer has lapped reader — samples in (SamplesToAdd - bufSize) were overwritten
+    bd.block_drops = (SamplesToAdd > SharedDataPtr->NumberOfAudioSamples)
+                     ? SamplesToAdd - SharedDataPtr->NumberOfAudioSamples : 0;
+    bd.buffer_pct  = (SamplesToAdd >= SharedDataPtr->NumberOfAudioSamples)
+                     ? 100.0
+                     : (double)SamplesToAdd / SharedDataPtr->NumberOfAudioSamples * 100.0;
 
     int slice;
     if (!mForegroundTimerStarted)
@@ -1165,6 +1213,8 @@ void MainWindow::Reset(void)
 
 bool MainWindow::RecordSessionCheck(void)
 {
+    if (mNoRecord) return true;   // --no-record CLI flag: skip dialog, answer NO
+
     QMessageBox msgBox;
     msgBox.setText("Record Session");
     msgBox.setInformativeText("Do you want to record this session ?");

@@ -4,6 +4,9 @@
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <processthreadsapi.h>
+#else
+#include <csignal>
+static void handleSignal(int) { QCoreApplication::quit(); }
 #endif
 
 int main(int argc, char *argv[])
@@ -23,6 +26,13 @@ int main(int argc, char *argv[])
 #endif
 
  QApplication a(argc, argv);
+
+#ifndef Q_OS_WIN
+ // Ensure Ctrl+C / SIGTERM trigger a clean Qt shutdown so Logger destructor
+ // writes the CSV before the process exits (critical when running under sudo).
+ signal(SIGINT,  handleSignal);
+ signal(SIGTERM, handleSignal);
+#endif
 
  //QApplication::setStyle(QStyleFactory::create("Fusion"));
 
