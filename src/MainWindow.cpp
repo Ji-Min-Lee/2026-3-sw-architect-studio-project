@@ -15,6 +15,8 @@
 #include <QtEndian>
 #include <QDebug>
 #include <QTextStream>
+#include <QDateTime>
+#include <QCoreApplication>
 #include <QtMath>
 #include <QRandomGenerator>
 #include <QMessageBox>
@@ -52,6 +54,7 @@ static QString RenameAudioDevices[][2] =
   {"USB PnP Sound Device",        PREF_NAME_WELSHI},
   {"C-Media USB Headphone Set",   PREF_NAME_CHINESE_GENERIC},
   {"CM108 Audio Controller Mono", PREF_NAME_WELSHI},
+  {"CM108 Audio Controller Pro",  PREF_NAME_WELSHI},
   {"Audio Adapter Mono",          PREF_NAME_CHINESE_GENERIC}
 };
 
@@ -126,6 +129,18 @@ MainWindow::MainWindow(QWidget *parent)
     CreateGraphs();
     LoadAverageingPeriod();
     DisplayResults();
+
+#ifdef ENABLE_LOGGING
+    // Logging facility: console summary + CSV (one row per 100 frames).
+    // Write to src/logs/ deterministically: the binary lives in src/build[-log]/,
+    // so ../logs resolves to src/logs/ regardless of the current working directory.
+    QString logDir = QCoreApplication::applicationDirPath() + "/../logs";
+    QDir().mkpath(logDir);
+    QString csvPath = QString("%1/log_%2.csv")
+                          .arg(logDir)
+                          .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
+    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+#endif
 }
 void   MainWindow::ConfigureSoundCard(void)
 {
@@ -596,6 +611,7 @@ void MainWindow::CreateGraphs(void)
 
 MainWindow::~MainWindow()
 {
+    delete mLogger;
     delete ui;
 }
 
@@ -829,14 +845,38 @@ void MainWindow::RemoveMarkersAndText(QCustomPlot *Plot,double rangeMin,double r
  }
 }
 
-void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
+void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emitTimestampUs)
 {
+        // fg_handler_start: FG begins handling. wait = queue + scheduling delay.
+        int64_t fgStart = TG_NOW();
+        int64_t waitUs  = fgStart - emitTimestampUs;
+
         SharedDataPtr->Mutex.lock();
         mLocalWriteIndex=SharedDataPtr->WriteIndex;
         mLocalTotalSamplesWritten=SharedDataPtr->TotalSamplesWritten;
         SharedDataPtr->Mutex.unlock();
 
-        ProcessSamples(SharedDataPtr);
+        Logger::Frame frame;
+        ProcessSamples(SharedDataPtr, frame);
+
+#ifdef ENABLE_LOGGING
+        // fg_handler_end: processing complete.
+        frame.wait_us = waitUs;
+        frame.exec_us = TG_NOW() - fgStart;
+        frame.bg_fps = SharedDataPtr->FPS;
+        frame.bg_sps = SharedDataPtr->SPS;
+        frame.bg_spf = SharedDataPtr->SPF;
+        frame.fg_fps = mForegroundFPS;
+        frame.fg_sps = mForegroundSPS;
+        frame.fg_spf = mForegroundSPF;
+
+        // Only log frames that actually processed samples (samples==0 is meaningless).
+        if (mLogger && frame.samples > 0)
+            mLogger->record(frame);
+#else
+        (void)waitUs; (void)fgStart;
+#endif
+
         if ((mBackgroundLastFPS!=SharedDataPtr->FPS) ||
             (mBackgroundLastSPS!=SharedDataPtr->SPS) ||
             (mBackgroundLastSPF!=SharedDataPtr->SPF) ||
@@ -864,17 +904,17 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr)
        // qDebug() << "Main thread: handleResults slot is running in thread" << QThread::currentThreadId()<<" "<<count;
 }
 
-void MainWindow::HandleAudioInput()
+void MainWindow::HandleAudioInput(int64_t emitTimestampUs)
 {
-HandleInputData(mAudioWorker->mRawAudio);
+HandleInputData(mAudioWorker->mRawAudio, emitTimestampUs);
 }
-void MainWindow::HandlePlaybackInput()
+void MainWindow::HandlePlaybackInput(int64_t emitTimestampUs)
 {
- HandleInputData(mPlaybackWorker->mRawAudio);
+ HandleInputData(mPlaybackWorker->mRawAudio, emitTimestampUs);
 }
-void MainWindow::HandleSimInput()
+void MainWindow::HandleSimInput(int64_t emitTimestampUs)
 {
- HandleInputData(mSimWorker->mRawAudio);
+ HandleInputData(mSimWorker->mRawAudio, emitTimestampUs);
 }
 void MainWindow::HandlePlaybackDoneReadingFile()
 {
@@ -898,9 +938,10 @@ void MainWindow::HandleSimDone()
     AudioCloseCheck();
     statusBar()->showMessage("Stopped");
 }
-void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
+void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr, Logger::Frame &bd)
 {
     int    SamplesToAdd=mLocalTotalSamplesWritten-SharedDataPtr->MainThrd_LastTotalSamplesWritten;
+    bd.samples = SamplesToAdd;   // backlog snapshot before the loop consumes it
 
     int slice;
     if (!mForegroundTimerStarted)
@@ -913,28 +954,34 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
     }
     if (SamplesToAdd>0)
     {
+        int64_t ts;   // section timer (TG_NOW()==0 when logging disabled -> folds away)
         while (SamplesToAdd>0)
         {
          if ( SamplesToAdd>DETECTOR_NUMBER_OF_SAMPLES) slice= DETECTOR_NUMBER_OF_SAMPLES;
          else slice=SamplesToAdd;
 
+         ts = TG_NOW();
          for (int i=0;i<slice;i++)
           {
            mInputBlock[i]=SharedDataPtr->Samples[SharedDataPtr->MainThrd_LastWriteIndex];
            SharedDataPtr->MainThrd_LastWriteIndex=(SharedDataPtr->MainThrd_LastWriteIndex+1)%SharedDataPtr->NumberOfAudioSamples;
           }
           if (mWavWriter) mWavWriter->write(mInputBlock,slice);
+          bd.copy_us += TG_NOW() - ts;
 
-
+          ts = TG_NOW();
           mSoundRenderer.processSamples(mInputBlock,slice);
+          bd.sound_us += TG_NOW() - ts;
 
-
+          ts = TG_NOW();
           tg_result_t r;
           if (tg_process(mCtx,mInputBlock, slice, &r) != 0) {
               qInfo()<<"tg_process failed";
               return ;
           }
+          bd.tg_us += TG_NOW() - ts;
 
+          ts = TG_NOW();
           double threshhold=r.onset_threshold;
           for (int i=0;i<r.processed_pcm_len;i++)
            {
@@ -1014,10 +1061,12 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
                else qInfo()<< "Unkown Event Type";
 
              }
+        bd.ui_us += TG_NOW() - ts;
         mForegroundSampleCount+=slice;
         SamplesToAdd=SamplesToAdd-slice;
         }
 
+        ts = TG_NOW();
         SharedDataPtr->MainThrd_LastTotalSamplesWritten=mLocalTotalSamplesWritten;
         PurgeHistory();
         ui->ScopePlot->xAxis->setRange(mLocalGraphTicks, (double)mCurrentSamplesPerSecond/ui->ScopeScaleSpinBox->value(), Qt::AlignRight);
@@ -1025,6 +1074,7 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr)
         ui->ScopePlot->yAxis->rescale();
         ui->ScopePlot->replot(QCustomPlot::rpQueuedReplot);
         ui->SoundImage->DrawImage();
+        bd.plot_us += TG_NOW() - ts;
 
         mForegroundFrameCount++;
         double CurrentTime;

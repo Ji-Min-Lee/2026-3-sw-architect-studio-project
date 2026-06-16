@@ -1,5 +1,6 @@
 // AudioWorker.cpp
 #include "AudioWorker.h"
+#include "Logger.h"   // nowUs() / TG_NOW()
 #include <QThread>
 
 
@@ -102,7 +103,7 @@ void TAudioWorker::ProcessAudioInput()
         SampleCount=0;
     }
     //qDebug() << "worker thread: handleResults slot is running in thread" << QThread::currentThreadId()<<" "<<count;
-    emit AudioDataReady(); // Emit data to the main thread
+    emit AudioDataReady(TG_NOW()); // T0: emit time (0 when logging disabled)
 
 }
 

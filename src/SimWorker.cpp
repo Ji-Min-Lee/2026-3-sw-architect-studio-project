@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QDebug>
 #include "SimWorker.h"
+#include "Logger.h"   // nowUs() / TG_NOW()
 
 #if defined(Q_OS_WIN)
 #define SIM_SAMPLE_PERIOD_MSEC 10
@@ -102,7 +103,7 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
         mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
         mRawAudio->TotalSamplesWritten+=NumberOfSamples;
         mRawAudio->Mutex.unlock();
-        emit SimDataReady(); // Emit data to the main thread
+        emit SimDataReady(TG_NOW()); // T0: emit time (0 when logging disabled)
 
         ++mFrameCount;
         mSampleCount+=NumberOfSamples;
