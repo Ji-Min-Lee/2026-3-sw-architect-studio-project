@@ -18,5 +18,12 @@ CMakeLists.txt.user
 # macOS
 .DS_Store
 
-# Generated noise WAV files (large — regenerate with: python3 src/tools/add_pink_noise.py)
-src/TimeGrapherTestFilesWeishiMic/Noise/
+# Noise/: only NH35 SNR variants are tracked (used in EXP-03)
+# All other watches and the Extended/ dir are excluded (too large)
+src/TimeGrapherTestFilesWeishiMic/Noise/Extended/
+src/TimeGrapherTestFilesWeishiMic/Noise/18000BPH_*
+src/TimeGrapherTestFilesWeishiMic/Noise/21600BPH_8215*
+src/TimeGrapherTestFilesWeishiMic/Noise/21600BPH_NH35.wav
+src/TimeGrapherTestFilesWeishiMic/Noise/21600BPH_NH39*
+src/TimeGrapherTestFilesWeishiMic/Noise/21600BPH_ST*
+src/TimeGrapherTestFilesWeishiMic/Noise/28800BPH_*
