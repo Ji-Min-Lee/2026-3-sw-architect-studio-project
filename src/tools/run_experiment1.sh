@@ -20,7 +20,8 @@ set -e
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SRC_DIR=$(dirname "$SCRIPT_DIR")
 BIN="$SRC_DIR/build-log/TimeGrapher"
-LOG_DIR="$SRC_DIR/logs"
+RAW_LOG_DIR="$SRC_DIR/logs"
+LOG_DIR="$SRC_DIR/logs/EXP-01"
 DURATION=300
 SCHED_PRIORITY=50
 
@@ -43,6 +44,7 @@ if ! command -v chrt &>/dev/null; then
     exit 1
 fi
 
+mkdir -p "$RAW_LOG_DIR"
 mkdir -p "$LOG_DIR"
 
 # ── X11 environment (RPi) ─────────────────────────────────────
@@ -100,16 +102,17 @@ for RATE in "${RATES[@]}"; do
         # Give the Logger destructor a moment to flush CSV
         sleep 1
 
-        # Rename the newest log file to include rate + sched label
-        NEWEST=$(ls -t "$LOG_DIR"/log_*.csv 2>/dev/null | grep -v '_sys\.csv' | head -1)
+        # Move newest log from raw dir into EXP-01, adding rate + sched label
+        NEWEST=$(ls -t "$RAW_LOG_DIR"/log_*.csv 2>/dev/null | grep -v '_sys\.csv' | grep -v 'EXP-01' | head -1)
         if [ -n "$NEWEST" ]; then
-            BASE="${NEWEST%.csv}"
-            mv "$NEWEST"        "${BASE}_${LABEL}.csv"
-            SYS="${BASE}_sys.csv"
+            BASENAME=$(basename "${NEWEST%.csv}")
+            DEST="$LOG_DIR/${BASENAME}_${LABEL}.csv"
+            mv "$NEWEST" "$DEST"
+            SYS="${NEWEST%.csv}_sys.csv"
             if [ -f "$SYS" ]; then
-                mv "$SYS"       "${BASE}_${LABEL}_sys.csv"
+                mv "$SYS" "$LOG_DIR/${BASENAME}_${LABEL}_sys.csv"
             fi
-            echo "  -> ${BASE}_${LABEL}.csv"
+            echo "  -> $DEST"
         else
             echo "  [warn] No log file found for run $RUN"
         fi
@@ -124,5 +127,5 @@ echo " Analyze each run:"
 echo "   python3 $SCRIPT_DIR/analyze_log.py $LOG_DIR/<logfile>.csv"
 echo ""
 echo " Quick summary of block drops across all runs:"
-grep -h "block_drops" "$LOG_DIR"/log_*.csv 2>/dev/null | head -20 || true
+grep -rh "block_drops" "$LOG_DIR"/*.csv 2>/dev/null | head -20 || true
 echo "============================================================"
