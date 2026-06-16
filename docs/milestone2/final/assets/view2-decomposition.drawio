@@ -1,152 +1,190 @@
-<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="820" math="0" shadow="0">
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="760" math="0" shadow="0">
   <root>
-    <mxCell id="0"/>
-    <mxCell id="1" parent="0"/>
-
-    <!-- Title -->
-    <mxCell id="t0" value="Graph Tab Decomposition View" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=15;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="100" y="15" width="700" height="28" as="geometry"/>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+    <mxCell id="t0" value="Graph Tab Decomposition View (Presentation Layer)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="50" y="12" width="800" height="28" as="geometry"/>
     </mxCell>
 
-    <!-- Outer Presentation boundary (plain rect, not swimlane to avoid label issue) -->
-    <mxCell id="PKG_LBL" value="&lt;&lt;layer&gt;&gt; Presentation" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=12;fontStyle=1;fontColor=#6c8ebf;" vertex="1" parent="1">
-      <mxGeometry x="55" y="53" width="220" height="20" as="geometry"/>
+    <!-- Presentation boundary (plain rect, NOT swimlane to avoid label issue) -->
+    <mxCell id="PRES" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=3;opacity=30;" vertex="1" parent="1">
+      <mxGeometry x="50" y="50" width="820" height="680" as="geometry"/>
     </mxCell>
-    <mxCell id="PKG" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF3FB;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
-      <mxGeometry x="50" y="70" width="780" height="540" as="geometry"/>
+    <mxCell id="PRES_LBL" value="&lt;&lt;layer&gt;&gt; Presentation" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=12;align=left;fontColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="58" y="55" width="240" height="22" as="geometry"/>
     </mxCell>
 
     <!-- MainWindow -->
     <mxCell id="MW" value="MainWindow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-      <mxGeometry x="330" y="100" width="160" height="45" as="geometry"/>
+      <mxGeometry x="350" y="88" width="180" height="40" as="geometry"/>
     </mxCell>
 
     <!-- GraphTabManager -->
     <mxCell id="GTM" value="GraphTabManager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-      <mxGeometry x="315" y="195" width="190" height="45" as="geometry"/>
+      <mxGeometry x="340" y="185" width="200" height="40" as="geometry"/>
     </mxCell>
 
     <!-- IGraphTab interface -->
-    <mxCell id="ITAB" value="&lt;&lt;interface&gt;&gt;&#xa;IGraphTab&#xa;+ updateData(m: Measurement)&#xa;+ showEvent()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontStyle=2;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="295" y="300" width="230" height="80" as="geometry"/>
+    <mxCell id="IGT" value="&lt;&lt;interface&gt;&gt;&#xa;IGraphTab" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=3;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="350" y="290" width="180" height="50" as="geometry"/>
     </mxCell>
 
-    <!-- HIGH Priority group -->
-    <mxCell id="GRP1_LBL" value="HIGH Priority" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=1;fontColor=#006600;" vertex="1" parent="1">
-      <mxGeometry x="75" y="435" width="190" height="18" as="geometry"/>
+    <!-- HIGH priority group -->
+    <mxCell id="GH" value="HIGH priority (GREEN = demo survival)" style="swimlane;fontStyle=1;align=center;startSize=28;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;arcSize=2;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="65" y="400" width="760" height="80" as="geometry"/>
     </mxCell>
-    <mxCell id="GRP1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
-      <mxGeometry x="70" y="455" width="200" height="130" as="geometry"/>
+    <mxCell id="T1" value="TraceDisplay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="GH">
+      <mxGeometry x="20" y="35" width="155" height="30" as="geometry"/>
     </mxCell>
-    <mxCell id="T1" value="TraceDisplay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="80" y="470" width="170" height="35" as="geometry"/>
+    <mxCell id="T2" value="VarioDisplay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="GH">
+      <mxGeometry x="195" y="35" width="155" height="30" as="geometry"/>
     </mxCell>
-    <mxCell id="T2" value="VarioDisplay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="80" y="515" width="170" height="35" as="geometry"/>
-    </mxCell>
-    <mxCell id="T3" value="BeatErrorTrace" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="80" y="560" width="170" height="35" as="geometry"/>
+    <mxCell id="T3" value="BeatErrorTrace" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="GH">
+      <mxGeometry x="370" y="35" width="155" height="30" as="geometry"/>
     </mxCell>
 
-    <!-- MEDIUM Priority group -->
-    <mxCell id="GRP2_LBL" value="MEDIUM Priority" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=1;fontColor=#996600;" vertex="1" parent="1">
-      <mxGeometry x="290" y="435" width="240" height="18" as="geometry"/>
+    <!-- MEDIUM priority group -->
+    <mxCell id="GM" value="MEDIUM priority (YELLOW)" style="swimlane;fontStyle=1;align=center;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;arcSize=2;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="65" y="500" width="760" height="80" as="geometry"/>
     </mxCell>
-    <mxCell id="GRP2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
-      <mxGeometry x="285" y="455" width="250" height="100" as="geometry"/>
+    <mxCell id="T4" value="ScopeDisplay (amp)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="GM">
+      <mxGeometry x="10" y="35" width="135" height="30" as="geometry"/>
     </mxCell>
-    <mxCell id="T4" value="ScopeDisplay (x2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="295" y="470" width="115" height="35" as="geometry"/>
+    <mxCell id="T5" value="ScopeDisplay (rate)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="GM">
+      <mxGeometry x="155" y="35" width="135" height="30" as="geometry"/>
     </mxCell>
-    <mxCell id="T5" value="LongTermPerf" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="420" y="470" width="105" height="35" as="geometry"/>
+    <mxCell id="T6" value="LongTermPerf" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="GM">
+      <mxGeometry x="300" y="35" width="130" height="30" as="geometry"/>
     </mxCell>
-    <mxCell id="T6" value="SequenceDisplay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="295" y="515" width="115" height="35" as="geometry"/>
+    <mxCell id="T7" value="SequenceDisplay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="GM">
+      <mxGeometry x="440" y="35" width="135" height="30" as="geometry"/>
     </mxCell>
-    <mxCell id="T7" value="EscapementAnalyzer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="420" y="515" width="105" height="35" as="geometry"/>
-    </mxCell>
-
-    <!-- LOW Priority group -->
-    <mxCell id="GRP3_LBL" value="LOW / Optional" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=1;fontColor=#990000;" vertex="1" parent="1">
-      <mxGeometry x="565" y="435" width="240" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="GRP3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" vertex="1" parent="1">
-      <mxGeometry x="560" y="455" width="250" height="130" as="geometry"/>
-    </mxCell>
-    <mxCell id="T8" value="Spectrogram" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="570" y="470" width="115" height="35" as="geometry"/>
-    </mxCell>
-    <mxCell id="T9" value="WaveformComparison" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="695" y="470" width="105" height="35" as="geometry"/>
-    </mxCell>
-    <mxCell id="T10" value="ScopeMode" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="570" y="515" width="115" height="35" as="geometry"/>
-    </mxCell>
-    <mxCell id="T11" value="ScopeFunction (x4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="695" y="515" width="105" height="35" as="geometry"/>
+    <mxCell id="T8" value="EscapementAnalyzer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="GM">
+      <mxGeometry x="585" y="35" width="155" height="30" as="geometry"/>
     </mxCell>
 
-    <!-- Edges -->
-    <mxCell id="E1" value="" style="endArrow=block;endFill=1;" edge="1" parent="1" source="MW" target="GTM">
+    <!-- LOW priority group -->
+    <mxCell id="GL" value="LOW / optional (RED)" style="swimlane;fontStyle=1;align=center;startSize=28;fillColor=#f8cecc;strokeColor=#b85450;rounded=1;arcSize=2;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="65" y="600" width="760" height="115" as="geometry"/>
+    </mxCell>
+    <mxCell id="T9" value="Spectrogram" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="GL">
+      <mxGeometry x="10" y="33" width="120" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="T10" value="WaveformComparison" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="GL">
+      <mxGeometry x="140" y="33" width="155" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="T11" value="ScopeMode" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="GL">
+      <mxGeometry x="305" y="33" width="120" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="T12" value="ScopeFunction×4" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="GL">
+      <mxGeometry x="435" y="33" width="130" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="T13" value="BeatErrorTrace (M)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="GL">
+      <mxGeometry x="575" y="33" width="155" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- Connectors -->
+    <mxCell id="MW_GTM" value="manages" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=10;" edge="1" parent="1" source="MW" target="GTM">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="E2" value="manages" style="dashed=1;endArrow=open;endFill=0;fontSize=10;" edge="1" parent="1" source="GTM" target="ITAB">
+    <mxCell id="GTM_IGT" value="manages" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=10;" edge="1" parent="1" source="GTM" target="IGT">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="E3" value="&lt;&lt;realize&gt;&gt;" style="dashed=1;endArrow=block;endFill=0;fontSize=10;" edge="1" parent="1" source="GRP1" target="ITAB">
+    <mxCell id="IGT_H" value="&lt;&lt;realize&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=block;endFill=0;strokeColor=#82b366;fontColor=#82b366;fontSize=10;" edge="1" parent="1" source="GH" target="IGT">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="E4" value="&lt;&lt;realize&gt;&gt;" style="dashed=1;endArrow=block;endFill=0;fontSize=10;" edge="1" parent="1" source="GRP2" target="ITAB">
+    <mxCell id="IGT_M" value="&lt;&lt;realize&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=block;endFill=0;strokeColor=#d6b656;fontColor=#d6b656;fontSize=10;" edge="1" parent="1" source="GM" target="IGT">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="E5" value="&lt;&lt;realize&gt;&gt;" style="dashed=1;endArrow=block;endFill=0;fontSize=10;" edge="1" parent="1" source="GRP3" target="ITAB">
+    <mxCell id="IGT_L" value="&lt;&lt;realize&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=block;endFill=0;strokeColor=#b85450;fontColor=#b85450;fontSize=10;" edge="1" parent="1" source="GL" target="IGT">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
 
-    <!-- Legend -->
-    <mxCell id="LEG_TITLE" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
-      <mxGeometry x="895" y="70" width="80" height="22" as="geometry"/>
-    </mxCell>
+    <!-- ===== LEGEND ===== -->
     <mxCell id="LEG_BOX" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="1">
-      <mxGeometry x="885" y="93" width="290" height="280" as="geometry"/>
+      <mxGeometry x="897" y="50" width="480" height="540" as="geometry"/>
     </mxCell>
-    <mxCell id="LL1" value="&lt;&lt;interface&gt;&gt; = 탭이 구현해야 할 계약&#xa;  updateData() + showEvent()" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="898" y="105" width="265" height="35" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL2" value="&lt;&lt;realize&gt;&gt; = interface 구현 (dashed arrow)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="898" y="148" width="265" height="20" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL3_HDR" value="Color = 개발 우선순위:" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="898" y="178" width="180" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL3_G" value="" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-      <mxGeometry x="898" y="200" width="14" height="14" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL3_GT" value="HIGH  (M3 demo 필수)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="917" y="198" width="170" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL3_Y" value="" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-      <mxGeometry x="898" y="222" width="14" height="14" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL3_YT" value="MEDIUM  (06/29 목표)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="917" y="220" width="170" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL3_R" value="" style="rounded=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-      <mxGeometry x="898" y="244" width="14" height="14" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL3_RT" value="LOW / Optional  (time permitting)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="917" y="242" width="180" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL4" value="Rule: 새 탭 추가 = IGraphTab 구현 클래스 1개&#xa;GraphTabManager에 등록&#xa;Domain 레이어 이하 변경 없음" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=2;" vertex="1" parent="1">
-      <mxGeometry x="898" y="272" width="265" height="85" as="geometry"/>
+    <mxCell id="LEG_T" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="58" width="80" height="20" as="geometry"/>
     </mxCell>
 
-    <!-- ADD Note -->
-    <mxCell id="ADDNOTE" value="ADD-2-02 (R1): updateData() 내 isVisible() 가드&#xa;비활성 탭은 replot() skip&#xa;탭 전환 시 showEvent() + singleShot(0) catch-up" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="885" y="393" width="290" height="60" as="geometry"/>
+    <!-- Section: Relationships -->
+    <mxCell id="LGS1" value="Relationships" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="85" width="450" height="16" as="geometry"/>
+    </mxCell>
+    <!-- manages edge -->
+    <mxCell id="LGE1" value="" style="dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="910" y="112" as="sourcePoint"/>
+        <mxPoint x="965" y="112" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="LGT1" value="manages  (navigates to IGraphTab)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="973" y="104" width="400" height="18" as="geometry"/>
+    </mxCell>
+    <!-- realize edge (hollow triangle) -->
+    <mxCell id="LGE2" value="" style="dashed=1;endArrow=block;endFill=0;strokeColor=#666666;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="910" y="138" as="sourcePoint"/>
+        <mxPoint x="965" y="138" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="LGT2" value="&lt;&lt;realize&gt;&gt;  (concrete tab implements IGraphTab)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="973" y="130" width="400" height="18" as="geometry"/>
     </mxCell>
 
+    <!-- Section: Interfaces (actual component style copies) -->
+    <mxCell id="LGS2" value="Component Styles  (actual styles used in diagram)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="162" width="450" height="16" as="geometry"/>
+    </mxCell>
+    <!-- IGraphTab copy -->
+    <mxCell id="LGC1" value="&lt;&lt;interface&gt;&gt;&#xa;IGraphTab" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=3;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="180" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGT3" value="= interface  (gray, italic)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1070" y="192" width="305" height="18" as="geometry"/>
+    </mxCell>
+    <!-- Manager/class copy -->
+    <mxCell id="LGC2" value="GraphTabManager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="232" width="150" height="32" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGT4" value="= Presentation class  (blue, bold)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1070" y="240" width="305" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- Section: Priority levels (actual swimlane style copies) -->
+    <mxCell id="LGS3" value="Priority Levels  (actual group styles)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="277" width="450" height="16" as="geometry"/>
+    </mxCell>
+    <!-- HIGH box copy -->
+    <mxCell id="LGH" value="HIGH (GREEN)" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;arcSize=2;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="295" width="450" height="26" as="geometry"/>
+    </mxCell>
+    <!-- MEDIUM box copy -->
+    <mxCell id="LGM" value="MEDIUM (YELLOW)" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;arcSize=2;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="327" width="450" height="26" as="geometry"/>
+    </mxCell>
+    <!-- LOW box copy -->
+    <mxCell id="LGL" value="LOW / optional (RED)" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#f8cecc;strokeColor=#b85450;rounded=1;arcSize=2;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="359" width="450" height="26" as="geometry"/>
+    </mxCell>
+    <!-- Concrete tab inside HIGH copy -->
+    <mxCell id="LGC3" value="TraceDisplay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="396" width="130" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGT5" value="= concrete tab  (inherits priority group color)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1050" y="402" width="335" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- Section: Extension Rule -->
+    <mxCell id="LGS4" value="Extension Rule" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="910" y="435" width="450" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGR" value="To add a new tab:&#xa;1. Create class implementing IGraphTab&#xa;2. Register in GraphTabManager&#xa;3. Zero changes to Domain or below" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="910" y="453" width="455" height="68" as="geometry"/>
+    </mxCell>
+    <!-- ADD-2-02 note -->
+    <mxCell id="LGADD" value="ADD-2-02 (R1): isVisible() guard in updateData()&#xa;showEvent() + singleShot(0) for tab-switch catch-up" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="910" y="526" width="455" height="40" as="geometry"/>
+    </mxCell>
   </root>
 </mxGraphModel>

@@ -1,10 +1,10 @@
-<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="820" math="0" shadow="0">
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="720" math="0" shadow="0">
   <root>
-    <mxCell id="0"/>
-    <mxCell id="1" parent="0"/>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
     <mxCell id="t0" value="TimeGrapher 4-Layer Allowed-to-Use View" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=15;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="100" y="15" width="680" height="28" as="geometry"/>
+      <mxGeometry x="80" y="15" width="660" height="28" as="geometry"/>
     </mxCell>
+    <!-- Presentation -->
     <mxCell id="L1" value="&lt;&lt;layer&gt;&gt;&#xa;Presentation" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#dae8fc;strokeColor=#6c8ebf;rounded=1;arcSize=3;fontSize=13;" vertex="1" parent="1">
       <mxGeometry x="80" y="55" width="660" height="115" as="geometry"/>
     </mxCell>
@@ -17,6 +17,7 @@
     <mxCell id="L1c" value="11 Graph Tabs&#xa;(TraceDisplay, VarioDisplay, ...)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="L1">
       <mxGeometry x="415" y="45" width="210" height="40" as="geometry"/>
     </mxCell>
+    <!-- Domain -->
     <mxCell id="L2" value="&lt;&lt;layer&gt;&gt;&#xa;Domain" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;arcSize=3;fontSize=13;" vertex="1" parent="1">
       <mxGeometry x="80" y="220" width="660" height="115" as="geometry"/>
     </mxCell>
@@ -29,6 +30,7 @@
     <mxCell id="L2c" value="MeasurementStore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="L2">
       <mxGeometry x="455" y="45" width="155" height="40" as="geometry"/>
     </mxCell>
+    <!-- Signal Processing -->
     <mxCell id="L3" value="&lt;&lt;layer&gt;&gt;&#xa;Signal Processing" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;arcSize=3;fontSize=13;" vertex="1" parent="1">
       <mxGeometry x="80" y="385" width="660" height="110" as="geometry"/>
     </mxCell>
@@ -38,12 +40,14 @@
     <mxCell id="L3b" value="SignalBuffer (ring buffer)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="L3">
       <mxGeometry x="385" y="40" width="175" height="40" as="geometry"/>
     </mxCell>
+    <!-- Acquisition -->
     <mxCell id="L4" value="&lt;&lt;layer&gt;&gt;&#xa;Acquisition" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#f8cecc;strokeColor=#b85450;rounded=1;arcSize=3;fontSize=13;" vertex="1" parent="1">
       <mxGeometry x="80" y="545" width="660" height="95" as="geometry"/>
     </mxCell>
     <mxCell id="L4a" value="AudioCapture (Live / Playback / Sim)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="L4">
       <mxGeometry x="185" y="30" width="250" height="40" as="geometry"/>
     </mxCell>
+    <!-- Allowed-to-use arrows -->
     <mxCell id="A12" value="&lt;&lt;allowed-to-use&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=10;" edge="1" parent="1" source="L1" target="L2">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
@@ -53,78 +57,83 @@
     <mxCell id="A34" value="&lt;&lt;allowed-to-use&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;strokeColor=#d6b656;fontColor=#d6b656;fontSize=10;" edge="1" parent="1" source="L3" target="L4">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
+    <!-- NOT ALLOWED -->
     <mxCell id="NA1" value="X NOT ALLOWED" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=block;endFill=1;strokeColor=#FF0000;fontColor=#FF0000;fontSize=9;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="L1" target="L3">
       <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="30" y="112"/>
-          <mxPoint x="30" y="440"/>
-        </Array>
+        <Array as="points"><mxPoint x="30" y="112"/><mxPoint x="30" y="440"/></Array>
       </mxGeometry>
     </mxCell>
     <mxCell id="NA2" value="X NOT ALLOWED" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=block;endFill=1;strokeColor=#FF0000;fontColor=#FF0000;fontSize=9;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="L1" target="L4">
       <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="10" y="112"/>
-          <mxPoint x="10" y="592"/>
-        </Array>
+        <Array as="points"><mxPoint x="10" y="112"/><mxPoint x="10" y="592"/></Array>
       </mxGeometry>
     </mxCell>
-    <mxCell id="LEG_TITLE" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
-      <mxGeometry x="810" y="55" width="80" height="22" as="geometry"/>
-    </mxCell>
+
+    <!-- ===== LEGEND ===== -->
     <mxCell id="LEG_BOX" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="1">
-      <mxGeometry x="800" y="78" width="290" height="310" as="geometry"/>
+      <mxGeometry x="800" y="55" width="350" height="450" as="geometry"/>
     </mxCell>
-    <mxCell id="LL1_BAR" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#6c8ebf;strokeColor=#6c8ebf;" vertex="1" parent="1">
-      <mxGeometry x="815" y="95" width="50" height="3" as="geometry"/>
+    <mxCell id="LEG_T" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
+      <mxGeometry x="812" y="62" width="80" height="20" as="geometry"/>
     </mxCell>
-    <mxCell id="LL1_ARR" value="&#x25BA;" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#6c8ebf;" vertex="1" parent="1">
-      <mxGeometry x="862" y="87" width="20" height="18" as="geometry"/>
+
+    <!-- Section 1: Connection Types -->
+    <mxCell id="LS1" value="Connection Types" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="812" y="88" width="320" height="16" as="geometry"/>
     </mxCell>
-    <mxCell id="LL1_TXT" value="&lt;&lt;allowed-to-use&gt;&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#6c8ebf;" vertex="1" parent="1">
-      <mxGeometry x="882" y="87" width="190" height="18" as="geometry"/>
+    <!-- Edge 1: allowed-to-use — no label, separate text cell -->
+    <mxCell id="LE1" value="" style="dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="812" y="115" as="sourcePoint"/>
+        <mxPoint x="868" y="115" as="targetPoint"/>
+      </mxGeometry>
     </mxCell>
-    <mxCell id="LL2_BAR" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FF0000;strokeColor=#FF0000;" vertex="1" parent="1">
-      <mxGeometry x="815" y="127" width="50" height="3" as="geometry"/>
+    <mxCell id="LT1" value="&lt;&lt;allowed-to-use&gt;&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="876" y="107" width="262" height="18" as="geometry"/>
     </mxCell>
-    <mxCell id="LL2_ARR" value="&#x25BA;" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#FF0000;" vertex="1" parent="1">
-      <mxGeometry x="862" y="119" width="20" height="18" as="geometry"/>
+    <!-- Edge 2: NOT ALLOWED -->
+    <mxCell id="LE2" value="" style="dashed=1;endArrow=block;endFill=1;strokeColor=#FF0000;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="812" y="143" as="sourcePoint"/>
+        <mxPoint x="868" y="143" as="targetPoint"/>
+      </mxGeometry>
     </mxCell>
-    <mxCell id="LL2_TXT" value="X NOT ALLOWED (우회 의존 금지)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#FF0000;" vertex="1" parent="1">
-      <mxGeometry x="882" y="119" width="190" height="18" as="geometry"/>
+    <mxCell id="LT2" value="X NOT ALLOWED (bypass)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#FF0000;" vertex="1" parent="1">
+      <mxGeometry x="876" y="135" width="262" height="18" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_HDR" value="Layer Colors:" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="815" y="155" width="120" height="18" as="geometry"/>
+
+    <!-- Section 2: Layer Types — actual component style copies -->
+    <mxCell id="LS2" value="Layer Types  (actual component styles)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="812" y="165" width="320" height="16" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_P" value="" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-      <mxGeometry x="815" y="177" width="14" height="14" as="geometry"/>
+    <mxCell id="LLP" value="&lt;&lt;layer&gt;&gt; Presentation" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;rounded=1;arcSize=3;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="812" y="183" width="320" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_PT" value="Presentation" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="834" y="175" width="110" height="18" as="geometry"/>
+    <mxCell id="LLD" value="&lt;&lt;layer&gt;&gt; Domain" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;arcSize=3;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="812" y="215" width="320" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_D" value="" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-      <mxGeometry x="815" y="199" width="14" height="14" as="geometry"/>
+    <mxCell id="LLSP" value="&lt;&lt;layer&gt;&gt; Signal Processing" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;arcSize=3;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="812" y="247" width="320" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_DT" value="Domain" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="834" y="197" width="110" height="18" as="geometry"/>
+    <mxCell id="LLA" value="&lt;&lt;layer&gt;&gt; Acquisition" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#f8cecc;strokeColor=#b85450;rounded=1;arcSize=3;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="812" y="279" width="320" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_SP" value="" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-      <mxGeometry x="815" y="221" width="14" height="14" as="geometry"/>
+    <!-- Mini module inside Presentation -->
+    <mxCell id="LLMOD" value="Module  (e.g., MainWindow)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="812" y="311" width="320" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_SPT" value="Signal Processing" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="834" y="219" width="110" height="18" as="geometry"/>
+
+    <!-- Section 3: Rules -->
+    <mxCell id="LS3" value="Rules" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="812" y="346" width="320" height="16" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_A" value="" style="rounded=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-      <mxGeometry x="815" y="243" width="14" height="14" as="geometry"/>
+    <mxCell id="LLR" value="&#x2022; Dependency direction: downward only&#xa;&#x2022; Layer bridging (bypass) is forbidden&#xa;&#x2022; New tab = Presentation class only&#xa;  (zero changes to Domain or below)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="812" y="362" width="320" height="70" as="geometry"/>
     </mxCell>
-    <mxCell id="LL3_AT" value="Acquisition" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="834" y="241" width="110" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL4" value="Rule: dependency direction = downward only&#xa;Layer bridging is forbidden&#xa;New tab = Presentation class only&#xa;(zero changes to Domain or below)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=2;" vertex="1" parent="1">
-      <mxGeometry x="815" y="268" width="265" height="100" as="geometry"/>
-    </mxCell>
-    <mxCell id="ADDNOTE" value="ADD-2-02 (R1): isVisible() guard&#xa;각 탭 updateData()에 추가&#xa;-> 비활성 탭은 replot() skip" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="800" y="408" width="290" height="55" as="geometry"/>
+
+    <!-- ADD-2-02 note: actual style of annotation box -->
+    <mxCell id="LLADD" value="ADD-2-02 (R1): isVisible() guard&#xa;각 탭 updateData()에 추가 -&gt; replot() skip" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="812" y="440" width="320" height="40" as="geometry"/>
     </mxCell>
   </root>
 </mxGraphModel>

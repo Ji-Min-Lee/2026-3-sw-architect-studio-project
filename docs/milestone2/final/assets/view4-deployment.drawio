@@ -1,154 +1,224 @@
-<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="820" math="0" shadow="0">
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="680" math="0" shadow="0">
   <root>
-    <mxCell id="0"/>
-    <mxCell id="1" parent="0"/>
-
-    <!-- Title -->
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
     <mxCell id="t0" value="Raspberry Pi 5 Hardware Deployment View" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=15;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="100" y="15" width="780" height="28" as="geometry"/>
+      <mxGeometry x="40" y="12" width="860" height="28" as="geometry"/>
     </mxCell>
 
-    <!-- Dev Machine node -->
-    <mxCell id="DEV_LBL" value="&lt;&lt;device&gt;&gt;&#xa;Development Machine (macOS)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
-      <mxGeometry x="55" y="53" width="210" height="35" as="geometry"/>
+    <!-- Dev Machine (gray thick border) -->
+    <mxCell id="DEV" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=3;" vertex="1" parent="1">
+      <mxGeometry x="50" y="55" width="200" height="520" as="geometry"/>
     </mxCell>
-    <mxCell id="DEV" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=3;" vertex="1" parent="1">
-      <mxGeometry x="50" y="88" width="220" height="150" as="geometry"/>
+    <mxCell id="DEV_ST" value="&lt;&lt;device&gt;&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=10;fontColor=#666666;align=center;" vertex="1" parent="1">
+      <mxGeometry x="50" y="58" width="200" height="18" as="geometry"/>
     </mxCell>
-    <mxCell id="DEV_IDE" value="Qt Creator IDE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="70" y="105" width="180" height="35" as="geometry"/>
+    <mxCell id="DEV_NM" value="Development Machine&#xa;(macOS)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;align=center;" vertex="1" parent="1">
+      <mxGeometry x="50" y="74" width="200" height="34" as="geometry"/>
     </mxCell>
-    <mxCell id="DEV_SRC" value="TimeGrapher Source" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="70" y="155" width="180" height="35" as="geometry"/>
+    <!-- Dev Machine OS env -->
+    <mxCell id="DEV_OS" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#888888;strokeWidth=1;" vertex="1" parent="1">
+      <mxGeometry x="62" y="118" width="176" height="340" as="geometry"/>
     </mxCell>
-
-    <!-- RPi 5 node outer border -->
-    <mxCell id="RPI_LBL" value="&lt;&lt;device&gt;&gt;&#xa;Raspberry Pi 5  (ARM64, 8GB)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=1;fontColor=#006600;" vertex="1" parent="1">
-      <mxGeometry x="340" y="53" width="320" height="35" as="geometry"/>
+    <mxCell id="DEV_OS_ST" value="&lt;&lt;execution environment&gt;&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=9;fontColor=#555555;align=center;" vertex="1" parent="1">
+      <mxGeometry x="62" y="121" width="176" height="16" as="geometry"/>
     </mxCell>
-    <mxCell id="RPI_NODE" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FFF0;strokeColor=#006600;strokeWidth=3;" vertex="1" parent="1">
-      <mxGeometry x="335" y="88" width="330" height="520" as="geometry"/>
+    <mxCell id="DEV_OS_NM" value="macOS (arm64)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="62" y="135" width="176" height="18" as="geometry"/>
     </mxCell>
-
-    <!-- RPi OS execution environment -->
-    <mxCell id="OS_LBL" value="&lt;&lt;execution environment&gt;&gt;&#xa;Raspberry Pi OS (Linux ARM64)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=1;fontColor=#006600;" vertex="1" parent="1">
-      <mxGeometry x="345" y="100" width="310" height="35" as="geometry"/>
+    <!-- Dev SW components -->
+    <mxCell id="DEV_IDE" value="Qt Creator / Xcode&#xa;(cross-compile build)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="75" y="162" width="150" height="40" as="geometry"/>
     </mxCell>
-    <mxCell id="OS_BOX" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
-      <mxGeometry x="350" y="135" width="300" height="455" as="geometry"/>
+    <mxCell id="DEV_SIM" value="Simulator mode&#xa;(in-process testing)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="75" y="215" width="150" height="40" as="geometry"/>
     </mxCell>
-
-    <!-- TimeGrapher Executable -->
-    <mxCell id="BIN" value="TimeGrapher Executable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#006600;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-      <mxGeometry x="370" y="155" width="260" height="45" as="geometry"/>
+    <mxCell id="DEV_LOG" value="analyze_log.py&#xa;(EXP log analysis)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="75" y="268" width="150" height="40" as="geometry"/>
     </mxCell>
-
-    <!-- Qt Runtime -->
-    <mxCell id="QTRT" value="Qt Runtime Libraries" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="370" y="225" width="260" height="40" as="geometry"/>
+    <mxCell id="DEV_BIN_LBL" value="artifact" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=9;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="75" y="316" width="80" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="DEV_BIN" value="timegraph (ARM64 binary)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="75" y="330" width="150" height="35" as="geometry"/>
     </mxCell>
 
+    <!-- RPi 5 node (outer device border) -->
+    <mxCell id="RPI" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0fff0;strokeColor=#82b366;strokeWidth=3;" vertex="1" parent="1">
+      <mxGeometry x="290" y="55" width="350" height="520" as="geometry"/>
+    </mxCell>
+    <mxCell id="RPI_ST" value="&lt;&lt;device&gt;&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=10;fontColor=#82b366;align=center;" vertex="1" parent="1">
+      <mxGeometry x="290" y="58" width="350" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="RPI_NM" value="Raspberry Pi 5 (ARM64, 8 GB)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;align=center;" vertex="1" parent="1">
+      <mxGeometry x="290" y="74" width="350" height="22" as="geometry"/>
+    </mxCell>
+    <!-- RPi OS env -->
+    <mxCell id="RPI_OS" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="305" y="108" width="320" height="440" as="geometry"/>
+    </mxCell>
+    <mxCell id="RPI_OS_ST" value="&lt;&lt;execution environment&gt;&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=9;fontColor=#4a7c4a;align=center;" vertex="1" parent="1">
+      <mxGeometry x="305" y="111" width="320" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="RPI_OS_NM" value="Raspberry Pi OS (Bookworm, 64-bit)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="305" y="125" width="320" height="18" as="geometry"/>
+    </mxCell>
     <!-- ALSA -->
-    <mxCell id="ALSA" value="ALSA / Qt Multimedia" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="370" y="285" width="260" height="40" as="geometry"/>
+    <mxCell id="ALSA" value="ALSA (audio driver)&#xa;AGC=OFF required" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="320" y="153" width="185" height="40" as="geometry"/>
+    </mxCell>
+    <!-- AGC warning -->
+    <mxCell id="AGC" value="⚠ AGC must be OFF on every boot&#xa;alsamixer → Auto Gain Control → OFF" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#d79b00;fontStyle=1;fontSize=9;align=left;" vertex="1" parent="1">
+      <mxGeometry x="320" y="203" width="285" height="40" as="geometry"/>
+    </mxCell>
+    <!-- Qt6 runtime -->
+    <mxCell id="QT6" value="Qt6 runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="320" y="255" width="130" height="35" as="geometry"/>
+    </mxCell>
+    <!-- TimeGrapher executable -->
+    <mxCell id="TG_EXE" value="timegraph&#xa;(deployed binary)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="365" y="305" width="160" height="50" as="geometry"/>
+    </mxCell>
+    <!-- Inside timegraph: Audio Thread + UI Thread boxes -->
+    <mxCell id="TG_AT" value="Audio Thread" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="322" y="368" width="130" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="TG_UT" value="UI Thread" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="468" y="368" width="130" height="30" as="geometry"/>
+    </mxCell>
+    <!-- HDMI display output -->
+    <mxCell id="HDMI_SW" value="HDMI display driver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="365" y="440" width="160" height="35" as="geometry"/>
+    </mxCell>
+    <!-- USB HID -->
+    <mxCell id="HID_SW" value="USB HID input driver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="365" y="490" width="160" height="35" as="geometry"/>
     </mxCell>
 
-    <!-- USB audio path label inside RPi -->
-    <mxCell id="USB_IN" value="USB port (audio in)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=2;" vertex="1" parent="1">
-      <mxGeometry x="357" y="345" width="160" height="18" as="geometry"/>
+    <!-- Peripherals (right side) -->
+    <!-- Sensor stand -->
+    <mxCell id="SS_ST" value="&lt;&lt;device&gt;&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=9;fontColor=#666666;align=center;" vertex="1" parent="1">
+      <mxGeometry x="685" y="75" width="150" height="16" as="geometry"/>
     </mxCell>
-    <mxCell id="HDMI_OUT" value="HDMI port (display out)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=2;" vertex="1" parent="1">
-      <mxGeometry x="483" y="345" width="160" height="18" as="geometry"/>
+    <mxCell id="SS" value="USB Sensor Stand&#xa;(watch microphone)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="685" y="90" width="170" height="55" as="geometry"/>
     </mxCell>
-    <mxCell id="USB_TOUCH" value="USB port (touch in)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=2;" vertex="1" parent="1">
-      <mxGeometry x="483" y="365" width="160" height="18" as="geometry"/>
+    <!-- Touchscreen -->
+    <mxCell id="SCR_ST" value="&lt;&lt;device&gt;&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=9;fontColor=#666666;align=center;" vertex="1" parent="1">
+      <mxGeometry x="685" y="228" width="150" height="16" as="geometry"/>
     </mxCell>
-
-    <!-- AGC Warning -->
-    <mxCell id="AGC" value="⚠ AGC must be disabled on each boot&#xa;(alsamixer -> Auto Gain Control -> OFF)&#xa;AGC ON 시 amplitude 측정값 불안정" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#d79b00;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="360" y="390" width="300" height="55" as="geometry"/>
-    </mxCell>
-
-    <!-- SSH note -->
-    <mxCell id="SSH_NOTE" value="Deploy: SSH / SCP" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=2;" vertex="1" parent="1">
-      <mxGeometry x="210" y="155" width="140" height="18" as="geometry"/>
+    <mxCell id="SCR" value="8-inch Touchscreen&#xa;(HDMI + USB HID)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="685" y="243" width="170" height="55" as="geometry"/>
     </mxCell>
 
-    <!-- Watch node -->
-    <mxCell id="WATCH_LBL" value="Mechanical Watch" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="740" y="53" width="160" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="WATCH" value="Mechanical Watch&#xa;(vibration source)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="740" y="73" width="160" height="60" as="geometry"/>
-    </mxCell>
-
-    <!-- USB Sensor Stand node -->
-    <mxCell id="MIC_LBL" value="&lt;&lt;device&gt;&gt; USB Sensor Stand" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="740" y="183" width="165" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="MIC" value="USB Sensor Stand&#xa;+ Watch Microphone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="740" y="200" width="165" height="55" as="geometry"/>
-    </mxCell>
-
-    <!-- Touchscreen node -->
-    <mxCell id="SCR_LBL" value="&lt;&lt;device&gt;&gt; Touchscreen" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="740" y="320" width="165" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="SCR" value="8&quot; IPS Touchscreen&#xa;1280 x 800" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
-      <mxGeometry x="740" y="338" width="165" height="55" as="geometry"/>
-    </mxCell>
-
-    <!-- Connections -->
-    <mxCell id="C_DEP" value="SSH / SCP deploy" style="dashed=1;endArrow=open;endFill=0;strokeColor=#666666;fontColor=#666666;fontSize=10;" edge="1" parent="1" source="DEV_SRC" target="BIN">
+    <!-- === Connections === -->
+    <!-- SSH/SCP from Dev to RPi -->
+    <mxCell id="SSH" value="SSH / SCP&#xa;(deploy binary)" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=block;endFill=1;strokeColor=#666666;fontColor=#666666;fontSize=9;" edge="1" parent="1" source="DEV" target="RPI">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="C_VIB" value="vibration" style="endArrow=open;endFill=0;strokeColor=#666666;fontSize=10;" edge="1" parent="1" source="WATCH" target="MIC">
+    <!-- USB PCM from sensor stand to RPi -->
+    <mxCell id="USB_PCM" value="USB PCM 96kHz" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#d6b656;strokeWidth=2;fontColor=#996600;fontSize=9;" edge="1" parent="1" source="SS" target="ALSA">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="C_USB_A" value="USB PCM (96kHz)" style="endArrow=block;endFill=1;strokeColor=#d6b656;fontColor=#d6b656;fontSize=10;" edge="1" parent="1" source="MIC" target="ALSA">
-      <mxGeometry relative="1" as="geometry"/>
-    </mxCell>
-    <mxCell id="C_HDMI" value="HDMI render" style="endArrow=block;endFill=1;strokeColor=#82b366;fontColor=#82b366;fontSize=10;" edge="1" parent="1" source="BIN" target="SCR">
-      <mxGeometry relative="1" as="geometry"/>
-    </mxCell>
-    <mxCell id="C_TOUCH" value="USB HID touch" style="endArrow=block;endFill=1;strokeColor=#82b366;fontColor=#82b366;fontSize=10;" edge="1" parent="1" source="SCR" target="BIN">
+    <!-- HDMI from RPi to screen -->
+    <mxCell id="HDMI_CON" value="HDMI video" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#82b366;strokeWidth=2;fontColor=#4a7c4a;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="HDMI_SW" target="SCR">
       <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="930" y="365"/>
-          <mxPoint x="930" y="177"/>
-          <mxPoint x="630" y="177"/>
-        </Array>
+        <Array as="points"><mxPoint x="660" y="457"/><mxPoint x="660" y="270"/><mxPoint x="685" y="270"/></Array>
+      </mxGeometry>
+    </mxCell>
+    <!-- USB HID from screen to RPi -->
+    <mxCell id="HID_CON" value="USB HID touch" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#82b366;strokeWidth=2;fontColor=#4a7c4a;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="SCR" target="HID_SW">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points"><mxPoint x="870" y="270"/><mxPoint x="870" y="507"/><mxPoint x="525" y="507"/></Array>
       </mxGeometry>
     </mxCell>
 
-    <!-- Legend -->
-    <mxCell id="LEG_TITLE" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
-      <mxGeometry x="60" y="290" width="80" height="22" as="geometry"/>
-    </mxCell>
+    <!-- ===== LEGEND ===== -->
     <mxCell id="LEG_BOX" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="1">
-      <mxGeometry x="50" y="313" width="265" height="190" as="geometry"/>
+      <mxGeometry x="905" y="55" width="460" height="520" as="geometry"/>
     </mxCell>
-    <mxCell id="LL1" value="&lt;&lt;device&gt;&gt; = 물리 하드웨어 노드 (두꺼운 테두리)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="63" y="325" width="240" height="25" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL2" value="&lt;&lt;execution environment&gt;&gt;&#xa;= OS 런타임 컨테이너 (녹색)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="63" y="355" width="240" height="30" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL3" value="SSH/SCP = 개발 -> RPi 배포 채널" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="63" y="393" width="240" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL4" value="USB PCM = 96kHz PCM 오디오 스트림" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="63" y="416" width="240" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL5" value="HDMI = Qt 렌더링 출력" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="63" y="439" width="240" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL6" value="USB HID = 터치스크린 입력" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
-      <mxGeometry x="63" y="462" width="240" height="18" as="geometry"/>
-    </mxCell>
-    <mxCell id="LL_AGC" value="⚠ AGC = 매 부팅시 반드시 비활성화" style="text;html=1;strokeColor=none;fillColor=#FFE6CC;strokeColor=#d79b00;align=left;fontSize=10;rounded=1;" vertex="1" parent="1">
-      <mxGeometry x="63" y="488" width="240" height="18" as="geometry"/>
+    <mxCell id="LEG_T" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
+      <mxGeometry x="917" y="62" width="80" height="20" as="geometry"/>
     </mxCell>
 
+    <!-- Section: Connection Types -->
+    <mxCell id="LGS1" value="Connection Types" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="917" y="89" width="430" height="16" as="geometry"/>
+    </mxCell>
+    <!-- Edge 1: SSH/SCP (gray dashed) -->
+    <mxCell id="LGE1" value="" style="dashed=1;endArrow=block;endFill=1;strokeColor=#666666;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="917" y="115" as="sourcePoint"/>
+        <mxPoint x="972" y="115" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="LGT1" value="SSH / SCP  (deploy path, dashed gray)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="980" y="107" width="377" height="18" as="geometry"/>
+    </mxCell>
+    <!-- Edge 2: USB PCM (gold solid) -->
+    <mxCell id="LGE2" value="" style="endArrow=block;endFill=1;strokeColor=#d6b656;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="917" y="142" as="sourcePoint"/>
+        <mxPoint x="972" y="142" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="LGT2" value="USB PCM  (96kHz audio, gold)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="980" y="134" width="377" height="18" as="geometry"/>
+    </mxCell>
+    <!-- Edge 3: HDMI/HID (green solid) -->
+    <mxCell id="LGE3" value="" style="endArrow=block;endFill=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="917" y="169" as="sourcePoint"/>
+        <mxPoint x="972" y="169" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="LGT3" value="HDMI / USB HID  (display + touch, green)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="980" y="161" width="377" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- Section: Node Styles (actual copies) -->
+    <mxCell id="LGS2" value="Node &amp; Environment Styles  (actual styles used in diagram)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="917" y="196" width="430" height="16" as="geometry"/>
+    </mxCell>
+    <!-- device node copy (gray thick border) -->
+    <mxCell id="LGC1" value="&lt;&lt;device&gt;&gt;&#xa;Dev Machine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=3;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="917" y="214" width="150" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGCt1" value="= hardware device node&#xa;(thick gray border)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1075" y="222" width="282" height="32" as="geometry"/>
+    </mxCell>
+    <!-- RPi OS execution environment (green) -->
+    <mxCell id="LGC2" value="&lt;&lt;execution environment&gt;&gt;&#xa;Raspberry Pi OS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="917" y="270" width="150" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGCt2" value="= OS / runtime environment&#xa;(green fill + border)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1075" y="278" width="282" height="32" as="geometry"/>
+    </mxCell>
+    <!-- Software component copy -->
+    <mxCell id="LGC3" value="timegraph (binary)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="917" y="327" width="150" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGCt3" value="= deployed software artifact  (yellow)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1075" y="337" width="282" height="18" as="geometry"/>
+    </mxCell>
+    <!-- Dev OS env (gray) copy -->
+    <mxCell id="LGC4" value="macOS (arm64)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#888888;strokeWidth=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="917" y="375" width="150" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGCt4" value="= dev-side OS environment  (gray fill)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1075" y="385" width="282" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- AGC warning note copy -->
+    <mxCell id="LGS3" value="Operational Constraints" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=10;align=left;" vertex="1" parent="1">
+      <mxGeometry x="917" y="422" width="430" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="LGAGC" value="⚠ AGC warning box (orange)&#xa;= must be disabled on every RPi boot&#xa;(alsamixer -&gt; Auto Gain Control -&gt; OFF)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#d79b00;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="917" y="440" width="430" height="55" as="geometry"/>
+    </mxCell>
+
+    <!-- Deploy path summary -->
+    <mxCell id="LGDEP" value="Deploy Path: macOS (build) -&gt; SSH/SCP -&gt; RPi5 (run)&#xa;Test path: macOS Simulator mode (in-process, no RPi needed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="917" y="502" width="430" height="40" as="geometry"/>
+    </mxCell>
   </root>
 </mxGraphModel>
