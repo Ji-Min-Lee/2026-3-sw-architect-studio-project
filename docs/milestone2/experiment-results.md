@@ -45,13 +45,23 @@ EXP-04 (warning threshold) ────────────┘
 
 ### Run History
 
-> 3 runs executed 2026-06-15 on RPi (host=lg1, platform=debian). Each run covers all 3 sps simultaneously (run_experiment1.sh). Duration = 5 min per sps. Buffer = 30 s.
+> 3 runs executed 2026-06-15 on RPi (host=lg1, platform=debian). Each run covers all 3 sps
+> sequentially (run_experiment1.sh). Duration = 5 min per sps. Buffer = 30 s.  
+> Deadline: **21.33 ms for all sps** — ALSA scales SPF proportionally (48k: SPF=1024 · 96k: SPF=2048 · 192k: SPF=4096).  
+> exec > DL frames are absorbed by the 30 s ring buffer — Dropped stays 0 in all cases.  
+> **96k is the QAS-1 target sps**; compact table shows 96k figures. Full 3-sps breakdown in each detail block.
 
-| Run | Date | Change from Previous | 48k Dropped/min | 96k Dropped/min | 192k Dropped/min | Scheduling | Better? | Next Action |
-|:---:|------|----------------------|:---------------:|:---------------:|:----------------:|:----------:|:-------:|-------------|
-| R1 | 2026-06-15 | Baseline (default OS scheduling) | **0** | **0** | **0** | default | — | Try RT scheduling |
-| R2 | 2026-06-15 | SCHED_RR priority 50 | **0** | **0** | **0** | SCHED_RR | = | Try FIFO |
-| R3 | 2026-06-15 | SCHED_FIFO priority 50 | **0** | **0** | **0** | SCHED_FIFO | = | Complete |
+| Run | sps | Scheduling | exec avg / max (ms) | exec > DL | Dropped | Detail |
+|:---:|:---:|-----------|:-------------------:|:---------:|:-------:|:------:|
+| R1 | 48k | default | 5.8 / 36.6 | 4.9 % | **0** | ▼ R1 below |
+| R1 | **96k** | default | **9.6 / 39.2** | **8.1 %** | **0** | ▼ R1 below |
+| R1 | 192k | default | 15.8 / 51.6 | 12.1 % | **0** | ▼ R1 below |
+| R2 | 48k | SCHED_RR p50 | 6.9 / 37.5 | 6.6 % | **0** | ▼ R2 below |
+| R2 | **96k** | SCHED_RR p50 | **9.8 / 39.9** | **8.4 %** | **0** | ▼ R2 below |
+| R2 | 192k | SCHED_RR p50 | 16.0 / 61.7 | 12.5 % | **0** | ▼ R2 below |
+| R3 | 48k | SCHED_FIFO p50 | 7.2 / 35.2 | 6.9 % | **0** | ▼ R3 below |
+| R3 | **96k** | SCHED_FIFO p50 | **9.9 / 41.4** | **8.6 %** | **0** | ▼ R3 below |
+| R3 | 192k | SCHED_FIFO p50 | 16.0 / 52.1 | 12.5 % | **0** | ▼ R3 below |
 
 ### Per-Run Detail
 
@@ -60,15 +70,15 @@ EXP-04 (warning threshold) ────────────┘
 
 **Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv)
 
-| sps | frames | Dropped | exec avg (ms) | exec > deadline | temp avg / max | throttle events | CPU dominant core |
-|-----|-------:|:-------:|:-------------:|:---------------:|:--------------:|:---------------:|:-----------------:|
-| 48k | 11,810 | **0** | 5.8 | 578 / 11,810 (4.9%) | 83.7 °C / 85.9 °C | 111 | cpu2 46% |
-| 96k | 10,577 | **0** | 9.6 | 853 / 10,577 (8.1%) | 85.1 °C / 86.5 °C | 105 | cpu2 66% |
-| 192k | 9,855 | **0** | 15.8 | 1,190 / 9,855 (12.1%) | 85.4 °C / 87.5 °C | 98 | cpu0 46%, cpu1 43% |
+| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU dominant |
+|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------:|
+| 48k | 11,810 | 5.8 / 36.6 | 578 / 11,810 (4.9 %) | 2,219 / 11,810 (18.8 %) | **0** | 83.7 / 85.9 | 111 | cpu2 46 % |
+| **96k** | **10,577** | **9.6 / 39.2** | **853 / 10,577 (8.1 %)** | **3,430 / 10,577 (32.4 %)** | **0** | **85.1 / 86.5** | **105** | **cpu2 66 %** |
+| 192k | 9,855 | 15.8 / 51.6 | 1,190 / 9,855 (12.1 %) | 4,069 / 9,855 (41.3 %) | **0** | 85.4 / 87.5 | 98 | cpu0/1 ~43 % |
 
 **Per-core CPU (avg)**: 48k: cpu0=14% cpu1=32% **cpu2=46%** cpu3=26% | 96k: cpu0=18% cpu1=18% **cpu2=66%** cpu3=12% | 192k: cpu0=46% cpu1=43% cpu2=16% cpu3=7%
 
-**Observations**: At 48k/96k audio path is pinned to cpu2 (single-core pattern). At 192k load spreads across cpu0/1. Thermal throttling occurs in all runs (temp ≥ 85 °C), consistent with EXP-02 baseline. exec > deadline grows with sps (4.9% → 8.1% → 12.1%) but 30 s buffer absorbs all backlog → Dropped = 0.
+**Observations**: At 48k/96k, audio path is pinned to cpu2 (single-core pattern). At 192k load spreads across cpu0/1. Thermal throttling occurs in all runs (temp ≥ 85 °C). exec > DL grows with sps (4.9 % → 8.1 % → 12.1 %) as deadline tightens (21.3 ms → 10.7 ms → 5.3 ms); exec max spikes up to 51.6 ms are caused by throttling. Backlog rises correspondingly (19 % → 32 % → 41 %), but the 30 s ring buffer absorbs all overruns → Dropped = 0.
 
 </details>
 
@@ -77,13 +87,13 @@ EXP-04 (warning threshold) ────────────┘
 
 **Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv)
 
-| sps | frames | Dropped | exec avg (ms) | exec > deadline | temp avg / max | throttle events | CPU pattern |
-|-----|-------:|:-------:|:-------------:|:---------------:|:--------------:|:---------------:|:------------|
-| 48k | 10,357 | **0** | 6.9 | 682 / 10,357 (6.6%) | 84.7 °C / 86.5 °C | 103 | balanced (cpu0-3 ≈ 26-31%) |
-| 96k | 10,320 | **0** | 9.8 | 866 / 10,320 (8.4%) | 85.3 °C / 86.5 °C | 103 | balanced (cpu0-3 ≈ 24-31%) |
-| 192k | 9,585 | **0** | 16.0 | 1,197 / 9,585 (12.5%) | 85.4 °C / 87.0 °C | 95 | balanced (cpu0-3 ≈ 21-31%) |
+| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU pattern |
+|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------|
+| 48k | 10,357 | 6.9 / 37.5 | 682 / 10,357 (6.6 %) | 3,630 / 10,357 (35.1 %) | **0** | 84.7 / 86.5 | 103 | balanced (cpu0-3 ≈ 26-31 %) |
+| **96k** | **10,320** | **9.8 / 39.9** | **866 / 10,320 (8.4 %)** | **3,679 / 10,320 (35.6 %)** | **0** | **85.3 / 86.5** | **103** | **balanced (cpu0-3 ≈ 24-31 %)** |
+| 192k | 9,585 | 16.0 / 61.7 | 1,197 / 9,585 (12.5 %) | 4,258 / 9,585 (44.4 %) | **0** | 85.4 / 87.0 | 95 | balanced (cpu0-3 ≈ 21-31 %) |
 
-**Observation**: SCHED_RR distributes CPU load evenly across all 4 cores (no single-core dominance), but exec time is slightly higher than default — likely because `vcgencmd get_throttled` subprocess is more expensive to fork under RT scheduling. Dropped = 0 unchanged.
+**Observation**: SCHED_RR distributes CPU load evenly across all 4 cores (no single-core dominance), but exec avg / max is marginally higher than R1 default at all sps — likely because the `vcgencmd get_throttled` subprocess is more expensive to fork under RT scheduling. Backlog is also higher (35–44 % vs R1's 19–41 %). Dropped = 0 unchanged.
 
 </details>
 
@@ -92,13 +102,13 @@ EXP-04 (warning threshold) ────────────┘
 
 **Files**: [48k csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv)
 
-| sps | frames | Dropped | exec avg (ms) | exec > deadline | temp avg / max | throttle events | CPU pattern |
-|-----|-------:|:-------:|:-------------:|:---------------:|:--------------:|:---------------:|:------------|
-| 48k | 10,299 | **0** | 7.2 | 715 / 10,299 (6.9%) | 84.9 °C / 87.5 °C | 102 | balanced (cpu0-3 ≈ 24-30%) |
-| 96k | 9,921 | **0** | 9.9 | 858 / 9,921 (8.6%) | 85.4 °C / 87.0 °C | 99 | balanced (cpu0-3 ≈ 27-30%) |
-| 192k | 9,596 | **0** | 16.0 | 1,197 / 9,596 (12.5%) | 85.4 °C / 87.0 °C | 95 | balanced (cpu0-3 ≈ 22-30%) |
+| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU pattern |
+|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------|
+| 48k | 10,299 | 7.2 / 35.2 | 715 / 10,299 (6.9 %) | 3,708 / 10,299 (36.0 %) | **0** | 84.9 / 87.5 | 102 | balanced (cpu0-3 ≈ 24-30 %) |
+| **96k** | **9,921** | **9.9 / 41.4** | **858 / 9,921 (8.6 %)** | **4,067 / 9,921 (41.0 %)** | **0** | **85.4 / 87.0** | **99** | **balanced (cpu0-3 ≈ 27-30 %)** |
+| 192k | 9,596 | 16.0 / 52.1 | 1,197 / 9,596 (12.5 %) | 4,263 / 9,596 (44.4 %) | **0** | 85.4 / 87.0 | 95 | balanced (cpu0-3 ≈ 22-30 %) |
 
-**Observation**: Nearly identical to SCHED_RR. No additional benefit over RR.
+**Observation**: Nearly identical to SCHED_RR in all metrics. No additional benefit over RR at any sps.
 
 </details>
 
