@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
  }
 #endif
 
- QApplication a(argc, argv);
+ QApplication app(argc, argv);
 
 #ifndef Q_OS_WIN
  // Ensure Ctrl+C / SIGTERM trigger a clean Qt shutdown so Logger destructor
@@ -47,21 +47,21 @@ int main(int argc, char *argv[])
  splash.show();
 
  QRect screenGeometry = QGuiApplication::primaryScreen()->availableGeometry();
- int x = (screenGeometry.width() - splash.width()) / 2;
- int y = (screenGeometry.height() - splash.height()) / 2;
- splash.move(x, y);
+ int splashX = (screenGeometry.width() - splash.width()) / 2;
+ int splashY = (screenGeometry.height() - splash.height()) / 2;
+ splash.move(splashX, splashY);
 
  QThread::msleep(100); //Needed for Linux.... not sure why
- a.processEvents();
+ app.processEvents();
 
  QThread::sleep(4);
 
- MainWindow w;
- w.show();
+ MainWindow mainWindow;
+ mainWindow.show();
 
- splash.finish(&w);
+ splash.finish(&mainWindow);
 
- result = a.exec();
+ result = app.exec();
 
 #ifdef Q_OS_WIN
  timeEndPeriod(1);

@@ -1,0 +1,188 @@
+@startuml package-diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+skinparam ArrowColor #555555
+skinparam ArrowFontSize 10
+skinparam ArrowThickness 1.5
+skinparam PackageBorderThickness 2
+skinparam ComponentBorderThickness 1.5
+skinparam Padding 6
+skinparam RoundCorner 8
+skinparam NoteBackgroundColor #FFFFF0
+skinparam NoteBorderColor #AAAAAA
+
+top to bottom direction
+
+title <b>Package Diagram — TimeGrapher</b>\n<i>Patterns: Layered Architecture + Pipe-and-Filter + MVC (Observer as notification mechanism)</i>
+
+' ============================================================
+' LAYER 1 — ACQUISITION  (Pipeline: PCM Source)
+' ============================================================
+package "Layer 1  —  Acquisition\n«Pipeline: PCM Source»" as L1 #FDEDEC {
+    package "«package» audio/" as AUD #FFCDD2 {
+        [<b>AudioManager</b>\nLive / Playback / Sim\nthread lifecycle] as AM
+        [<b>SharedAudio «struct»</b>\nLock-Free Ring Buffer\nSECONDS_OF_BUFFER] as SA #CCE5FF
+        [<b>AudioWorker</b>\nPlaybackWorker · SimWorker\nTimeCriticalPriority] as AW
+    }
+}
+
+' ============================================================
+' LAYER 2 — SIGNAL PROCESSING  (Pipeline: Stages 1-3)
+' ============================================================
+package "Layer 2  —  Signal Processing  🔒\n«Pipeline: Stages 1–3  |  do not modify»" as L2 #FFF8E1 {
+    package "«package» external/libtimegrapher" as TGP #FFFFCC {
+        [<b>Stage 1: HPF Filter</b>\nDC blocker ≥ 200 Hz] as F1
+        [<b>Stage 2: Envelope Filter</b>\none-pole LPF  0.15 ms] as F2
+        [<b>Stage 3: Adaptive Detector</b>\nonset_fraction / min_peak_fraction\n→ tg_event_t {A, C}] as F3
+    }
+}
+
+' ============================================================
+' LAYER 3 — DOMAIN  (MVC: Model  |  Pipeline: Stage 4)
+' ============================================================
+package "Layer 3  —  Domain\n«MVC: Model  |  Pipeline: Stage 4 — Measurement»" as L3 #EAF7EA {
+    package "«package» engine/" as ENG #D4EDDA {
+        [<b>MeasurementEngine</b>\nconsumes tg_event_t {A,C}\nemits measurementReady(Measurement)] as ME #B9F6CA
+        [<b>Measurement «DTO»</b>\nrate · amplitude · beatError\npcm · eventTime · bph · sync] as MS #CCFF90
+        [<b>RateCalculator</b>] as RC
+        [<b>BeatErrorCalculator</b>] as BC
+        [<b>AmplitudeCalculator</b>] as AC
+    }
+}
+
+' ============================================================
+' LAYER 4 — PRESENTATION  (MVC: Controller + View)
+' ============================================================
+package "Layer 4  —  Presentation\n«MVC: Controller + Passive View»" as L4 #EEF6FB {
+    package "«package» ui/\nMVC: Controller" as UI #DBEAFE {
+        [<b>MainWindow</b>\nwires signals · handles gestures] as MW
+        [<b>SettingsManager</b>\nBPH / SampleRate / LiftAngle] as SM
+    }
+    package "«package» tabs/\nMVC: View (Passive)" as TB #DBEAFE {
+        [<b>BaseGraphTab «if»</b>\n+ onMeasurement(Measurement)\n+ reset()] as BT #C8E6C9
+        [<b>RateScopeTab</b>] as T1
+        [<b>SoundPrintTab</b>] as T2
+        [<b>TraceTab</b>] as T3
+        [<b>VarioTab</b>] as T4
+        [<b>SequenceTab</b>] as T5
+        [<b>BeatNoiseScopeTab</b>] as T6
+        [<b>BeatErrorTab</b>] as T7
+        [<b>LongTermTab</b>] as T8
+        [<b>EscapementTab</b>] as T9
+        [<b>SpectrogramTab</b>] as T10
+        [<b>WaveformCompTab</b>] as T11
+    }
+}
+
+' ============================================================
+' FORCE TOP→BOTTOM LAYER ORDER (hidden arrows)
+' ============================================================
+L1 -[hidden]down- L2
+L2 -[hidden]down- L3
+L3 -[hidden]down- L4
+
+' ============================================================
+' PIPELINE FLOW  (top → bottom, left side)
+' ============================================================
+AW  -down-> SA  : enqueue PCM\n(float32 mono)
+SA  -down-> F1  : dequeue chunks
+F1  -down-> F2  : filtered PCM
+F2  -down-> F3  : envelope PCM
+F3  -down-> ME  : tg_event_t\n{A, C, sync, bph}
+RC  --> MS  : fills rateError
+BC  --> MS  : fills beatError
+AC  --> MS  : fills amplitude
+
+' ============================================================
+' MVC FLOW  (right side)
+' ============================================================
+ME  -down-> MW  : <color:#1B5E20>measurementReady(Measurement)\n«MVC: Model notifies Controller»\n«Observer: notify()»</color>
+MW  -right-> BT : <color:#1565C0>connect signal\n«Observer: register()»</color>
+MW  -up-> ME  : <color:#1565C0>user gesture\n(Start/Stop/BPH)</color>
+MW  -up-> AM  : start / stop
+
+ME  --> RC
+ME  --> BC
+ME  --> AC
+
+T1  -up-|>  BT
+T2  -up-|>  BT
+T3  -up-|>  BT
+T4  -up-|>  BT
+T5  -up-|>  BT
+T6  -up-|>  BT
+T7  -up-|>  BT
+T8  -up-|>  BT
+T9  -up-|>  BT
+T10 -up-|>  BT
+T11 -up-|>  BT
+
+' ============================================================
+' FORBIDDEN
+' ============================================================
+TB  ..>  F1  #red : <color:#C0392B>❌ Forbidden</color>
+TB  ..>  AM  #red : <color:#C0392B>❌ Forbidden</color>
+
+' ============================================================
+' LEGEND
+' ============================================================
+' ============================================================
+' DIRECTORY TREE
+' ============================================================
+legend top left
+  <b>Directory Structure</b>
+  |= Path |= Pattern Role |
+  | <b>TimeGrapher/</b> | |
+  | ├── <b>audio/</b> | Pipeline: PCM Source |
+  | │   ├── AudioManager.h/.cpp | Layer 1 — thread lifecycle |
+  | │   └── SharedAudio.h | Lock-Free Ring Buffer |
+  | ├── <b>external/</b>  🔒 | Pipeline: Filters (read-only) |
+  | │   ├── Timegrapher.h/.cpp | Stage 1–3: HPF→Envelope→Detector |
+  | │   ├── AudioWorker.h/.cpp | |
+  | │   ├── PlaybackWorker.h/.cpp | |
+  | │   ├── SimWorker.h/.cpp | |
+  | │   ├── SoundImageRenderer.h/.cpp | |
+  | │   └── qcustomplot.h/.cpp | |
+  | ├── <b>engine/</b> | MVC: Model  \|  Pipeline: Stage 4 |
+  | │   ├── MeasurementEngine.h/.cpp | Subject — emits measurementReady() |
+  | │   ├── Measurement.h | DTO — shared by all tabs |
+  | │   ├── RateCalculator.h/.cpp | |
+  | │   ├── BeatErrorCalculator.h/.cpp | |
+  | │   └── AmplitudeCalculator.h/.cpp | |
+  | ├── <b>tabs/</b> | MVC: View (Passive)  \|  Observer |
+  | │   ├── BaseGraphTab.h | ConcreteObserver interface |
+  | │   ├── RateScopeTab.h/.cpp | |
+  | │   ├── SoundPrintTab.h/.cpp | |
+  | │   ├── TraceTab.h/.cpp | |
+  | │   ├── VarioTab.h/.cpp | |
+  | │   ├── SequenceTab.h/.cpp | |
+  | │   ├── BeatNoiseScopeTab.h/.cpp | |
+  | │   ├── BeatErrorTab.h/.cpp | |
+  | │   ├── LongTermTab.h/.cpp | |
+  | │   ├── EscapementTab.h/.cpp | |
+  | │   ├── SpectrogramTab.h/.cpp | |
+  | │   └── WaveformCompTab.h/.cpp | |
+  | └── <b>ui/</b> | MVC: Controller |
+  |     ├── MainWindow.h/.cpp | Controller — register() + user gestures |
+  |     ├── MainWindow.ui | Qt UI layout |
+  |     └── SettingsManager.h/.cpp | BPH / SampleRate / LiftAngle |
+endlegend
+
+legend bottom
+  <b>Pattern Application</b>
+  |= Pattern |= Layer |= Key element |= Benefit |
+  | <back:#FFF8E1><b>Pipe-and-Filter</b></back> | Layer 1 → 2 → 3 | HPF→Envelope→Detector→Calculator | Each filter independently replaceable |
+  | <back:#EAF7EA><b>MVC + Observer</b></back> | Layer 3 ↔ 4 | Engine=Model(Subject) · Tabs=View(Observer) · MainWindow=Controller | Model notifies Views via measurementReady() — Observer is MVC's notification mechanism |
+  | <back:#EEF6FB><b>Layered</b></back> | All layers | Forbidden cross-layer dependencies | ≤ 3-file change for new tab (AP-3) |
+
+  |= Arrow |= Meaning |
+  | ——→  Pipeline | data stream transformation (PCM → Events → Measurement) |
+  | <color:#1B5E20>——→  measurementReady</color> | MVC: Model notifies Controller; Controller pushes to Views |
+  | <color:#1565C0>——→  gesture</color> | MVC: Controller maps user action to Model |
+  | ——|>  | implements BaseGraphTab (Passive View) |
+  | - - → ❌ | violates Layered rule → breaks AP-3 ≤ 3-file target |
+endlegend
+
+@enduml

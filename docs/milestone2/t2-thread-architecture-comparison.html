@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T2 DSP Offload — Thread Architecture Before / After</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --dim: #64748b;
+    --cyan: #22d3ee;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --purple: #a855f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; padding: 24px; }
+  h1 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .panels { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  .panel { flex: 1; min-width: 300px; }
+  .panel-title {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 12px;
+    padding: 4px 8px; border-radius: 4px;
+  }
+  .before .panel-title { background: rgba(239,68,68,.12); color: var(--red); }
+  .after  .panel-title { background: rgba(34,197,94,.12);  color: var(--green); }
+  svg { display: block; width: 100%; }
+  .divider { width: 1px; background: var(--border); align-self: stretch; margin: 28px 0; }
+  .stat-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 12px; flex: 1; min-width: 110px;
+  }
+  .stat-label { font-size: 10px; color: var(--dim); margin-bottom: 2px; }
+  .stat-val   { font-size: 13px; font-weight: 700; }
+  .stat-note  { font-size: 10px; color: var(--dim); margin-top: 2px; }
+  .bad  { color: var(--red); }
+  .good { color: var(--green); }
+
+  .key-points {
+    margin-top: 24px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px;
+  }
+  .key-points h2 { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: .06em; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; color: var(--dim); font-weight: 600; padding: 4px 8px;
+    border-bottom: 1px solid var(--border); }
+  td { padding: 6px 8px; border-bottom: 1px solid rgba(51,65,85,.5); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .seg { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .seg-bad  { background: rgba(239,68,68,.15); color: var(--red); }
+  .seg-good { background: rgba(74,222,128,.15); color: var(--green); }
+  .seg-new  { background: rgba(251,146,60,.15); color: var(--orange); }
+</style>
+</head>
+<body>
+
+<h1>T2 DSP Offload Thread — Architecture Before / After</h1>
+<p class="subtitle">EXP-02 · macOS 96 kHz · R1 Baseline vs R2 T2 · feature/layer-ex-baseline</p>
+
+<div class="panels">
+
+  <!-- ── BEFORE ── -->
+  <div class="panel before">
+    <div class="panel-title">Before — R1 Baseline (Main-Thread DSP)</div>
+    <svg viewBox="0 0 320 268" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="a0" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+        </marker>
+        <marker id="a-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#f87171"/>
+        </marker>
+      </defs>
+
+      <!-- BG Thread -->
+      <rect x="8" y="12" width="120" height="44" rx="6"
+            fill="rgba(34,211,238,.08)" stroke="#22d3ee" stroke-width="1.2"/>
+      <text x="68" y="29"  text-anchor="middle" font-size="10" fill="#22d3ee" font-weight="600">BG Thread</text>
+      <text x="68" y="44"  text-anchor="middle" font-size="9"  fill="#94a3b8">AudioWorker</text>
+      <text x="68" y="56"  text-anchor="middle" font-size="8"  fill="#64748b">emit(TG_NOW())</text>
+
+      <!-- Qt Queue (slow) -->
+      <rect x="148" y="22" width="100" height="24" rx="4"
+            fill="rgba(239,68,68,.1)" stroke="#f87171" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="198" y="35" text-anchor="middle" font-size="9"  fill="#f87171" font-weight="600">Qt Queue</text>
+      <text x="198" y="46" text-anchor="middle" font-size="8"  fill="#f87171">avg 420 ms 🔴</text>
+
+      <!-- BG → Qt Queue -->
+      <line x1="128" y1="34" x2="146" y2="34"
+            stroke="#94a3b8" stroke-width="1.2" marker-end="url(#a0)"/>
+
+      <!-- Main Thread big box -->
+      <rect x="8" y="78" width="304" height="172" rx="6"
+            fill="rgba(148,163,184,.04)" stroke="#475569" stroke-width="1.2"/>
+      <text x="160" y="95" text-anchor="middle" font-size="10" fill="#94a3b8" font-weight="600">Main Thread (Qt Event Loop)</text>
+
+      <!-- DSP inside main -->
+      <rect x="20" y="106" width="128" height="54" rx="4"
+            fill="rgba(168,85,247,.1)" stroke="#a855f7" stroke-width="1"/>
+      <text x="84" y="123" text-anchor="middle" font-size="9" fill="#a855f7" font-weight="600">DSP exec (sync)</text>
+      <text x="84" y="138" text-anchor="middle" font-size="8" fill="#94a3b8">tg_ms ≈ 0.56 ms</text>
+      <text x="84" y="152" text-anchor="middle" font-size="8" fill="#64748b">MeasurementEngine</text>
+
+      <!-- Tab rendering inside main -->
+      <rect x="160" y="106" width="140" height="54" rx="4"
+            fill="rgba(239,68,68,.08)" stroke="#f87171" stroke-width="1"/>
+      <text x="230" y="123" text-anchor="middle" font-size="9" fill="#f87171" font-weight="600">Tab Rendering (sync)</text>
+      <text x="230" y="138" text-anchor="middle" font-size="8" fill="#f87171">plot_ms ≈ 16 ms 🔴</text>
+      <text x="230" y="152" text-anchor="middle" font-size="8" fill="#64748b">(RPi baseline)</text>
+
+      <!-- sync arrow DSP → Tabs -->
+      <line x1="148" y1="133" x2="158" y2="133"
+            stroke="#f87171" stroke-width="1.2" marker-end="url(#a-red)"/>
+      <text x="153" y="128" text-anchor="middle" font-size="7" fill="#f87171">sync</text>
+
+      <!-- UI update -->
+      <rect x="20" y="174" width="280" height="34" rx="4"
+            fill="rgba(148,163,184,.06)" stroke="#475569" stroke-width="1"/>
+      <text x="160" y="191" text-anchor="middle" font-size="9" fill="#94a3b8">DisplayResults / onMeasurementReady</text>
+      <text x="160" y="204" text-anchor="middle" font-size="8" fill="#64748b">All synchronous — inside exec path</text>
+
+      <!-- Qt Queue → Main Thread -->
+      <line x1="248" y1="46" x2="248" y2="70"
+            stroke="#f87171" stroke-width="1.2" marker-end="url(#a-red)"/>
+      <line x1="248" y1="70" x2="160" y2="76"
+            stroke="#f87171" stroke-width="1.2" marker-end="url(#a-red)"/>
+
+      <!-- exec path note -->
+      <text x="160" y="262" text-anchor="middle" font-size="9" fill="#f87171">
+        exec = DSP + plot ≈ 20 ms on RPi · backlog 47%
+      </text>
+    </svg>
+
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-label">wait_ms avg</div>
+        <div class="stat-val bad">420 ms</div>
+        <div class="stat-note">Qt queue accumulation</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">backlog</div>
+        <div class="stat-val bad">47%</div>
+        <div class="stat-note">frames queued up</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">fg_fps</div>
+        <div class="stat-val bad">62 fps</div>
+        <div class="stat-note">lagging behind BG (95 fps)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── AFTER ── -->
+  <div class="panel after">
+    <div class="panel-title">After — R2 T2 DSP Offload Thread</div>
+    <svg viewBox="0 0 320 268" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="a1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+        </marker>
+        <marker id="a-grn" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#4ade80"/>
+        </marker>
+        <marker id="a-org" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#fb923c"/>
+        </marker>
+      </defs>
+
+      <!-- BG Thread -->
+      <rect x="8" y="12" width="120" height="44" rx="6"
+            fill="rgba(34,211,238,.08)" stroke="#22d3ee" stroke-width="1.2"/>
+      <text x="68" y="29" text-anchor="middle" font-size="10" fill="#22d3ee" font-weight="600">BG Thread</text>
+      <text x="68" y="44" text-anchor="middle" font-size="9"  fill="#94a3b8">AudioWorker</text>
+      <text x="68" y="56" text-anchor="middle" font-size="8"  fill="#64748b">emit(TG_NOW())</text>
+
+      <!-- Qt Queue BG→DSP (fast) -->
+      <rect x="148" y="22" width="100" height="24" rx="4"
+            fill="rgba(74,222,128,.1)" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="198" y="35" text-anchor="middle" font-size="9" fill="#4ade80" font-weight="600">Qt Queue</text>
+      <text x="198" y="46" text-anchor="middle" font-size="8" fill="#4ade80">avg 0.013 ms ✅</text>
+
+      <!-- BG → Qt Queue -->
+      <line x1="128" y1="34" x2="146" y2="34"
+            stroke="#94a3b8" stroke-width="1.2" marker-end="url(#a1)"/>
+
+      <!-- Qt Queue → DSP Thread -->
+      <line x1="248" y1="46" x2="248" y2="70"
+            stroke="#4ade80" stroke-width="1.2" marker-end="url(#a-grn)"/>
+      <line x1="248" y1="70" x2="160" y2="76"
+            stroke="#4ade80" stroke-width="1.2" marker-end="url(#a-grn)"/>
+
+      <!-- DSP Thread -->
+      <rect x="8" y="78" width="304" height="64" rx="6"
+            fill="rgba(74,222,128,.06)" stroke="#4ade80" stroke-width="1.2"/>
+      <text x="160" y="96"  text-anchor="middle" font-size="10" fill="#4ade80" font-weight="600">DSP Thread (DSPWorker)</text>
+      <text x="160" y="112" text-anchor="middle" font-size="9"  fill="#94a3b8">exec = copy_ms + tg_ms only → avg 0.40 ms</text>
+      <text x="160" y="128" text-anchor="middle" font-size="8"  fill="#64748b">MeasurementEngine.processBlock() — no rendering</text>
+
+      <!-- DSP emit frameLogged -->
+      <line x1="160" y1="142" x2="160" y2="162"
+            stroke="#fb923c" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#a-org)"/>
+      <text x="176" y="156" font-size="8" fill="#64748b">emit frameLogged</text>
+
+      <!-- Qt Queue DSP→FG (fg_wait) -->
+      <rect x="96" y="164" width="128" height="24" rx="4"
+            fill="rgba(251,146,60,.1)" stroke="#fb923c" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="160" y="177" text-anchor="middle" font-size="9" fill="#fb923c" font-weight="600">Qt Queue (QueuedConnection)</text>
+      <text x="160" y="188" text-anchor="middle" font-size="8" fill="#fb923c">fg_wait avg 8.9 ms  (new cost)</text>
+
+      <!-- FG Queue → Main Thread -->
+      <line x1="160" y1="188" x2="160" y2="198"
+            stroke="#fb923c" stroke-width="1.2" marker-end="url(#a-org)"/>
+
+      <!-- Main Thread (FG) — UI only -->
+      <rect x="8" y="200" width="304" height="54" rx="6"
+            fill="rgba(148,163,184,.04)" stroke="#475569" stroke-width="1.2"/>
+      <text x="160" y="217" text-anchor="middle" font-size="10" fill="#94a3b8" font-weight="600">Main Thread (Qt Event Loop)</text>
+      <text x="160" y="232" text-anchor="middle" font-size="9"  fill="#94a3b8">onFrameLogged / DisplayResults</text>
+      <text x="160" y="245" text-anchor="middle" font-size="8"  fill="#64748b">No DSP — tab replot deferred via QueuedConnection</text>
+
+      <!-- note -->
+      <text x="160" y="265" text-anchor="middle" font-size="9" fill="#4ade80">
+        DSP isolated · exec path clean · backlog 0%
+      </text>
+    </svg>
+
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-label">wait_ms avg</div>
+        <div class="stat-val good">0.013 ms</div>
+        <div class="stat-note">×32,000 reduction</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">backlog</div>
+        <div class="stat-val good">0%</div>
+        <div class="stat-note">fully eliminated</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">fg_fps</div>
+        <div class="stat-val good">95.6 fps</div>
+        <div class="stat-note">matches BG exactly</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Key points table -->
+<div class="key-points">
+  <h2>What Changed — Segment by Segment</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Segment</th>
+        <th>Before (R1 Baseline)</th>
+        <th>After (T2)</th>
+        <th>Why it changed</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>BG → processing start<br><span style="color:#64748b;font-size:10px">wait_ms</span></td>
+        <td><span class="seg seg-bad">avg 420 ms</span><br><span style="font-size:10px;color:#64748b">Qt main-thread queue accumulation</span></td>
+        <td><span class="seg seg-good">avg 0.013 ms</span><br><span style="font-size:10px;color:#64748b">DSP-thread-only queue, no contention</span></td>
+        <td>DSPWorker has its own event loop; BG signal lands there immediately instead of competing with UI events</td>
+      </tr>
+      <tr>
+        <td>DSP processing<br><span style="color:#64748b;font-size:10px">exec_ms (tg_ms)</span></td>
+        <td><span class="seg seg-bad">avg 0.57 ms (main thread)</span><br><span style="font-size:10px;color:#64748b">blocks UI while running</span></td>
+        <td><span class="seg seg-good">avg 0.40 ms (DSP thread)</span><br><span style="font-size:10px;color:#64748b">runs independently, UI unblocked</span></td>
+        <td>Removed main-thread contention overhead; DSP thread gets dedicated CPU time</td>
+      </tr>
+      <tr>
+        <td>Tab rendering<br><span style="color:#64748b;font-size:10px">plot_ms</span></td>
+        <td><span class="seg seg-bad">≈ 16 ms (RPi, sync)</span><br><span style="font-size:10px;color:#64748b">replot() called inside exec path</span></td>
+        <td><span class="seg seg-good">0 ms in exec path</span><br><span style="font-size:10px;color:#64748b">QueuedConnection defers to FG loop</span></td>
+        <td>feature/layer already uses Qt::QueuedConnection; rendering is async from DSP's perspective</td>
+      </tr>
+      <tr>
+        <td>DSP → FG notification<br><span style="color:#64748b;font-size:10px">fg_wait_ms (new in R5)</span></td>
+        <td>—<br><span style="font-size:10px;color:#64748b">same thread, no cross-thread delay</span></td>
+        <td><span class="seg seg-new">avg 8.9 ms · p99 20.5 ms</span><br><span style="font-size:10px;color:#64748b">Qt event loop wakeup latency</span></td>
+        <td>New cost introduced by T2: FG main thread must be woken by the Qt scheduler after DSP emits frameLogged</td>
+      </tr>
+      <tr>
+        <td>Frame backlog</td>
+        <td><span class="seg seg-bad">47% of frames</span></td>
+        <td><span class="seg seg-good">0%</span></td>
+        <td>DSP thread processes each BG signal immediately → no accumulation</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
