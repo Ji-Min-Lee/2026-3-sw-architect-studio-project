@@ -248,6 +248,12 @@ is stored. Max 250×2 = 500 entries (≈ 4 KB). No measurable memory or performa
 | Live update vs. viewport lock | Auto-scroll continues; user Pauses manually | Auto-pause on click (more complex state) |
 | Click precision | Always snap to nearest beat | `selectTest()` radius check (rejects miss-clicks) |
 
+### Before / after screenshot
+
+**After** — scope click (1) draws orange dashed crosshair on rate plot at the corresponding beat (2):
+
+![RS-5 click-to-sync](../assets/rs5-click-sync.png)
+
 ### Value for grading (Area 2)
 
 | Rubric keyword | How RS-5 addresses it |
