@@ -38,11 +38,13 @@ public:
     void checkAvailability();            // async ping to /api/tags
 
 signals:
-    void explanationReady(const QString &text);
+    void tokenReceived(const QString &token);   // streamed one token at a time
+    void explanationReady(const QString &text); // full text when done
     void errorOccurred(const QString &errorMsg);
     void availabilityChanged(bool available);
 
 private slots:
+    void onReadyRead();
     void onReplyFinished(QNetworkReply *reply);
     void onTagsReplyFinished(QNetworkReply *reply);
 
@@ -52,6 +54,7 @@ private:
     QNetworkAccessManager *m_nam;
     QNetworkReply         *m_pendingReply = nullptr;
     QTimer                *m_timeout;
+    QString                m_accumulated;  // full streamed text
     bool                   m_available = false;
 
     static constexpr const char *kOllamaBase    = "http://127.0.0.1:11434";

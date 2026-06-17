@@ -18,7 +18,7 @@ WatchExplainer::WatchExplainer(QObject *parent)
     connect(m_timeout, &QTimer::timeout, this, [this]() {
         qWarning() << "[WatchExplainer] Request timed out after" << kTimeoutMs/1000 << "s";
         if (m_pendingReply) {
-            m_pendingReply->abort();   // triggers finished() with OperationCanceledError
+            m_pendingReply->abort();
             m_pendingReply = nullptr;
         }
         emit errorOccurred(tr("Request timed out (model may still be loading — try again)."));
@@ -29,8 +29,6 @@ WatchExplainer::WatchExplainer(QObject *parent)
 
 void WatchExplainer::warmup(const QString &modelName)
 {
-    // POST /api/generate with empty prompt — Ollama loads the model into RAM
-    // without generating any tokens. Fire-and-forget (no timeout needed).
     QNetworkRequest request(QUrl(QString("%1/api/generate").arg(kOllamaBase)));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setAttribute(QNetworkRequest::User, QVariant("warmup"));
@@ -42,7 +40,7 @@ void WatchExplainer::warmup(const QString &modelName)
     body["model"]      = modelName;
     body["prompt"]     = "";
     body["keep_alive"] = "10m";
-    body["options"]    = options;  // keep model in RAM for 10 min after last use
+    body["options"]    = options;
 
     qInfo() << "[WatchExplainer] Warming up model:" << modelName;
     m_nam->post(request, QJsonDocument(body).toJson());
@@ -59,17 +57,21 @@ void WatchExplainer::explain(const ExplainRequest &req)
     userMsg["content"] = buildPrompt(req);
 
     QJsonObject options;
-    options["num_ctx"] = 512;   // KV cache: 1536 MiB (4096) → 192 MiB (512)
+    options["num_ctx"] = 512;
 
     QJsonObject body;
-    body["model"]   = req.modelName;
-    body["stream"]  = false;
-    body["options"] = options;
+    body["model"]    = req.modelName;
+    body["stream"]   = true;   // stream tokens as they are generated
+    body["options"]  = options;
     body["messages"] = QJsonArray{ userMsg };
 
-    qInfo() << "[WatchExplainer] Sending request to Ollama, model:" << req.modelName;
+    m_accumulated.clear();
+    qInfo() << "[WatchExplainer] Sending streaming request, model:" << req.modelName;
     m_pendingReply = m_nam->post(request, QJsonDocument(body).toJson());
     m_timeout->start(kTimeoutMs);
+
+    connect(m_pendingReply, &QNetworkReply::readyRead,
+            this,           &WatchExplainer::onReadyRead);
 }
 
 void WatchExplainer::checkAvailability()
@@ -80,6 +82,28 @@ void WatchExplainer::checkAvailability()
 }
 
 // ── Slots ─────────────────────────────────────────────────────────────────────
+
+void WatchExplainer::onReadyRead()
+{
+    auto *reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply) return;
+
+    // Ollama streams newline-delimited JSON objects, one per token.
+    // Each line: {"message":{"role":"assistant","content":"token"},"done":false}
+    while (reply->canReadLine()) {
+        const QByteArray line = reply->readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        QJsonDocument doc = QJsonDocument::fromJson(line);
+        if (doc.isNull()) continue;
+
+        const QString token = doc["message"]["content"].toString();
+        if (!token.isEmpty()) {
+            m_accumulated += token;
+            emit tokenReceived(token);
+        }
+    }
+}
 
 void WatchExplainer::onReplyFinished(QNetworkReply *reply)
 {
@@ -99,9 +123,8 @@ void WatchExplainer::onReplyFinished(QNetworkReply *reply)
         return;
     }
 
-    // "explain" response
+    // "explain" — stream finished
     if (reply->error() != QNetworkReply::NoError) {
-        // OperationCanceledError means our timeout already emitted errorOccurred
         if (reply->error() != QNetworkReply::OperationCanceledError) {
             qWarning() << "[WatchExplainer] Network error:" << reply->errorString();
             emit errorOccurred(tr("Ollama not reachable: %1").arg(reply->errorString()));
@@ -109,19 +132,14 @@ void WatchExplainer::onReplyFinished(QNetworkReply *reply)
         return;
     }
 
-    QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
-    QString text = doc["message"]["content"].toString().trimmed();
-    if (text.isEmpty())
-        text = doc["response"].toString().trimmed();   // older Ollama format
-
-    if (text.isEmpty()) {
+    if (m_accumulated.isEmpty()) {
         qWarning() << "[WatchExplainer] Empty response from model";
         emit errorOccurred(tr("Empty response from model."));
         return;
     }
 
-    qInfo() << "[WatchExplainer] Response received, length:" << text.size() << "chars";
-    emit explanationReady(text);
+    qInfo() << "[WatchExplainer] Stream complete, length:" << m_accumulated.size() << "chars";
+    emit explanationReady(m_accumulated);
 }
 
 void WatchExplainer::onTagsReplyFinished(QNetworkReply *reply)

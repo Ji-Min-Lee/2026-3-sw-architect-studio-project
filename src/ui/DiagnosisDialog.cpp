@@ -1,6 +1,7 @@
 #include "DiagnosisDialog.h"
 #include <QHBoxLayout>
 #include <QFont>
+#include <QTextCursor>
 
 DiagnosisDialog::DiagnosisDialog(const ExplainRequest &req,
                                  WatchExplainer       *explainer,
@@ -16,6 +17,11 @@ DiagnosisDialog::DiagnosisDialog(const ExplainRequest &req,
 
     // Forward signals from shared explainer to this dialog's slots.
     // Use direct connection so the dialog cleans up properly on close.
+    connect(m_explainer, &WatchExplainer::tokenReceived,
+            this, [this](const QString &token) {
+                m_explanationEdit->moveCursor(QTextCursor::End);
+                m_explanationEdit->insertPlainText(token);
+            }, Qt::UniqueConnection);
     connect(m_explainer, &WatchExplainer::explanationReady,
             this,        &DiagnosisDialog::onExplanationReady,
             Qt::UniqueConnection);
