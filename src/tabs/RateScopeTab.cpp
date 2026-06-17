@@ -26,8 +26,8 @@ void RateScopeTab::setupPlots()
     mScopePlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     mScopePlot->legend->setVisible(true);
     mScopePlot->legend->setFont(legendFont);
-    mScopePlot->yAxis->setLabel("Amplitude");
-    mScopePlot->xAxis->setLabel("");
+    mScopePlot->yAxis->setLabel("Amplitude (rel.)");
+    mScopePlot->xAxis->setLabel("Time (s)");
     mScopePlot->yAxis->setRange(0, 0.1);
     mScopeTicker = QSharedPointer<ScopeTimeTicker>(new ScopeTimeTicker());
     mScopePlot->xAxis->setTicker(mScopeTicker);
@@ -47,7 +47,7 @@ void RateScopeTab::setupPlots()
     mRatePlot->legend->setVisible(true);
     mRatePlot->legend->setFont(legendFont);
     mRatePlot->yAxis->setLabel("Timing offset (ms)");
-    mRatePlot->xAxis->setLabel("Beat count");
+    mRatePlot->xAxis->setLabel("Beat number");
     mRatePlot->yAxis->setRange(-ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
     mRatePlot->xAxis->setRange(0, mMaxPoints);
     mRatePlot->xAxis->setTickLabels(true);

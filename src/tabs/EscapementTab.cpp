@@ -32,7 +32,7 @@ EscapementTab::EscapementTab(QWidget *parent) : BaseGraphTab(parent)
     mPlot->addGraph();
     mPlot->graph(0)->setPen(QPen(QColor(90, 90, 90)));
     mPlot->xAxis->setLabel("Time from A (ms)");
-    mPlot->yAxis->setLabel("Amplitude");
+    mPlot->yAxis->setLabel("Amplitude (rel.)");
     mPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     lay->addWidget(mPlot, 1);
 

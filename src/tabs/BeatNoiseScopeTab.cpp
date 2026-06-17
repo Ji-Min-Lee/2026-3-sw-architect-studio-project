@@ -36,7 +36,7 @@ BeatNoiseScopeTab::BeatNoiseScopeTab(QWidget *parent) : BaseGraphTab(parent)
     mPlot1->graph(0)->setPen(QPen(QColor(180, 140, 0)));
     mPlot1->graph(0)->setBrush(QBrush(QColor(240, 200, 60, 120)));
     mPlot1->xAxis->setLabel("Time (ms)");
-    mPlot1->yAxis->setLabel("|Amplitude|");
+    mPlot1->yAxis->setLabel("|Amplitude| (rel.)");
     mPlot1->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     mAMarker = new QCPItemLine(mPlot1);
     mCMarker = new QCPItemLine(mPlot1);
@@ -76,8 +76,8 @@ BeatNoiseScopeTab::BeatNoiseScopeTab(QWidget *parent) : BaseGraphTab(parent)
     mTocGraph2->setPen(QPen(QColor(180, 140, 0)));
     mTocGraph2->setBrush(QBrush(QColor(240, 200, 60, 120)));
     mTocGraph2->setName("Toc");
-    ticRect->axis(QCPAxis::atLeft)->setLabel("|Amplitude|");
-    tocRect->axis(QCPAxis::atLeft)->setLabel("|Amplitude|");
+    ticRect->axis(QCPAxis::atLeft)->setLabel("|Amplitude| (rel.)");
+    tocRect->axis(QCPAxis::atLeft)->setLabel("|Amplitude| (rel.)");
     tocRect->axis(QCPAxis::atBottom)->setLabel("Time (ms)");
 
     // Per-rect inset legends to label each subplot

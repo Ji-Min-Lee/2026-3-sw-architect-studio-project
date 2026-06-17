@@ -30,6 +30,10 @@ VarioTab::VarioTab(QWidget *parent) : BaseGraphTab(parent)
     mainLayout->addWidget(mAmpScale.label);
     mainLayout->addWidget(mAmpScale.plot, 1);
 
+    // Horizontal value-scale axis meaning + unit (Y is a hidden position axis)
+    mRateScale.plot->xAxis->setLabel("Rate deviation (s/d)");
+    mAmpScale.plot->xAxis->setLabel("Amplitude (°)");
+
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, false, 0);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, false, 0);
 }

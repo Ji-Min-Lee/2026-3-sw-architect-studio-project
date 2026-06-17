@@ -74,7 +74,7 @@ void FilterScopeTab::stylePanel(FilterPanel &panel, bool showXLabel)
     plot->yAxis->setTickLabelColor(QColor(0xc8, 0xc8, 0xd0));
     plot->xAxis->setLabelColor(QColor(0xc8, 0xc8, 0xd0));
     plot->yAxis->setLabelColor(QColor(0xc8, 0xc8, 0xd0));
-    plot->yAxis->setLabel(tr("Amplitude"));
+    plot->yAxis->setLabel(tr("Amplitude (rel.)"));
     plot->xAxis->setLabel(showXLabel ? tr("Time (ms)") : QString());
 }
 

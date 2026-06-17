@@ -51,7 +51,7 @@ TraceTab::TraceTab(QWidget *parent)
     mPlot->graph(0)->setName("Rate Error (s/day, smoothed by Averaging Period)");
 
     mPlot->xAxis->setLabel("Time (s)");
-    mPlot->yAxis->setLabel("Rate Error (s/day)");
+    mPlot->yAxis->setLabel("Rate Error (s/d)");
     mPlot->yAxis->setRange(kRateSpanLo, kRateSpanHi);
     mPlot->legend->setVisible(false);
     mPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);

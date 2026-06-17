@@ -66,7 +66,7 @@ BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
     mTocGraph->setPen(QPen(Qt::blue));
     mTicGraph->setName("Tic offset (ms)");
     mTocGraph->setName("Toc offset (ms)");
-    mTraceRect->axis(QCPAxis::atBottom)->setLabel("Beat #");
+    mTraceRect->axis(QCPAxis::atBottom)->setLabel("Beat number");
     mTraceRect->axis(QCPAxis::atLeft)->setLabel("Timing offset (ms)");
     mTraceRect->axis(QCPAxis::atLeft)->setRange(-10, 10);
 

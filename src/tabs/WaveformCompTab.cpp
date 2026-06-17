@@ -124,7 +124,7 @@ void WaveformCompTab::stylePlot(BeatWindow &win)
     plot->yAxis->setTickLabelColor(QColor(0xc8, 0xc8, 0xd0));
     plot->xAxis->setLabelColor(QColor(0xc8, 0xc8, 0xd0));
     plot->yAxis->setLabelColor(QColor(0xc8, 0xc8, 0xd0));
-    plot->yAxis->setLabel(tr("HPF amplitude"));
+    plot->yAxis->setLabel(tr("HPF amplitude (rel.)"));
     plot->xAxis->setLabel(tr("Time (ms)"));
 
     win.degAxis = plot->axisRect()->addAxis(QCPAxis::atTop);

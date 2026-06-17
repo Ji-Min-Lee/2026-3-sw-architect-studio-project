@@ -23,7 +23,7 @@ SweepScopeTab::SweepScopeTab(QWidget *parent) : BaseGraphTab(parent)
     mPlot->graph(0)->setPen(QPen(QColor(186, 120, 170)));
     mPlot->graph(0)->setBrush(QBrush(QColor(200, 140, 190, 130)));
     mPlot->xAxis->setLabel("Sweep time (ms) — stable pattern = on-rate, drifting = fast/slow");
-    mPlot->yAxis->setLabel("|Amplitude|");
+    mPlot->yAxis->setLabel("|Amplitude| (rel.)");
     mPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     lay->addWidget(mPlot, 1);
 
