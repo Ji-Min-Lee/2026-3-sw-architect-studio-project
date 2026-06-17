@@ -196,12 +196,15 @@ private:
     uint64_t                   mForegroundSampleCount=0;
     Logger                    *mLogger=nullptr;
 
-    // CLI automation flags (--autostart, --no-record, --rate N, --duration N)
+    // CLI automation flags (--autostart, --no-record, --rate N, --duration N,
+    //                       --onset-fraction F, --min-peak-fraction F)
     bool                       mNoRecord=false;
     bool                       mCmdAutoStart=false;
     int                        mCmdRate=0;
     int                        mCmdDurationSec=0;
     QElapsedTimer              mCmdDurationTimer;  // wall-clock duration check
+    double                     mCmdOnsetFraction=0.0;     // 0 = use built-in default (0.03)
+    double                     mCmdMinPeakFraction=0.0;   // 0 = use built-in default (0.20)
 
 };
 #endif

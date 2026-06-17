@@ -145,10 +145,12 @@ MainWindow::MainWindow(QWidget *parent)
     {
         QStringList cliArgs = QCoreApplication::arguments();
         for (int i = 1; i < cliArgs.size(); ++i) {
-            if      (cliArgs[i] == "--rate"     && i + 1 < cliArgs.size()) mCmdRate        = cliArgs[++i].toInt();
-            else if (cliArgs[i] == "--autostart")                           mCmdAutoStart   = true;
-            else if (cliArgs[i] == "--no-record")                           mNoRecord       = true;
-            else if (cliArgs[i] == "--duration" && i + 1 < cliArgs.size()) mCmdDurationSec = cliArgs[++i].toInt();
+            if      (cliArgs[i] == "--rate"             && i + 1 < cliArgs.size()) mCmdRate             = cliArgs[++i].toInt();
+            else if (cliArgs[i] == "--autostart")                                   mCmdAutoStart        = true;
+            else if (cliArgs[i] == "--no-record")                                   mNoRecord            = true;
+            else if (cliArgs[i] == "--duration"         && i + 1 < cliArgs.size()) mCmdDurationSec      = cliArgs[++i].toInt();
+            else if (cliArgs[i] == "--onset-fraction"   && i + 1 < cliArgs.size()) mCmdOnsetFraction    = cliArgs[++i].toDouble();
+            else if (cliArgs[i] == "--min-peak-fraction"&& i + 1 < cliArgs.size()) mCmdMinPeakFraction  = cliArgs[++i].toDouble();
         }
         if (mCmdAutoStart) {
             QTimer::singleShot(500, this, [this]() {
@@ -542,7 +544,8 @@ void MainWindow::CreateDectectors(void)
      mCfg.bph_mode=TG_BPH_MODE_MANUAL;
      mCfg.manual_bph=ManualAutoBPH[ui->BPHComboBox->currentIndex()];
     }
-    //mCfg.onset_fraction_init=0.2;
+    if (mCmdOnsetFraction    > 0.0) mCfg.onset_fraction_init    = mCmdOnsetFraction;
+    if (mCmdMinPeakFraction  > 0.0) mCfg.min_peak_fraction_init = mCmdMinPeakFraction;
     mCfg.suppress_pre_sync_events=true;
 
     mCfg.hpf_cutoff_hz=ui->HighLineEdit->text().toDouble();
