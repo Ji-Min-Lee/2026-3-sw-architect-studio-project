@@ -32,6 +32,7 @@ public:
     explicit WatchExplainer(QObject *parent = nullptr);
 
     void explain(const ExplainRequest &req);
+    void warmup(const QString &modelName = "phi3:mini"); // preload model into RAM
 
     bool isOllamaAvailable() const { return m_available; }
     void checkAvailability();            // async ping to /api/tags

@@ -114,7 +114,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->Results->setAlignment(Qt::AlignHCenter);
     ui->Results->setFont(QFont("Consolas", 9));
 
-    // AI step 2: clicking the diagnosis label opens the LLM explanation dialog
+    // AI step 2: preload model into RAM so first click has no loading delay
+    mWatchExplainer.warmup();
+
+    // clicking the diagnosis label opens the LLM explanation dialog
     ui->DiagnosisLabel->setCursor(Qt::PointingHandCursor);
     ui->DiagnosisLabel->setToolTip(tr("Click for AI explanation"));
     connect(ui->DiagnosisLabel, &QLabel::linkActivated, this, []{});  // make label emit mouse events

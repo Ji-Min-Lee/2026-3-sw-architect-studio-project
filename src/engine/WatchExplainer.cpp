@@ -27,6 +27,23 @@ WatchExplainer::WatchExplainer(QObject *parent)
 
 // ── Public ────────────────────────────────────────────────────────────────────
 
+void WatchExplainer::warmup(const QString &modelName)
+{
+    // POST /api/generate with empty prompt — Ollama loads the model into RAM
+    // without generating any tokens. Fire-and-forget (no timeout needed).
+    QNetworkRequest request(QUrl(QString("%1/api/generate").arg(kOllamaBase)));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::User, QVariant("warmup"));
+
+    QJsonObject body;
+    body["model"]      = modelName;
+    body["prompt"]     = "";
+    body["keep_alive"] = "10m";  // keep model in RAM for 10 min after last use
+
+    qInfo() << "[WatchExplainer] Warming up model:" << modelName;
+    m_nam->post(request, QJsonDocument(body).toJson());
+}
+
 void WatchExplainer::explain(const ExplainRequest &req)
 {
     QNetworkRequest request(QUrl(QString("%1/api/chat").arg(kOllamaBase)));
@@ -67,6 +84,10 @@ void WatchExplainer::onReplyFinished(QNetworkReply *reply)
 
     if (tag == "tags") {
         onTagsReplyFinished(reply);
+        return;
+    }
+    if (tag == "warmup") {
+        qInfo() << "[WatchExplainer] Model warmup complete";
         return;
     }
 
