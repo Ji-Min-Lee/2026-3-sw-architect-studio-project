@@ -27,9 +27,11 @@ void RateScopeTab::setupPlots()
     mScopePlot->legend->setVisible(true);
     mScopePlot->legend->setFont(legendFont);
     mScopePlot->yAxis->setLabel("Amplitude");
-    mScopePlot->xAxis->setLabel("Time (ms)");
+    mScopePlot->xAxis->setLabel("");
     mScopePlot->yAxis->setRange(0, 0.1);
-    mScopePlot->xAxis->setTickLabels(false);
+    mScopeTicker = QSharedPointer<ScopeTimeTicker>(new ScopeTimeTicker());
+    mScopePlot->xAxis->setTicker(mScopeTicker);
+    mScopePlot->xAxis->setTickLabels(true);
     mScopePlot->clearGraphs();
     mScopePlot->addGraph();
     QPen pen; pen.setWidth(1); pen.setColor(Qt::blue);
@@ -45,10 +47,10 @@ void RateScopeTab::setupPlots()
     mRatePlot->legend->setVisible(true);
     mRatePlot->legend->setFont(legendFont);
     mRatePlot->yAxis->setLabel("Timing offset (ms)");
-    mRatePlot->xAxis->setLabel("Beat index");
+    mRatePlot->xAxis->setLabel("Beat count");
     mRatePlot->yAxis->setRange(-ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
     mRatePlot->xAxis->setRange(0, mMaxPoints);
-    mRatePlot->xAxis->setTickLabels(false);
+    mRatePlot->xAxis->setTickLabels(true);
     mRatePlot->clearGraphs();
     // graph(0): Tic scatter
     mRatePlot->addGraph();
@@ -233,10 +235,25 @@ void RateScopeTab::onMeasurement(const Measurement &m)
 
     purgeScopeHistory(m.samplesPerSecond);
     double divisor = (mScopeScale > 0) ? mScopeScale : 4;
-    mScopePlot->xAxis->setRange((double)m.graphTickEnd, m.samplesPerSecond / divisor, Qt::AlignRight);
+    if (m.samplesPerSecond != mSamplesPerSecond) {
+        mSamplesPerSecond = m.samplesPerSecond;
+        mScopeTicker->setSampleRate(m.samplesPerSecond);
+    }
+    mLastTickEnd = (double)m.graphTickEnd;
+    mScopePlot->xAxis->setRange(mLastTickEnd, m.samplesPerSecond / divisor, Qt::AlignRight);
     mScopePlot->yAxis->rescale();
     g_replotCount++;
     mScopePlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void RateScopeTab::setScopeScale(int scale)
+{
+    mScopeScale = scale;
+    if (mLastTickEnd > 0.0) {
+        double divisor = (scale > 0) ? scale : 4;
+        mScopePlot->xAxis->setRange(mLastTickEnd, mSamplesPerSecond / divisor, Qt::AlignRight);
+        mScopePlot->replot();
+    }
 }
 
 void RateScopeTab::replotAll()

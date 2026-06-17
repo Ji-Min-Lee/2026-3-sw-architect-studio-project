@@ -369,9 +369,9 @@
     <widget class="QSpinBox" name="ScopeScaleSpinBox">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>192</x>
        <y>60</y>
-       <width>61</width>
+       <width>39</width>
        <height>22</height>
       </rect>
      </property>
@@ -385,12 +385,40 @@
       <number>2</number>
      </property>
     </widget>
+    <widget class="QSlider" name="ScopeScaleSlider">
+     <property name="geometry">
+      <rect>
+       <x>95</x>
+       <y>62</y>
+       <width>92</width>
+       <height>18</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>8</number>
+     </property>
+     <property name="value">
+      <number>2</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="tickPosition">
+      <enum>QSlider::TicksBelow</enum>
+     </property>
+     <property name="tickInterval">
+      <number>1</number>
+     </property>
+    </widget>
     <widget class="QLabel" name="ScopeScaleLabel">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>101</width>
+       <width>80</width>
        <height>22</height>
       </rect>
      </property>
