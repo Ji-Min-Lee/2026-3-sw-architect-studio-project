@@ -5,16 +5,16 @@ DiagnosisResult WatchDiagnostics::Evaluate(const DiagnosisInput &input) const
 {
     DiagnosisResult result;
 
-    if (!input.rate_valid || !input.amplitude_valid || !input.beat_error_valid)
+    if (!input.metrics.rate || !input.metrics.amplitude || !input.metrics.beatError)
     {
         result.level = DiagnosisLevel::Unknown;
         result.label = "DIAGNOSIS: Unknown";
         return result;
     }
 
-    const double rate           = input.rate_spd;
-    const double amplitude      = input.amplitude_deg;
-    const double beat_error     = input.beat_error_ms;
+    const double rate           = *input.metrics.rate;
+    const double amplitude      = *input.metrics.amplitude;
+    const double beat_error     = *input.metrics.beatError;
 
     /* Excellent rate band: Witschi Training Course p.15. Only the rate
      * column differs between watch types in that table (amplitude and

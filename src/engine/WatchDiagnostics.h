@@ -10,6 +10,7 @@
 
 #include <QString>
 #include <QColor>
+#include "Measurement.h"
 
 enum class DiagnosisLevel {
     Unknown,
@@ -33,13 +34,8 @@ enum class WatchType {
 QColor DiagnosisColor(DiagnosisLevel level);
 
 struct DiagnosisInput {
-    double    rate_spd;
-    bool      rate_valid;
-    double    amplitude_deg;
-    bool      amplitude_valid;
-    double    beat_error_ms;
-    bool      beat_error_valid;
-    WatchType watch_type = WatchType::Men;
+    WatchMetrics metrics;
+    WatchType    watch_type = WatchType::Men;
 };
 
 struct DiagnosisResult {
