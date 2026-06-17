@@ -113,6 +113,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->LiftAngleSpinBox->setFocusPolicy(Qt::NoFocus);
     ui->Results->setAlignment(Qt::AlignHCenter);
     ui->Results->setFont(QFont("Consolas", 9));
+
+    // AI step 2: clicking the diagnosis label opens the LLM explanation dialog
+    ui->DiagnosisLabel->setCursor(Qt::PointingHandCursor);
+    ui->DiagnosisLabel->setToolTip(tr("Click for AI explanation"));
+    connect(ui->DiagnosisLabel, &QLabel::linkActivated, this, []{});  // make label emit mouse events
+    ui->DiagnosisLabel->installEventFilter(this);
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
 
@@ -292,6 +298,11 @@ void MainWindow::DisplayResults(const Measurement &m)
     diagInput.beat_error_ms    = m.beatErrorMs;
     diagInput.watch_type       = mWatchType;
     DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
+
+    // Keep latest input/result for the LLM dialog (AI step 2)
+    mLastExplainRequest.input  = diagInput;
+    mLastExplainRequest.result = diagResult;
+
     ui->DiagnosisLabel->setText(diagResult.label);
     QColor diagColor = DiagnosisColor(diagResult.level);
     ui->DiagnosisLabel->setStyleSheet(
@@ -665,6 +676,19 @@ void MainWindow::LoadMode(void)
     for (int i = start; i < modeCount; i++)
         ui->ModeComboBox->addItem(ModeStrings[i], i);
     ui->ModeComboBox->setCurrentIndex(0);
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == ui->DiagnosisLabel && event->type() == QEvent::MouseButtonRelease) {
+        if (mLastExplainRequest.result.level != DiagnosisLevel::Unknown) {
+            auto *dlg = new DiagnosisDialog(mLastExplainRequest, &mWatchExplainer, this);
+            dlg->setAttribute(Qt::WA_DeleteOnClose);
+            dlg->show();
+        }
+        return true;
+    }
+    return QMainWindow::eventFilter(obj, event);
 }
 
 bool MainWindow::OpenFile(const QString &FileName)
