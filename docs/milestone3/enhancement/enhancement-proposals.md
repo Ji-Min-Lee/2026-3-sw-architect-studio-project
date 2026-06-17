@@ -12,8 +12,8 @@
 
 | ID | Area | Enhancement | Status | Detail doc |
 |----|------|-------------|--------|------------|
-| SP-1 | Sound Print | Per-column dynamic normalization | Proposed | this doc |
-| SP-2 | Sound Print | A/C event confidence color gradient | Proposed | this doc |
+| SP-1 | Sound Print | Per-column dynamic normalization | **Implemented** | this doc |
+| SP-2 | Sound Print | A/C event confidence color gradient | **Implemented** | this doc |
 | SP-3 | Sound Print | Beat period grid overlay | **Implemented** | `enhancement-sp3-beat-grid.md` |
 | RS-1 | Rate/Scope | Rolling average trend line | **Implemented** | `enhancement-rs1-rs2-rate-scope.md` |
 | RS-2 | Rate/Scope | Mean ± σ statistics overlay | **Implemented** | `enhancement-rs1-rs2-rate-scope.md` |
@@ -233,9 +233,9 @@ spinbox behavior. No measurable overhead.
 Recommended order, balancing impact vs. effort:
 
 ```
-Week 1  SP-1  (Dynamic normalization — highest readability impact, renderer-only change)
-        SP-2  (Confidence color — small change, clear visual story for demo)
-Week 2  RS-4  (Scope slider — UI only, existing slot, low risk)
+        SP-1  ✅ done  (Dynamic normalization — per_column_normalize in SoundImageRenderer)
+        SP-2  ✅ done  (Confidence color — confidenceColorA/C in SoundPrintTab)
+        RS-4  ✅ done  (Scope slider — UI only, existing slot)
         SP-3  ✅ done
         RS-1  ✅ done
         RS-2  ✅ done
