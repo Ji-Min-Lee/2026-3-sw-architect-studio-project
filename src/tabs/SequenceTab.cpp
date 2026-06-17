@@ -1,7 +1,9 @@
 #include "SequenceTab.h"
+#include "RadarChartTab.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QSplitter>
 
 namespace {
 const int kColRate = 0, kColBeat = 1, kColAmp = 2;
@@ -15,27 +17,32 @@ QStringList SequenceTab::positions() { return kPositions; }
 
 SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
 {
-    auto *mainLayout = new QVBoxLayout(this);
+    // Left pane: position controls + the sequence table
+    auto *leftPane   = new QWidget(this);
+    auto *leftLayout = new QVBoxLayout(leftPane);
+    leftLayout->setContentsMargins(0, 0, 0, 0);
 
     auto *top = new QHBoxLayout;
-    mHeaderLabel = new QLabel(this);
-    mPositionCombo = new QComboBox(this);
+    mHeaderLabel = new QLabel(leftPane);
+    mPositionCombo = new QComboBox(leftPane);
     mPositionCombo->addItems(kPositions);
-    mCaptureButton = new QPushButton("Capture position", this);
+    mCaptureButton = new QPushButton("Capture position", leftPane);
     mCaptureButton->setEnabled(false);
-    auto *clearButton = new QPushButton("Clear sequence", this);
+    auto *clearButton = new QPushButton("Clear sequence", leftPane);
     top->addWidget(mHeaderLabel, 1);
-    top->addWidget(new QLabel("Position:", this));
+    top->addWidget(new QLabel("Position:", leftPane));
     top->addWidget(mPositionCombo);
     top->addWidget(mCaptureButton);
     top->addWidget(clearButton);
-    mainLayout->addLayout(top);
+    leftLayout->addLayout(top);
 
-    mTable = new QTableWidget(kPositions.size() + 3, 3, this);
+    mTable = new QTableWidget(kPositions.size() + 3, 3, leftPane);
     mTable->setHorizontalHeaderLabels({"Rate (s/d)", "Beat (ms)", "Ampl (°)"});
     QStringList rows = kPositions;
     rows << "X (mean)" << "D (max−min)" << "DVH";
     mTable->setVerticalHeaderLabels(rows);
+    // Columns stretch to fill the (width-capped) left pane, so the table
+    // spans up to the radar divider with no empty gap on its right.
     mTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     for (int r = 0; r < mTable->rowCount(); r++)
@@ -49,7 +56,29 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
             }
             mTable->setItem(r, c, it);
         }
-    mainLayout->addWidget(mTable, 1);
+    leftLayout->addWidget(mTable, 1);
+
+    // Cap the left pane width so the table fills it edge-to-edge (no empty gap)
+    // while the radar still gets the larger, remaining area.
+    leftPane->setMaximumWidth(560);
+
+    // Right pane: radar/polar view of the same multi-position data
+    mRadar = new RadarChartTab(this, this);
+    mRadar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    mRadar->setMinimumWidth(420);
+
+    // Split view — radar fills the remaining (larger) area; user-adjustable.
+    auto *splitter = new QSplitter(Qt::Horizontal, this);
+    splitter->addWidget(leftPane);
+    splitter->addWidget(mRadar);
+    splitter->setStretchFactor(0, 0);   // table: keep its capped size
+    splitter->setStretchFactor(1, 1);   // radar: absorb extra space
+    splitter->setSizes({560, 760});
+    splitter->setChildrenCollapsible(false);
+
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->addWidget(splitter);
 
     connect(mPositionCombo, &QComboBox::currentTextChanged,
             this, [this](const QString &pos) {
@@ -58,6 +87,9 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
             });
     connect(mCaptureButton, &QPushButton::clicked, this, &SequenceTab::captureCurrent);
     connect(clearButton, &QPushButton::clicked, this, [this] { reset(); });
+
+    // Keep the embedded radar in sync with captures/clears
+    connect(this, &SequenceTab::sequenceUpdated, mRadar, &RadarChartTab::rebuild);
 
     setActivePosition(mActivePosition);
     recomputeSummary();

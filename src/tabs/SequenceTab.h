@@ -6,6 +6,8 @@
 #include <QComboBox>
 #include <QDateTime>
 
+class RadarChartTab;   // embedded on the right (forward decl — avoids include cycle)
+
 // Graph 6: Multi-Position Sequence Display
 // (Witschi Chronoscope X1 G3 manual p.15, project plan Figure 10).
 //
@@ -38,6 +40,8 @@ public:
     // positions(); entries with valid==false have not been captured yet.
     QVector<PositionReading> capturedReadings() const;
 
+    RadarChartTab *radar() const { return mRadar; }   // embedded radar (right pane)
+
 public slots:
     void onMeasurement(const Measurement &m) override;
     void setActivePosition(const QString &pos);
@@ -50,10 +54,11 @@ private:
     void recomputeSummary();
     int  rowOfPosition(const QString &pos) const;
 
-    QComboBox    *mPositionCombo;
-    QLabel       *mHeaderLabel;
-    QPushButton  *mCaptureButton;
-    QTableWidget *mTable;
+    QComboBox     *mPositionCombo;
+    QLabel        *mHeaderLabel;
+    QPushButton   *mCaptureButton;
+    QTableWidget  *mTable;
+    RadarChartTab *mRadar = nullptr;   // right pane of the split view
 
     Measurement   mLatest;
     bool          mHaveLatest     = false;
