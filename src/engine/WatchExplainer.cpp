@@ -58,7 +58,8 @@ void WatchExplainer::explain(const ExplainRequest &req)
     userMsg["content"] = buildPrompt(req);
 
     QJsonObject options;
-    options["num_ctx"] = 512;
+    options["num_ctx"]    = 512;
+    options["num_thread"] = 2;  // leave 2 cores free for audio/DSP on RPi5
 
     QJsonObject body;
     body["model"]    = req.modelName;
