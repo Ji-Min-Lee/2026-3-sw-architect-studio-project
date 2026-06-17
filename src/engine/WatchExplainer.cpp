@@ -35,10 +35,14 @@ void WatchExplainer::warmup(const QString &modelName)
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setAttribute(QNetworkRequest::User, QVariant("warmup"));
 
+    QJsonObject options;
+    options["num_ctx"] = 512;
+
     QJsonObject body;
     body["model"]      = modelName;
     body["prompt"]     = "";
-    body["keep_alive"] = "10m";  // keep model in RAM for 10 min after last use
+    body["keep_alive"] = "10m";
+    body["options"]    = options;  // keep model in RAM for 10 min after last use
 
     qInfo() << "[WatchExplainer] Warming up model:" << modelName;
     m_nam->post(request, QJsonDocument(body).toJson());
@@ -54,9 +58,13 @@ void WatchExplainer::explain(const ExplainRequest &req)
     userMsg["role"]    = "user";
     userMsg["content"] = buildPrompt(req);
 
+    QJsonObject options;
+    options["num_ctx"] = 512;   // KV cache: 1536 MiB (4096) → 192 MiB (512)
+
     QJsonObject body;
-    body["model"]  = req.modelName;
-    body["stream"] = false;
+    body["model"]   = req.modelName;
+    body["stream"]  = false;
+    body["options"] = options;
     body["messages"] = QJsonArray{ userMsg };
 
     qInfo() << "[WatchExplainer] Sending request to Ollama, model:" << req.modelName;
@@ -143,17 +151,9 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req) const
     QString watchType = (in.watch_type == WatchType::Women) ? "ladies'" : "men's";
 
     return QString(
-        "You are an expert mechanical watch watchmaker and timegrapher technician.\n"
-        "A %1 watch was measured on a timegrapher. Here are the results:\n"
-        "  Rate:        %2 s/d  (acceptable: -5 to +15 s/d for men's, -5 to +25 for ladies')\n"
-        "  Amplitude:   %3°     (acceptable: ≥270° for Excellent, ≥220° for Good)\n"
-        "  Beat Error:  %4 ms   (acceptable: ≤0.5 ms for Excellent, ≤0.8 ms for Good)\n\n"
-        "Overall diagnosis: %5\n\n"
-        "In 3–5 sentences, explain:\n"
-        "1. Which measurement(s) caused this diagnosis and why.\n"
-        "2. What mechanical condition likely causes this in real watches.\n"
-        "3. What a watchmaker should check or service to improve the reading.\n"
-        "Be concise and practical. Do not repeat the numbers back verbatim."
+        "You are a watchmaker. A %1 watch timegrapher reading:\n"
+        "Rate %2 s/d, Amplitude %3 deg, Beat Error %4 ms. Diagnosis: %5.\n"
+        "In 3 sentences: why this diagnosis, likely mechanical cause, what to service."
     )
     .arg(watchType)
     .arg(in.rate_spd,        0, 'f', 1)
