@@ -18,7 +18,11 @@ public:
 public slots:
     void onMeasurement(const Measurement &m) override;
 private:
+    QRgb confidenceColorA(float norm) const;
+    QRgb confidenceColorC(float norm) const;
+
     SoundImageWidget   *mWidget;
-    SoundImageRenderer  mRenderer;   // 탭이 직접 소유
+    SoundImageRenderer  mRenderer;
     int                 mSampleRate = 48000;
+    float               mPeakAmplitude = 0.0f;
 };

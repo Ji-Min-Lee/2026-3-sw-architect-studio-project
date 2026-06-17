@@ -896,7 +896,17 @@ void MainWindow::on_LiftAngleSpinBox_valueChanged(int)
     if (mBeatNoiseScopeTab) mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
     if (mWaveformCompTab)   mWaveformCompTab->setLiftAngle(mLiftAngle);
 }
-void MainWindow::on_ScopeScaleSpinBox_valueChanged(int value) { mRateScopeTab->setScopeScale(value); }
+void MainWindow::on_ScopeScaleSpinBox_valueChanged(int value)
+{
+    mRateScopeTab->setScopeScale(value);
+    if (ui->ScopeScaleSlider->value() != value)
+        ui->ScopeScaleSlider->setValue(value);
+}
+void MainWindow::on_ScopeScaleSlider_valueChanged(int value)
+{
+    if (ui->ScopeScaleSpinBox->value() != value)
+        ui->ScopeScaleSpinBox->setValue(value);
+}
 void MainWindow::on_UseConsetCheckBox_toggled(bool checked)
 {
     if (mDspWorker)

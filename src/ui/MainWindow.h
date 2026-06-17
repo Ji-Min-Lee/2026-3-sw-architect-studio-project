@@ -62,6 +62,7 @@ private slots:
     void on_WatchTypeComboBox_currentIndexChanged(int index);
     void on_ModeComboBox_currentTextChanged(const QString &arg1);
     void on_ScopeScaleSpinBox_valueChanged(int value);
+    void on_ScopeScaleSlider_valueChanged(int value);
     void on_UseConsetCheckBox_toggled(bool checked);
 
     void onMeasurementReady(const Measurement &m);

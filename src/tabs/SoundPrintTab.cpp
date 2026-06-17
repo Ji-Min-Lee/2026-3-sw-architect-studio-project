@@ -1,6 +1,24 @@
 #include "SoundPrintTab.h"
 #include <QVBoxLayout>
 
+// SP-2: Map normalized event amplitude to confidence color.
+// Strong (≥0.7): pure A-green / C-blue
+// Medium (0.4–0.7): yellow-green / cyan
+// Weak (<0.4): yellow / light-cyan
+QRgb SoundPrintTab::confidenceColorA(float norm) const
+{
+    if (norm >= 0.7f) return qRgba(0,   255, 0,   255);
+    if (norm >= 0.4f) return qRgba(150, 255, 0,   255);
+    return                   qRgba(255, 220, 0,   255);
+}
+
+QRgb SoundPrintTab::confidenceColorC(float norm) const
+{
+    if (norm >= 0.7f) return qRgba(0,   0,   255, 255);
+    if (norm >= 0.4f) return qRgba(0,   150, 255, 255);
+    return                   qRgba(0,   220, 255, 255);
+}
+
 SoundPrintTab::SoundPrintTab(SoundImageWidget *widget, int sampleRate, QWidget *parent)
     : BaseGraphTab(parent), mWidget(widget), mSampleRate(sampleRate)
 {
@@ -31,8 +49,13 @@ void SoundPrintTab::reset()
     cfg.warmup_columns               = 2;
     cfg.anchor_columns               = 12;
     cfg.gamma                        = 0.5f;
+    cfg.per_column_normalize         = true;
     cfg.live_preview_current_column  = true;
+    cfg.beat_grid_enabled            = true;
+    cfg.beat_grid_color              = qRgba(0, 0, 220, 100);   // blue  — bucket=0 renders where C events appear after centering
+    cfg.beat_grid_half_color         = qRgba(0, 200, 0, 160);   // green — bucket=height/2 renders where A events appear after centering
 
+    mPeakAmplitude = 0.0f;
     mRenderer.initialize(mWidget->GetImage(), cfg);
     mRenderer.reset();
 
@@ -51,14 +74,17 @@ void SoundPrintTab::onMeasurement(const Measurement &m)
     // ① 원본 PCM → 비트맵 업데이트
     mRenderer.processSamples(m.rawPcm.data(), m.rawPcm.size());
 
-    // ② A/C 이벤트 마커
+    // ② A/C event markers with confidence color (SP-2)
     for (const AcousticEvent &ev : m.events) {
+        if (ev.peakValue > mPeakAmplitude)
+            mPeakAmplitude = ev.peakValue;
+        float norm = (mPeakAmplitude > 0.0f) ? ev.peakValue / mPeakAmplitude : 1.0f;
         if (ev.isA)
             mRenderer.markAEventAbsoluteSampleIndex(
-                (quint64)ev.samplePos, qRgba(0, 255, 0, 255), 3);
+                (quint64)ev.samplePos, confidenceColorA(norm), 3);
         else
             mRenderer.markCEventAbsoluteSampleIndex(
-                (quint64)ev.samplePos, qRgba(0, 0, 255, 255), 3);
+                (quint64)ev.samplePos, confidenceColorC(norm), 3);
     }
 
     // ③ 화면 갱신

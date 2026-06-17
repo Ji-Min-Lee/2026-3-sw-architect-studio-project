@@ -12,6 +12,8 @@ public:
     void DrawImage(void);
     QImage * GetImage(void);
     void paintEvent(QPaintEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+
 private:
     QImage *image=nullptr;
 
