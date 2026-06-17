@@ -36,6 +36,8 @@ set(PROJECT_SOURCES
     ui/MainWindow.cpp
     ui/MainWindow.h
     ui/MainWindow.ui
+    ui/SessionController.cpp
+    ui/SessionController.h
     ui/SettingsManager.h
     ui/SettingsManager.cpp
 )

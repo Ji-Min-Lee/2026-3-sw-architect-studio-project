@@ -15,19 +15,19 @@ static Measurement makeMeasurement(double rateSpd,
                                     double tocAmp)
 {
     Measurement m;
-    m.samplesPerSecond = 48000;
+    m.signal.samplesPerSecond = 48000;
 
     // pcm 블록이 있어야 시간 계산이 진행됨
-    m.pcm.fill(0.0, 4096);
+    m.signal.pcm.fill(0.0, 4096);
 
-    m.rateValid      = true;
-    m.rateErrorSpd   = rateSpd;
+    m.metrics.rate      = rateSpd;
+    // rate set above via optional
 
-    m.beatErrorValid = true;
-    m.beatErrorMs    = beatMs;
+    m.metrics.beatError = beatMs;
+    // beatError set above via optional
 
-    m.amplitudeValid = true;
-    m.amplitudeDeg   = (hasAmpSplit ? (ticAmp + tocAmp) / 2.0 : 0.0);
+    m.metrics.amplitude = (hasAmpSplit ? (ticAmp + tocAmp) / 2.0 : 0.0);
+    // amplitude set above via optional
 
     if (hasAmpSplit) {
         AcousticEvent ev{};
@@ -85,7 +85,7 @@ private slots:
     {
         TraceTab tab;
         Measurement m = makeMeasurement(+5.0, 0, false, 0, 0);
-        m.rateValid = false;
+        m.metrics.rate.reset();
         tab.onMeasurement(m);
 
         QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
@@ -140,7 +140,7 @@ private slots:
     {
         BeatErrorTab tab;
         Measurement m = makeMeasurement(0, 1.0, false, 0, 0);
-        m.beatErrorValid = false;
+        m.metrics.beatError.reset();
         tab.onMeasurement(m);
 
         QCOMPARE(tab.plot()->graph(0)->data()->size(), 0);
@@ -186,8 +186,8 @@ private slots:
     {
         VarioTab tab;
         Measurement m = makeMeasurement(+5.0, 0, false, 0, 0);
-        m.rateValid = false;
-        m.amplitudeValid = false;
+        m.metrics.rate.reset();
+        m.metrics.amplitude.reset();
         tab.onMeasurement(m);
         QCOMPARE((int)tab.rateStats().n, 0);
         QCOMPARE((int)tab.ampStats().n, 0);
