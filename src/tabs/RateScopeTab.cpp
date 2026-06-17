@@ -73,6 +73,14 @@ void RateScopeTab::setupPlots()
     mRatePlot->graph(2)->setScatterStyle(QCPScatterStyle::ssNone);
     mRatePlot->graph(2)->setName(QString("Trend (%1-beat avg)").arg(kTrendWindow));
     mRatePlot->legend->setVisible(true);
+    mRatePlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+
+    // Click-to-sync: rate plot click → pan scope to that beat's sample position
+    connect(mRatePlot, &QCustomPlot::mousePress,
+            this, &RateScopeTab::onRatePlotClicked);
+    // Click-to-sync: scope plot click → highlight corresponding beat on rate plot
+    connect(mScopePlot, &QCustomPlot::mousePress,
+            this, &RateScopeTab::onScopePlotClicked);
 
     // RS-2: statistics text label pinned to top-left of rate plot axes
     mStatsLabel = new QCPItemText(mRatePlot);
@@ -92,6 +100,8 @@ void RateScopeTab::reset()
 {
     mXTicIdx = mXTocIdx = 0;
     mXTic.clear(); mYTic.clear(); mXToc.clear(); mYToc.clear();
+    mSampleTic.clear(); mSampleToc.clear();
+    mRateCrosshair = nullptr;
     mHaveLastA = false;
     mStatCount = 0; mStatMean = 0.0; mStatM2 = 0.0;
     mRatePlot->yAxis->setRange(-ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
@@ -195,11 +205,18 @@ void RateScopeTab::onMeasurement(const Measurement &m)
 
             if (ev.hasRatePoint) {
                 int graphIdx = ev.isTic ? 0 : 1;
-                QVector<double> &xv = ev.isTic ? mXTic : mXToc;
-                QVector<double> &yv = ev.isTic ? mYTic : mYToc;
+                QVector<double> &xv  = ev.isTic ? mXTic : mXToc;
+                QVector<double> &yv  = ev.isTic ? mYTic : mYToc;
+                QVector<double> &sv  = ev.isTic ? mSampleTic : mSampleToc;
                 int             &idx = ev.isTic ? mXTicIdx : mXTocIdx;
-                if (yv.size() < mMaxPoints) { yv.append(ev.wrappedRateError); xv.append(idx); }
-                else { yv[idx] = ev.wrappedRateError; }
+                if (yv.size() < mMaxPoints) {
+                    yv.append(ev.wrappedRateError);
+                    xv.append(idx);
+                    sv.append((double)ev.samplePos);
+                } else {
+                    yv[idx] = ev.wrappedRateError;
+                    sv[idx] = (double)ev.samplePos;
+                }
                 idx = (idx + 1) % mMaxPoints;
                 mRatePlot->graph(graphIdx)->setData(xv, yv);
 
@@ -314,6 +331,77 @@ void RateScopeTab::addHorizontalMarkerInward(double xL, double xR, double len,
     right->start->setCoords(xR, h); right->end->setCoords(xR + len, h);
     right->setTail(QCPLineEnding::esSpikeArrow); right->setPen(pen);
 }
+// Click-to-sync: rate plot clicked → pan scope to the sample at the nearest beat
+void RateScopeTab::onRatePlotClicked(QMouseEvent *event)
+{
+    double beatX = mRatePlot->xAxis->pixelToCoord(event->pos().x());
+    syncScopeToRateBeat(beatX);
+}
+
+// Click-to-sync: scope plot clicked → highlight nearest beat on rate plot
+void RateScopeTab::onScopePlotClicked(QMouseEvent *event)
+{
+    double sampleX = mScopePlot->xAxis->pixelToCoord(event->pos().x());
+    syncRateToBeatNearSample(sampleX);
+}
+
+// Pan the scope to center on the beat whose x-index (in rate plot) is nearest to beatX.
+void RateScopeTab::syncScopeToRateBeat(double beatX)
+{
+    // Find the closest stored beat index across tic and toc
+    double bestDist = std::numeric_limits<double>::max();
+    double bestSample = -1.0;
+
+    auto search = [&](const QVector<double> &xv, const QVector<double> &sv) {
+        for (int i = 0; i < xv.size(); ++i) {
+            double d = std::abs(xv[i] - beatX);
+            if (d < bestDist) { bestDist = d; bestSample = sv[i]; }
+        }
+    };
+    search(mXTic, mSampleTic);
+    search(mXToc, mSampleToc);
+
+    if (bestSample < 0.0) return;
+
+    double half = (mSamplesPerSecond / (mScopeScale > 0 ? mScopeScale : 4)) / 2.0;
+    mScopePlot->xAxis->setRange(bestSample - half, bestSample + half);
+    mScopePlot->replot();
+}
+
+// Draw a vertical crosshair on the rate plot at the beat closest to sampleX.
+void RateScopeTab::syncRateToBeatNearSample(double sampleX)
+{
+    double bestDist = std::numeric_limits<double>::max();
+    double bestBeatX = -1.0;
+
+    auto search = [&](const QVector<double> &xv, const QVector<double> &sv) {
+        for (int i = 0; i < sv.size(); ++i) {
+            double d = std::abs(sv[i] - sampleX);
+            if (d < bestDist) { bestDist = d; bestBeatX = xv[i]; }
+        }
+    };
+    search(mXTic, mSampleTic);
+    search(mXToc, mSampleToc);
+
+    if (bestBeatX < 0.0) return;
+
+    // Remove old crosshair and draw a new one
+    if (mRateCrosshair) {
+        mRatePlot->removeItem(mRateCrosshair);
+        mRateCrosshair = nullptr;
+    }
+    mRateCrosshair = new QCPItemLine(mRatePlot);
+    QPen pen(QColor(255, 140, 0));
+    pen.setWidth(2);
+    pen.setStyle(Qt::DashLine);
+    mRateCrosshair->setPen(pen);
+    mRateCrosshair->start->setType(QCPItemPosition::ptPlotCoords);
+    mRateCrosshair->start->setCoords(bestBeatX, -ERROR_RATE_Y_SCALE);
+    mRateCrosshair->end->setType(QCPItemPosition::ptPlotCoords);
+    mRateCrosshair->end->setCoords(bestBeatX, ERROR_RATE_Y_SCALE);
+    mRatePlot->replot();
+}
+
 void RateScopeTab::removeMarkersAndText(double lo, double hi)
 {
     for (int i = mScopePlot->itemCount() - 1; i >= 0; --i) {

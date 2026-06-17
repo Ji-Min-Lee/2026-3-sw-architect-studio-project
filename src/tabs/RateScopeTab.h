@@ -55,6 +55,12 @@ private:
     // RS-2: statistics overlay helpers
     void updateStatsOverlay();
 
+    // Click-to-sync helpers
+    void syncScopeToRateBeat(double beatX);
+    void syncRateToBeatNearSample(double sampleX);
+    void onRatePlotClicked(QMouseEvent *event);
+    void onScopePlotClicked(QMouseEvent *event);
+
     QCustomPlot *mRatePlot;
     QCustomPlot *mScopePlot;
 
@@ -63,6 +69,8 @@ private:
     int     mXTocIdx    = 0;
     int     mMaxPoints  = 250;
     QVector<double> mXTic, mYTic, mXToc, mYToc;
+    // Parallel sample-position vectors for click-to-sync
+    QVector<double> mSampleTic, mSampleToc;
 
     double  mLastA     = 0.0;
     bool    mHaveLastA = false;
@@ -79,5 +87,6 @@ private:
     double mStatMean  = 0.0;
     double mStatM2    = 0.0;   // sum of squared deviations
 
-    QCPItemText *mStatsLabel = nullptr;
+    QCPItemText *mStatsLabel    = nullptr;
+    QCPItemLine *mRateCrosshair = nullptr;  // vertical beat marker on rate plot
 };
