@@ -536,8 +536,17 @@ void SoundImageRenderer::renderBinsToColumn(int x,
 
     clearColumn(x, cfg_.background_color);
 
+    float colScale = 1.0f;
+    if (cfg_.per_column_normalize) {
+        float colPeak = 0.0f;
+        for (int i = 0; i < height_; ++i) {
+            if (bins[i] > colPeak) colPeak = bins[i];
+        }
+        if (colPeak > 1.0e-6f) colScale = 1.0f / colPeak;
+    }
+
     for (int natural_bucket = 0; natural_bucket < height_; ++natural_bucket) {
-        float binValue = bins[natural_bucket];
+        float binValue = bins[natural_bucket] * colScale;
         if (binValue < 0.0f) {
             binValue = 0.0f;
         }

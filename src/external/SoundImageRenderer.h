@@ -245,6 +245,14 @@ public:
         float gamma = 0.5f;
 
         /**
+            If true, normalize each column against its own peak before applying
+            gamma. This makes faint columns (e.g. distant microphone) as bright as
+            loud columns, so the Sound Print pattern is consistent regardless of
+            signal level variation.
+        */
+        bool per_column_normalize = false;
+
+        /**
             If true, redraw the active in-progress column at the end of each
             processSamples() call after centering has locked.
 
