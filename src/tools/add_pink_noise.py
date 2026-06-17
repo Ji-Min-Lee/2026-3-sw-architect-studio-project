@@ -21,7 +21,7 @@ NOISE_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "TimeGrapherTestFilesWeishiMic", "Noise"
 )
-SNR_LEVELS = [60, 50, 40, 30, 20, 10, 0]   # dB, high = clean, low = noisy
+SNR_LEVELS = [60, 50, 40, 30, 20, 10, 0]   # dB SNR; noise_db = 60 - snr_db
 
 
 def generate_pink_noise(n_samples):
@@ -86,9 +86,9 @@ def process_wav(wav_path):
         else:
             out = mixed_mono
 
-        out_i16 = np.clip(out * 32767, -32768, 32767).astype(np.int16)
-        out_path = os.path.join(NOISE_DIR, f"{base}_snr{snr:02d}db.wav")
-        wavfile.write(out_path, rate, out_i16)
+        noise_db = 60 - snr
+        out_path = os.path.join(NOISE_DIR, f"{base}_noise{noise_db:02d}db.wav")
+        wavfile.write(out_path, rate, out.astype(np.float32))
         print(f"  [{snr:2d} dB SNR] -> {os.path.basename(out_path)}")
 
 

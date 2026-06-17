@@ -196,15 +196,16 @@ private:
     uint64_t                   mForegroundSampleCount=0;
     Logger                    *mLogger=nullptr;
 
-    // CLI automation flags (--autostart, --no-record, --rate N, --duration N,
-    //                       --onset-fraction F, --min-peak-fraction F)
+    // CLI automation flags (--autostart, --no-record, --rate N, --duration N, --file PATH,
+    //                       --onset FRAC, --min-peak FRAC)
     bool                       mNoRecord=false;
     bool                       mCmdAutoStart=false;
     int                        mCmdRate=0;
     int                        mCmdDurationSec=0;
+    QString                    mCmdFile;           // --file <path>: skip dialog, open directly
     QElapsedTimer              mCmdDurationTimer;  // wall-clock duration check
-    double                     mCmdOnsetFraction=0.0;     // 0 = use built-in default (0.03)
-    double                     mCmdMinPeakFraction=0.0;   // 0 = use built-in default (0.20)
+    double                     mCmdOnset=0.0;      // --onset <frac>: override onset_fraction_init
+    double                     mCmdMinPeak=0.0;    // --min-peak <frac>: override min_peak_fraction_init
 
 };
 #endif

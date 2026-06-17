@@ -56,6 +56,15 @@ public:
         // throughput snapshots (slow-moving, updated ~every 2s by workers)
         double  bg_fps = 0, bg_sps = 0, bg_spf = 0;
         double  fg_fps = 0, fg_sps = 0, fg_spf = 0;
+        // detection accuracy (updated on each A/C event; invalid until first lock)
+        bool   sync_locked   = false;
+        int    bph           = 0;      // detected BPH (0 if not locked)
+        bool   rate_valid    = false;  // RLS rate converged
+        double rate_spd      = 0.0;   // rate error in s/d (seconds per day)
+        bool   beat_valid    = false;
+        double beat_error_ms = 0.0;   // rolling avg beat error in ms
+        bool   amp_valid     = false;
+        double amplitude_deg = 0.0;   // rolling avg amplitude in degrees
     };
 
     explicit Logger(const QString &csvPath, int consoleEvery = 100, int sampleRate = 0);

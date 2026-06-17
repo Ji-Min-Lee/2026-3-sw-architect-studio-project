@@ -138,19 +138,23 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
 
     // Parse CLI args for automated experiment runs:
-    //   --rate N       : set sample rate (48000 / 96000 / 192000)
-    //   --autostart    : click Start automatically after window opens
-    //   --no-record    : answer NO to the "Record session?" dialog
-    //   --duration N   : stop and exit after N seconds
+    //   --rate N         : set sample rate (48000 / 96000 / 192000)
+    //   --autostart      : click Start automatically after window opens
+    //   --no-record      : answer NO to the "Record session?" dialog
+    //   --duration N     : stop and exit after N seconds
+    //   --file PATH      : open WAV directly, skip file dialog
+    //   --onset FRAC     : override detector onset_fraction_init  (e.g. 0.02)
+    //   --min-peak FRAC  : override detector min_peak_fraction_init (e.g. 0.10)
     {
         QStringList cliArgs = QCoreApplication::arguments();
         for (int i = 1; i < cliArgs.size(); ++i) {
-            if      (cliArgs[i] == "--rate"             && i + 1 < cliArgs.size()) mCmdRate             = cliArgs[++i].toInt();
-            else if (cliArgs[i] == "--autostart")                                   mCmdAutoStart        = true;
-            else if (cliArgs[i] == "--no-record")                                   mNoRecord            = true;
-            else if (cliArgs[i] == "--duration"         && i + 1 < cliArgs.size()) mCmdDurationSec      = cliArgs[++i].toInt();
-            else if (cliArgs[i] == "--onset-fraction"   && i + 1 < cliArgs.size()) mCmdOnsetFraction    = cliArgs[++i].toDouble();
-            else if (cliArgs[i] == "--min-peak-fraction"&& i + 1 < cliArgs.size()) mCmdMinPeakFraction  = cliArgs[++i].toDouble();
+            if      (cliArgs[i] == "--rate"     && i + 1 < cliArgs.size()) mCmdRate        = cliArgs[++i].toInt();
+            else if (cliArgs[i] == "--autostart")                           mCmdAutoStart   = true;
+            else if (cliArgs[i] == "--no-record")                           mNoRecord       = true;
+            else if (cliArgs[i] == "--duration" && i + 1 < cliArgs.size()) mCmdDurationSec = cliArgs[++i].toInt();
+            else if (cliArgs[i] == "--file"     && i + 1 < cliArgs.size()) mCmdFile        = cliArgs[++i];
+            else if ((cliArgs[i] == "--onset" || cliArgs[i] == "--onset-fraction") && i + 1 < cliArgs.size()) mCmdOnset   = cliArgs[++i].toDouble();
+            else if ((cliArgs[i] == "--min-peak" || cliArgs[i] == "--min-peak-fraction") && i + 1 < cliArgs.size()) mCmdMinPeak = cliArgs[++i].toDouble();
         }
         if (mCmdAutoStart) {
             QTimer::singleShot(500, this, [this]() {
@@ -161,6 +165,20 @@ MainWindow::MainWindow(QWidget *parent)
                 on_StartPushButton_clicked();
                 if (mCmdDurationSec > 0)
                     mCmdDurationTimer.start();  // wall-clock checked in HandleInputData
+            });
+        }
+        if (!mCmdFile.isEmpty()) {
+            QTimer::singleShot(500, this, [this]() {
+                if (mCmdRate > 0) SetAudioRate(mCmdRate);
+                int pbIdx = ui->ModeComboBox->findText(ModeStrings[PLAYBACK]);
+                if (pbIdx >= 0) ui->ModeComboBox->setCurrentIndex(pbIdx);
+                if (OpenFile(mCmdFile)) {
+                    StartPlaybackThread(mCmdFile);
+                    SetGuiRunMode();
+                    statusBar()->showMessage("Running");
+                    if (mCmdDurationSec > 0)
+                        mCmdDurationTimer.start();
+                }
             });
         }
     }
@@ -544,8 +562,8 @@ void MainWindow::CreateDectectors(void)
      mCfg.bph_mode=TG_BPH_MODE_MANUAL;
      mCfg.manual_bph=ManualAutoBPH[ui->BPHComboBox->currentIndex()];
     }
-    if (mCmdOnsetFraction    > 0.0) mCfg.onset_fraction_init    = mCmdOnsetFraction;
-    if (mCmdMinPeakFraction  > 0.0) mCfg.min_peak_fraction_init = mCmdMinPeakFraction;
+    if (mCmdOnset   > 0.0) mCfg.onset_fraction_init    = mCmdOnset;
+    if (mCmdMinPeak > 0.0) mCfg.min_peak_fraction_init = mCmdMinPeak;
     mCfg.suppress_pre_sync_events=true;
 
     mCfg.hpf_cutoff_hz=ui->HighLineEdit->text().toDouble();
@@ -693,6 +711,14 @@ void MainWindow::StopAudioThread(void)
 
 void MainWindow::StartPlaybackThread(const QString &FileName)
 {
+#ifdef ENABLE_LOGGING
+    delete mLogger;
+    QString logDir = QCoreApplication::applicationDirPath() + "/../logs";
+    QString csvPath = QString("%1/log_%2.csv")
+                          .arg(logDir)
+                          .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
+    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+#endif
     Reset();
     if (mRawAudio)
     {
@@ -913,6 +939,16 @@ void MainWindow::HandleInputData(TMasterAudioDataRaw *SharedDataPtr, int64_t emi
         frame.fg_fps = mForegroundFPS;
         frame.fg_sps = mForegroundSPS;
         frame.fg_spf = mForegroundSPF;
+
+        // Snapshot current detection state into the frame before recording.
+        frame.sync_locked   = mRateErrorEvents.BPH_Valid;
+        frame.bph           = mRateErrorEvents.BPH_Valid ? mRateErrorEvents.BPH : 0;
+        frame.rate_valid    = mRateErrorEvents.RlsRateValid;
+        frame.rate_spd      = mRateErrorEvents.RlsRate;
+        frame.beat_valid    = mBeatErrorEvents.RollBeatError->CurrentSize() > 0;
+        frame.beat_error_ms = mBeatErrorEvents.RollBeatError->GetAverage();
+        frame.amp_valid     = mAmplitudeEvents.RollAmplitude->CurrentSize() > 0;
+        frame.amplitude_deg = mAmplitudeEvents.RollAmplitude->GetAverage();
 
         // Only log frames that actually processed samples (samples==0 is meaningless).
         if (mLogger && frame.samples > 0)

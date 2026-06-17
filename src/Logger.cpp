@@ -113,7 +113,8 @@ void Logger::writeCsv()
     // per-frame rows. durations measured in us, written in ms (3 decimals).
     out << "frame,samples,block_drops,buffer_pct,total_ms,wait_ms,exec_ms,"
         << "copy_ms,sound_ms,tg_ms,ui_ms,plot_ms,"
-        << "bg_fps,bg_sps,bg_spf,fg_fps,fg_sps,fg_spf\n";
+        << "bg_fps,bg_sps,bg_spf,fg_fps,fg_sps,fg_spf,"
+        << "sync_locked,bph,rate_spd,beat_error_ms,amplitude_deg\n";
     uint64_t idx = 0;
     for (const Frame &f : mFrames) {
         ++idx;
@@ -134,7 +135,12 @@ void Logger::writeCsv()
             << QString::number(f.bg_spf, 'f', 1) << ','
             << QString::number(f.fg_fps, 'f', 1) << ','
             << QString::number(f.fg_sps, 'f', 1) << ','
-            << QString::number(f.fg_spf, 'f', 1) << '\n';
+            << QString::number(f.fg_spf, 'f', 1) << ','
+            << (f.sync_locked ? '1' : '0') << ','
+            << (f.sync_locked ? QString::number(f.bph) : "") << ','
+            << (f.rate_valid  ? QString::number(f.rate_spd,      'f', 2) : "") << ','
+            << (f.beat_valid  ? QString::number(f.beat_error_ms, 'f', 3) : "") << ','
+            << (f.amp_valid   ? QString::number(f.amplitude_deg, 'f', 1) : "") << '\n';
     }
     out.flush();
     file.close();
