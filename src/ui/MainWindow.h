@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include <QDir>
+#include <QEvent>
 #include <QMainWindow>
 #include <QComboBox>
 #include <QElapsedTimer>
@@ -15,6 +16,8 @@
 #include "SettingsManager.h"
 #include "Logger.h"   // Logger, TG_NOW()
 #include "WatchDiagnostics.h"
+#include "WatchExplainer.h"
+#include "DiagnosisDialog.h"
 // Tabs (Presentation layer — all 11 graph tabs)
 #include "RateScopeTab.h"
 #include "TraceTab.h"
@@ -121,6 +124,7 @@ private:
 
     void   Reset(void);
     void   wireEngineToTabs();
+    bool   eventFilter(QObject *obj, QEvent *event) override;
 
     // Settings persistence
     SettingsManager *mSettings = nullptr;
@@ -192,10 +196,14 @@ private:
     double mDspLastSPF        = 0.0;
     double mDspLastSPS        = 0.0;
 
-    // AI feature step 1: rule-based watch condition diagnosis
+    // AI step 1: rule-based watch condition diagnosis
     WatchDiagnostics           mWatchDiagnostics;
     DiagnosisLevel             mLastDiagnosisLevel = DiagnosisLevel::Unknown;
     WatchType                  mWatchType           = WatchType::Men;
+
+    // AI step 2: LLM explanation on diagnosis click
+    WatchExplainer             mWatchExplainer;
+    ExplainRequest             mLastExplainRequest;  // kept for re-open
 
 };
 #endif

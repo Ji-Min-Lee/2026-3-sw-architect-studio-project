@@ -431,6 +431,34 @@
       <string>Scope Scale</string>
      </property>
     </widget>
+    <widget class="QLabel" name="AiModelLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>118</y>
+       <width>80</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>AI Model</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="AiModelComboBox">
+     <property name="geometry">
+      <rect>
+       <x>95</x>
+       <y>117</y>
+       <width>136</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
     <widget class="QLabel" name="MiscLabel">
      <property name="geometry">
       <rect>
