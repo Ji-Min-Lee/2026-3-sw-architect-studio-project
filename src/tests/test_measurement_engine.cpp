@@ -174,6 +174,48 @@ private slots:
         // rate = 86400 × (0.250 / 0.250010 − 1) = 86400 × (−0.000040) ≈ −3.456 s/day
         QVERIFY(qAbs(engine.mRate.rateSpd - (-3.456)) < 0.05);
     }
+
+    // ── Handling-noise (tap) rejection ──────────────────────────────────────
+    void handlingNoise_amplitudeOutlier_rejected_normalKept()
+    {
+        MeasurementEngine engine;
+        engine.reset();
+        engine.mSamplesPerSecond = 48000;
+
+        // Establish a beat-amplitude baseline (median ≈ 0.10)
+        for (int i = 0; i < 10; i++) engine.mHandling.recentPeaks.append(0.10);
+        engine.mHandling.lastAcceptedPos = 0.0;
+
+        // A normal-amplitude beat far enough in time is accepted
+        QVERIFY(!engine.isHandlingNoise(48000.0, 0.11f));   // 1 s later, ~median
+        // A tap: peak far above median × K (5) is rejected
+        QVERIFY(engine.isHandlingNoise(48000.0, 1.0f));     // 10× median → tap
+    }
+
+    void handlingNoise_refractory_rejectsTooSoon()
+    {
+        MeasurementEngine engine;
+        engine.reset();
+        engine.mSamplesPerSecond = 48000;
+        engine.mHandling.lastAcceptedPos = 1000.0;
+
+        // 1 ms later (48 samples) → inside the 3 ms refractory → rejected
+        QVERIFY(engine.isHandlingNoise(1000.0 + 48.0, 0.1f));
+        // 5 ms later (240 samples) → outside refractory, no baseline → kept
+        QVERIFY(!engine.isHandlingNoise(1000.0 + 240.0, 0.1f));
+    }
+
+    void handlingNoise_faintWatch_preserved()
+    {
+        MeasurementEngine engine;
+        engine.reset();
+        engine.mSamplesPerSecond = 48000;
+
+        // Faint watch: low but consistent peaks. Its own A/C must NOT be rejected
+        for (int i = 0; i < 10; i++) engine.mHandling.recentPeaks.append(0.01);
+        engine.mHandling.lastAcceptedPos = 0.0;
+        QVERIFY(!engine.isHandlingNoise(48000.0, 0.012f));  // near its own median
+    }
 };
 
 QTEST_APPLESS_MAIN(TestMeasurementEngine)

@@ -62,5 +62,8 @@ struct Measurement {
     // QAS-4: true when no A-event received for >= 3 s (set by MeasurementEngine)
     bool    noSignal = false;
 
+    // Handling-noise (tap) events rejected in this block (telemetry / EXP-04)
+    int     handlingNoiseRejected = 0;
+
     int     samplesPerSecond = 48000;
 };

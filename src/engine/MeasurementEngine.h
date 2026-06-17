@@ -41,6 +41,11 @@ private:
     void   computeBeatError(double evTime, bool synced, int bph);
     void   computeAmplitude(double cTime, bool synced, int bph, Measurement &m, AcousticEvent &ae);
 
+    // Handling-noise rejection: discard impulsive events caused by tapping the
+    // watch or sensor, while preserving the real A/C beat events. Event-level
+    // (O(1) per event, no per-sample cost) — real-time safe on the RPi.
+    bool   isHandlingNoise(double samplePos, float peak) const;
+
     // DSP pipeline
     tg_config_t   mCfg{};
     tg_context_t *mCtx      = nullptr;
@@ -89,6 +94,17 @@ private:
 
     double mLastA     = 0.0;
     bool   mHaveLastA = false;
+
+    // Handling-noise (tap) rejection state. Thresholds are relative (median×K)
+    // so faint watches' real A/C are preserved; tune via EXP-03/04.
+    struct HandlingNoiseState {
+        QVector<double> recentPeaks;       // last accepted beat peaks (rolling)
+        double lastAcceptedPos = -1.0;     // sample index of last accepted event
+        static constexpr int    kWindow       = 24;   // peaks kept for the median
+        static constexpr int    kMinForOutlier = 6;   // need a baseline before rejecting
+        static constexpr double kAmplitudeK   = 5.0;  // reject if peak > median × K
+        static constexpr double kRefractoryMs = 3.0;  // reject events closer than this
+    } mHandling;
 
     // QAS-4: no-signal detection (owned by Model, not Controller)
     QElapsedTimer mNoSignalTimer;

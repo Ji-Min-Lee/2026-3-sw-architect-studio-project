@@ -2,6 +2,7 @@
 #include <QtMath>
 #include <QDebug>
 #include <cmath>
+#include <algorithm>
 
 #define TIC 0
 #define TOC 1
@@ -78,7 +79,34 @@ void MeasurementEngine::reset()
     mAmp.ticValid = false;
     mAmp.roll->Reset();
 
+    mHandling.recentPeaks.clear();
+    mHandling.lastAcceptedPos = -1.0;
+
     mNoSignalTimerStarted = false;
+}
+
+// Returns true when an event looks like handling noise (a tap on the watch or
+// sensor) rather than a real A/C beat:
+//   1) refractory — it arrives implausibly soon after the last accepted event
+//      (tap ring-down), shorter than any real A→C interval; and
+//   2) amplitude outlier — its peak is far above the watch's own beat amplitude.
+// The amplitude test is relative (median × K), so faint watches' genuine A/C
+// (which sit near their own median) are preserved, not rejected.
+bool MeasurementEngine::isHandlingNoise(double samplePos, float peak) const
+{
+    if (mHandling.lastAcceptedPos >= 0.0) {
+        double dtMs = (samplePos - mHandling.lastAcceptedPos) / mSamplesPerSecond * 1000.0;
+        if (dtMs >= 0.0 && dtMs < HandlingNoiseState::kRefractoryMs)
+            return true;
+    }
+    if (mHandling.recentPeaks.size() >= HandlingNoiseState::kMinForOutlier) {
+        QVector<double> sorted = mHandling.recentPeaks;
+        std::sort(sorted.begin(), sorted.end());
+        double median = sorted[sorted.size() / 2];
+        if (median > 1e-9 && peak > median * HandlingNoiseState::kAmplitudeK)
+            return true;
+    }
+    return false;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -121,6 +149,21 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     // Process each A/C event
     for (int i = 0; i < tgResult.num_events; i++) {
         const tg_event_t &ev = tgResult.events[i];
+
+        // Handling-noise rejection (tap on watch/sensor): discard impulsive
+        // outlier events before they corrupt any derived measurement, while
+        // keeping real A/C. Event-level → no per-sample cost (QAS-1/QAS-2).
+        const double evPos = ev.sample_index + ev.sub_sample_offset;
+        if (isHandlingNoise(evPos, ev.peak_value)) {
+            measurement.handlingNoiseRejected++;
+            continue;   // not a beat: skip rate/beat/amplitude and the event list
+        }
+        // Accepted event → update the rolling amplitude baseline + refractory ref
+        mHandling.lastAcceptedPos = evPos;
+        mHandling.recentPeaks.append(ev.peak_value);
+        if (mHandling.recentPeaks.size() > HandlingNoiseState::kWindow)
+            mHandling.recentPeaks.removeFirst();
+
         AcousticEvent acousticEvent;
         acousticEvent.cOnsetValid       = false;
         acousticEvent.hasRatePoint      = false;
