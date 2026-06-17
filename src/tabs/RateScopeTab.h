@@ -4,6 +4,8 @@
 
 // Graph 1: Rate Error scatter plot (top) + Scope waveform (bottom).
 // QCustomPlot widgets are injected from MainWindow.ui.
+// RS-1: rolling average trend line (graph index 2) overlaid on scatter.
+// RS-2: mean ± σ statistics text item updated each beat.
 class RateScopeTab : public BaseGraphTab
 {
     Q_OBJECT
@@ -29,6 +31,11 @@ private:
                                     double length, double height, const QColor &color);
     void removeMarkersAndText(double rangeMin, double rangeMax);
 
+    // RS-1: rolling average helpers
+    void updateTrendLine();
+    // RS-2: statistics overlay helpers
+    void updateStatsOverlay();
+
     QCustomPlot *mRatePlot;
     QCustomPlot *mScopePlot;
 
@@ -40,4 +47,14 @@ private:
 
     double  mLastA     = 0.0;
     bool    mHaveLastA = false;
+
+    // RS-1: rolling window size for trend line
+    static constexpr int kTrendWindow = 20;
+
+    // RS-2: running stats (Welford online algorithm)
+    int    mStatCount = 0;
+    double mStatMean  = 0.0;
+    double mStatM2    = 0.0;   // sum of squared deviations
+
+    QCPItemText *mStatsLabel = nullptr;
 };

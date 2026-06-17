@@ -1,6 +1,7 @@
 #include "RateScopeTab.h"
 #include "ReplotCounter.h"
 #include <QDebug>
+#include <cmath>
 
 #define ERROR_RATE_Y_SCALE    10
 #define GRAPH_HISTORY_SECONDS 10
@@ -49,17 +50,40 @@ void RateScopeTab::setupPlots()
     mRatePlot->xAxis->setRange(0, mMaxPoints);
     mRatePlot->xAxis->setTickLabels(false);
     mRatePlot->clearGraphs();
+    // graph(0): Tic scatter
     mRatePlot->addGraph();
     mRatePlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 3));
     mRatePlot->graph(0)->setLineStyle(QCPGraph::lsNone);
-    mRatePlot->graph(0)->setPen(QPen(Qt::red));
+    mRatePlot->graph(0)->setPen(QPen(QColor(255, 80, 80)));
     mRatePlot->graph(0)->setName("Tic Rate");
+    // graph(1): Toc scatter
     mRatePlot->addGraph();
     mRatePlot->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 3));
     mRatePlot->graph(1)->setLineStyle(QCPGraph::lsNone);
-    mRatePlot->graph(1)->setPen(QPen(Qt::blue));
+    mRatePlot->graph(1)->setPen(QPen(QColor(80, 80, 255)));
     mRatePlot->graph(1)->setName("Toc Rate");
+    // RS-1: graph(2): rolling average trend line (orange, 2px)
+    mRatePlot->addGraph();
+    QPen trendPen(QColor(0, 180, 120));  // teal-green, distinct from red/blue scatter
+    trendPen.setWidth(2);
+    mRatePlot->graph(2)->setPen(trendPen);
+    mRatePlot->graph(2)->setLineStyle(QCPGraph::lsLine);
+    mRatePlot->graph(2)->setScatterStyle(QCPScatterStyle::ssNone);
+    mRatePlot->graph(2)->setName(QString("Trend (%1-beat avg)").arg(kTrendWindow));
     mRatePlot->legend->setVisible(true);
+
+    // RS-2: statistics text label pinned to top-left of rate plot axes
+    mStatsLabel = new QCPItemText(mRatePlot);
+    mStatsLabel->setPositionAlignment(Qt::AlignTop | Qt::AlignLeft);
+    mStatsLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+    mStatsLabel->position->setCoords(0.01, 0.01);
+    QFont statsFont("Monospace", 9);
+    mStatsLabel->setFont(statsFont);
+    mStatsLabel->setColor(Qt::black);
+    mStatsLabel->setPen(QPen(QColor(180, 180, 180)));
+    mStatsLabel->setBrush(QBrush(QColor(255, 255, 255, 200)));
+    mStatsLabel->setPadding(QMargins(5, 3, 5, 3));
+    mStatsLabel->setText("mean: —   σ: —   n: 0");
 }
 
 void RateScopeTab::reset()
@@ -67,12 +91,80 @@ void RateScopeTab::reset()
     mXTicIdx = mXTocIdx = 0;
     mXTic.clear(); mYTic.clear(); mXToc.clear(); mYToc.clear();
     mHaveLastA = false;
+    mStatCount = 0; mStatMean = 0.0; mStatM2 = 0.0;
     mRatePlot->yAxis->setRange(-ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
     mRatePlot->xAxis->setRange(0, mMaxPoints);
     for (int i = 0; i < mRatePlot->graphCount(); i++) mRatePlot->graph(i)->data()->clear();
-    mRatePlot->clearItems(); { int64_t _pt=TG_NOW(); mRatePlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
+    mRatePlot->clearItems();
+    // Re-create stats label after clearItems() destroyed it
+    mStatsLabel = new QCPItemText(mRatePlot);
+    mStatsLabel->setPositionAlignment(Qt::AlignTop | Qt::AlignLeft);
+    mStatsLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+    mStatsLabel->position->setCoords(0.01, 0.01);
+    mStatsLabel->setFont(QFont("Monospace", 9));
+    mStatsLabel->setColor(Qt::black);
+    mStatsLabel->setPen(QPen(QColor(180, 180, 180)));
+    mStatsLabel->setBrush(QBrush(QColor(255, 255, 255, 200)));
+    mStatsLabel->setPadding(QMargins(5, 3, 5, 3));
+    mStatsLabel->setText("mean: —   σ: —   n: 0");
+    { int64_t _pt=TG_NOW(); mRatePlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
     for (int i = 0; i < mScopePlot->graphCount(); i++) mScopePlot->graph(i)->data()->clear();
     mScopePlot->clearItems(); { int64_t _pt=TG_NOW(); mScopePlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
+}
+
+// RS-1: recompute the rolling average trend line from all scatter points combined.
+// Uses a sliding window of kTrendWindow samples over the merged tic+toc series
+// sorted by x (beat index). Points outside the window are smoothed with the
+// same window to keep the line continuous as the circular buffer wraps.
+void RateScopeTab::updateTrendLine()
+{
+    // Merge tic and toc into one series sorted by x
+    int total = mXTic.size() + mXToc.size();
+    if (total < 2) {
+        mRatePlot->graph(2)->data()->clear();
+        return;
+    }
+
+    QVector<QPair<double,double>> pts;
+    pts.reserve(total);
+    for (int i = 0; i < mXTic.size(); ++i) pts.append({mXTic[i], mYTic[i]});
+    for (int i = 0; i < mXToc.size(); ++i) pts.append({mXToc[i], mYToc[i]});
+    std::sort(pts.begin(), pts.end(), [](const QPair<double,double> &a, const QPair<double,double> &b){
+        return a.first < b.first;
+    });
+
+    QVector<double> xTrend, yTrend;
+    xTrend.reserve(pts.size());
+    yTrend.reserve(pts.size());
+
+    for (int i = 0; i < pts.size(); ++i) {
+        int lo = qMax(0, i - kTrendWindow / 2);
+        int hi = qMin(pts.size() - 1, i + kTrendWindow / 2);
+        double sum = 0.0;
+        for (int j = lo; j <= hi; ++j) sum += pts[j].second;
+        xTrend.append(pts[i].first);
+        yTrend.append(sum / (hi - lo + 1));
+    }
+
+    mRatePlot->graph(2)->setData(xTrend, yTrend);
+}
+
+// RS-2: update mean ± σ label using Welford online algorithm accumulated over
+// all rate points seen since last reset (both tic and toc combined).
+void RateScopeTab::updateStatsOverlay()
+{
+    if (!mStatsLabel) return;
+    if (mStatCount < 2) {
+        mStatsLabel->setText(QString("mean: —   σ: —   n: %1").arg(mStatCount));
+        return;
+    }
+    double sigma = std::sqrt(mStatM2 / (mStatCount - 1));
+    mStatsLabel->setText(
+        QString("mean: %1 ms   σ: %2 ms   n: %3")
+            .arg(mStatMean, 0, 'f', 3)
+            .arg(sigma,     0, 'f', 3)
+            .arg(mStatCount)
+    );
 }
 
 void RateScopeTab::onMeasurement(const Measurement &m)
@@ -85,6 +177,7 @@ void RateScopeTab::onMeasurement(const Measurement &m)
         mScopePlot->graph(1)->addData((double)tick, m.threshold[i]);
     }
 
+    bool rateUpdated = false;
     double markerLen = inwardMarkerLen(m.samplesPerSecond);
     for (const AcousticEvent &ev : m.events) {
         if (ev.isA) {
@@ -107,8 +200,14 @@ void RateScopeTab::onMeasurement(const Measurement &m)
                 else { yv[idx] = ev.wrappedRateError; }
                 idx = (idx + 1) % mMaxPoints;
                 mRatePlot->graph(graphIdx)->setData(xv, yv);
-                g_replotCount++;
-                mRatePlot->replot(QCustomPlot::rpQueuedReplot);
+
+                // RS-2: Welford online update
+                mStatCount++;
+                double delta = ev.wrappedRateError - mStatMean;
+                mStatMean += delta / mStatCount;
+                mStatM2   += delta * (ev.wrappedRateError - mStatMean);
+
+                rateUpdated = true;
             }
         } else {
             double delta = ev.samplePos - mLastA;
@@ -123,6 +222,13 @@ void RateScopeTab::onMeasurement(const Measurement &m)
             addHorizontalMarkerInward(mLastA, ev.samplePos, markerLen, ev.peakValue, Qt::black);
             addText(ev.samplePos + markerLen, ev.peakValue, txt, Qt::black, Qt::AlignLeft | Qt::AlignTop);
         }
+    }
+
+    if (rateUpdated) {
+        updateTrendLine();      // RS-1
+        updateStatsOverlay();   // RS-2
+        g_replotCount++;
+        mRatePlot->replot(QCustomPlot::rpQueuedReplot);
     }
 
     purgeScopeHistory(m.samplesPerSecond);
