@@ -542,7 +542,10 @@ void SoundImageRenderer::renderBinsToColumn(int x,
         for (int i = 0; i < height_; ++i) {
             if (bins[i] > colPeak) colPeak = bins[i];
         }
-        if (colPeak > 1.0e-6f) colScale = 1.0f / colPeak;
+        // Only normalize if the column has meaningful signal (above 10% of full
+        // scale). Without this threshold, background-noise columns get amplified
+        // to full brightness, washing out the display.
+        if (colPeak > 0.1f) colScale = 1.0f / colPeak;
     }
 
     for (int natural_bucket = 0; natural_bucket < height_; ++natural_bucket) {

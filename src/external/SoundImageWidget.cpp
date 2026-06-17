@@ -76,12 +76,21 @@ void SoundImageWidget::paintEvent(QPaintEvent *event) {
     const int swatchH = 10;
     const int padX = 8, padY = 6;
 
-    struct Entry { QColor color; bool isLine; QString label; };
+    struct Entry {
+        QColor color;
+        QColor color2;   // second swatch (invalid = none)
+        QColor color3;
+        bool isLine;
+        QString label;
+    };
     const Entry entries[] = {
-        { QColor(0, 200, 0),  false, "A event" },
-        { QColor(0, 0, 220),  false, "C event" },
-        { QColor(0, 200, 0),  true,  "A event boundary" },
-        { QColor(0, 0, 200),  true,  "C event boundary (half-period)" },
+        // A events: 3-tone confidence gradient
+        { QColor(0,255,0), QColor(150,255,0), QColor(255,220,0), false, "A event (strong / medium / weak)" },
+        // C events: 3-tone confidence gradient
+        { QColor(0,0,255), QColor(0,150,255), QColor(0,220,255), false, "C event (strong / medium / weak)" },
+        // grid reference lines
+        { QColor(0,200,0),  QColor(), QColor(), true,  "A event boundary" },
+        { QColor(0,0,200),  QColor(), QColor(), true,  "C event boundary (half-period)" },
     };
     const int nEntries = static_cast<int>(sizeof(entries) / sizeof(entries[0]));
 
@@ -90,11 +99,17 @@ void SoundImageWidget::paintEvent(QPaintEvent *event) {
     painter.setFont(font);
     QFontMetrics fm(font);
 
+    // Each multi-swatch row needs room for 3 dots; compute total swatch width
+    const int dotD   = swatchH;          // dot diameter
+    const int dotGap = 3;
+    const int multiSwatchW = dotD * 3 + dotGap * 2;
+    const int textOff = multiSwatchW + 6;
+
     int maxTextW = 0;
     for (const auto &e : entries)
         maxTextW = qMax(maxTextW, fm.horizontalAdvance(e.label));
 
-    int boxW = padX * 2 + swatchW + 6 + maxTextW;
+    int boxW = padX * 2 + textOff + maxTextW;
     int boxH = padY * 2 + nEntries * lineH;
     int boxX = width() - boxW - margin;
     int boxY = margin;
@@ -109,14 +124,20 @@ void SoundImageWidget::paintEvent(QPaintEvent *event) {
         int ex = boxX + padX;
 
         painter.setPen(Qt::NoPen);
-        painter.setBrush(e.color);
         if (e.isLine) {
-            painter.fillRect(ex, ey - 1, swatchW, 2, e.color);
+            painter.fillRect(ex, ey - 1, multiSwatchW, 2, e.color);
         } else {
-            painter.drawEllipse(ex + 2, ey - swatchH / 2, swatchH, swatchH);
+            // Draw three dots for confidence gradient
+            const QColor dots[3] = { e.color, e.color2, e.color3 };
+            for (int d = 0; d < 3; ++d) {
+                if (dots[d].isValid()) {
+                    painter.setBrush(dots[d]);
+                    painter.drawEllipse(ex + d * (dotD + dotGap), ey - dotD / 2, dotD, dotD);
+                }
+            }
         }
 
         painter.setPen(Qt::white);
-        painter.drawText(ex + swatchW + 6, ey + fm.ascent() / 2 - 1, e.label);
+        painter.drawText(ex + textOff, ey + fm.ascent() / 2 - 1, e.label);
     }
 }
