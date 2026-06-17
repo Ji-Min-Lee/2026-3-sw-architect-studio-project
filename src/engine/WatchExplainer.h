@@ -22,7 +22,7 @@
 struct ExplainRequest {
     DiagnosisInput  input;
     DiagnosisResult result;
-    QString         modelName = "phi3:mini";   // default Ollama model
+    QString         modelName = "qwen2.5:0.5b";   // default Ollama model
 };
 
 class WatchExplainer : public QObject
@@ -32,7 +32,7 @@ public:
     explicit WatchExplainer(QObject *parent = nullptr);
 
     void explain(const ExplainRequest &req);
-    void warmup(const QString &modelName = "phi3:mini"); // preload model into RAM
+    void warmup(const QString &modelName = "qwen2.5:0.5b"); // preload model into RAM
 
     bool isOllamaAvailable() const { return m_available; }
     void checkAvailability();            // async ping to /api/tags
