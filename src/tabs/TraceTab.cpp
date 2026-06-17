@@ -161,26 +161,26 @@ void TraceTab::onMeasurement(const Measurement &m)
 {
     // Time always advances with the audio stream — invalid stretches leave a
     // visible gap in the trace (usability: measurement interruptions stand out)
-    mTimeElapsed += (double)m.pcm.size() / m.samplesPerSecond;
+    mTimeElapsed += (double)m.signal.pcm.size() / m.signal.samplesPerSecond;
 
-    if (m.rateValid) {
-        mPlot->graph(0)->addData(mTimeElapsed, m.rateErrorSpd);
-        if (!mRateN) { mRateMin = mRateMax = m.rateErrorSpd; }
-        mRateMin = qMin(mRateMin, m.rateErrorSpd);
-        mRateMax = qMax(mRateMax, m.rateErrorSpd);
-        mRateSum += m.rateErrorSpd; mRateN++;
-        mRateRecent.append({mTimeElapsed, m.rateErrorSpd});
-        mLastRate = m.rateErrorSpd;
+    if (m.metrics.rate.has_value()) {
+        mPlot->graph(0)->addData(mTimeElapsed, *m.metrics.rate);
+        if (!mRateN) { mRateMin = mRateMax = *m.metrics.rate; }
+        mRateMin = qMin(mRateMin, *m.metrics.rate);
+        mRateMax = qMax(mRateMax, *m.metrics.rate);
+        mRateSum += *m.metrics.rate; mRateN++;
+        mRateRecent.append({mTimeElapsed, *m.metrics.rate});
+        mLastRate = *m.metrics.rate;
         mHaveRate = true;
     }
-    if (m.amplitudeValid) {
-        mAmpGraph->addData(mTimeElapsed, m.amplitudeDeg);
-        if (!mAmpN) { mAmpMin = mAmpMax = m.amplitudeDeg; }
-        mAmpMin = qMin(mAmpMin, m.amplitudeDeg);
-        mAmpMax = qMax(mAmpMax, m.amplitudeDeg);
-        mAmpSum += m.amplitudeDeg; mAmpN++;
-        mAmpRecent.append({mTimeElapsed, m.amplitudeDeg});
-        mLastAmp = m.amplitudeDeg;
+    if (m.metrics.amplitude.has_value()) {
+        mAmpGraph->addData(mTimeElapsed, *m.metrics.amplitude);
+        if (!mAmpN) { mAmpMin = mAmpMax = *m.metrics.amplitude; }
+        mAmpMin = qMin(mAmpMin, *m.metrics.amplitude);
+        mAmpMax = qMax(mAmpMax, *m.metrics.amplitude);
+        mAmpSum += *m.metrics.amplitude; mAmpN++;
+        mAmpRecent.append({mTimeElapsed, *m.metrics.amplitude});
+        mLastAmp = *m.metrics.amplitude;
         mHaveAmp = true;
     }
     while (!mRateRecent.isEmpty() && mRateRecent.first().first < mTimeElapsed - kRollingAvgSec)

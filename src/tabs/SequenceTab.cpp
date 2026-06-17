@@ -113,7 +113,7 @@ void SequenceTab::onMeasurement(const Measurement &m)
 {
     mLatest = m;
     mHaveLatest = true;
-    mCaptureButton->setEnabled(m.rateValid || m.beatErrorValid || m.amplitudeValid);
+    mCaptureButton->setEnabled(m.metrics.rate.has_value() || m.metrics.beatError.has_value() || m.metrics.amplitude.has_value());
 }
 
 void SequenceTab::captureCurrent()

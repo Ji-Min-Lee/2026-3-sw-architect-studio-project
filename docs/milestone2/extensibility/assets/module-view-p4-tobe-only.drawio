@@ -1,0 +1,102 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="TO-BE" id="tobe">
+    <mxGraphModel dx="1000" dy="700" grid="0" gridSize="10" pageWidth="900" pageHeight="560">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="TTL" value="TO-BE: Measurement Decomposed by Bounded Context" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="8" width="900" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- MeasurementEngine -->
+        <mxCell id="ENG" value="MeasurementEngine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="50" width="200" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Measurement (container) -->
+        <mxCell id="MEAS" value="Measurement" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="310" y="130" width="260" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- SignalFrame VO -->
+        <mxCell id="SF" value="&lt;b&gt;«VO» SignalFrame&lt;/b&gt;&lt;hr/&gt;pcm / threshold&lt;br/&gt;hpfPcm / rawPcm&lt;br/&gt;tickStart / tickEnd&lt;br/&gt;samplesPerSecond" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#1a6b3c;strokeWidth=1.5;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="210" width="200" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Events -->
+        <mxCell id="EVT" value="QVector&amp;lt;AcousticEvent&amp;gt;&lt;br/&gt;events" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="210" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- SyncState flat -->
+        <mxCell id="SYNC" value="synced: bool&lt;br/&gt;detectedBph: int&lt;br/&gt;noSignal: bool" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="280" width="200" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- WatchMetrics VO -->
+        <mxCell id="WM" value="&lt;b&gt;«VO» WatchMetrics&lt;/b&gt;&lt;hr/&gt;rate: optional&amp;lt;double&amp;gt;&lt;br/&gt;amplitude: optional&amp;lt;double&amp;gt;&lt;br/&gt;beatError: optional&amp;lt;double&amp;gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#6e40c9;strokeWidth=1.5;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="560" y="210" width="240" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Bounded Context labels -->
+        <mxCell id="BC1" value="Signal Processing Context" style="text;html=1;strokeColor=#1a6b3c;fillColor=none;align=center;fontSize=10;fontStyle=2;fontColor=#1a6b3c;" vertex="1" parent="1">
+          <mxGeometry x="60" y="318" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="BC2" value="Watch Analysis Context" style="text;html=1;strokeColor=#6e40c9;fillColor=none;align=center;fontSize=10;fontStyle=2;fontColor=#6e40c9;" vertex="1" parent="1">
+          <mxGeometry x="560" y="318" width="240" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Signal-only tabs -->
+        <mxCell id="STABS" value="Signal Tabs&lt;br/&gt;BeatNoiseScopeTab, EscapementTab,&lt;br/&gt;FilterScopeTab, SoundPrintTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#1a6b3c;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="30" y="410" width="230" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Analysis-only tabs -->
+        <mxCell id="ATABS" value="Analysis Tabs&lt;br/&gt;SequenceTab, LongTermTab,&lt;br/&gt;TraceTab, VarioTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#6e40c9;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="600" y="410" width="230" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Both-context tabs -->
+        <mxCell id="BTABS" value="Both Contexts&lt;br/&gt;RateScopeTab, SpectrogramTab,&lt;br/&gt;WaveformCompTab, SweepScopeTab,&lt;br/&gt;BeatErrorTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="290" y="410" width="250" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- MainWindow -->
+        <mxCell id="MW" value="MainWindow" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="750" y="50" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges: Engine → Measurement -->
+        <mxCell id="E0" value="emits" style="html=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="ENG" target="MEAS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Measurement → sub-structs (composition) -->
+        <mxCell id="E1" value="" style="html=1;endArrow=diamond;endFill=1;strokeColor=#666666;fontSize=10;" edge="1" source="MEAS" target="SF" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E2" value="" style="html=1;endArrow=diamond;endFill=1;strokeColor=#666666;fontSize=10;" edge="1" source="MEAS" target="EVT" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E3" value="" style="html=1;endArrow=diamond;endFill=1;strokeColor=#666666;fontSize=10;" edge="1" source="MEAS" target="WM" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E4" value="" style="html=1;endArrow=diamond;endFill=1;strokeColor=#666666;fontSize=10;" edge="1" source="MEAS" target="SYNC" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- Tab edges -->
+        <mxCell id="E5" value="«use» signal" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#1a6b3c;fontSize=10;" edge="1" source="STABS" target="SF" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E6" value="«use» metrics" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#6e40c9;fontSize=10;" edge="1" source="ATABS" target="WM" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E7" value="«use» signal+metrics" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#d6b656;fontSize=10;" edge="1" source="BTABS" target="MEAS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E8" value="«use» noSignal/metrics" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="MEAS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -105,15 +105,15 @@ void BeatErrorTab::updateHeader(const Measurement &m)
         return valid ? QString("%1 %2").arg(value, 0, 'f', dec).arg(unit) : QString("--- %1").arg(unit);
     };
     mHeaderLabel->setText(QString("<b>RATE %1   AMPLITUDE %2   BEAT ERROR %3   BEAT %4</b>")
-                              .arg(formatValue(m.rateValid, m.rateErrorSpd, 1, "s/d"),
-                                   formatValue(m.amplitudeValid, m.amplitudeDeg, 0, "°"),
-                                   formatValue(m.beatErrorValid, m.beatErrorMs, 2, "ms"),
+                              .arg(formatValue(m.metrics.rate.has_value(), *m.metrics.rate, 1, "s/d"),
+                                   formatValue(m.metrics.amplitude.has_value(), *m.metrics.amplitude, 0, "°"),
+                                   formatValue(m.metrics.beatError.has_value(), *m.metrics.beatError, 2, "ms"),
                                    m.synced ? QString("%1 bph").arg(m.detectedBph) : "----- bph"));
 
     QStringList alerts;
-    if (m.beatErrorValid && m.beatErrorMs > kGoodBeatErrorMs)
+    if (m.metrics.beatError.has_value() && *m.metrics.beatError > kGoodBeatErrorMs)
         alerts << QString("<span style='color:#c01e1e'>⚠ Line separation %1 ms exceeds "
-                          "%2 ms</span>").arg(m.beatErrorMs, 0, 'f', 2).arg(kGoodBeatErrorMs);
+                          "%2 ms</span>").arg(*m.metrics.beatError, 0, 'f', 2).arg(kGoodBeatErrorMs);
 
     // Slope check: linear fit of the recent diagnostic trace, converted to
     // on-screen angle using the current axis ranges (>45° = major fault)
@@ -157,14 +157,14 @@ void BeatErrorTab::onMeasurement(const Measurement &m)
         mBeatIdx++;
     }
 
-    if (m.beatErrorValid) {
-        mTimeElapsed += (double)m.pcm.size() / m.samplesPerSecond;
-        mPlot->graph(0)->addData(mTimeElapsed, m.beatErrorMs);
+    if (m.metrics.beatError.has_value()) {
+        mTimeElapsed += (double)m.signal.pcm.size() / m.signal.samplesPerSecond;
+        mPlot->graph(0)->addData(mTimeElapsed, *m.metrics.beatError);
     }
 
     if (mPaused || !isVisible()) return;
     updateHeader(m);
-    if (m.beatErrorValid) {
+    if (m.metrics.beatError.has_value()) {
         // Rolling time window: the trace scrolls past instead of compressing;
         // all data is retained for Pause + drag/zoom review
         double hi = qMax(mTimeElapsed, windowSec());

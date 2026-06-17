@@ -189,11 +189,11 @@ void WaveformCompTab::reset()
 void WaveformCompTab::appendBuffer(const Measurement &m)
 {
     if (mHpfBuf.isEmpty()) {
-        mBufStartAbs = static_cast<double>(m.graphTickStart);
+        mBufStartAbs = static_cast<double>(m.signal.tickStart);
     }
 
-    mHpfBuf.reserve(mHpfBuf.size() + m.hpfPcm.size());
-    for (float v : m.hpfPcm) {
+    mHpfBuf.reserve(mHpfBuf.size() + m.signal.hpfPcm.size());
+    for (float v : m.signal.hpfPcm) {
         mHpfBuf.append(v);
     }
 
@@ -379,11 +379,11 @@ void WaveformCompTab::redrawPlots()
 
 void WaveformCompTab::onMeasurement(const Measurement &m)
 {
-    if (m.hpfPcm.isEmpty()) {
+    if (m.signal.hpfPcm.isEmpty()) {
         return;
     }
 
-    mSps = m.samplesPerSecond;
+    mSps = m.signal.samplesPerSecond;
     if (m.synced && m.detectedBph > 0) {
         mBph = m.detectedBph;
     }
@@ -415,8 +415,8 @@ void WaveformCompTab::onMeasurement(const Measurement &m)
 
     mValuesLabel->setText(
         QString("RATE %1 s/d   BEAT ERROR %2 ms   BEAT %3 bph")
-            .arg(m.rateValid ? QString::number(m.rateErrorSpd, 'f', 1) : "---",
-                 m.beatErrorValid ? QString::number(m.beatErrorMs, 'f', 2) : "---",
+            .arg(m.metrics.rate.has_value() ? QString::number(*m.metrics.rate, 'f', 1) : "---",
+                 m.metrics.beatError.has_value() ? QString::number(*m.metrics.beatError, 'f', 2) : "---",
                  m.synced ? QString::number(m.detectedBph) : "-----"));
 
     if (!changed || mPaused || !isVisible()) {

@@ -138,12 +138,12 @@ void LongTermTab::reset()
 
 void LongTermTab::onMeasurement(const Measurement &m)
 {
-    if (!m.rateValid && !m.amplitudeValid && !m.beatErrorValid) return;
-    mTimeElapsed += (double)m.pcm.size() / m.samplesPerSecond;
+    if (!m.metrics.rate.has_value() && !m.metrics.amplitude.has_value() && !m.metrics.beatError.has_value()) return;
+    mTimeElapsed += (double)m.signal.pcm.size() / m.signal.samplesPerSecond;
 
-    if (m.rateValid)      addPoint(mRate, mTimeElapsed, m.rateErrorSpd);
-    if (m.amplitudeValid) addPoint(mAmp,  mTimeElapsed, m.amplitudeDeg);
-    if (m.beatErrorValid) addPoint(mBeat, mTimeElapsed, m.beatErrorMs);
+    if (m.metrics.rate.has_value())      addPoint(mRate, mTimeElapsed, *m.metrics.rate);
+    if (m.metrics.amplitude.has_value()) addPoint(mAmp,  mTimeElapsed, *m.metrics.amplitude);
+    if (m.metrics.beatError.has_value()) addPoint(mBeat, mTimeElapsed, *m.metrics.beatError);
 
     // Reduce update frequency as elapsed time grows (time-based thresholds).
     int newBucket = 1;

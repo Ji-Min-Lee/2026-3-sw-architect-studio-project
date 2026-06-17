@@ -49,11 +49,11 @@ void SweepScopeTab::resizeSweep(int bph)
 
 void SweepScopeTab::onMeasurement(const Measurement &m)
 {
-    mSps = m.samplesPerSecond;
+    mSps = m.signal.samplesPerSecond;
     if (m.synced && m.detectedBph > 0) mBph = m.detectedBph;
     resizeSweep(mBph);
 
-    for (double v : m.pcm) {
+    for (double v : m.signal.pcm) {
         mSweep[mWriteIdx] = std::abs(v);
         mWriteIdx = (mWriteIdx + 1) % mSweep.size();
     }
@@ -61,9 +61,9 @@ void SweepScopeTab::onMeasurement(const Measurement &m)
     if (mPaused || !isVisible()) return;
 
     mRefLabel->setText(QString("<b>DAILY RATE %1 s/d   AMPLITUDE %2°   BEAT ERROR %3 ms   %4 bph</b>")
-                           .arg(m.rateValid ? QString::number(m.rateErrorSpd, 'f', 1) : "---",
-                                m.amplitudeValid ? QString::number(m.amplitudeDeg, 'f', 0) : "---",
-                                m.beatErrorValid ? QString::number(m.beatErrorMs, 'f', 2) : "---",
+                           .arg(m.metrics.rate.has_value() ? QString::number(*m.metrics.rate, 'f', 1) : "---",
+                                m.metrics.amplitude.has_value() ? QString::number(*m.metrics.amplitude, 'f', 0) : "---",
+                                m.metrics.beatError.has_value() ? QString::number(*m.metrics.beatError, 'f', 2) : "---",
                                 m.synced ? QString::number(mBph) : "-----"));
     redraw();
 }
