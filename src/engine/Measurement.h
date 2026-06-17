@@ -65,5 +65,9 @@ struct Measurement {
     // Handling-noise (tap) events rejected in this block (telemetry / EXP-04)
     int     handlingNoiseRejected = 0;
 
+    // Ambient noise level of this block (dB estimate). MainWindow raises the
+    // "too noisy to measure" popup when this stays above the threshold.
+    double  noiseDb = 0.0;
+
     int     samplesPerSecond = 48000;
 };

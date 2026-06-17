@@ -4,6 +4,10 @@
 #include <cmath>
 #include <algorithm>
 
+// Reference offset mapping dBFS RMS to an SPL-like scale (uncalibrated; tune
+// with a reference meter in EXP-04). With this, ~−45 dBFS RMS reads ~55 dB.
+static constexpr double kNoiseDbRefOffset = 100.0;
+
 #define TIC 0
 #define TOC 1
 #define ERROR_RATE_Y_SCALE  10
@@ -131,6 +135,12 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     // Raw PCM for SoundPrintTab (copy before any DSP transformation)
     measurement.rawPcm.reserve(numSamples);
     for (int i = 0; i < numSamples; i++) measurement.rawPcm.append(pcm[i]);
+
+    // Ambient-noise level = the detector's adaptive noise floor (onset_threshold),
+    // i.e. the baseline BETWEEN beats — not the beat peaks — so it reflects the
+    // environment, not how loud the watch is. Zero extra cost (already computed).
+    // dB on an SPL-like scale: dBFS + reference offset (tunable; EXP-04 calibrates).
+    measurement.noiseDb = 20.0 * std::log10(tgResult.onset_threshold + 1e-9) + kNoiseDbRefOffset;
 
     // Processed PCM + threshold for ScopePlot
     measurement.pcm.reserve(tgResult.processed_pcm_len);

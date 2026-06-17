@@ -212,6 +212,7 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     mLastReplotCount = g_replotCount.exchange(0);
     mLastPlotUs      = g_plotUs.exchange(0);
     checkWatchDetached(m);  // update detached state before formatting the label
+    checkNoise(m);          // all modes: ambient-noise popup
     DisplayResults(m);
 }
 
@@ -264,6 +265,59 @@ void MainWindow::raiseWatchDetachedAlarm(void)
         mDetachAlarm->show();
         mDetachAlarm->raise();
         mDetachAlarm->activateWindow();
+    }
+}
+
+// All modes: when the ambient noise level stays at/above the threshold the
+// watch cannot be measured reliably → raise a popup. Dismiss once the noise
+// has subsided AND normal measurement has resumed. Both edges are debounced
+// (sustained for kNoiseOn/OffMs) so transient bumps don't flicker the popup.
+void MainWindow::checkNoise(const Measurement &m)
+{
+    if (!ui->StopPushButton->isEnabled()) {   // not running → clear everything
+        if (mNoiseAlarm) mNoiseAlarm->hide();
+        mNoiseShown = false;
+        mNoiseAboveSince.invalidate();
+        mNoiseBelowSince.invalidate();
+        return;
+    }
+
+    if (m.noiseDb >= kNoiseThresholdDb) {                 // noisy
+        mNoiseBelowSince.invalidate();
+        if (!mNoiseAboveSince.isValid()) mNoiseAboveSince.restart();
+        if (!mNoiseShown && mNoiseAboveSince.elapsed() >= kNoiseOnMs) {
+            mNoiseShown = true;
+            raiseNoiseAlarm();
+        }
+    } else {                                              // quiet enough
+        mNoiseAboveSince.invalidate();
+        const bool measuring = m.synced || m.rateValid || m.amplitudeValid;
+        if (!mNoiseBelowSince.isValid()) mNoiseBelowSince.restart();
+        if (mNoiseShown && measuring && mNoiseBelowSince.elapsed() >= kNoiseOffMs) {
+            mNoiseShown = false;
+            if (mNoiseAlarm) mNoiseAlarm->hide();
+        }
+    }
+}
+
+void MainWindow::raiseNoiseAlarm(void)
+{
+    statusBar()->showMessage("High ambient noise", 5000);
+    if (!mNoiseAlarm) {
+        mNoiseAlarm = new QMessageBox(this);
+        mNoiseAlarm->setIcon(QMessageBox::Warning);
+        mNoiseAlarm->setWindowTitle("Noisy Environment");
+        mNoiseAlarm->setText("High ambient noise detected");
+        mNoiseAlarm->setInformativeText(
+            "The surrounding noise is too high to measure the watch reliably. "
+            "Please move to a quieter location.");
+        mNoiseAlarm->setStandardButtons(QMessageBox::Ok);
+        mNoiseAlarm->setModal(false);  // non-blocking: keep measuring underneath
+    }
+    if (!mNoiseAlarm->isVisible()) {
+        mNoiseAlarm->show();
+        mNoiseAlarm->raise();
+        mNoiseAlarm->activateWindow();
     }
 }
 

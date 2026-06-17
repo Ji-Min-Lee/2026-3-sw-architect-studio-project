@@ -119,6 +119,11 @@ private:
     void   checkWatchDetached(const Measurement &m);
     void   raiseWatchDetachedAlarm(void);
 
+    // All-mode ambient-noise popup: warn when the environment is too noisy to
+    // measure (>= 55 dB sustained); dismiss when quiet and measuring again.
+    void   checkNoise(const Measurement &m);
+    void   raiseNoiseAlarm(void);
+
     void   Reset(void);
     void   wireEngineToTabs();
 
@@ -152,6 +157,15 @@ private:
     bool         mHadWatchSignal = false;  // a watch was being measured this run
     bool         mWatchDetached  = false;  // currently detached (alarm latched)
     QMessageBox *mDetachAlarm    = nullptr;
+
+    // All-mode ambient-noise popup state (debounced on both edges)
+    bool          mNoiseShown = false;
+    QElapsedTimer mNoiseAboveSince;        // continuous time at/above threshold
+    QElapsedTimer mNoiseBelowSince;        // continuous time below threshold
+    QMessageBox  *mNoiseAlarm = nullptr;
+    static constexpr double  kNoiseThresholdDb = 55.0;   // noisy environment
+    static constexpr qint64  kNoiseOnMs        = 2000;   // sustained → show
+    static constexpr qint64  kNoiseOffMs       = 2000;   // sustained → hide
 
     // Audio threads
     WavStreamWriter       *mWavWriter            = nullptr;

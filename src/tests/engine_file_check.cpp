@@ -66,10 +66,12 @@ int main(int argc, char *argv[])
     Measurement last;
     QVector<double> aEventTimes;          // A(T1) event times in seconds
     int firstSyncBlock = -1;
+    double noiseSum = 0, noiseMax = -1e9; int noiseN = 0;
 
     QObject::connect(&engine, &MeasurementEngine::measurementReady,
                      [&](const Measurement &m) {
         last = m;
+        noiseSum += m.noiseDb; noiseMax = qMax(noiseMax, m.noiseDb); noiseN++;
         if (m.synced && firstSyncBlock < 0) firstSyncBlock = blockNo;
         for (const AcousticEvent &ev : m.events)
             if (ev.isA) aEventTimes.append(ev.samplePos / m.samplesPerSecond);
@@ -105,6 +107,8 @@ int main(int argc, char *argv[])
            last.synced ? "yes" : "NO", firstSyncBlock, firstSyncBlock * 4096.0 / rate);
     printf("detected BPH    : %d\n", last.detectedBph);
     printf("BPH from A-A iv : %.0f  (median beat interval, %d A-events)\n", bphFromEvents, (int)aEventTimes.size());
+    printf("noise dB        : avg %.1f  max %.1f  (popup threshold 55)\n",
+           noiseN ? noiseSum / noiseN : 0.0, noiseMax);
     printf("rate error      : %s %.2f s/d\n", last.rateValid ? "valid" : "INVALID", last.rateErrorSpd);
     printf("beat error      : %s %.3f ms\n", last.beatErrorValid ? "valid" : "INVALID", last.beatErrorMs);
     printf("amplitude       : %s %.1f deg\n", last.amplitudeValid ? "valid" : "INVALID", last.amplitudeDeg);
