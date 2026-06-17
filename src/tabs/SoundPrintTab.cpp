@@ -32,6 +32,9 @@ void SoundPrintTab::reset()
     cfg.anchor_columns               = 12;
     cfg.gamma                        = 0.5f;
     cfg.live_preview_current_column  = true;
+    cfg.beat_grid_enabled            = true;
+    cfg.beat_grid_color              = qRgba(0, 0, 220, 100);   // blue  — bucket=0 renders where C events appear after centering
+    cfg.beat_grid_half_color         = qRgba(0, 200, 0, 160);   // green — bucket=height/2 renders where A events appear after centering
 
     mRenderer.initialize(mWidget->GetImage(), cfg);
     mRenderer.reset();

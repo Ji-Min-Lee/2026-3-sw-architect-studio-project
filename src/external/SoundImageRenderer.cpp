@@ -555,6 +555,25 @@ void SoundImageRenderer::renderBinsToColumn(int x,
     }
 
     rendered_columns_[static_cast<std::size_t>(x)] = meta;
+
+    if (cfg_.beat_grid_enabled) {
+        auto blendLine = [&](int natural_bucket, QRgb grid_color) {
+            const int display_bucket = applyVerticalOffset(natural_bucket, meta.vertical_offset_rows);
+            const int y = bucketToY(display_bucket);
+            if (y < 0 || y >= height_) return;
+            QRgb *row = reinterpret_cast<QRgb *>(image_->scanLine(y));
+            // Alpha-blend grid color over the existing pixel
+            int ga = qAlpha(grid_color);
+            int sa = 255 - ga;
+            int r = (qRed(grid_color) * ga + qRed(row[x]) * sa) / 255;
+            int g = (qGreen(grid_color) * ga + qGreen(row[x]) * sa) / 255;
+            int b = (qBlue(grid_color) * ga + qBlue(row[x]) * sa) / 255;
+            row[x] = qRgba(r, g, b, 255);
+        };
+        blendLine(0, cfg_.beat_grid_color);
+        blendLine(height_ / 2, cfg_.beat_grid_half_color);
+    }
+
     reapplyMarkersForColumn(x);
 }
 

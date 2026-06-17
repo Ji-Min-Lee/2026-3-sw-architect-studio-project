@@ -251,6 +251,23 @@ public:
             For highest speed, set false and draw only completed columns.
         */
         bool live_preview_current_column = true;
+
+        /**
+            If true, draw semi-transparent horizontal grid lines across each
+            completed column at the beat-period boundary (natural_bucket == 0)
+            and at the half-period mark (natural_bucket == height/2).
+
+            The boundary line marks where A events are expected; the half-period
+            line marks where C events are expected for a balanced escapement.
+            Both lines blend with the signal so event markers remain visible.
+        */
+        bool beat_grid_enabled = false;
+
+        /** Color of the beat-boundary grid line (alpha controls opacity). */
+        QRgb beat_grid_color = qRgba(80, 80, 80, 120);
+
+        /** Color of the half-period grid line (alpha controls opacity). */
+        QRgb beat_grid_half_color = qRgba(80, 80, 80, 60);
     };
 
     SoundImageRenderer();
