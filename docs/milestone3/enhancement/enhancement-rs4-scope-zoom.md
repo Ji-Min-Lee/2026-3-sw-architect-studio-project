@@ -78,7 +78,7 @@ The operator can now inspect a captured waveform segment at any zoom level witho
 
 ### Before — Baseline (SIM mode, 48000 Hz, `git 5ff5a70`)
 
-![Before: Rate/Scope baseline](assets/rs4-before.png)
+![Before: Rate/Scope baseline](rs4-before.png)
 
 **Observations:**
 - X-axis on both plots shows no numbers (tick labels suppressed).
@@ -90,7 +90,7 @@ The operator can now inspect a captured waveform segment at any zoom level witho
 
 ### After — Scale 3 (Stopped state, Playback mode)
 
-![After: Scale 3, stopped](assets/rs4-after-scale3.png)
+![After: Scale 3, stopped](rs4-after-scale3.png)
 
 **What changed:**
 - **Top (Rate Error)**: Beat count axis now shows `0 … 250` — operator immediately knows 40 beats have been collected (`n: 40` in stats overlay) and where they sit in the window.
@@ -102,7 +102,7 @@ The operator can now inspect a captured waveform segment at any zoom level witho
 
 ### After — Scale 6 (Stopped state, zoomed in)
 
-![After: Scale 6, stopped — zoomed in](assets/rs4-after-scale6.png)
+![After: Scale 6, stopped — zoomed in](rs4-after-scale6.png)
 
 **What changed vs. scale 3:**
 - Window narrows from ~300 ms to ~167 ms. One A–C event pair now occupies most of the width, making the `124.82 ms` period and `10.5 ms / 199°` amplitude annotation clearly readable.

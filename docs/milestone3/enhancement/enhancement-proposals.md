@@ -98,11 +98,11 @@ SP-1 and SP-2 share the same after screenshot since both affect the Sound Print 
 
 **Before** — fixed gamma, binary marker colors (green/blue only):
 
-![SP-1 SP-2 before](../assets/baseline_sound_print.png)
+![SP-1 SP-2 before](baseline_sound_print.png)
 
 **After** — per-column normalization (SP-1) + confidence color gradient (SP-2) + beat grid (SP-3):
 
-![SP-1 SP-2 after](../assets/sp12-after-sound-print.png)
+![SP-1 SP-2 after](sp12-after-sound-print.png)
 
 ### Performance expectation
 
@@ -221,15 +221,15 @@ connect(ui->scopeZoomSlider, &QSlider::valueChanged, this, [this](int v) {
 
 **Before** — scope window fixed, no slider:
 
-![RS-4 before](../assets/rs4-before.png)
+![RS-4 before](rs4-before.png)
 
 **After (Scope=1, narrow)** — single beat visible in detail; slider at leftmost position:
 
-![RS-4 scope=1](../assets/rs4-scope1-narrow.png)
+![RS-4 scope=1](rs4-scope1-narrow.png)
 
 **After (Scope=7, wide)** — ~125 ms window showing multiple beats; slider at right:
 
-![RS-4 scope=7](../assets/rs4-scope7-wide.png)
+![RS-4 scope=7](rs4-scope7-wide.png)
 
 ### Performance expectation
 

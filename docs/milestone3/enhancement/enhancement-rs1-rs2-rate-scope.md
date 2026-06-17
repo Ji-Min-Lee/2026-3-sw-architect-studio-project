@@ -182,11 +182,11 @@ On `reset()`, `mStatsLabel` is re-created after `clearItems()` destroys it.
 
 **As-is** — raw scatter only, no trend line, no statistics label:
 
-![RS-1 RS-2 before](../../src/logs/EXP-06/screenshots/rs12_before_rate_scope.png)
+![RS-1 RS-2 before](rs12_before_rate_scope.png)
 
 **To-be** — teal trend line (RS-1) + `mean: 1.046 ms  σ: 0.442 ms  n: 345` label (RS-2):
 
-![RS-1 RS-2 after](../../src/logs/EXP-06/screenshots/rs12_after_rate_scope.png)
+![RS-1 RS-2 after](rs12_after_rate_scope.png)
 
 ### Performance impact
 

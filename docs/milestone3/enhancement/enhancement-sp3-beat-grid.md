@@ -27,11 +27,11 @@ Both screenshots captured from the same playback file (28800 BPH, Playback/Sim m
 
 **Before** — event dots visible but no reference baseline; impossible to tell at a glance whether positions are normal or deviated:
 
-![Before SP-3](assets/sp3_before.png)
+![Before SP-3](sp3_before.png)
 
 **After** — green line marks A event boundary, blue line marks C event boundary; legend explains each element:
 
-![After SP-3](assets/sp3_after.png)
+![After SP-3](sp3_after.png)
 
 The Sound Print now shows:
 - Green line at the top of the signal band — A event boundary (beat start)
@@ -126,7 +126,7 @@ A/C dots relative to these lines directly reveals the watch condition.
 
 ### State examples
 
-![Sound Print state examples](assets/sp3_state_examples.png)
+![Sound Print state examples](sp3_state_examples.png)
 
 | State | Pattern | Diagnosis |
 |-------|---------|-----------|
