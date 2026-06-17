@@ -93,10 +93,15 @@ Add a config flag `per_column_normalize` (default `true`) so it can be toggled.
 
 ### Before / after screenshots
 
-| | Path |
-|--|------|
-| Before | `src/logs/EXP-06/screenshots/baseline_sound_print.png` |
-| After | `src/logs/EXP-06/screenshots/sp1_after.png` *(to be captured)* |
+SP-1 and SP-2 share the same after screenshot since both affect the Sound Print display.
+
+**Before** — fixed gamma, binary marker colors (green/blue only):
+
+![SP-1 SP-2 before](../assets/baseline_sound_print.png)
+
+**After** — per-column normalization (SP-1) + confidence color gradient (SP-2) + beat grid (SP-3):
+
+![SP-1 SP-2 after](../assets/sp12-after-sound-print.png)
 
 ### Performance expectation
 
@@ -153,10 +158,7 @@ for (const AcousticEvent &ev : m.events) {
 
 ### Before / after screenshots
 
-| | Path |
-|--|------|
-| Before | `src/logs/EXP-06/screenshots/baseline_sound_print.png` |
-| After | `src/logs/EXP-06/screenshots/sp2_after.png` *(to be captured)* |
+See SP-1 section — both SP-1 and SP-2 are visible in the same after screenshot (`sp12-after-sound-print.png`).
 
 ### Performance expectation
 
@@ -216,10 +218,17 @@ connect(ui->scopeZoomSlider, &QSlider::valueChanged, this, [this](int v) {
 
 ### Before / after screenshots
 
-| | Path |
-|--|------|
-| Before | `src/logs/EXP-06/screenshots/baseline_rate_scope.png` |
-| After | `src/logs/EXP-06/screenshots/rs4_after.png` *(to be captured)* |
+**Before** — scope window fixed, no slider:
+
+![RS-4 before](../assets/rs4-before.png)
+
+**After (Scope=1, narrow)** — single beat visible in detail; slider at leftmost position:
+
+![RS-4 scope=1](../assets/rs4-scope1-narrow.png)
+
+**After (Scope=7, wide)** — ~125 ms window showing multiple beats; slider at right:
+
+![RS-4 scope=7](../assets/rs4-scope7-wide.png)
 
 ### Performance expectation
 
