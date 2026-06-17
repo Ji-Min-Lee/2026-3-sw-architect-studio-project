@@ -15,6 +15,7 @@
 #include <QString>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QTimer>
 
 #include "WatchDiagnostics.h"
 
@@ -48,9 +49,12 @@ private:
     QString buildPrompt(const ExplainRequest &req) const;
 
     QNetworkAccessManager *m_nam;
+    QNetworkReply         *m_pendingReply = nullptr;
+    QTimer                *m_timeout;
     bool                   m_available = false;
 
-    static constexpr const char *kOllamaBase = "http://127.0.0.1:11434";
+    static constexpr const char *kOllamaBase    = "http://127.0.0.1:11434";
+    static constexpr int         kTimeoutMs      = 120000;  // 2 min — RPi5 first-load is slow
 };
 
 #endif /* WATCHEXPLAINER_H */

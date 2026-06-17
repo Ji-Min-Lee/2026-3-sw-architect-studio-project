@@ -9,9 +9,19 @@
 WatchExplainer::WatchExplainer(QObject *parent)
     : QObject(parent)
     , m_nam(new QNetworkAccessManager(this))
+    , m_timeout(new QTimer(this))
 {
     connect(m_nam, &QNetworkAccessManager::finished,
             this,  &WatchExplainer::onReplyFinished);
+
+    m_timeout->setSingleShot(true);
+    connect(m_timeout, &QTimer::timeout, this, [this]() {
+        if (m_pendingReply) {
+            m_pendingReply->abort();   // triggers finished() with OperationCanceledError
+            m_pendingReply = nullptr;
+        }
+        emit errorOccurred(tr("Request timed out (model may still be loading — try again)."));
+    });
 }
 
 // ── Public ────────────────────────────────────────────────────────────────────
@@ -31,7 +41,8 @@ void WatchExplainer::explain(const ExplainRequest &req)
     body["stream"] = false;
     body["messages"] = QJsonArray{ userMsg };
 
-    m_nam->post(request, QJsonDocument(body).toJson());
+    m_pendingReply = m_nam->post(request, QJsonDocument(body).toJson());
+    m_timeout->start(kTimeoutMs);
 }
 
 void WatchExplainer::checkAvailability()
@@ -46,6 +57,8 @@ void WatchExplainer::checkAvailability()
 void WatchExplainer::onReplyFinished(QNetworkReply *reply)
 {
     reply->deleteLater();
+    m_timeout->stop();
+    m_pendingReply = nullptr;
 
     const QString tag = reply->request()
                             .attribute(QNetworkRequest::User).toString();
@@ -57,7 +70,9 @@ void WatchExplainer::onReplyFinished(QNetworkReply *reply)
 
     // "explain" response
     if (reply->error() != QNetworkReply::NoError) {
-        emit errorOccurred(tr("Ollama not reachable: %1").arg(reply->errorString()));
+        // OperationCanceledError means our timeout already emitted errorOccurred
+        if (reply->error() != QNetworkReply::OperationCanceledError)
+            emit errorOccurred(tr("Ollama not reachable: %1").arg(reply->errorString()));
         return;
     }
 
