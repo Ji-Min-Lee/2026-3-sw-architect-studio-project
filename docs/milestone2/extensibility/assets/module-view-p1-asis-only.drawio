@@ -1,0 +1,62 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="AS-IS" id="asis">
+    <mxGraphModel dx="900" dy="560" grid="0" gridSize="10" pageWidth="700" pageHeight="380">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="TTL" value="AS-IS: Module Uses View" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="8" width="700" height="24" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="MW" value="MainWindow" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="265" y="50" width="170" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="AW" value="TAudioWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="175" width="150" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="PW" value="TPlaybackWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="275" y="175" width="150" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="SW" value="TSimWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="500" y="175" width="150" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="DSP" value="DSPWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="265" y="300" width="170" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="KEY" value="Notation: UML" style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;size=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="545" y="300" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="E1" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="AW" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="E2" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="PW" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="E3" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="SW" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="S1" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="AW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="S2" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="PW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="S3" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="SW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -27,8 +27,8 @@ void AudioManager::startLive(int sampleRate, int /*bph*/, double /*liftAngle*/,
     mAudioWorker = new TAudioWorker(mRawAudio);
     mAudioWorker->moveToThread(thread);
 
-    connect(mAudioWorker, &TAudioWorker::AudioDataReady, this,
-            [this]() { emit dataReady(mRawAudio); }, Qt::QueuedConnection);
+    connect(mAudioWorker, &IAudioSource::dataReady, this,
+            [this](int64_t) { emit dataReady(mRawAudio); }, Qt::QueuedConnection);
     connect(thread, &QThread::finished, mAudioWorker, &QObject::deleteLater);
 
     thread->start();
@@ -49,9 +49,9 @@ void AudioManager::startPlayback(const QString &filePath, int sampleRate,
     mPlaybackWorker = new TPlaybackWorker(mRawAudio, sampleRate);
     mPlaybackWorker->moveToThread(thread);
 
-    connect(mPlaybackWorker, &TPlaybackWorker::PlaybackDataReady, this,
-            [this]() { emit dataReady(mRawAudio); }, Qt::QueuedConnection);
-    connect(mPlaybackWorker, &TPlaybackWorker::PlaybackDoneReadingFile,
+    connect(mPlaybackWorker, &IAudioSource::dataReady, this,
+            [this](int64_t) { emit dataReady(mRawAudio); }, Qt::QueuedConnection);
+    connect(mPlaybackWorker, &IAudioSource::sourceComplete,
             this, &AudioManager::playbackDone, Qt::QueuedConnection);
     connect(thread, &QThread::finished, mPlaybackWorker, &QObject::deleteLater);
 
@@ -68,9 +68,9 @@ void AudioManager::startSim(int bph, double liftAngle, int sampleRate,
     mSimWorker = new TSimWorker(mRawAudio, sampleRate);
     mSimWorker->moveToThread(thread);
 
-    connect(mSimWorker, &TSimWorker::SimDataReady, this,
-            [this]() { emit dataReady(mRawAudio); }, Qt::QueuedConnection);
-    connect(mSimWorker, &TSimWorker::SimDone,
+    connect(mSimWorker, &IAudioSource::dataReady, this,
+            [this](int64_t) { emit dataReady(mRawAudio); }, Qt::QueuedConnection);
+    connect(mSimWorker, &IAudioSource::sourceComplete,
             this, &AudioManager::simDone, Qt::QueuedConnection);
     connect(thread, &QThread::finished, mSimWorker, &QObject::deleteLater);
 

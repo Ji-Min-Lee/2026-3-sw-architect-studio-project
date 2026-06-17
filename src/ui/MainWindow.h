@@ -5,6 +5,7 @@
 #include <QComboBox>
 #include <QElapsedTimer>
 #include <QMessageBox>
+#include "IAudioSource.h"
 #include "AudioWorker.h"
 #include "PlaybackWorker.h"
 #include "SimWorker.h"
@@ -67,8 +68,7 @@ private slots:
     void onMeasurementReady(const Measurement &m);
 
 public slots:
-    void HandlePlaybackDoneReadingFile();
-    void HandleSimDone();
+    void handleSourceComplete();   // P1: unified handler (was HandlePlaybackDoneReadingFile + HandleSimDone)
     void onFrameLogged(Logger::Frame frame);
 
 signals:
@@ -82,12 +82,13 @@ private:
     Ui::MainWindow *ui;
 
     // Thread management (Acquisition layer)
+    // P1: mode-specific factory methods create the right Worker and call startSourceThread().
     void   StartAudioThread(void);
     void   StartPlaybackThread(const QString &FileName);
     void   StartSimThread(WatchSynthStreamConfig cfg);
-    void   StopAudioThread(void);
-    void   StopPlaybackThread(void);
-    void   StopSimThread(void);
+    // Shared lifecycle — replaces 3 identical Stop methods and duplicated connect() blocks.
+    void   startSourceThread(IAudioSource *source);
+    void   stopSourceThread(void);
 
     // UI helpers
     void   LoadAudioDevices(void);
@@ -156,12 +157,11 @@ private:
     // Audio threads
     WavStreamWriter       *mWavWriter            = nullptr;
     TMasterAudioDataRaw   *mRawAudio              = nullptr;
-    QThread               *mAudioWorkerThread     = nullptr;
-    TAudioWorker          *mAudioWorker           = nullptr;
-    QThread               *mPlaybackWorkerThread  = nullptr;
-    TPlaybackWorker       *mPlaybackWorker        = nullptr;
-    QThread               *mSimWorkerThread       = nullptr;
-    TSimWorker            *mSimWorker             = nullptr;
+    // P1: collapsed 3 concrete source pointers + 3 threads → 1 IAudioSource + 1 QThread.
+    // Workers (TAudioWorker / TPlaybackWorker / TSimWorker) are created per-session
+    // and stored here as their common interface.
+    IAudioSource          *mActiveSource         = nullptr;
+    QThread               *mSourceThread         = nullptr;
 
     // Per-frame performance logger (active only when ENABLE_LOGGING is defined)
     Logger   *mLogger = nullptr;

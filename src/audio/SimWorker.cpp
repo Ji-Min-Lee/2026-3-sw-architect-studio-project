@@ -22,7 +22,7 @@
 
 #define SIM_NUMBER_OF_SAMPLES (mSamplesPerSecond/(1000/SIM_SAMPLE_PERIOD_MSEC))
 
-TSimWorker::TSimWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent) : QObject(parent)
+TSimWorker::TSimWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent) : IAudioSource(parent)
 {
     mRawAudio=RawAudio;
     mRawAudio->TotalSamplesWritten=0;
@@ -63,7 +63,7 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
     if (!watch_synth_stream_init(&stream, &cfg, initError, sizeof(initError)))
     {
         fprintf(stderr, "init failed: %s\n", initError);
-        emit SimDone();
+        emit sourceComplete();
         emit finished();
         return;
     }
@@ -103,7 +103,7 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
         mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
         mRawAudio->TotalSamplesWritten+=NumberOfSamples;
         mRawAudio->Mutex.unlock();
-        emit SimDataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
+        emit dataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
 
         ++mFrameCount;
         mSampleCount+=NumberOfSamples;
@@ -124,7 +124,7 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
         if (SleepTime<0) SleepTime=0;
         QThread::msleep(SleepTime);
     }
-    emit SimDone();
+    emit sourceComplete();
     emit finished();
     qInfo()<<"After Finish";
 }

@@ -130,9 +130,9 @@ void SequenceTab::captureCurrent()
         it->setText(valid ? QString::number(cellValue, 'f', dec) : "—");
         it->setToolTip("Captured at " + timestamp);
     };
-    setCell(kColRate, mLatest.rateValid,      mLatest.rateErrorSpd, 1);
-    setCell(kColBeat, mLatest.beatErrorValid, mLatest.beatErrorMs,  1);
-    setCell(kColAmp,  mLatest.amplitudeValid, mLatest.amplitudeDeg, 0);
+    setCell(kColRate, mLatest.metrics.rate.has_value(),       *mLatest.metrics.rate,      1);
+    setCell(kColBeat, mLatest.metrics.beatError.has_value(), *mLatest.metrics.beatError, 1);
+    setCell(kColAmp,  mLatest.metrics.amplitude.has_value(), *mLatest.metrics.amplitude, 0);
     recomputeSummary();
     emit sequenceUpdated();
 }

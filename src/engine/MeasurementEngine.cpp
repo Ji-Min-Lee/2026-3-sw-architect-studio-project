@@ -95,28 +95,28 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     }
 
     Measurement measurement;
-    measurement.samplesPerSecond = mSamplesPerSecond;
-    measurement.graphTickStart   = mGraphTicks;
-    measurement.synced           = (tgResult.sync_status == TG_SYNC_SYNCED);
-    measurement.detectedBph      = tgResult.detected_bph;
+    measurement.signal.samplesPerSecond = mSamplesPerSecond;
+    measurement.signal.tickStart        = mGraphTicks;
+    measurement.synced                  = (tgResult.sync_status == TG_SYNC_SYNCED);
+    measurement.detectedBph             = tgResult.detected_bph;
 
     // Raw PCM for SoundPrintTab (copy before any DSP transformation)
-    measurement.rawPcm.reserve(numSamples);
-    for (int i = 0; i < numSamples; i++) measurement.rawPcm.append(pcm[i]);
+    measurement.signal.rawPcm.reserve(numSamples);
+    for (int i = 0; i < numSamples; i++) measurement.signal.rawPcm.append(pcm[i]);
 
     // Processed PCM + threshold for ScopePlot
-    measurement.pcm.reserve(tgResult.processed_pcm_len);
-    measurement.threshold.reserve(tgResult.processed_pcm_len);
-    measurement.hpfPcm.reserve(tgResult.filtered_pcm_len);
+    measurement.signal.pcm.reserve(tgResult.processed_pcm_len);
+    measurement.signal.threshold.reserve(tgResult.processed_pcm_len);
+    measurement.signal.hpfPcm.reserve(tgResult.filtered_pcm_len);
     for (int i = 0; i < tgResult.processed_pcm_len; i++) {
-        measurement.pcm.append(tgResult.processed_pcm[i]);
-        measurement.threshold.append(tgResult.onset_threshold);
+        measurement.signal.pcm.append(tgResult.processed_pcm[i]);
+        measurement.signal.threshold.append(tgResult.onset_threshold);
     }
     for (size_t i = 0; i < tgResult.filtered_pcm_len; i++) {
-        measurement.hpfPcm.append(tgResult.filtered_pcm[i]);
+        measurement.signal.hpfPcm.append(tgResult.filtered_pcm[i]);
     }
-    mGraphTicks              += tgResult.processed_pcm_len;
-    measurement.graphTickEnd  = mGraphTicks;
+    mGraphTicks                  += tgResult.processed_pcm_len;
+    measurement.signal.tickEnd    = mGraphTicks;
 
     // Process each A/C event
     for (int i = 0; i < tgResult.num_events; i++) {
@@ -165,7 +165,7 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
                 acousticEvent.escapementMs    = (acousticEvent.samplePos - mLastA) / mSamplesPerSecond * 1000.0;
             }
 
-            computeAmplitude(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph, measurement, acousticEvent);
+            computeAmplitude(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph, measurement.metrics, acousticEvent);
         } else {
             qWarning() << "MeasurementEngine: unknown event type";
             continue;
@@ -173,13 +173,11 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
         measurement.events.append(acousticEvent);
     }
 
-    measurement.rateValid      = mRate.rateValid;
-    measurement.rateErrorSpd   = mRate.rateSpd;
-    measurement.beatErrorValid = (mBeat.roll->CurrentSize() > 0);
-    measurement.beatErrorMs    = measurement.beatErrorValid ? mBeat.roll->GetAverage() : 0.0;
-    measurement.amplitudeValid = (mAmp.roll->CurrentSize() > 0);
-    measurement.amplitudeDeg   = measurement.amplitudeValid ? mAmp.roll->GetAverage() : 0.0;
-    measurement.noSignal       = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
+    if (mRate.rateValid)
+        measurement.metrics.rate = mRate.rateSpd;
+    if (mBeat.roll->CurrentSize() > 0)
+        measurement.metrics.beatError = mBeat.roll->GetAverage();
+    measurement.noSignal = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
 
     emit measurementReady(measurement);
 }
@@ -282,7 +280,7 @@ void MeasurementEngine::computeBeatError(double evTime, bool, int)
     }
 }
 
-void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, Measurement &m, AcousticEvent &ae)
+void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, WatchMetrics &metrics, AcousticEvent &ae)
 {
     if (!mAmp.haveA || !mRate.bphValid) return;
     double T1     = (cTime - mAmp.lastA) / mSamplesPerSecond;
@@ -306,6 +304,6 @@ void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, Mea
             mAmp.ticValid = false;
         }
     }
-    m.amplitudeValid = (mAmp.roll->CurrentSize() > 0);
-    m.amplitudeDeg   = m.amplitudeValid ? mAmp.roll->GetAverage() : 0.0;
+    if (mAmp.roll->CurrentSize() > 0)
+        metrics.amplitude = mAmp.roll->GetAverage();
 }

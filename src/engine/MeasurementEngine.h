@@ -39,7 +39,7 @@ private:
                           double val, int maxSize, int &idx);
     void   computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae);
     void   computeBeatError(double evTime, bool synced, int bph);
-    void   computeAmplitude(double cTime, bool synced, int bph, Measurement &m, AcousticEvent &ae);
+    void   computeAmplitude(double cTime, bool synced, int bph, WatchMetrics &metrics, AcousticEvent &ae);
 
     // DSP pipeline
     tg_config_t   mCfg{};

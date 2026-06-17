@@ -23,7 +23,7 @@
 
 #define PLAYBACK_NUMBER_OF_SAMPLES (mSamplesPerSecond/(1000/PLAYBACK_SAMPLE_PERIOD_MSEC))
 
-TPlaybackWorker::TPlaybackWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent) : QObject(parent)
+TPlaybackWorker::TPlaybackWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent) : IAudioSource(parent)
 {
     mRawAudio=RawAudio;
     mRawAudio->TotalSamplesWritten=0;
@@ -66,7 +66,7 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
     TWaveHeader header;
     if (!file->exists()) {
         delete file;
-        emit PlaybackDoneReadingFile();
+        emit sourceComplete();
         emit finished();
         return;
     }
@@ -74,7 +74,7 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
     if (!file->open(QIODevice::ReadOnly))
     {
         delete file;
-        emit PlaybackDoneReadingFile();
+        emit sourceComplete();
         emit finished();
         return;
     }
@@ -113,10 +113,10 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
         (header.numChannels!=1)|| (header.bitsPerSample != 32)||
         (header.audioFormat != 3))
     {
-     emit PlaybackDoneReadingFile();
+     emit sourceComplete();
         file->close();
         delete file;
-        emit PlaybackDoneReadingFile();
+        emit sourceComplete();
         emit finished();
         return;
     }
@@ -162,7 +162,7 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
         mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
         mRawAudio->TotalSamplesWritten+=NumberOfSamples;
         mRawAudio->Mutex.unlock();
-        emit PlaybackDataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
+        emit dataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
 
         ++mFrameCount;
         mSampleCount+=NumberOfSamples;
@@ -187,7 +187,7 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
     qInfo()<<"Before Close";
     file->close();
     delete file;
-    emit PlaybackDoneReadingFile();
+    emit sourceComplete();
     emit finished();
     qInfo()<<"After Finish";
 }

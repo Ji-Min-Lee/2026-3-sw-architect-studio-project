@@ -4,7 +4,7 @@
 #include <QThread>
 
 
-TAudioWorker::TAudioWorker(TMasterAudioDataRaw *RawAudio,QObject *parent) : QObject(parent)
+TAudioWorker::TAudioWorker(TMasterAudioDataRaw *RawAudio,QObject *parent) : IAudioSource(parent)
 {
     mRawAudio=RawAudio;
     mRawAudio->TotalSamplesWritten=0;
@@ -103,7 +103,7 @@ void TAudioWorker::ProcessAudioInput()
         SampleCount=0;
     }
     //qDebug() << "worker thread: handleResults slot is running in thread" << QThread::currentThreadId()<<" "<<count;
-    emit AudioDataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
+    emit dataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
 
 }
 
