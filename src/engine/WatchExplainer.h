@@ -22,7 +22,7 @@
 struct ExplainRequest {
     DiagnosisInput  input;
     DiagnosisResult result;
-    QString         modelName = "qwen2.5:0.5b";   // default Ollama model
+    QString         modelName = "qwen2.5:0.5b"; // default Ollama model
 };
 
 class WatchExplainer : public QObject
@@ -42,6 +42,7 @@ signals:
     void explanationReady(const QString &text); // full text when done
     void errorOccurred(const QString &errorMsg);
     void availabilityChanged(bool available);
+    void modelsAvailable(const QStringList &models);
 
 private slots:
     void onReadyRead();

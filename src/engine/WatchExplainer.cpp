@@ -1,4 +1,5 @@
 #include "WatchExplainer.h"
+#include <algorithm>
 #include <QNetworkRequest>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -149,6 +150,21 @@ void WatchExplainer::onTagsReplyFinished(QNetworkReply *reply)
         m_available = ok;
         emit availabilityChanged(m_available);
     }
+    if (!ok) return;
+
+    QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+    // sort by size ascending so index 0 is the smallest (fastest) model
+    struct ModelEntry { QString name; qint64 size; };
+    QList<ModelEntry> entries;
+    for (const QJsonValue &v : doc["models"].toArray())
+        entries.append({ v["name"].toString(), v["size"].toInteger() });
+    std::sort(entries.begin(), entries.end(),
+              [](const ModelEntry &a, const ModelEntry &b){ return a.size < b.size; });
+    QStringList models;
+    for (const ModelEntry &e : entries)
+        models << e.name;
+    if (!models.isEmpty())
+        emit modelsAvailable(models);
 }
 
 // ── Prompt builder ────────────────────────────────────────────────────────────

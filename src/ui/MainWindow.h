@@ -99,7 +99,6 @@ private:
     void   LoadMode(void);
     void   LoadAverageingPeriod(void);
     void   ConfigureSoundCard(void);
-    bool   eventFilter(QObject *obj, QEvent *event) override;
     bool   RecordSessionCheck(void);
     void   AudioCloseCheck(void);
     bool   OpenFile(const QString &FileName);
@@ -125,6 +124,7 @@ private:
 
     void   Reset(void);
     void   wireEngineToTabs();
+    bool   eventFilter(QObject *obj, QEvent *event) override;
 
     // Settings persistence
     SettingsManager *mSettings = nullptr;
