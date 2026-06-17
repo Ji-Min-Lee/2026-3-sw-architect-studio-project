@@ -90,18 +90,6 @@ private:
     double mLastA     = 0.0;
     bool   mHaveLastA = false;
 
-    // Derived timing measures (DiffTicTac / DiffPeriod / AvgPeriod)
-    struct DerivedState {
-        bool   havePrevA = false;
-        double prevA     = 0.0;
-        int    parity    = 0;       // alternates tic/toc per A-event
-        RollingAverage *ticDur  = nullptr; // ms
-        RollingAverage *tocDur  = nullptr; // ms
-        RollingAverage *diffP   = nullptr; // measured-nominal, ~4 s window
-        double cumSum = 0.0;        // measured-nominal cumulative
-        quint64 cumN  = 0;
-    } mDerived;
-
     // QAS-4: no-signal detection (owned by Model, not Controller)
     QElapsedTimer mNoSignalTimer;
     bool          mNoSignalTimerStarted = false;

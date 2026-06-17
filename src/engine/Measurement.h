@@ -62,11 +62,5 @@ struct Measurement {
     // QAS-4: true when no A-event received for >= 3 s (set by MeasurementEngine)
     bool    noSignal = false;
 
-    // Derived timing measures (Chour-style; see project plan "Expected Enhancements")
-    bool    derivedValid  = false;
-    double  diffTicTacMs  = 0.0; // avg(tic duration) - avg(toc duration)
-    double  diffPeriodMs  = 0.0; // avg(measured - nominal beat duration), ~4 s window
-    double  avgPeriodMs   = 0.0; // avg(measured - nominal beat duration), since start
-
     int     samplesPerSecond = 48000;
 };

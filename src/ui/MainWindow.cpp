@@ -112,6 +112,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->PausePushButton->setEnabled(false);
     ui->LiftAngleSpinBox->setFocusPolicy(Qt::NoFocus);
     ui->Results->setAlignment(Qt::AlignHCenter);
+    ui->Results->setFont(QFont("Consolas", 9));
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
 
@@ -280,13 +281,12 @@ void MainWindow::DisplayResults(const Measurement &m)
     QString rateStr  = m.rateValid ? QString::asprintf("%+6.1f", m.rateErrorSpd) : "------";
     QString beatStr  = m.beatErrorValid ? QString("%1").arg(m.beatErrorMs, 4, 'f', 1) : "----";
     QString ampStr   = m.amplitudeValid ? QString("%1°").arg(qRound64(m.amplitudeDeg), 3, 10, QChar(' ')) : "---";
-    QString derived;
-    if (m.derivedValid)
-        derived = QString::asprintf("   |   DiffTicTac %+.2f ms   DiffPeriod %+.2f ms   AvgPeriod %+.2f ms",
-                                    m.diffTicTacMs, m.diffPeriodMs, m.avgPeriodMs);
-    ui->Results->setText(warning + "POS " + mActivePosition + "   RATE " + rateStr +
-                         " s/d   AMPLITUDE " + ampStr +
-                         "   BEAT ERROR " + beatStr + " ms   BEAT " + bphStr + " bph" + derived);
+    ui->Results->setText(warning +
+                         "POS " + mActivePosition +
+                         "  ▏  RATE " + rateStr + " s/d" +
+                         "  ▏  AMP " + ampStr +
+                         "  ▏  ERR " + beatStr + " ms" +
+                         "  ▏  BPH " + bphStr);
 
     DiagnosisInput diagInput;
     diagInput.rate_valid       = m.rateValid;

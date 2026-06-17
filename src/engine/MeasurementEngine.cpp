@@ -15,9 +15,6 @@ MeasurementEngine::MeasurementEngine(QObject *parent)
     mRate.rlsToc = new RollingLeastSquares(RLS_WINDOW_INIT);
     mBeat.roll   = new RollingAverage(10);
     mAmp.roll    = new RollingAverage(10);
-    mDerived.ticDur = new RollingAverage(30);
-    mDerived.tocDur = new RollingAverage(30);
-    mDerived.diffP  = new RollingAverage(24); // ~4 s at 6 beats/s
 }
 
 MeasurementEngine::~MeasurementEngine()
@@ -27,9 +24,6 @@ MeasurementEngine::~MeasurementEngine()
     delete mRate.rlsToc;
     delete mBeat.roll;
     delete mAmp.roll;
-    delete mDerived.ticDur;
-    delete mDerived.tocDur;
-    delete mDerived.diffP;
 }
 
 void MeasurementEngine::init(int sampleRate, int bph, double liftAngle,
@@ -83,14 +77,6 @@ void MeasurementEngine::reset()
     mAmp.haveA    = false;
     mAmp.ticValid = false;
     mAmp.roll->Reset();
-
-    mDerived.havePrevA = false;
-    mDerived.parity    = 0;
-    mDerived.ticDur->Reset();
-    mDerived.tocDur->Reset();
-    mDerived.diffP->Reset();
-    mDerived.cumSum = 0.0;
-    mDerived.cumN   = 0;
 
     mNoSignalTimerStarted = false;
 }
@@ -158,22 +144,6 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
             computeRateError(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph, acousticEvent);
             computeBeatError(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph);
 
-            // Derived measures: per-beat duration vs nominal
-            if (mDerived.havePrevA) {
-                double durMs = (acousticEvent.samplePos - mDerived.prevA) / mSamplesPerSecond * 1000.0;
-                if (mDerived.parity == TIC) mDerived.ticDur->Add(durMs);
-                else                        mDerived.tocDur->Add(durMs);
-                mDerived.parity ^= 1;
-                if (measurement.synced && tgResult.detected_bph > 0) {
-                    double nominalMs = 3600000.0 / tgResult.detected_bph;
-                    mDerived.diffP->Add(durMs - nominalMs);
-                    mDerived.cumSum += durMs - nominalMs;
-                    mDerived.cumN++;
-                }
-            }
-            mDerived.havePrevA = true;
-            mDerived.prevA     = acousticEvent.samplePos;
-
             mAmp.haveA = true;
             mAmp.lastA = acousticEvent.samplePos;
             mHaveLastA = true;
@@ -210,13 +180,6 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     measurement.amplitudeValid = (mAmp.roll->CurrentSize() > 0);
     measurement.amplitudeDeg   = measurement.amplitudeValid ? mAmp.roll->GetAverage() : 0.0;
     measurement.noSignal       = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
-
-    if (mDerived.ticDur->CurrentSize() > 0 && mDerived.tocDur->CurrentSize() > 0) {
-        measurement.derivedValid = true;
-        measurement.diffTicTacMs = mDerived.ticDur->GetAverage() - mDerived.tocDur->GetAverage();
-        measurement.diffPeriodMs = mDerived.diffP->CurrentSize() > 0 ? mDerived.diffP->GetAverage() : 0.0;
-        measurement.avgPeriodMs  = mDerived.cumN > 0 ? mDerived.cumSum / mDerived.cumN : 0.0;
-    }
 
     emit measurementReady(measurement);
 }
