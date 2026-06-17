@@ -17,7 +17,8 @@
 | SP-3 | Sound Print | Beat period grid overlay | **Implemented** | `enhancement-sp3-beat-grid.md` |
 | RS-1 | Rate/Scope | Rolling average trend line | **Implemented** | `enhancement-rs1-rs2-rate-scope.md` |
 | RS-2 | Rate/Scope | Mean ± σ statistics overlay | **Implemented** | `enhancement-rs1-rs2-rate-scope.md` |
-| RS-4 | Rate/Scope | Scope zoom slider | Proposed | this doc |
+| RS-4 | Rate/Scope | Scope zoom slider | **Implemented** | this doc |
+| RS-5 | Rate/Scope | Click-to-sync between rate plot and scope | **Implemented** | `enhancement-rs1-rs2-rate-scope.md` |
 
 Grading criterion:
 - **Excellent** (7–8 pts): clearly improved, fully functional, meaningfully more useful than baseline
@@ -244,10 +245,11 @@ Recommended order, balancing impact vs. effort:
 ```
         SP-1  ✅ done  (Dynamic normalization — per_column_normalize in SoundImageRenderer)
         SP-2  ✅ done  (Confidence color — confidenceColorA/C in SoundPrintTab)
-        RS-4  ✅ done  (Scope slider — UI only, existing slot)
         SP-3  ✅ done
         RS-1  ✅ done
         RS-2  ✅ done
+        RS-4  ✅ done  (Scope slider — UI only, existing slot)
+        RS-5  ✅ done  (Click-to-sync — rate plot ↔ scope waveform)
 ```
 
 ---

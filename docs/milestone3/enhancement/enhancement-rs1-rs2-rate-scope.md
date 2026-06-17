@@ -204,6 +204,67 @@ collected alongside the next full EXP-06 logging run.
 
 ---
 
+---
+
+## RS-5: Click-to-Sync Between Rate Plot and Scope Waveform
+
+### Status
+
+Implemented (git `5bc7226`)
+
+### Problem
+
+The rate error scatter (top) and scope waveform (bottom) share the same time axis
+conceptually, but had no interactive link. When a user spots an anomalous beat on
+the scatter — an outlier point far from the trend line — they had to manually
+scroll the scope to find the corresponding waveform moment, which is cumbersome
+in a 10-second rolling window at 48,000 samples/second.
+
+### Implementation
+
+Two click handlers wired via `QCustomPlot::mousePress` signals:
+
+**Rate plot → Scope (pan)**
+- Click on any scatter point (or anywhere on the rate plot)
+- Converts pixel → beat index via `xAxis->pixelToCoord()`
+- Linear search over `mSampleTic` / `mSampleToc` for nearest stored sample position
+- Pans scope `xAxis` to center on that sample, preserving the current zoom width
+
+**Scope → Rate plot (crosshair)**
+- Click anywhere on the scope waveform
+- Converts pixel → sample position
+- Finds the nearest stored beat across tic and toc
+- Draws an orange dashed `QCPItemLine` crosshair at that beat's x-index on the rate plot
+
+**Data structure:** `mSampleTic` / `mSampleToc` — parallel `QVector<double>` alongside
+the existing `mXTic` / `mXToc`, populated in `onMeasurement()` whenever a rate point
+is stored. Max 250×2 = 500 entries (≈ 4 KB). No measurable memory or performance impact.
+
+### Trade-offs
+
+| Decision | Choice | Alternative |
+|----------|--------|-------------|
+| Accuracy vs. memory | Parallel sample-pos vectors — exact mapping | Re-scan PCM on click (fails after `purgeScopeHistory()`) |
+| Live update vs. viewport lock | Auto-scroll continues; user Pauses manually | Auto-pause on click (more complex state) |
+| Click precision | Always snap to nearest beat | `selectTest()` radius check (rejects miss-clicks) |
+
+### Value for grading (Area 2)
+
+| Rubric keyword | How RS-5 addresses it |
+|---|---|
+| **navigation** | One click to jump scope to any beat in the scatter — no manual scrolling |
+| **usefulness** | Anomalous scatter point → immediate waveform inspection |
+| **interpretation** | Rate error and acoustic waveform viewed at the same time point |
+
+### Modified source
+
+| File | Change |
+|------|--------|
+| `src/tabs/RateScopeTab.h` | `mSampleTic`, `mSampleToc`, `mRateCrosshair`; click slot declarations |
+| `src/tabs/RateScopeTab.cpp` | `onRatePlotClicked`, `onScopePlotClicked`, `syncScopeToRateBeat`, `syncRateToBeatNearSample` |
+
+---
+
 ## Links and references
 
 - *TimeGrapher Equations v0* (`assets/TimeGrapher Equations_v0.docx.pdf`) —
