@@ -62,6 +62,59 @@ The Sound Print now shows:
 
 ---
 
+## Theoretical Basis
+
+The placement of the two grid lines is derived from the watch measurement
+literature and the project's own equation specification.
+
+### Green line — A event boundary (`natural_bucket = 0`)
+
+**Source: Witschi Training Course p. 14; TimeGrapher Equations p. 1–2**
+
+The Sound Print renderer maps each beat period to one image column.
+`natural_bucket = 0` is defined as the start of that column — i.e., the moment
+the new beat period begins. This is precisely when the A impulse (tic or toc)
+is expected to arrive, as stated in the TimeGrapher Equations core formula:
+
+```
+E_n = T_measured − (T_start + n × I_target)
+```
+
+where `I_target = 3600 / BPH` seconds per beat. Beat n is anchored to
+`T_start + n × I_target`, meaning each A event *defines* the beat boundary.
+The Witschi Training Course p. 14 confirms this visually: in the healthy-watch
+Sound Print, the upper row of dots (A events) forms a straight horizontal band
+at a fixed position within each column.
+
+### Blue line — C event boundary (`natural_bucket = height/2`)
+
+**Source: TimeGrapher Equations pp. 4–5 (Part II, Alternating Event Model)**
+
+The C impulse is the complementary escapement sound that falls between two
+consecutive A events. For a perfectly balanced watch (beat error = 0 ms), the
+C event arrives exactly at the half-period:
+
+```
+T_nom, same-phase = 7200 / BPH   (full tic-to-tic or tac-to-tac period)
+I_target           = 3600 / BPH   (half-beat interval, A-to-C gap at zero beat error)
+```
+
+Because the image column height maps linearly to one full beat period,
+`natural_bucket = height/2` corresponds to `I_target / 2 × 2 = I_target` from
+the column start — the ideal C event position when beat error is zero.
+Any vertical offset of the C dots from this line directly equals the beat error,
+confirmed by the Witschi Training Course p. 14: a displaced lower dot row
+indicates beat error requiring pallet adjustment.
+
+### Summary table
+
+| Line | Position | Equation reference | Witschi reference |
+|------|----------|--------------------|-------------------|
+| Green (A boundary) | `natural_bucket = 0` | `T_n = T_start + n × I_target` (Equations p. 1) | Upper dot row, p. 14 |
+| Blue (C half-period) | `natural_bucket = height/2` | `I_target = 3600/BPH`, beat error = 0 (Equations p. 4–5) | Lower dot row offset = beat error, p. 14 |
+
+---
+
 ## How to Interpret the Display
 
 The Sound Print is a scrolling bitmap:
