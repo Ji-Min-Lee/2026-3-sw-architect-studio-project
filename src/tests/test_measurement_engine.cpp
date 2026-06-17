@@ -36,7 +36,7 @@ private slots:
         engine.mAmp.haveA = true;
         engine.mAmp.lastA = 0.0;
         engine.mRate.beatNumber = 1; // TIC branch
-        engine.computeAmplitude(0.009 * engine.mSamplesPerSecond, true, 28800, ticMeasurement, ticEvent);
+        engine.computeAmplitude(0.009 * engine.mSamplesPerSecond, true, 28800, ticMeasurement.metrics, ticEvent);
 
         QVERIFY(!ticEvent.hasAmpSplit);
         QVERIFY(engine.mAmp.ticValid);
@@ -48,13 +48,13 @@ private slots:
         engine.mAmp.haveA = true;
         engine.mAmp.lastA = 0.0;
         engine.mRate.beatNumber = 2; // TOC branch
-        engine.computeAmplitude(0.009 * engine.mSamplesPerSecond, true, 28800, tocMeasurement, tocEvent);
+        engine.computeAmplitude(0.009 * engine.mSamplesPerSecond, true, 28800, tocMeasurement.metrics, tocEvent);
 
         QVERIFY(tocEvent.hasAmpSplit);
         QVERIFY(qAbs(tocEvent.ticAmpDeg - tocEvent.tocAmpDeg) < 1e-9);
         QCOMPARE(engine.mAmp.roll->CurrentSize(), 1);
-        QVERIFY(qAbs(tocMeasurement.amplitudeDeg - tocEvent.ticAmpDeg) < 1e-9);
-        QVERIFY(tocMeasurement.amplitudeValid);
+        QVERIFY(qAbs(*tocMeasurement.metrics.amplitude - tocEvent.ticAmpDeg) < 1e-9);
+        QVERIFY(tocMeasurement.metrics.amplitude.has_value());
     }
 
     void computeRateError_perfectWatch_setsZeroWrappedPointsAndZeroRate()
