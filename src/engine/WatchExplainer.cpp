@@ -16,6 +16,7 @@ WatchExplainer::WatchExplainer(QObject *parent)
 
     m_timeout->setSingleShot(true);
     connect(m_timeout, &QTimer::timeout, this, [this]() {
+        qWarning() << "[WatchExplainer] Request timed out after" << kTimeoutMs/1000 << "s";
         if (m_pendingReply) {
             m_pendingReply->abort();   // triggers finished() with OperationCanceledError
             m_pendingReply = nullptr;
@@ -41,6 +42,7 @@ void WatchExplainer::explain(const ExplainRequest &req)
     body["stream"] = false;
     body["messages"] = QJsonArray{ userMsg };
 
+    qInfo() << "[WatchExplainer] Sending request to Ollama, model:" << req.modelName;
     m_pendingReply = m_nam->post(request, QJsonDocument(body).toJson());
     m_timeout->start(kTimeoutMs);
 }
@@ -71,8 +73,10 @@ void WatchExplainer::onReplyFinished(QNetworkReply *reply)
     // "explain" response
     if (reply->error() != QNetworkReply::NoError) {
         // OperationCanceledError means our timeout already emitted errorOccurred
-        if (reply->error() != QNetworkReply::OperationCanceledError)
+        if (reply->error() != QNetworkReply::OperationCanceledError) {
+            qWarning() << "[WatchExplainer] Network error:" << reply->errorString();
             emit errorOccurred(tr("Ollama not reachable: %1").arg(reply->errorString()));
+        }
         return;
     }
 
@@ -82,10 +86,12 @@ void WatchExplainer::onReplyFinished(QNetworkReply *reply)
         text = doc["response"].toString().trimmed();   // older Ollama format
 
     if (text.isEmpty()) {
+        qWarning() << "[WatchExplainer] Empty response from model";
         emit errorOccurred(tr("Empty response from model."));
         return;
     }
 
+    qInfo() << "[WatchExplainer] Response received, length:" << text.size() << "chars";
     emit explanationReady(text);
 }
 
