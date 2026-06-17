@@ -6,6 +6,8 @@
 #include "RollingAverage.h"
 #include "SharedAudio.h"
 #include "Measurement.h"
+#include "MovementSpec.h"
+#include "AcquisitionConfig.h"
 
 // MVC: Model (Subject).
 // Owns the tg_context DSP pipeline and all measurement state.
@@ -18,8 +20,8 @@ public:
     explicit MeasurementEngine(QObject *parent = nullptr);
     ~MeasurementEngine();
 
-    // Called once before starting audio.  bph==0 means auto-BPH mode.
-    void init(int sampleRate, int bph, double liftAngle, int averagingPeriod, double hpfCutoff);
+    // Called once before starting audio.
+    void init(const MovementSpec &movement, const AcquisitionConfig &config);
     void destroy();
     void reset();
 

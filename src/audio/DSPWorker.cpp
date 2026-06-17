@@ -3,13 +3,14 @@
 #include <algorithm>
 
 DSPWorker::DSPWorker(TMasterAudioDataRaw *raw,
-                     int sampleRate, int bph, double liftAngle,
-                     int avgPeriod, double highPass, bool useOnset,
+                     const MovementSpec &movement,
+                     const AcquisitionConfig &config,
+                     bool useOnset,
                      QObject *parent)
     : QObject(parent), mRaw(raw)
 {
     mEngine = new MeasurementEngine(this);
-    mEngine->init(sampleRate, bph, liftAngle, avgPeriod, highPass);
+    mEngine->init(movement, config);
     mEngine->setUseOnset(useOnset);
     mEngine->reset();
 

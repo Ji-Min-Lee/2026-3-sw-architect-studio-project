@@ -1,5 +1,7 @@
 #include <QtGlobal>
 #include "MainWindow.h"
+#include "MovementSpec.h"
+#include "AcquisitionConfig.h"
 #include "ReplotCounter.h"
 #include "ui_MainWindow.h"
 #include "WaveHeader.h"
@@ -407,9 +409,11 @@ void MainWindow::startSourceThread(IAudioSource *source)
                      this,   &MainWindow::handleSourceComplete);
 
     // T2: DSP thread — wired via the unified dataReady signal.
-    int bph = ManualAutoBPH[ui->BPHComboBox->currentIndex()];
-    mDspWorker = new DSPWorker(mRawAudio, mCurrentSamplesPerSecond, bph, mLiftAngle,
-                                mAveragingPeriod, ui->HighLineEdit->text().toDouble(),
+    MovementSpec    movement{ ManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
+    AcquisitionConfig config{ mCurrentSamplesPerSecond,
+                              ui->HighLineEdit->text().toDouble(),
+                              mAveragingPeriod };
+    mDspWorker = new DSPWorker(mRawAudio, movement, config,
                                 ui->UseConsetCheckBox->isChecked());
     mDspThread = new QThread();
     mDspWorker->moveToThread(mDspThread);

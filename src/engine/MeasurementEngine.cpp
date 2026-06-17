@@ -26,23 +26,22 @@ MeasurementEngine::~MeasurementEngine()
     delete mAmp.roll;
 }
 
-void MeasurementEngine::init(int sampleRate, int bph, double liftAngle,
-                              int averagingPeriod, double hpfCutoff)
+void MeasurementEngine::init(const MovementSpec &movement, const AcquisitionConfig &config)
 {
     destroy();
-    mSamplesPerSecond = sampleRate;
-    mLiftAngle        = liftAngle;
-    mAveragingPeriod  = averagingPeriod;
+    mSamplesPerSecond = config.sampleRate;
+    mLiftAngle        = movement.liftAngle;
+    mAveragingPeriod  = config.averagingPeriod;
 
     tg_config_default(&mCfg);
-    mCfg.sample_rate              = sampleRate;
+    mCfg.sample_rate              = config.sampleRate;
     mCfg.suppress_pre_sync_events = true;
-    mCfg.hpf_cutoff_hz            = hpfCutoff;
-    if (bph == 0)
+    mCfg.hpf_cutoff_hz            = config.hpfCutoff;
+    if (movement.bph == 0)
         mCfg.bph_mode = TG_BPH_MODE_AUTO;
     else {
         mCfg.bph_mode   = TG_BPH_MODE_MANUAL;
-        mCfg.manual_bph = bph;
+        mCfg.manual_bph = movement.bph;
     }
 
     mCtx = tg_init(&mCfg);

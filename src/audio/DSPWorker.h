@@ -3,6 +3,8 @@
 #include <QElapsedTimer>
 #include "SharedAudio.h"
 #include "MeasurementEngine.h"
+#include "MovementSpec.h"
+#include "AcquisitionConfig.h"
 #include "Logger.h"
 
 // T2 tactic: DSP Offload Thread.
@@ -13,8 +15,9 @@ class DSPWorker : public QObject
     Q_OBJECT
 public:
     explicit DSPWorker(TMasterAudioDataRaw *raw,
-                       int sampleRate, int bph, double liftAngle,
-                       int avgPeriod, double highPass, bool useOnset,
+                       const MovementSpec &movement,
+                       const AcquisitionConfig &config,
+                       bool useOnset,
                        QObject *parent = nullptr);
     ~DSPWorker() override;
 
