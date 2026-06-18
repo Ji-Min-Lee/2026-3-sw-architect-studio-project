@@ -266,4 +266,4 @@ Week 3 (6/16 – 6/19)
 | Architecture — Decomposition View: Graph Tab | ✅ |
 | Architecture — C&C View: DSP Pipeline Thread Model | ✅ |
 | Architecture — Deployment View: Build-Deploy Pipeline | ✅ |
-| Construction Plan | ✅ |
+| [Construction Plan](references/construction-plan.md) | ✅ |
