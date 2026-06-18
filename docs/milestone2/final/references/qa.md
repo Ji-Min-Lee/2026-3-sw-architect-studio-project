@@ -249,7 +249,7 @@ EXP-03 (06/25) determines final LP/HP cutoff constants. Until then, default valu
 | Item | M1 | M2 |
 |------|----|----|
 | QA numbers | Provisional (`⚠️` flagged) | EXP-02 confirmed — `⚠️` removed for QAS-1/2 |
-| Tactic location | Mixed into QA doc | Moved to Architectural Approaches; QAs describe problem only |
+| Tactic location | Mixed into QA doc | Moved to [Architectural Approaches](approaches.md); QAs describe problem only |
 | QA names | Team-invented names | Exact terms from Project Plan (Plakosh/Popowski/Beck 2026) |
 | QAS-3 Correctness | Single QA covering both consistency and noise | Split: false-trigger correctness → QAS-4 (Correctness, Priority 5); value accuracy → QAS-0 (Priority 1) |
 | QAS-5 Extensibility | Provisional (post-refactoring) | "Extensibility, Modifiability" per Project Plan; Priority 4 (execution enabler) |

@@ -24,7 +24,7 @@
 |------|----------|--------|
 | Project Plan | No owner/date. Experiments not tracked. No Kanban link | Owner + date on every task. Experiments as GitHub issues → [Board](references/github-project-status.md) |
 | Architecture Diagrams | Source unlabeled. Too detailed | One diagram per view, legend added, source labeled |
-| Architectural Drivers | Tactics mixed into QA doc. Provisional numbers. Solution language | QAs describe problem only. Tactics moved to Approaches doc. Numbers confirmed by EXP-02 |
+| Architectural Drivers | Tactics mixed into QA doc. Provisional numbers. Solution language | QAs describe problem only. Tactics moved to [Approaches doc](references/approaches.md). Numbers confirmed by EXP-02 |
 | Experiments | 1 of 9 risks linked. None started | EXP-02 complete. Every experiment maps to Risk ID(s) |
 | Navigation | No README. No cross-links | README written. All docs cross-linked |
 
