@@ -93,7 +93,7 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
     mScale = new QCPColorScale(mPlot);
     mPlot->plotLayout()->addElement(0, 1, mScale);
     mScale->setType(QCPAxis::atRight);
-    mScale->axis()->setLabel(tr("dB"));
+    mScale->axis()->setLabel(tr("dBFS"));
     mScale->axis()->setTickLabelColor(QColor(0xc8, 0xc8, 0xd0));
     mScale->axis()->setLabelColor(QColor(0xc8, 0xc8, 0xd0));
     mMap->setColorScale(mScale);

@@ -262,33 +262,49 @@ private slots:
             QVERIFY(it->value <= 0.0);
     }
 
-    // FS-3: F1 output has no negative values (moving average of |.|)
-    void f1_allValuesNonNegative()
+    // FS-3: F1 is mirrored bipolar HPF (same display style as F0)
+    void f1_mirroredGraph1HasData()
     {
         Measurement m;
         m.samplesPerSecond = 48000;
-        // varying signal
         for (int i = 0; i < 128; i++) m.rawPcm.append((float)(i % 10 - 5));
         mTab->show();
         mTab->onMeasurement(m);
-        auto data = plot(1)->graph(0)->data();
-        QVERIFY(data->size() > 0);
+        QVERIFY(plot(1)->graph(1)->dataCount() > 0);
+        auto data = plot(1)->graph(1)->data();
         for (auto it = data->begin(); it != data->end(); ++it)
-            QVERIFY(it->value >= 0.0);
+            QVERIFY(it->value <= 0.0);
     }
 
-    // FS-4: F1 negGraph is empty (F1 is a positive-only envelope, not mirrored)
-    void f1_graph1IsEmpty()
+    // FS-4: F2 envelope rendered mirrored (positive + negative)
+    void f2_mirroredGraph1HasData()
+    {
+        Measurement m;
+        m.samplesPerSecond = 48000;
+        for (int i = 0; i < 128; i++) m.rawPcm.append((float)(i % 10 - 5));
+        mTab->show();
+        mTab->onMeasurement(m);
+        QVERIFY(plot(2)->graph(1)->dataCount() > 0);
+        auto data = plot(2)->graph(1)->data();
+        for (auto it = data->begin(); it != data->end(); ++it)
+            QVERIFY(it->value <= 0.0);
+    }
+
+    // FS-5: F3 shows onset threshold overlay when provided
+    void f3_thresholdOverlayWhenProvided()
     {
         Measurement m;
         m.samplesPerSecond = 48000;
         m.rawPcm.fill(1.0f, 64);
+        m.pcm.fill(0.5, 64);
+        m.threshold.fill(0.2, 64);
         mTab->show();
         mTab->onMeasurement(m);
-        QCOMPARE(plot(1)->graph(1)->dataCount(), 0);
+        QCOMPARE(plot(3)->graph(0)->dataCount(), 64);
+        QCOMPARE(plot(3)->graph(1)->dataCount(), 64);
     }
 
-    // FS-5: reset() clears both graph series on F0 panel
+    // FS-6: reset() clears both graph series on F0 panel
     void reset_clearsBothGraphs()
     {
         Measurement m;

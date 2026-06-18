@@ -284,7 +284,7 @@ void RateScopeTab::purgeScopeHistory(int sps)
         auto data = mScopePlot->graph(i)->data();
         if (data->size() > GRAPH_HISTORY_SECONDS * sps) {
             bool found;
-            QCPRange r = mScopePlot->graph(i)->getKeyRange(found, QCP::sdBoth);
+            QCPRange r = data->keyRange(found, QCP::sdBoth);
             if (!found) continue;
             double removeEnd = r.lower + (r.upper - r.lower) - GRAPH_HISTORY_SECONDS * sps / 2.0;
             removeMarkersAndText(r.lower, removeEnd);

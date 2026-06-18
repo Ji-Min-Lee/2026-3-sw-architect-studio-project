@@ -36,7 +36,7 @@ private:
     static constexpr int    kHopSize      = 512;
     static constexpr int    kTimeColumns  = 256;
     static constexpr double kMaxDisplayHz = 20000.0;
-    // Figure 16 reference: viridis colormap, fixed colorbar −70…−10 dB
+    // Figure 16 reference: viridis colormap, fixed colorbar −70…−10 dBFS
     static constexpr double kDbMin        = -70.0;
     static constexpr double kDbMax        = -10.0;
     static constexpr double kMaxBufferSec = 12.0;
