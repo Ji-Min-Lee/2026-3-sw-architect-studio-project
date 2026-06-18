@@ -39,35 +39,33 @@
 | Category | Goal | Quality Attribute |
 |----------|------|-------------------|
 | **On-Schedule Delivery** | Shorten dev machine ↔ RPi deploy cycle | Deployability |
-| | Apply architecture decisions fast enough to stay on schedule | Modifiability |
-| **Accuracy** | Computed Rate / Amplitude / Beat Error must match Witschi within tolerance | **Accuracy** ← governing |
-| | Pipeline must process beats without missing the 21ms deadline | Performance — Real-Time |
-| | Capture-to-detect latency must be low enough for correct timestamps | Performance — Latency |
-| | Correct results even under noise | Reliability |
+| | Apply architecture decisions fast enough to stay on schedule | [Extensibility, Modifiability](references/qa.md#qas-3-extensibility-modifiability--priority-4-execution-enabler) |
+| **Accuracy** | Computed Rate / Amplitude / Beat Error must match Witschi within tolerance | [**Measurement Accuracy, Error Detection, and Handling**](references/qa.md#qas-0-measurement-accuracy-error-detection-and-handling--priority-1-governing-goal) ← governing |
+| | Pipeline must process beats without missing the 21ms deadline | [Real Time Performance](references/qa.md#qas-1-real-time-performance--priority-2) |
+| | Capture-to-detect latency must be low enough for correct timestamps | [Low Latency and Low Number of Missed Beats](references/qa.md#qas-2-low-latency-and-low-number-of-missed-beats--priority-3) |
+| | Correct results even under noise | [Correctness](references/qa.md#qas-4-correctness--priority-5) |
 | **Usability** | Inputs the system cannot handle must be clearly communicated | Usability |
 
 ### QA Priority Order
 
 | Rank | Quality Attribute | Rationale |
 |------|-------------------|-----------|
-| 1 | **Accuracy** — Witschi match | The governing criterion: Rate / Amplitude / Beat Error must match Witschi reference |
-| 2 | **Real-Time** | Missed 21ms deadline → dropped beat → wrong Rate/BPH |
-| 3 | **Latency** | Late timestamp → wrong Beat Error / Amplitude |
-| 4 | **Reliability** | False trigger → wrong everything |
-| 5 | **Modifiability** | Execution enabler — architecture changes must apply fast enough to stay on schedule |
-| 6 | **Usability** | Unhandled inputs must be clearly communicated |
+| 1 | [**Measurement Accuracy, Error Detection, and Handling**](references/qa.md#qas-0-measurement-accuracy-error-detection-and-handling--priority-1-governing-goal) | The governing criterion: Rate / Amplitude / Beat Error must match Witschi reference |
+| 2 | [**Real Time Performance**](references/qa.md#qas-1-real-time-performance--priority-2) | Missed 21ms deadline → dropped beat → wrong Rate/BPH |
+| 3 | [**Low Latency and Low Number of Missed Beats**](references/qa.md#qas-2-low-latency-and-low-number-of-missed-beats--priority-3) | Late timestamp → wrong Beat Error / Amplitude |
+| 4 | [**Extensibility, Modifiability**](references/qa.md#qas-3-extensibility-modifiability--priority-4-execution-enabler) | Execution enabler — architecture changes must apply fast enough to stay on schedule |
+| 5 | [**Correctness**](references/qa.md#qas-4-correctness--priority-5) | False trigger → wrong everything |
 
-### Accuracy as the Governing Goal
+### Measurement Accuracy as the Governing Goal
 
-> Accuracy is not one QA among equals. It is the criterion the entire architecture is evaluated against.
+> Measurement Accuracy, Error Detection, and Handling is not one QA among equals. It is the criterion the entire architecture is evaluated against.
 
 ```
-Goal: Measurement Accuracy (Rate / Amplitude / Beat Error must match Witschi reference)
-├── Direct measure: Accuracy          → computed values within tolerance of Witschi
-├── Prerequisite:   Real-Time Perf.   → missed deadline = dropped beat = wrong Rate / BPH
-├── Prerequisite:   Low Latency       → late timestamp = wrong Beat Error / Amplitude
-├── Prerequisite:   Reliability       → false trigger = wrong everything
-└── Enabler:        Modifiability     → architecture changes must apply fast
+Goal: Measurement Accuracy, Error Detection, and Handling
+├── Enabler:      Extensibility, Modifiability               → architecture changes must apply fast
+├── Prerequisite: Real Time Performance                      → missed deadline = dropped beat = wrong Rate/BPH
+├── Prerequisite: Low Latency and Low Number of Missed Beats → late timestamp = wrong Beat Error / Amplitude
+└── Prerequisite: Correctness                               → false trigger = wrong everything
 ```
 
 ---
