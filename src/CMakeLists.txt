@@ -23,6 +23,7 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS PrintSupport REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Multimedia Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network)
 
 set(LOGGING_SOURCES
     logging/Logger.h
@@ -40,6 +41,10 @@ set(PROJECT_SOURCES
     ui/SessionController.h
     ui/SettingsManager.h
     ui/SettingsManager.cpp
+    ui/DiagnosisDialog.h
+    ui/DiagnosisDialog.cpp
+    engine/WatchExplainer.h
+    engine/WatchExplainer.cpp
 )
 
 set(AUDIO_SOURCES
@@ -181,6 +186,7 @@ target_link_libraries(TimeGrapher PRIVATE kissfft)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::PrintSupport)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
+target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 IF(WIN32)
     target_link_libraries(TimeGrapher PRIVATE winmm Ole32 Uuid Propsys)
 ELSEIF(LINUX)

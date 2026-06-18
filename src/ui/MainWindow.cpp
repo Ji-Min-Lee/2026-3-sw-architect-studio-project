@@ -120,6 +120,31 @@ MainWindow::MainWindow(QWidget *parent)
     ui->LiftAngleSpinBox->setFocusPolicy(Qt::NoFocus);
     ui->Results->setAlignment(Qt::AlignHCenter);
     ui->Results->setFont(QFont("Consolas", 9));
+
+    // AI step 2: fetch available Ollama models → populate combobox
+    connect(&mWatchExplainer, &WatchExplainer::modelsAvailable,
+            this, [this](const QStringList &models) {
+                ui->AiModelComboBox->blockSignals(true);
+                ui->AiModelComboBox->clear();
+                ui->AiModelComboBox->addItems(models);
+                // index 0 = smallest model (sorted by size in WatchExplainer)
+                ui->AiModelComboBox->setCurrentIndex(0);
+                ui->AiModelComboBox->blockSignals(false);
+                // warmup after we know which model to load
+                const QString selected = ui->AiModelComboBox->currentText();
+                mLastExplainRequest.modelName = selected;
+                mWatchExplainer.warmup(selected);
+            });
+    connect(ui->AiModelComboBox, &QComboBox::currentTextChanged,
+            this, [this](const QString &model) {
+                mLastExplainRequest.modelName = model;
+            });
+    mWatchExplainer.checkAvailability();   // async: populates combobox, then warms up
+
+    // clicking the diagnosis label opens the LLM explanation dialog
+    ui->DiagnosisLabel->setCursor(Qt::PointingHandCursor);
+    ui->DiagnosisLabel->setToolTip(tr("Click for AI explanation"));
+    ui->DiagnosisLabel->installEventFilter(this);
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
 
@@ -282,7 +307,14 @@ void MainWindow::DisplayResults(const Measurement &m)
                          "  ▏  ERR " + beatStr + " ms" +
                          "  ▏  BPH " + bphStr);
 
-    DiagnosisResult diagResult = mWatchDiagnostics.Evaluate({ m.metrics, mWatchType });
+    DiagnosisInput  diagInput { m.metrics, mWatchType };
+    DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
+
+    // Keep latest input/result for the LLM dialog (AI step 2)
+    mLastExplainRequest.input  = diagInput;
+    mLastExplainRequest.result = diagResult;
+
+
     ui->DiagnosisLabel->setText(diagResult.label);
     QColor diagColor = DiagnosisColor(diagResult.level);
     ui->DiagnosisLabel->setStyleSheet(
@@ -344,6 +376,19 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
 // Reset — reinitialise Presentation layer before a new session starts.
 // MeasurementEngine is re-created per-session inside SessionController.
 // ─────────────────────────────────────────────────────────────────────────────
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == ui->DiagnosisLabel && event->type() == QEvent::MouseButtonPress) {
+        if (mLastExplainRequest.result.level != DiagnosisLevel::Unknown) {
+            auto *dlg = new DiagnosisDialog(mLastExplainRequest, &mWatchExplainer, this);
+            dlg->setAttribute(Qt::WA_DeleteOnClose);
+            dlg->show();
+        }
+        return true;
+    }
+    return QMainWindow::eventFilter(obj, event);
+}
+
 template<typename T>
 T* MainWindow::registerTab(T *tab, const QString &label)
 {
@@ -458,6 +503,7 @@ void MainWindow::LoadMode(void)
         ui->ModeComboBox->addItem(ModeStrings[i], i);
     ui->ModeComboBox->setCurrentIndex(0);
 }
+
 
 bool MainWindow::OpenFile(const QString &FileName)
 {
