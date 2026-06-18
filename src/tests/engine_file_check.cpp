@@ -11,6 +11,8 @@
 #include <cstdio>
 #include <cstring>
 #include "MeasurementEngine.h"
+#include "MovementSpec.h"
+#include "AcquisitionConfig.h"
 
 static bool readWavFloatMono(const QString &path, QVector<float> &samples, int &rate)
 {
@@ -58,7 +60,9 @@ int main(int argc, char *argv[])
     if (csv) fprintf(csv, "block,timeSec,synced,detectedBph,rateValid,rateErrorSpd,beatErrorValid,beatErrorMs,amplitudeValid,amplitudeDeg,nEvents\n");
 
     MeasurementEngine engine;
-    engine.init(rate, /*bph=*/0 /*Auto*/, /*liftAngle=*/52.0, /*averagingPeriod=*/12, /*hpfCutoff=*/200.0);
+    MovementSpec movement{0, 52.0};
+    AcquisitionConfig config{rate, 200.0, 12};
+    engine.init(movement, config);
     engine.reset();
 
     // Collected results
@@ -72,12 +76,14 @@ int main(int argc, char *argv[])
         last = m;
         if (m.synced && firstSyncBlock < 0) firstSyncBlock = blockNo;
         for (const AcousticEvent &ev : m.events)
-            if (ev.isA) aEventTimes.append(ev.samplePos / m.samplesPerSecond);
+            if (ev.isA) aEventTimes.append(ev.samplePos / m.signal.samplesPerSecond);
         if (csv)
             fprintf(csv, "%d,%.3f,%d,%d,%d,%.3f,%d,%.4f,%d,%.1f,%d\n",
                     blockNo, (double)blockNo * 4096.0 / rate, m.synced, m.detectedBph,
-                    m.rateValid, m.rateErrorSpd, m.beatErrorValid, m.beatErrorMs,
-                    m.amplitudeValid, m.amplitudeDeg, (int)m.events.size());
+                    m.metrics.rate.has_value(), m.metrics.rate.value_or(0.0),
+                    m.metrics.beatError.has_value(), m.metrics.beatError.value_or(0.0),
+                    m.metrics.amplitude.has_value(), m.metrics.amplitude.value_or(0.0),
+                    (int)m.events.size());
     });
 
     const int BLOCK = 4096; // DETECTOR_NUMBER_OF_SAMPLES, same as MainWindow
@@ -105,14 +111,14 @@ int main(int argc, char *argv[])
            last.synced ? "yes" : "NO", firstSyncBlock, firstSyncBlock * 4096.0 / rate);
     printf("detected BPH    : %d\n", last.detectedBph);
     printf("BPH from A-A iv : %.0f  (median beat interval, %d A-events)\n", bphFromEvents, (int)aEventTimes.size());
-    printf("rate error      : %s %.2f s/d\n", last.rateValid ? "valid" : "INVALID", last.rateErrorSpd);
-    printf("beat error      : %s %.3f ms\n", last.beatErrorValid ? "valid" : "INVALID", last.beatErrorMs);
-    printf("amplitude       : %s %.1f deg\n", last.amplitudeValid ? "valid" : "INVALID", last.amplitudeDeg);
+    printf("rate error      : %s %.2f s/d\n", last.metrics.rate.has_value() ? "valid" : "INVALID", last.metrics.rate.value_or(0.0));
+    printf("beat error      : %s %.3f ms\n", last.metrics.beatError.has_value() ? "valid" : "INVALID", last.metrics.beatError.value_or(0.0));
+    printf("amplitude       : %s %.1f deg\n", last.metrics.amplitude.has_value() ? "valid" : "INVALID", last.metrics.amplitude.value_or(0.0));
 
     bool ok = last.synced
            && last.detectedBph == expectedBph
            && std::abs(bphFromEvents - expectedBph) / expectedBph < 0.01
-           && last.rateValid && last.beatErrorValid && last.amplitudeValid;
+           && last.metrics.rate.has_value() && last.metrics.beatError.has_value() && last.metrics.amplitude.has_value();
     printf("VERDICT         : %s\n", ok ? "PASS" : "FAIL");
     return ok ? 0 : 1;
 }

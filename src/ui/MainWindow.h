@@ -6,10 +6,7 @@
 #include <QComboBox>
 #include <QElapsedTimer>
 #include <QMessageBox>
-#include "AudioWorker.h"
-#include "PlaybackWorker.h"
-#include "SimWorker.h"
-#include "DSPWorker.h"
+#include "SessionController.h"
 #include "WavStreamWriter.h"
 #include "WatchSynthStream.h"
 #include "MeasurementEngine.h"
@@ -41,8 +38,9 @@ QT_END_NAMESPACE
 #define DEBUG_OUTPUT 0
 
 // MVC: Controller.
-// Owns threads (Acquisition layer), MeasurementEngine (Domain layer),
-// and wires Observer connections from engine to tabs (Presentation layer).
+// Reads UI state, builds domain VOs, and delegates session lifecycle to
+// SessionController (Acquisition layer).  Owns the Presentation layer (tabs)
+// and handles all UI feedback (results label, status bar, alarms).
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -70,28 +68,10 @@ private slots:
     void onMeasurementReady(const Measurement &m);
 
 public slots:
-    void HandlePlaybackDoneReadingFile();
-    void HandleSimDone();
+    void onSessionStopped();
     void onFrameLogged(Logger::Frame frame);
 
-signals:
-    void LocalStartAudio(QAudioDevice InputDevice, int SampleRate, float Volume);
-    void LocalStopAudio();
-    void LocalSetAudioInputVolume(float Volume);
-    void LocalStartPlayback(const QString &FileName);
-    void LocalStartSim(WatchSynthStreamConfig cfg);
-
 private:
-    Ui::MainWindow *ui;
-
-    // Thread management (Acquisition layer)
-    void   StartAudioThread(void);
-    void   StartPlaybackThread(const QString &FileName);
-    void   StartSimThread(WatchSynthStreamConfig cfg);
-    void   StopAudioThread(void);
-    void   StopPlaybackThread(void);
-    void   StopSimThread(void);
-
     // UI helpers
     void   LoadAudioDevices(void);
     void   LoadBPH(void);
@@ -113,64 +93,62 @@ private:
     void   LiveStart(void);
     void   PlaybackStart(void);
     void   SimStart(void);
+    void   resetTabs(void);
+
+    // Tab registration helpers — call instead of manually editing addTab + mAllTabs.
+    // registerTab: adds to GraphicsTabWidget AND mAllTabs; returns tab for assignment.
+    // addObserver:  adds to mAllTabs only (tabs embedded in existing .ui widgets).
+    template<typename T>
+    T*     registerTab(T *tab, const QString &label);
+    void   addObserver(BaseGraphTab *tab);
 
     // Results display
     void   DisplayResults(const Measurement &m);
 
-    // Live-mode watch-detached alarm (QAS-4): edge-detect signal loss while
-    // measuring and raise a one-shot alarm + "Watch detached" message.
+    // Live-mode watch-detached alarm (QAS-4)
     void   checkWatchDetached(const Measurement &m);
     void   raiseWatchDetachedAlarm(void);
 
-    void   Reset(void);
-    void   wireEngineToTabs();
     bool   eventFilter(QObject *obj, QEvent *event) override;
+
+    Ui::MainWindow *ui;
+
+    // Acquisition layer — session lifecycle delegate
+    SessionController *mSession = nullptr;
 
     // Settings persistence
     SettingsManager *mSettings = nullptr;
 
-    // Domain layer (T2: owned by DSPWorker, accessed via mDspWorker->engine())
-    DSPWorker *mDspWorker = nullptr;
-    QThread   *mDspThread = nullptr;
-
-    // Presentation layer (MVC: View / Observer: Concrete Observers) — 11 tabs
-    RateScopeTab     *mRateScopeTab     = nullptr;
-    TraceTab         *mTraceTab         = nullptr;
-    SoundPrintTab    *mSoundPrintTab    = nullptr;
-    BeatErrorTab     *mBeatErrorTab     = nullptr;
-    VarioTab         *mVarioTab         = nullptr;
-    SequenceTab      *mSequenceTab      = nullptr;
+    // Presentation layer (MVC: View / Observer: Concrete Observers) — 13 tabs
+    RateScopeTab      *mRateScopeTab      = nullptr;
+    TraceTab          *mTraceTab          = nullptr;
+    SoundPrintTab     *mSoundPrintTab     = nullptr;
+    BeatErrorTab      *mBeatErrorTab      = nullptr;
+    VarioTab          *mVarioTab          = nullptr;
+    SequenceTab       *mSequenceTab       = nullptr;
     BeatNoiseScopeTab *mBeatNoiseScopeTab = nullptr;
-    LongTermTab      *mLongTermTab      = nullptr;
-    EscapementTab    *mEscapementTab    = nullptr;
-    SpectrogramTab   *mSpectrogramTab   = nullptr;
-    WaveformCompTab  *mWaveformCompTab  = nullptr;
-    SweepScopeTab    *mSweepScopeTab    = nullptr;
-    FilterScopeTab   *mFilterScopeTab   = nullptr;
-    QList<BaseGraphTab *> mAllTabs;     // for global pause + reset
+    LongTermTab       *mLongTermTab       = nullptr;
+    EscapementTab     *mEscapementTab     = nullptr;
+    SpectrogramTab    *mSpectrogramTab    = nullptr;
+    WaveformCompTab   *mWaveformCompTab   = nullptr;
+    SweepScopeTab     *mSweepScopeTab     = nullptr;
+    FilterScopeTab    *mFilterScopeTab    = nullptr;
+    QList<BaseGraphTab *> mAllTabs;
 
     // Watch-position testing (NIHS 95-10/ISO 3158)
     QString mActivePosition = "CH";
 
     // Live-mode watch-detached alarm state (edge detection)
-    bool         mHadWatchSignal = false;  // a watch was being measured this run
-    bool         mWatchDetached  = false;  // currently detached (alarm latched)
+    bool         mHadWatchSignal = false;
+    bool         mWatchDetached  = false;
     QMessageBox *mDetachAlarm    = nullptr;
 
-    // Audio threads
-    WavStreamWriter       *mWavWriter            = nullptr;
-    TMasterAudioDataRaw   *mRawAudio              = nullptr;
-    QThread               *mAudioWorkerThread     = nullptr;
-    TAudioWorker          *mAudioWorker           = nullptr;
-    QThread               *mPlaybackWorkerThread  = nullptr;
-    TPlaybackWorker       *mPlaybackWorker        = nullptr;
-    QThread               *mSimWorkerThread       = nullptr;
-    TSimWorker            *mSimWorker             = nullptr;
+    // WAV recording (dialog + writer owned here; session does not touch it)
+    WavStreamWriter *mWavWriter = nullptr;
 
-    // Per-frame performance logger (active only when ENABLE_LOGGING is defined)
-    Logger   *mLogger = nullptr;
+    // UI/session state
     int       mLastReplotCount = 0;
-    int64_t   mLastPlotUs     = 0;   // g_plotUs snapshot from last onMeasurementReady
+    int64_t   mLastPlotUs     = 0;
 
     int       mAvalableRates[5];
     int       mNumberofRates        = 0;
@@ -188,7 +166,7 @@ private:
     int           mCmdDurationSec = 0;
     QElapsedTimer mCmdDurationTimer;
 
-    // FPS stats (updated from DSPWorker::frameLogged)
+    // FPS stats (updated from SessionController::frameLogged)
     double mBackgroundLastFPS = 0.0;
     double mBackgroundLastSPF = 0.0;
     double mBackgroundLastSPS = 0.0;
@@ -197,13 +175,13 @@ private:
     double mDspLastSPS        = 0.0;
 
     // AI step 1: rule-based watch condition diagnosis
-    WatchDiagnostics           mWatchDiagnostics;
-    DiagnosisLevel             mLastDiagnosisLevel = DiagnosisLevel::Unknown;
-    WatchType                  mWatchType           = WatchType::Men;
+    WatchDiagnostics mWatchDiagnostics;
+    DiagnosisLevel   mLastDiagnosisLevel = DiagnosisLevel::Unknown;
+    WatchType        mWatchType          = WatchType::Men;
 
     // AI step 2: LLM explanation on diagnosis click
-    WatchExplainer             mWatchExplainer;
-    ExplainRequest             mLastExplainRequest;  // kept for re-open
+    WatchExplainer   mWatchExplainer;
+    ExplainRequest   mLastExplainRequest;  // kept for re-open
 
 };
 #endif

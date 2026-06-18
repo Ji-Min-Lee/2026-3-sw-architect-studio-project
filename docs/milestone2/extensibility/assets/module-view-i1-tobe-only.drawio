@@ -1,0 +1,93 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="TO-BE" id="tobe-i1">
+    <mxGraphModel dx="900" dy="560" grid="0" gridSize="10" pageWidth="700" pageHeight="460">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="TTL" value="TO-BE: Module Uses View — I-1 SessionController" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="8" width="700" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- MainWindow: now UI + Presentation only -->
+        <mxCell id="MW" value="&lt;b&gt;MainWindow&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;'&gt;~750 lines — UI + tabs + diagnosis&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="230" y="50" width="240" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- SessionController: NEW — acquisition layer coordinator -->
+        <mxCell id="SC" value="&lt;b&gt;«new» SessionController&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;'&gt;thread + worker + buffer + logger&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="230" y="175" width="240" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- IAudioSource interface -->
+        <mxCell id="IA" value="«interface»&#xa;IAudioSource" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=11;fontStyle=3;" vertex="1" parent="1">
+          <mxGeometry x="230" y="310" width="150" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Concrete workers realizing IAudioSource -->
+        <mxCell id="AW" value="TAudioWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="30" y="410" width="140" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="PW" value="TPlaybackWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="200" y="410" width="140" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="SW" value="TSimWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="360" y="410" width="140" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- DSPWorker, RawAudio, Logger -->
+        <mxCell id="DSP" value="DSPWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="430" y="310" width="120" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="RA" value="TMasterAudioDataRaw" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="560" y="310" width="120" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="LOG" value="Logger" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="560" y="175" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Note -->
+        <mxCell id="NOTE" value="SessionController owns&#xa;all acquisition concerns.&#xa;New source type = add&#xa;IAudioSource impl only." style="shape=note;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;size=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="30" y="310" width="155" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- MainWindow «use» SessionController -->
+        <mxCell id="E0" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="SC" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- SessionController «use» IAudioSource (polymorphic) -->
+        <mxCell id="E1" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="SC" target="IA" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- SessionController «use» DSP, RA, LOG -->
+        <mxCell id="E2" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="SC" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E3" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="SC" target="RA" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E4" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="SC" target="LOG" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Concrete workers «realize» IAudioSource -->
+        <mxCell id="R1" value="" style="html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=10;" edge="1" source="AW" target="IA" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="R2" value="" style="html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=10;" edge="1" source="PW" target="IA" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="R3" value="" style="html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=10;" edge="1" source="SW" target="IA" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="LEG" value="— — → «use»  &#xa;— — ▷ «realize»" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;align=left;" vertex="1" parent="1">
+          <mxGeometry x="30" y="410" width="120" height="36" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

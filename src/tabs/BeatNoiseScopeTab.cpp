@@ -127,9 +127,9 @@ int BeatNoiseScopeTab::rangeSamples() const
 
 void BeatNoiseScopeTab::appendSamples(const Measurement &m)
 {
-    mSps = m.samplesPerSecond;
-    if (mBuf.isEmpty()) mBufStartAbs = (double)m.graphTickStart;
-    for (double sample : m.pcm) mBuf.append(std::abs(sample));
+    mSps = m.signal.samplesPerSecond;
+    if (mBuf.isEmpty()) mBufStartAbs = (double)m.signal.tickStart;
+    for (double sample : m.signal.pcm) mBuf.append(std::abs(sample));
     int maxLen = (int)(kBufSeconds * mSps);
     if (mBuf.size() > maxLen) {
         int drop = mBuf.size() - maxLen;

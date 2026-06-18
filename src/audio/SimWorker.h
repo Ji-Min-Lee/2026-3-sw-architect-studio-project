@@ -6,26 +6,27 @@
 #include <QElapsedTimer>
 #include <cstdint>
 #include "SharedAudio.h"
+#include "AudioRingBuffer.h"
+#include "IAudioSource.h"
 #include "WatchSynthStream.h"
 #include "Logger.h"   // TG_NOW()
 
-class TSimWorker : public QObject
+class TSimWorker : public IAudioSource
 {
     Q_OBJECT
 
 public:
-    TSimWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent = nullptr);
-     ~TSimWorker();
-    TMasterAudioDataRaw *mRawAudio;
+    TSimWorker(AudioRingBuffer *ring, int SamplesPerSecond, QObject *parent = nullptr);
+    ~TSimWorker();
+
+private:
+    AudioRingBuffer *mRawAudio;
 public slots:
     void StartSim(WatchSynthStreamConfig cfg);
 
-
+// IAudioSource signals: dataReady(int64_t), finished(), sourceComplete()
+// TSimWorker emits sourceComplete() when synthesis ends (was SimDone).
 signals:
-    // Signal to send captured audio data to the main thread (e.g., for processing/visualization)
-    void SimDataReady(int64_t emitTimestampUs);
-    void SimDone();
-    void finished();
     void cancelled();
 
 private:

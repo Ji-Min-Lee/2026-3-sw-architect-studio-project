@@ -154,8 +154,8 @@ void FilterScopeTab::drawPanel(FilterPanel &panel, int mode,
     int used = 0;
     const double xMax = xs.isEmpty() ? 0.0 : xs.last();
     for (const AcousticEvent &ev : m.events) {
-        const double xMs = (ev.samplePos - static_cast<double>(m.graphTickStart))
-                           / m.samplesPerSecond * 1000.0;
+        const double xMs = (ev.samplePos - static_cast<double>(m.signal.tickStart))
+                           / m.signal.samplesPerSecond * 1000.0;
         if (xMs < 0.0 || xMs > xMax) {
             continue;
         }
@@ -188,7 +188,7 @@ void FilterScopeTab::redraw()
     }
 
     const Measurement &m = mLatest;
-    const QVector<float> &pcm = !m.hpfPcm.isEmpty() ? m.hpfPcm : m.rawPcm;
+    const QVector<float> &pcm = !m.signal.hpfPcm.isEmpty() ? m.signal.hpfPcm : m.signal.rawPcm;
     const int pcmSampleCount = pcm.size();
     if (pcmSampleCount == 0) {
         return;
@@ -198,7 +198,7 @@ void FilterScopeTab::redraw()
 
     QVector<double> xs(pcmSampleCount);
     for (int i = 0; i < pcmSampleCount; ++i) {
-        xs[i] = static_cast<double>(i) / m.samplesPerSecond * 1000.0;
+        xs[i] = static_cast<double>(i) / m.signal.samplesPerSecond * 1000.0;
     }
 
     const double blockMs = xs.last();
@@ -206,7 +206,7 @@ void FilterScopeTab::redraw()
         tr("Filter scope — block %1 ms  (%2 samples @ %3 Hz)")
             .arg(blockMs, 0, 'f', 1)
             .arg(pcmSampleCount)
-            .arg(m.samplesPerSecond));
+            .arg(m.signal.samplesPerSecond));
 
     const QVector<double> *stageYs[] = {&stages.f0, &stages.f1, &stages.f2, &stages.f3};
     for (int i = 0; i < kFilterPanels; ++i) {
@@ -216,7 +216,7 @@ void FilterScopeTab::redraw()
 
 void FilterScopeTab::onMeasurement(const Measurement &m)
 {
-    if (m.hpfPcm.isEmpty() && m.rawPcm.isEmpty()) {
+    if (m.signal.hpfPcm.isEmpty() && m.signal.rawPcm.isEmpty()) {
         return;
     }
     mLatest   = m;

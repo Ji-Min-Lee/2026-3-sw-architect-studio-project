@@ -13,24 +13,24 @@ static Measurement makeMeas(double rateSpd, double ampDeg, double beatMs,
                              int sps = 48000, int bph = 28800)
 {
     Measurement m;
-    m.rateValid    = true;  m.rateErrorSpd  = rateSpd;
-    m.amplitudeValid = true; m.amplitudeDeg = ampDeg;
-    m.beatErrorValid = true; m.beatErrorMs  = beatMs;
+    m.metrics.rate = rateSpd;
+    m.metrics.amplitude = ampDeg;
+    // beatError set via optional m.beatErrorMs  = beatMs;
     m.synced       = true;
     m.detectedBph  = bph;
-    m.samplesPerSecond = sps;
+    m.signal.samplesPerSecond = sps;
     return m;
 }
 
 static Measurement makePcmMeas(int nSamples, float value = 1.0f, int sps = 48000)
 {
     Measurement m;
-    m.samplesPerSecond = sps;
-    m.pcm.fill(value, nSamples);
-    m.threshold.fill(0.0, nSamples);   // RateScopeTab reads threshold[i] per sample
-    m.rawPcm.fill(value, nSamples);
-    m.graphTickStart = 0;
-    m.graphTickEnd   = nSamples;
+    m.signal.samplesPerSecond = sps;
+    m.signal.pcm.fill(value, nSamples);
+    m.signal.threshold.fill(0.0, nSamples);   // RateScopeTab reads threshold[i] per sample
+    m.signal.rawPcm.fill(value, nSamples);
+    m.signal.tickStart = 0;
+    m.signal.tickEnd   = nSamples;
     return m;
 }
 
@@ -58,7 +58,7 @@ private slots:
     void pcmBlock_appearsInScopePlot()
     {
         Measurement m = makePcmMeas(480);
-        m.pcm.fill(0.5, 480);
+        m.signal.pcm.fill(0.5, 480);
         mTab->onMeasurement(m);
         QVERIFY(mScopePlot->graphCount() >= 1);
     }
@@ -67,7 +67,7 @@ private slots:
     void ticEvent_appendsToTicSeries()
     {
         Measurement m;
-        m.samplesPerSecond = 48000;
+        m.signal.samplesPerSecond = 48000;
         m.synced = true; m.detectedBph = 28800;
         AcousticEvent ev;
         ev.isA = true; ev.hasRatePoint = true;
@@ -83,7 +83,7 @@ private slots:
     void tocEvent_appendsToTocSeries()
     {
         Measurement m;
-        m.samplesPerSecond = 48000;
+        m.signal.samplesPerSecond = 48000;
         m.synced = true; m.detectedBph = 28800;
         AcousticEvent ev;
         ev.isA = true; ev.hasRatePoint = true;
@@ -100,7 +100,7 @@ private slots:
     {
         const double kExpected = 3.7;
         Measurement m;
-        m.samplesPerSecond = 48000;
+        m.signal.samplesPerSecond = 48000;
         m.synced = true; m.detectedBph = 28800;
         AcousticEvent ev;
         ev.isA = true; ev.hasRatePoint = true;
@@ -122,7 +122,7 @@ private slots:
     void reset_clearsSeries()
     {
         Measurement m;
-        m.samplesPerSecond = 48000; m.synced = true; m.detectedBph = 28800;
+        m.signal.samplesPerSecond = 48000; m.synced = true; m.detectedBph = 28800;
         AcousticEvent ev;
         ev.isA = true; ev.hasRatePoint = true; ev.wrappedRateError = 1.0; ev.isTic = true;
         ev.samplePos = 0; ev.peakValue = 0.1f;
@@ -176,8 +176,8 @@ private slots:
         const int expectedLen = 12000;
 
         Measurement m = makeMeas(0, 270, 0, sps, bph);
-        m.pcm.fill(1.0, 480);
-        m.rawPcm.fill(1.0f, 480);
+        m.signal.pcm.fill(1.0, 480);
+        m.signal.rawPcm.fill(1.0f, 480);
         mTab->show();
         mTab->onMeasurement(m);
 
@@ -202,10 +202,10 @@ private slots:
     void absoluteValue_storedInSweep()
     {
         Measurement m;
-        m.samplesPerSecond = 48000;
+        m.signal.samplesPerSecond = 48000;
         m.synced = true; m.detectedBph = 28800;
-        m.pcm = {-1.0, -2.0, -3.0};
-        m.rawPcm = {-1.0f, -2.0f, -3.0f};
+        m.signal.pcm = {-1.0, -2.0, -3.0};
+        m.signal.rawPcm = {-1.0f, -2.0f, -3.0f};
         mTab->onMeasurement(m);
         auto *plot = mTab->findChild<QCustomPlot*>();
         QVERIFY(plot != nullptr);
@@ -240,8 +240,8 @@ private slots:
     {
         const int n = 256;
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.rawPcm.fill(1.0f, n);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.rawPcm.fill(1.0f, n);
         mTab->show(); // make visible so redraw fires
         mTab->onMeasurement(m);
         QCOMPARE(plot(0)->graph(0)->dataCount(), n);
@@ -251,8 +251,8 @@ private slots:
     void f0_mirroredGraph1HasData()
     {
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.rawPcm.fill(2.0f, 64);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.rawPcm.fill(2.0f, 64);
         mTab->show();
         mTab->onMeasurement(m);
         QVERIFY(plot(0)->graph(1)->dataCount() > 0);
@@ -266,9 +266,9 @@ private slots:
     void f1_allValuesNonNegative()
     {
         Measurement m;
-        m.samplesPerSecond = 48000;
+        m.signal.samplesPerSecond = 48000;
         // varying signal
-        for (int i = 0; i < 128; i++) m.rawPcm.append((float)(i % 10 - 5));
+        for (int i = 0; i < 128; i++) m.signal.rawPcm.append((float)(i % 10 - 5));
         mTab->show();
         mTab->onMeasurement(m);
         auto data = plot(1)->graph(0)->data();
@@ -281,8 +281,8 @@ private slots:
     void f1_graph1IsEmpty()
     {
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.rawPcm.fill(1.0f, 64);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.rawPcm.fill(1.0f, 64);
         mTab->show();
         mTab->onMeasurement(m);
         QCOMPARE(plot(1)->graph(1)->dataCount(), 0);
@@ -292,8 +292,8 @@ private slots:
     void reset_clearsBothGraphs()
     {
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.rawPcm.fill(1.0f, 64);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.rawPcm.fill(1.0f, 64);
         mTab->show();
         mTab->onMeasurement(m);
         mTab->reset();

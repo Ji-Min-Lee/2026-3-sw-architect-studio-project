@@ -50,9 +50,9 @@ private slots:
         QVERIFY(table);
 
         Measurement m;
-        m.rateValid = true;      m.rateErrorSpd = 5.5;
-        m.beatErrorValid = true; m.beatErrorMs  = 0.3;
-        m.amplitudeValid = true; m.amplitudeDeg = 271.0;
+        m.metrics.rate = 5.5;
+        m.metrics.beatError = 0.3;
+        m.metrics.amplitude = 271.0;
 
         tab.setActivePosition("CH");
         tab.onMeasurement(m);
@@ -62,7 +62,7 @@ private slots:
         QCOMPARE(table->item(0, 2)->text(), QString("271"));   // CH ampl
 
         tab.setActivePosition("6H");
-        m.rateErrorSpd = -2.5;
+        m.metrics.rate = -2.5;
         tab.onMeasurement(m);
         tab.captureCurrent();
 
@@ -77,7 +77,7 @@ private slots:
         SequenceTab tab;
         auto *table = tab.findChild<QTableWidget *>();
         Measurement m;
-        m.rateValid = true; m.rateErrorSpd = 1.0;
+        m.metrics.rate = 1.0;
         tab.onMeasurement(m);
         tab.captureCurrent();
         tab.reset();
@@ -96,9 +96,9 @@ private slots:
         // DVH Rate = 1.0 − 3.0 = −2.0
         auto capture = [&](const QString &pos, double rate, double ampl) {
             Measurement m;
-            m.rateValid = true;      m.rateErrorSpd = rate;
-            m.amplitudeValid = true; m.amplitudeDeg = ampl;
-            m.beatErrorValid = false;
+            m.metrics.rate = rate;
+            m.metrics.amplitude = ampl;
+            m.metrics.beatError.reset();
             tab.setActivePosition(pos);
             tab.onMeasurement(m);
             tab.captureCurrent();
@@ -125,7 +125,7 @@ private slots:
         auto *table = tab.findChild<QTableWidget *>();
 
         Measurement m;
-        m.rateValid = true; m.rateErrorSpd = 1.0;
+        m.metrics.rate = 1.0;
         tab.setActivePosition("CH");
         tab.onMeasurement(m);
         tab.captureCurrent();  // Horizontal만 존재
@@ -139,9 +139,9 @@ private slots:
     {
         EscapementTab tab;
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.graphTickStart = 0;
-        m.rawPcm.fill(0.1f, 4096);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.tickStart = 0;
+        m.signal.rawPcm.fill(0.1f, 4096);
         m.events << makeA(1000.0) << makeC(1240.0);  // 240 samples = 5.00 ms
         tab.onMeasurement(m);
 
@@ -153,8 +153,8 @@ private slots:
     {
         EscapementTab tab;
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.rawPcm.fill(0.1f, 4096);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.rawPcm.fill(0.1f, 4096);
         m.events << makeA(1000.0) << makeC(1240.0);
         tab.onMeasurement(m);
         tab.reset();
@@ -167,12 +167,12 @@ private slots:
     {
         LongTermTab tab;
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.pcm.fill(0.0, 4800);                            // 0.1 s per block
-        m.rateValid = true;
-        m.rateErrorSpd = 7.5;
+        m.signal.samplesPerSecond = 48000;
+        m.signal.pcm.fill(0.0, 4800);                            // 0.1 s per block
+        // rate set via optional
+        m.metrics.rate = 7.5;
         tab.onMeasurement(m);
-        m.rateErrorSpd = -3.25;
+        m.metrics.rate = -3.25;
         tab.onMeasurement(m);
 
         auto data = plotOf(&tab)->graph(0)->data();
@@ -187,11 +187,11 @@ private slots:
     {
         LongTermTab tab;
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.pcm.fill(0.0, 4800);
-        m.rateValid = true;      m.rateErrorSpd = 1.0;
-        m.amplitudeValid = true; m.amplitudeDeg = 280.0;
-        m.beatErrorValid = true; m.beatErrorMs  = 0.2;
+        m.signal.samplesPerSecond = 48000;
+        m.signal.pcm.fill(0.0, 4800);
+        m.metrics.rate = 1.0;
+        m.metrics.amplitude = 280.0;
+        m.metrics.beatError = 0.2;
         tab.onMeasurement(m);
 
         auto *plot = plotOf(&tab);
@@ -206,9 +206,9 @@ private slots:
     {
         LongTermTab tab;
         Measurement m;
-        m.pcm.fill(0.0, 4800);
-        m.rateValid = false;
-        m.rateErrorSpd = 99.0;
+        m.signal.pcm.fill(0.0, 4800);
+        m.metrics.rate.reset();
+        m.metrics.rate = 99.0;
         tab.onMeasurement(m);
         QCOMPARE(plotOf(&tab)->graph(0)->data()->size(), 0);
     }
@@ -218,10 +218,10 @@ private slots:
     {
         BeatNoiseScopeTab tab;
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.graphTickStart = 0;
-        m.graphTickEnd   = 4096;
-        m.pcm.fill(0.2, 4096);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.tickStart = 0;
+        m.signal.tickEnd   = 4096;
+        m.signal.pcm.fill(0.2, 4096);
         m.events << makeA(2000.0) << makeC(2300.0);
         tab.onMeasurement(m);
 
@@ -236,8 +236,8 @@ private slots:
     {
         BeatNoiseScopeTab tab;
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.pcm.fill(0.2, 4096);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.pcm.fill(0.2, 4096);
         m.events << makeA(2000.0);
         tab.onMeasurement(m);
         tab.reset();
@@ -249,11 +249,11 @@ private slots:
     {
         WaveformCompTab tab;
         Measurement m;
-        m.graphTickStart = 0;
-        m.samplesPerSecond = 48000;
-        m.hpfPcm.resize(4096);
+        m.signal.tickStart = 0;
+        m.signal.samplesPerSecond = 48000;
+        m.signal.hpfPcm.resize(4096);
         for (int i = 0; i < 4096; i++) {
-            m.hpfPcm[i] = static_cast<float>(std::sin(2.0 * M_PI * i / 100.0));
+            m.signal.hpfPcm[i] = static_cast<float>(std::sin(2.0 * M_PI * i / 100.0));
         }
         m.events << makeA(2048.0);
         tab.onMeasurement(m);
@@ -270,7 +270,7 @@ private slots:
             const int k = qRound(it->key * 48000.0 / 1000.0);
             const int idx = winStart + k;
             if (idx >= 0 && idx < 4096) {
-                QVERIFY(qAbs(it->value - m.hpfPcm[idx]) < 1e-5);
+                QVERIFY(qAbs(it->value - m.signal.hpfPcm[idx]) < 1e-5);
                 if (it->value < -0.01) foundNegative = true;
             }
             if (qAbs(it->key - 2.0) < 0.05) foundAtA = true;
@@ -283,11 +283,11 @@ private slots:
     {
         WaveformCompTab tab;
         Measurement m;
-        m.graphTickStart = 0;
-        m.samplesPerSecond = 48000;
-        m.hpfPcm.resize(4096);
+        m.signal.tickStart = 0;
+        m.signal.samplesPerSecond = 48000;
+        m.signal.hpfPcm.resize(4096);
         for (int i = 0; i < 4096; i++) {
-            m.hpfPcm[i] = static_cast<float>(i) / 4096.0f;
+            m.signal.hpfPcm[i] = static_cast<float>(i) / 4096.0f;
         }
         m.events << makeA(1000.0) << makeC(1400.0);
         tab.onMeasurement(m);
@@ -312,14 +312,14 @@ private slots:
     {
         SpectrogramTab tab;
         Measurement m;
-        m.samplesPerSecond = 48000;
-        m.hpfPcm.resize(4096);
+        m.signal.samplesPerSecond = 48000;
+        m.signal.hpfPcm.resize(4096);
         const double freq = 1500.0;
         for (int block = 0; block < 8; ++block) {
-            m.graphTickStart = static_cast<uint64_t>(block * 4096);
+            m.signal.tickStart = static_cast<uint64_t>(block * 4096);
             for (int i = 0; i < 4096; ++i) {
                 const int sampleIdx = block * 4096 + i;
-                m.hpfPcm[i] = (float)std::sin(2.0 * M_PI * freq * sampleIdx / 48000.0);
+                m.signal.hpfPcm[i] = (float)std::sin(2.0 * M_PI * freq * sampleIdx / 48000.0);
             }
             tab.onMeasurement(m);
         }
@@ -347,9 +347,9 @@ private slots:
     {
         SequenceTab tab;
         Measurement m;
-        m.rateValid = true;      m.rateErrorSpd = 4.0;
-        m.beatErrorValid = true; m.beatErrorMs  = 0.2;
-        m.amplitudeValid = true; m.amplitudeDeg = 285.0;
+        m.metrics.rate = 4.0;
+        m.metrics.beatError = 0.2;
+        // amplitude set via optional m.amplitudeDeg = 285.0;
         tab.setActivePosition("CH");
         tab.onMeasurement(m);
         tab.captureCurrent();
@@ -367,7 +367,7 @@ private slots:
         SequenceTab tab;
         QSignalSpy spy(&tab, &SequenceTab::sequenceUpdated);
         Measurement m;
-        m.amplitudeValid = true; m.amplitudeDeg = 280.0;
+        m.metrics.amplitude = 280.0;
         tab.onMeasurement(m);
         tab.captureCurrent();
         QCOMPARE(spy.count(), 1);
@@ -381,7 +381,7 @@ private slots:
         radar.show();                                // lazy render needs visibility
 
         auto cap = [&](const QString &pos, double amp) {
-            Measurement m; m.amplitudeValid = true; m.amplitudeDeg = amp;
+            Measurement m; // amplitude set via optional m.amplitudeDeg = amp;
             seq.setActivePosition(pos);
             seq.onMeasurement(m);
             seq.captureCurrent();
@@ -400,7 +400,7 @@ private slots:
         RadarChartTab radar(&seq);
         radar.show();
         auto cap = [&](const QString &pos, double amp) {
-            Measurement m; m.amplitudeValid = true; m.amplitudeDeg = amp;
+            Measurement m; // amplitude set via optional m.amplitudeDeg = amp;
             seq.setActivePosition(pos);
             seq.onMeasurement(m);
             seq.captureCurrent();

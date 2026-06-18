@@ -72,11 +72,11 @@ EscapementTab::EscapementTab(QWidget *parent) : BaseGraphTab(parent)
 
 void EscapementTab::onMeasurement(const Measurement &m)
 {
-    mSps = m.samplesPerSecond;
+    mSps = m.signal.samplesPerSecond;
 
     // Rolling raw buffer
-    if (mBuf.isEmpty()) mBufStartAbs = (double)m.graphTickStart;
-    for (float v : m.rawPcm) mBuf.append(v);
+    if (mBuf.isEmpty()) mBufStartAbs = (double)m.signal.tickStart;
+    for (float v : m.signal.rawPcm) mBuf.append(v);
     int maxLen = (int)(kBufSeconds * mSps);
     if (mBuf.size() > maxLen) {
         int drop = mBuf.size() - maxLen;

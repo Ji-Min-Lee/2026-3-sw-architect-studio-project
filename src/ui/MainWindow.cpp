@@ -1,13 +1,17 @@
 #include <QtGlobal>
 #include "MainWindow.h"
+#include "MovementSpec.h"
+#include "AcquisitionConfig.h"
+#include "SessionController.h"
 #include "ReplotCounter.h"
 #include "ui_MainWindow.h"
 #include "WaveHeader.h"
-#include "SharedAudio.h"
 #include "Timegrapher.h"
 #include "Bph.h"
 #include <QDateTime>
 #include <QCoreApplication>
+#include <QMediaDevices>
+#include <QAudioDevice>
 
 #if defined(Q_OS_LINUX)
 #include "LinuxAudio.h"
@@ -73,20 +77,23 @@ static QString ModeStrings[] =
         "Sim",
 };
 
-static int ManualAutoBPH[]={0, //Auto
+// Canonical BPH value list — shared by the Live/Playback combo (with leading 0
+// for Auto) and the Sim combo (no Auto entry).
+static constexpr int kBphValues[]={
                     3600,  6000,  7200,  7380,  7440,  7800,  9000,  9100, 10800, 11880,
                     12000, 12342, 12480, 12600, 13320, 13440, 13500, 14000, 14040, 14160,
                     14200, 14280, 14400, 14520, 14580, 14760, 14850, 15000, 15360, 15600,
                     16200, 16320, 16800, 17196, 11258, 17280, 17186, 17897, 18000, 18049,
                     18514, 19332, 19440, 19800, 20160, 20222, 20944, 21000, 21031, 21306,
                     21600, 25200, 28800, 32400, 36000, 43200};
-
-static int SimBPH[]={3600,  6000,  7200,  7380,  7440,  7800,  9000,  9100, 10800, 11880,
-                     12000, 12342, 12480, 12600, 13320, 13440, 13500, 14000, 14040, 14160,
-                     14200, 14280, 14400, 14520, 14580, 14760, 14850, 15000, 15360, 15600,
-                     16200, 16320, 16800, 17196, 11258, 17280, 17186, 17897, 18000, 18049,
-                     18514, 19332, 19440, 19800, 20160, 20222, 20944, 21000, 21031, 21306,
-                     21600, 25200, 28800, 32400, 36000, 43200};
+// Live/Playback BPH combo: prepends 0 (Auto-detect) to kBphValues.
+static constexpr int kManualAutoBPH[] = {0,
+                    3600,  6000,  7200,  7380,  7440,  7800,  9000,  9100, 10800, 11880,
+                    12000, 12342, 12480, 12600, 13320, 13440, 13500, 14000, 14040, 14160,
+                    14200, 14280, 14400, 14520, 14580, 14760, 14850, 15000, 15360, 15600,
+                    16200, 16320, 16800, 17196, 11258, 17280, 17186, 17897, 18000, 18049,
+                    18514, 19332, 19440, 19800, 20160, 20222, 20944, 21000, 21031, 21306,
+                    21600, 25200, 28800, 32400, 36000, 43200};
 
 static int AveragingPeriodList[]={2,4,8,10,12,20,20,30,40,50,60,120,240};
 
@@ -141,55 +148,48 @@ MainWindow::MainWindow(QWidget *parent)
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
 
-    // Domain layer (T2): MeasurementEngine lives in DSPWorker (created per-session in StartXxxThread)
+    // Acquisition layer — session lifecycle delegate
+    mSession = new SessionController(this);
+    connect(mSession, &SessionController::sessionStopped,
+            this,     &MainWindow::onSessionStopped);
+    connect(mSession, &SessionController::frameLogged,
+            this,     &MainWindow::onFrameLogged, Qt::QueuedConnection);
 
     // ── Presentation layer: tabs (MVC View / Observer ConcreteObserver) ───────
-    // AP-3: RateScopeTab wraps the existing QCustomPlot widgets from .ui
-    mRateScopeTab = new RateScopeTab(ui->RatePlot, ui->ScopePlot, this);
+    // Tabs embedded in existing .ui widgets — addObserver() registers them as
+    // measurement observers without adding a new tab page.
+    mRateScopeTab  = new RateScopeTab(ui->RatePlot, ui->ScopePlot, this);
+    addObserver(mRateScopeTab);
 
-    // AP-3: remaining 10 tabs — each ≤3-file change, added as new tab pages
-    mTraceTab          = new TraceTab(this);
-    mSoundPrintTab     = new SoundPrintTab(ui->SoundImage, mCurrentSamplesPerSecond, this);
-    mBeatErrorTab      = new BeatErrorTab(this);
-    mVarioTab          = new VarioTab(this);
-    mSequenceTab       = new SequenceTab(this);
-    mBeatNoiseScopeTab = new BeatNoiseScopeTab(this);
-    mLongTermTab       = new LongTermTab(this);
-    mEscapementTab     = new EscapementTab(this);
-    mSpectrogramTab    = new SpectrogramTab(this);
-    mWaveformCompTab   = new WaveformCompTab(this);
-    mSweepScopeTab     = new SweepScopeTab(this);
-    mFilterScopeTab    = new FilterScopeTab(this);
-    // Bonus radar lives inside the Sequence tab (left = table, right = radar);
-    // SequenceTab owns and wires it. No separate top-level tab.
+    mSoundPrintTab = new SoundPrintTab(ui->SoundImage, mCurrentSamplesPerSecond, this);
+    addObserver(mSoundPrintTab);
+
+    // Standard tabs — registerTab() adds a new tab page AND registers as observer.
+    // Adding a new tab: construct it here, call registerTab(), done — no other edits.
+    // Bonus radar lives inside SequenceTab (table + radar side-by-side);
+    // SequenceTab owns and wires it, so it is not registered separately.
+    mTraceTab          = registerTab(new TraceTab(this),          "Trace");
+    mBeatErrorTab      = registerTab(new BeatErrorTab(this),      "Beat Error");
+    mVarioTab          = registerTab(new VarioTab(this),          "Vario");
+    mSequenceTab       = registerTab(new SequenceTab(this),       "Sequence");
+    mBeatNoiseScopeTab = registerTab(new BeatNoiseScopeTab(this), "Beat Scope");
+    mLongTermTab       = registerTab(new LongTermTab(this),       "Long Term");
+    mEscapementTab     = registerTab(new EscapementTab(this),     "Escapement");
+    mSpectrogramTab    = registerTab(new SpectrogramTab(this),    "Spectrogram");
+    mWaveformCompTab   = registerTab(new WaveformCompTab(this),   "Waveform");
+    mSweepScopeTab     = registerTab(new SweepScopeTab(this),     "Sweep");
+    mFilterScopeTab    = registerTab(new FilterScopeTab(this),    "Filters");
 
     mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
     mWaveformCompTab->setLiftAngle(mLiftAngle);
 
-    ui->GraphicsTabWidget->addTab(mTraceTab,          "Trace");
-    ui->GraphicsTabWidget->addTab(mBeatErrorTab,      "Beat Error");
-    ui->GraphicsTabWidget->addTab(mVarioTab,          "Vario");
-    ui->GraphicsTabWidget->addTab(mSequenceTab,       "Sequence");
-    ui->GraphicsTabWidget->addTab(mBeatNoiseScopeTab, "Beat Scope");
-    ui->GraphicsTabWidget->addTab(mLongTermTab,       "Long Term");
-    ui->GraphicsTabWidget->addTab(mEscapementTab,     "Escapement");
-    ui->GraphicsTabWidget->addTab(mSpectrogramTab,    "Spectrogram");
-    ui->GraphicsTabWidget->addTab(mWaveformCompTab,   "Waveform");
-    ui->GraphicsTabWidget->addTab(mSweepScopeTab,     "Sweep");
-    ui->GraphicsTabWidget->addTab(mFilterScopeTab,    "Filters");
-
-    // ── Observer: register() — connect Model → Views (AP-4) ──────────────────
-    // The bonus radar is embedded inside SequenceTab (event-driven, wired by
-    // SequenceTab itself), so it is not a top-level tab and not in mAllTabs.
-    mAllTabs = {mRateScopeTab, mTraceTab, mSoundPrintTab, mBeatErrorTab,
-                mVarioTab, mSequenceTab, mBeatNoiseScopeTab, mLongTermTab,
-                mEscapementTab, mSpectrogramTab, mWaveformCompTab,
-                mSweepScopeTab, mFilterScopeTab};
-
     QObject::connect(mSequenceTab, &SequenceTab::positionChanged,
                      this, [this](const QString &pos) { mActivePosition = pos; });
 
-    // Results label subscription wired per-session in wireEngineToTabs() (T2)
+    // Register tabs with SessionController — engine→observer connections are
+    // applied per-session in SessionController::startSourceThread().
+    mSession->connectObservers(mAllTabs, this,
+                               SLOT(onMeasurementReady(Measurement)));
 
     LoadBPH();
     LoadSimBPH();
@@ -225,7 +225,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    delete mLogger; mLogger = nullptr;   // flushes CSV before UI teardown
     delete ui;
 }
 
@@ -298,9 +297,9 @@ void MainWindow::DisplayResults(const Measurement &m)
     QString warning  = mWatchDetached ? "⚠ Watch detached   "
                      : m.noSignal      ? "⚠ No signal   " : "";
     QString bphStr   = m.synced ? QString("%1").arg(m.detectedBph, 5, 10, QChar(' ')) : "-----";
-    QString rateStr  = m.rateValid ? QString::asprintf("%+6.1f", m.rateErrorSpd) : "------";
-    QString beatStr  = m.beatErrorValid ? QString("%1").arg(m.beatErrorMs, 4, 'f', 1) : "----";
-    QString ampStr   = m.amplitudeValid ? QString("%1°").arg(qRound64(m.amplitudeDeg), 3, 10, QChar(' ')) : "---";
+    QString rateStr  = m.metrics.rate      ? QString::asprintf("%+6.1f", *m.metrics.rate)                          : "------";
+    QString beatStr  = m.metrics.beatError ? QString("%1").arg(*m.metrics.beatError, 4, 'f', 1)                    : "----";
+    QString ampStr   = m.metrics.amplitude ? QString("%1°").arg(qRound64(*m.metrics.amplitude), 3, 10, QChar(' ')) : "---";
     ui->Results->setText(warning +
                          "POS " + mActivePosition +
                          "  ▏  RATE " + rateStr + " s/d" +
@@ -308,19 +307,13 @@ void MainWindow::DisplayResults(const Measurement &m)
                          "  ▏  ERR " + beatStr + " ms" +
                          "  ▏  BPH " + bphStr);
 
-    DiagnosisInput diagInput;
-    diagInput.rate_valid       = m.rateValid;
-    diagInput.rate_spd         = m.rateErrorSpd;
-    diagInput.amplitude_valid  = m.amplitudeValid;
-    diagInput.amplitude_deg    = m.amplitudeDeg;
-    diagInput.beat_error_valid = m.beatErrorValid;
-    diagInput.beat_error_ms    = m.beatErrorMs;
-    diagInput.watch_type       = mWatchType;
+    DiagnosisInput  diagInput { m.metrics, mWatchType };
     DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
 
     // Keep latest input/result for the LLM dialog (AI step 2)
     mLastExplainRequest.input  = diagInput;
     mLastExplainRequest.result = diagResult;
+
 
     ui->DiagnosisLabel->setText(diagResult.label);
     QColor diagColor = DiagnosisColor(diagResult.level);
@@ -330,26 +323,13 @@ void MainWindow::DisplayResults(const Measurement &m)
     if (diagResult.level != mLastDiagnosisLevel)
     {
         qInfo() << "[WatchDiagnostics]" << diagResult.label
-                 << "rate=" << diagInput.rate_spd
-                 << "amplitude=" << diagInput.amplitude_deg
-                 << "beatError=" << diagInput.beat_error_ms;
+                 << "rate="      << m.metrics.rate.value_or(0.0)
+                 << "amplitude=" << m.metrics.amplitude.value_or(0.0)
+                 << "beatError=" << m.metrics.beatError.value_or(0.0);
         mLastDiagnosisLevel = diagResult.level;
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// T2: connect DSPWorker engine → all tabs + results label (called after DSPWorker created)
-// ─────────────────────────────────────────────────────────────────────────────
-void MainWindow::wireEngineToTabs()
-{
-    MeasurementEngine *eng = mDspWorker->engine();
-    for (BaseGraphTab *tab : mAllTabs)
-        QObject::connect(eng, &MeasurementEngine::measurementReady,
-                         tab, &BaseGraphTab::onMeasurement, Qt::QueuedConnection);
-    QObject::connect(eng, &MeasurementEngine::measurementReady,
-                     this, &MainWindow::onMeasurementReady, Qt::QueuedConnection);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // T2: receive per-frame log data from DSP thread, write CSV on main thread
@@ -393,7 +373,8 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Reset — reinitialises Domain layer + Presentation layer
+// Reset — reinitialise Presentation layer before a new session starts.
+// MeasurementEngine is re-created per-session inside SessionController.
 // ─────────────────────────────────────────────────────────────────────────────
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
@@ -408,232 +389,45 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     return QMainWindow::eventFilter(obj, event);
 }
 
-void MainWindow::Reset(void)
+template<typename T>
+T* MainWindow::registerTab(T *tab, const QString &label)
+{
+    ui->GraphicsTabWidget->addTab(tab, label);
+    mAllTabs.append(tab);
+    return tab;
+}
+
+void MainWindow::addObserver(BaseGraphTab *tab)
+{
+    mAllTabs.append(tab);
+}
+
+void MainWindow::resetTabs(void)
 {
     qInfo() << "RESET";
-    // Domain layer (MeasurementEngine) is re-created inside DSPWorker per session.
-    // Reset Presentation layer (MVC Views) — all tabs except the position
-    // sequence, which must survive Stop/Start while repositioning the watch.
     for (BaseGraphTab *tab : mAllTabs)
         if (tab != mSequenceTab) tab->reset();
-
     DisplayResults(Measurement{});
     mBackgroundLastFPS = 0.0;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Thread lifecycle (Acquisition layer)
+// Session stopped — Playback/Sim EOF or explicit Stop.
 // ─────────────────────────────────────────────────────────────────────────────
-void MainWindow::StartAudioThread(void)
-{
-    QVariant deviceData = ui->InputDeviceComboBox->currentData();
-    QAudioDevice InputDevice = deviceData.value<QAudioDevice>();
-    Reset();
-#ifdef ENABLE_LOGGING
-    delete mLogger;
-    {
-        QString logDir = QCoreApplication::applicationDirPath() + "/logs/EXP-02";
-        QDir().mkpath(logDir);
-        QString csvPath = logDir + "/log_" +
-                          QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-        mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
-    }
-#endif
-    if (mRawAudio) {
-        if (mRawAudio->Samples) { delete[] mRawAudio->Samples; mRawAudio->Samples = nullptr; }
-        delete mRawAudio; mRawAudio = nullptr;
-    }
-    mRawAudio = new TMasterAudioDataRaw;
-    mRawAudio->NumberOfAudioSamples = mCurrentSamplesPerSecond * SECONDS_OF_BUFFER;
-    mRawAudio->Samples = new float[mRawAudio->NumberOfAudioSamples];
-
-    mAudioWorkerThread = new QThread();
-    mAudioWorker = new TAudioWorker(mRawAudio);
-    mAudioWorker->moveToThread(mAudioWorkerThread);
-
-    QObject::connect(mAudioWorker, &TAudioWorker::finished,
-                     mAudioWorkerThread, &QThread::quit);
-    QObject::connect(mAudioWorkerThread, &QThread::finished,
-                     mAudioWorker, &QObject::deleteLater);
-    QObject::connect(mAudioWorkerThread, &QThread::finished,
-                     mAudioWorkerThread, &QObject::deleteLater);
-    QObject::connect(this, &MainWindow::LocalStartAudio,
-                     mAudioWorker, &TAudioWorker::StartAudioRecording);
-    QObject::connect(this, &MainWindow::LocalStopAudio,
-                     mAudioWorker, &TAudioWorker::StopAudioRecording);
-    QObject::connect(this, &MainWindow::LocalSetAudioInputVolume,
-                     mAudioWorker, &TAudioWorker::SetAudioInputVolume);
-
-    // T2: create DSP thread and wire audio worker → DSPWorker
-    int bph = ManualAutoBPH[ui->BPHComboBox->currentIndex()];
-    mDspWorker = new DSPWorker(mRawAudio, mCurrentSamplesPerSecond, bph, mLiftAngle,
-                                mAveragingPeriod, ui->HighLineEdit->text().toDouble(),
-                                ui->UseConsetCheckBox->isChecked());
-    mDspThread = new QThread();
-    mDspWorker->moveToThread(mDspThread);
-    QObject::connect(mAudioWorker, &TAudioWorker::AudioDataReady,
-                     mDspWorker, &DSPWorker::onDataReady, Qt::QueuedConnection);
-    QObject::connect(mDspWorker, &DSPWorker::frameLogged,
-                     this, &MainWindow::onFrameLogged, Qt::QueuedConnection);
-    QObject::connect(mAudioWorkerThread, &QThread::finished, mDspThread, &QThread::quit);
-    QObject::connect(mDspThread, &QThread::finished, mDspWorker, &QObject::deleteLater);
-    QObject::connect(mDspThread, &QThread::finished, mDspThread, &QObject::deleteLater);
-    wireEngineToTabs();
-    mDspThread->start();
-
-    mAudioWorkerThread->start(QThread::TimeCriticalPriority);
-    emit LocalStartAudio(InputDevice, mCurrentSamplesPerSecond,
-                         ui->MicrophoneHorizontalSlider->sliderPosition() / 1000.0f);
-}
-
-void MainWindow::StopAudioThread(void) { emit LocalStopAudio(); }
-
-void MainWindow::StartPlaybackThread(const QString &FileName)
-{
-    Reset();
-#ifdef ENABLE_LOGGING
-    delete mLogger;
-    {
-        QString logDir = QCoreApplication::applicationDirPath() + "/logs/EXP-02";
-        QDir().mkpath(logDir);
-        QString csvPath = logDir + "/log_" +
-                          QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-        mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
-    }
-#endif
-    if (mRawAudio) {
-        if (mRawAudio->Samples) { delete[] mRawAudio->Samples; mRawAudio->Samples = nullptr; }
-        delete mRawAudio; mRawAudio = nullptr;
-    }
-    mRawAudio = new TMasterAudioDataRaw;
-    mRawAudio->NumberOfAudioSamples = mCurrentSamplesPerSecond * SECONDS_OF_BUFFER;
-    mRawAudio->Samples = new float[mRawAudio->NumberOfAudioSamples];
-
-    mPlaybackWorkerThread = new QThread();
-    mPlaybackWorker = new TPlaybackWorker(mRawAudio, mCurrentSamplesPerSecond);
-    mPlaybackWorker->moveToThread(mPlaybackWorkerThread);
-
-    QObject::connect(mPlaybackWorker, &TPlaybackWorker::finished,
-                     mPlaybackWorkerThread, &QThread::quit);
-    QObject::connect(mPlaybackWorkerThread, &QThread::finished,
-                     mPlaybackWorker, &QObject::deleteLater);
-    QObject::connect(mPlaybackWorkerThread, &QThread::finished,
-                     mPlaybackWorkerThread, &QObject::deleteLater);
-    QObject::connect(this, &MainWindow::LocalStartPlayback,
-                     mPlaybackWorker, &TPlaybackWorker::StartPlayback);
-    QObject::connect(mPlaybackWorker, &TPlaybackWorker::PlaybackDoneReadingFile,
-                     this, &MainWindow::HandlePlaybackDoneReadingFile);
-
-    // T2: create DSP thread and wire playback worker → DSPWorker
-    int bph = ManualAutoBPH[ui->BPHComboBox->currentIndex()];
-    mDspWorker = new DSPWorker(mRawAudio, mCurrentSamplesPerSecond, bph, mLiftAngle,
-                                mAveragingPeriod, ui->HighLineEdit->text().toDouble(),
-                                ui->UseConsetCheckBox->isChecked());
-    mDspThread = new QThread();
-    mDspWorker->moveToThread(mDspThread);
-    QObject::connect(mPlaybackWorker, &TPlaybackWorker::PlaybackDataReady,
-                     mDspWorker, &DSPWorker::onDataReady, Qt::QueuedConnection);
-    QObject::connect(mDspWorker, &DSPWorker::frameLogged,
-                     this, &MainWindow::onFrameLogged, Qt::QueuedConnection);
-    QObject::connect(mPlaybackWorkerThread, &QThread::finished, mDspThread, &QThread::quit);
-    QObject::connect(mDspThread, &QThread::finished, mDspWorker, &QObject::deleteLater);
-    QObject::connect(mDspThread, &QThread::finished, mDspThread, &QObject::deleteLater);
-    wireEngineToTabs();
-    mDspThread->start();
-
-    mPlaybackWorkerThread->start(QThread::TimeCriticalPriority);
-    emit LocalStartPlayback(FileName);
-}
-
-void MainWindow::StartSimThread(WatchSynthStreamConfig cfg)
-{
-    Reset();
-#ifdef ENABLE_LOGGING
-    delete mLogger;
-    {
-        QString logDir = QCoreApplication::applicationDirPath() + "/logs/EXP-02";
-        QDir().mkpath(logDir);
-        QString csvPath = logDir + "/log_" +
-                          QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-        mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
-    }
-#endif
-    if (mRawAudio) {
-        if (mRawAudio->Samples) { delete[] mRawAudio->Samples; mRawAudio->Samples = nullptr; }
-        delete mRawAudio; mRawAudio = nullptr;
-    }
-    mRawAudio = new TMasterAudioDataRaw;
-    mRawAudio->NumberOfAudioSamples = mCurrentSamplesPerSecond * SECONDS_OF_BUFFER;
-    mRawAudio->Samples = new float[mRawAudio->NumberOfAudioSamples];
-
-    mSimWorkerThread = new QThread();
-    mSimWorker = new TSimWorker(mRawAudio, mCurrentSamplesPerSecond);
-    mSimWorker->moveToThread(mSimWorkerThread);
-
-    QObject::connect(mSimWorker, &TSimWorker::finished,
-                     mSimWorkerThread, &QThread::quit);
-    QObject::connect(mSimWorkerThread, &QThread::finished,
-                     mSimWorker, &QObject::deleteLater);
-    QObject::connect(mSimWorkerThread, &QThread::finished,
-                     mSimWorkerThread, &QObject::deleteLater);
-    QObject::connect(this, &MainWindow::LocalStartSim,
-                     mSimWorker, &TSimWorker::StartSim);
-    QObject::connect(mSimWorker, &TSimWorker::SimDone,
-                     this, &MainWindow::HandleSimDone);
-
-    // T2: create DSP thread and wire sim worker → DSPWorker
-    int bph = ManualAutoBPH[ui->BPHComboBox->currentIndex()];
-    mDspWorker = new DSPWorker(mRawAudio, mCurrentSamplesPerSecond, bph, mLiftAngle,
-                                mAveragingPeriod, ui->HighLineEdit->text().toDouble(),
-                                ui->UseConsetCheckBox->isChecked());
-    mDspThread = new QThread();
-    mDspWorker->moveToThread(mDspThread);
-    QObject::connect(mSimWorker, &TSimWorker::SimDataReady,
-                     mDspWorker, &DSPWorker::onDataReady, Qt::QueuedConnection);
-    QObject::connect(mDspWorker, &DSPWorker::frameLogged,
-                     this, &MainWindow::onFrameLogged, Qt::QueuedConnection);
-    QObject::connect(mSimWorkerThread, &QThread::finished, mDspThread, &QThread::quit);
-    QObject::connect(mDspThread, &QThread::finished, mDspWorker, &QObject::deleteLater);
-    QObject::connect(mDspThread, &QThread::finished, mDspThread, &QObject::deleteLater);
-    wireEngineToTabs();
-    mDspThread->start();
-
-    mSimWorkerThread->start(QThread::TimeCriticalPriority);
-    emit LocalStartSim(cfg);
-}
-
-void MainWindow::StopPlaybackThread(void)
-{
-    if (mPlaybackWorkerThread) mPlaybackWorkerThread->requestInterruption();
-}
-void MainWindow::StopSimThread(void)
-{
-    if (mSimWorkerThread) mSimWorkerThread->requestInterruption();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Audio thread callbacks
-// ─────────────────────────────────────────────────────────────────────────────
-void MainWindow::HandlePlaybackDoneReadingFile()
+void MainWindow::onSessionStopped()
 {
     SetGuiStopMode();
-    if (ui->ModeComboBox->currentIndex() == PLAYBACK) {
+    int mode = ui->ModeComboBox->currentIndex();
+    if (mode == PLAYBACK || mode == SIM) {
         SetAudioDevice(mDeviceNameBeforePlaybackOrSim);
         SetAudioRate(mRateBeforePlaybackOrSim);
     }
     AudioCloseCheck();
     statusBar()->showMessage("Stopped");
 }
-void MainWindow::HandleSimDone()
-{
-    SetGuiStopMode();
-    if (ui->ModeComboBox->currentIndex() == SIM) {
-        SetAudioDevice(mDeviceNameBeforePlaybackOrSim);
-        SetAudioRate(mRateBeforePlaybackOrSim);
-    }
-    AudioCloseCheck();
-    statusBar()->showMessage("Stopped");
-}
+
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UI helpers
@@ -683,19 +477,19 @@ void MainWindow::LoadAverageingPeriod(void)
 
 void MainWindow::LoadBPH(void)
 {
-    auto length = std::size(ManualAutoBPH);
+    auto length = std::size(kManualAutoBPH);
     for (int i = 0; i < (int)length; i++) {
-        QString name = (ManualAutoBPH[i] != 0) ? QString::number(ManualAutoBPH[i]) : "Auto BPH";
-        ui->BPHComboBox->addItem(name, ManualAutoBPH[i]);
+        QString name = (kManualAutoBPH[i] != 0) ? QString::number(kManualAutoBPH[i]) : "Auto BPH";
+        ui->BPHComboBox->addItem(name, kManualAutoBPH[i]);
     }
     ui->BPHComboBox->setCurrentIndex(0);
 }
 
 void MainWindow::LoadSimBPH(void)
 {
-    auto length = std::size(SimBPH);
+    auto length = std::size(kBphValues);
     for (int i = 0; i < (int)length; i++)
-        ui->SimBPHComboBox->addItem(QString::number(SimBPH[i]), SimBPH[i]);
+        ui->SimBPHComboBox->addItem(QString::number(kBphValues[i]), kBphValues[i]);
     ui->SimBPHComboBox->setCurrentIndex(52);
 }
 
@@ -884,10 +678,18 @@ void MainWindow::SetGuiStopMode(void)
 void MainWindow::LiveStart(void)
 {
     if (!RecordSessionCheck()) return;
-    StartAudioThread();
+    resetTabs();
+    MovementSpec      movement{ kManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
+    AcquisitionConfig config  { mCurrentSamplesPerSecond,
+                                ui->HighLineEdit->text().toDouble(),
+                                mAveragingPeriod };
+    QAudioDevice device = ui->InputDeviceComboBox->currentData().value<QAudioDevice>();
+    float volume = ui->MicrophoneHorizontalSlider->sliderPosition() / 1000.0f;
+    mSession->startLive(movement, config, ui->UseConsetCheckBox->isChecked(), device, volume);
     SetGuiRunMode();
     statusBar()->showMessage("Running");
 }
+
 void MainWindow::PlaybackStart(void)
 {
     bool status = false;
@@ -897,10 +699,17 @@ void MainWindow::PlaybackStart(void)
     dlg.setOptions(QFileDialog::DontUseNativeDialog);
     while (dlg.exec() == QDialog::Accepted && !(status = OpenFile(dlg.selectedFiles().constFirst()))) {}
     if (!status) return;
-    StartPlaybackThread(dlg.selectedFiles().constFirst());
+    resetTabs();
+    MovementSpec      movement{ kManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
+    AcquisitionConfig config  { mCurrentSamplesPerSecond,
+                                ui->HighLineEdit->text().toDouble(),
+                                mAveragingPeriod };
+    mSession->startPlayback(movement, config, ui->UseConsetCheckBox->isChecked(),
+                            dlg.selectedFiles().constFirst());
     SetGuiRunMode();
     statusBar()->showMessage("Running");
 }
+
 void MainWindow::SimStart(void)
 {
     WatchSynthStreamConfig cfg;
@@ -908,19 +717,24 @@ void MainWindow::SimStart(void)
         watch_synth_stream_realistic_config(&cfg);
     else
         watch_synth_stream_clean_config(&cfg);
-    cfg.bph                   = SimBPH[ui->SimBPHComboBox->currentIndex()];
-    cfg.sample_rate_hz        = mAvalableRates[ui->SampleRatesComboBox->currentIndex()];
-    cfg.beat_error_ms         = -ui->SimBeatErrorSpinBox->value();
-    cfg.pcm_peak_amplitude    = 0.40f;
+    cfg.bph                     = kBphValues[ui->SimBPHComboBox->currentIndex()];
+    cfg.sample_rate_hz          = mAvalableRates[ui->SampleRatesComboBox->currentIndex()];
+    cfg.beat_error_ms           = -ui->SimBeatErrorSpinBox->value();
+    cfg.pcm_peak_amplitude      = 0.40f;
     cfg.watch_amplitude_degrees = ui->SimAmplitudeSpinBox->value();
-    cfg.lift_angle_degrees    = ui->LiftAngleSpinBox->value();
-    cfg.rate_error_s_per_day  = ui->SimErrorRateSpinBox->value();
+    cfg.lift_angle_degrees      = ui->LiftAngleSpinBox->value();
+    cfg.rate_error_s_per_day    = ui->SimErrorRateSpinBox->value();
     if (!RecordSessionCheck()) return;
     GetAudioRate(mRateBeforePlaybackOrSim);
     GetAudioDevice(mDeviceNameBeforePlaybackOrSim);
     if (!SetAudioDevice(PLAYBACK_OR_SIM_PCM)) qInfo() << "SetAudioDevice Failed";
     if (!SetAudioRate(mRateBeforePlaybackOrSim)) qInfo() << "SetAudioRate Failed";
-    StartSimThread(cfg);
+    resetTabs();
+    MovementSpec      movement{ kManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
+    AcquisitionConfig config  { mCurrentSamplesPerSecond,
+                                ui->HighLineEdit->text().toDouble(),
+                                mAveragingPeriod };
+    mSession->startSim(movement, config, ui->UseConsetCheckBox->isChecked(), cfg);
     SetGuiRunMode();
     statusBar()->showMessage("Running");
 }
@@ -948,8 +762,8 @@ void MainWindow::on_ScopeScaleSlider_valueChanged(int value)
 }
 void MainWindow::on_UseConsetCheckBox_toggled(bool checked)
 {
-    if (mDspWorker)
-        QMetaObject::invokeMethod(mDspWorker, "setUseOnset",
+    if (mSession->dspWorker())
+        QMetaObject::invokeMethod(mSession->dspWorker(), "setUseOnset",
                                   Qt::QueuedConnection, Q_ARG(bool, checked));
 }
 void MainWindow::on_AveragingPeriodComboBox_currentIndexChanged(int)
@@ -963,7 +777,7 @@ void MainWindow::on_WatchTypeComboBox_currentIndexChanged(int index)
 }
 void MainWindow::on_MicrophoneHorizontalSlider_sliderMoved(int)
 {
-    emit LocalSetAudioInputVolume(ui->MicrophoneHorizontalSlider->sliderPosition() / 1000.0f);
+    mSession->setMicVolume(ui->MicrophoneHorizontalSlider->sliderPosition() / 1000.0f);
 }
 void MainWindow::on_StartPushButton_clicked()
 {
@@ -978,15 +792,13 @@ void MainWindow::on_PausePushButton_toggled(bool checked)
 void MainWindow::on_StopPushButton_clicked()
 {
     SetGuiStopMode();
-    if (ui->ModeComboBox->currentText() == ModeStrings[LIVE]) {
-        StopAudioThread(); AudioCloseCheck();
-    } else if (ui->ModeComboBox->currentText() == ModeStrings[PLAYBACK]) {
-        StopPlaybackThread();
+    int mode = ui->ModeComboBox->currentIndex();
+    if (mode == LIVE) {
+        mSession->stopLiveAudio();
         AudioCloseCheck();
-        SetAudioDevice(mDeviceNameBeforePlaybackOrSim);
-        SetAudioRate(mRateBeforePlaybackOrSim);
-    } else if (ui->ModeComboBox->currentText() == ModeStrings[SIM]) {
-        StopSimThread();
+    } else {
+        mSession->stop();
+        AudioCloseCheck();
         SetAudioDevice(mDeviceNameBeforePlaybackOrSim);
         SetAudioRate(mRateBeforePlaybackOrSim);
     }

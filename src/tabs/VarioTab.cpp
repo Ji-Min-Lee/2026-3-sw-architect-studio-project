@@ -151,17 +151,17 @@ void VarioTab::reset()
 
 void VarioTab::onMeasurement(const Measurement &m)
 {
-    mElapsedSec += (double)m.pcm.size() / m.samplesPerSecond;
+    mElapsedSec += (double)m.signal.pcm.size() / m.signal.samplesPerSecond;
 
     bool changed = false;
-    if (m.rateValid) {
-        mRate.add(m.rateErrorSpd);
-        mRateNow = m.rateErrorSpd; mHaveRateNow = true;
+    if (m.metrics.rate.has_value()) {
+        mRate.add(*m.metrics.rate);
+        mRateNow = *m.metrics.rate; mHaveRateNow = true;
         changed = true;
     }
-    if (m.amplitudeValid) {
-        mAmp.add(m.amplitudeDeg);
-        mAmpNow = m.amplitudeDeg; mHaveAmpNow = true;
+    if (m.metrics.amplitude.has_value()) {
+        mAmp.add(*m.metrics.amplitude);
+        mAmpNow = *m.metrics.amplitude; mHaveAmpNow = true;
         changed = true;
     }
     if (!changed || mPaused || !isVisible()) return;

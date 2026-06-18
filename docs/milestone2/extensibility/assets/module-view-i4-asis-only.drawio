@@ -1,0 +1,64 @@
+<mxfile host="65bd71144e">
+    <diagram name="AS-IS" id="asis">
+        <mxGraphModel dx="906" dy="497" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="780" pageHeight="420" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="TTL" value="AS-IS: Module Uses View — Tab Registration" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry y="8" width="780" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="MW" value="MainWindow" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="50" width="200" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="ANN" value="3 edits per tab:" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=2;" parent="1" vertex="1">
+                    <mxGeometry x="510" y="52" width="110" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="ANN2" value="① new XxxTab(this)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="510" y="68" width="130" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="ANN3" value="② addTab(tab, label)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="510" y="82" width="130" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="ANN4" value="③ mAllTabs = { …, tab }" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="510" y="96" width="140" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="T1" value="TraceTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="5" y="200" width="120" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="T2" value="BeatErrorTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="128" y="200" width="120" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="T3" value="VarioTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="251" y="200" width="120" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="TDOT" value="… (11 tab classes total)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontStyle=2;" parent="1" vertex="1">
+                    <mxGeometry x="374" y="210" width="170" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="QTW" value="QTabWidget&#xa;(GraphicsTabWidget)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="429" y="236" width="160" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="MAT" value="mAllTabs&#xa;QList&lt;BaseGraphTab*&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="603" y="236" width="170" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="E1" value="① «use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#c03030;fontSize=10;fontColor=#c03030;" parent="1" source="MW" target="T1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E2" value="① «use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#c03030;fontSize=10;fontColor=#c03030;" parent="1" source="MW" target="T2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E3" value="① «use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#c03030;fontSize=10;fontColor=#c03030;" parent="1" source="MW" target="T3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E4" value="② «use»&#xa;addTab()" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#b07010;fontSize=10;fontColor=#b07010;" parent="1" source="MW" target="QTW" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E5" value="③ «use»&#xa;append()" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#2060a0;fontSize=10;fontColor=#2060a0;" parent="1" source="MW" target="MAT" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="LEG" value="&lt;font color=&quot;#c03030&quot;&gt;① new XxxTab()&lt;/font&gt; — construction&lt;br&gt;&lt;font color=&quot;#b07010&quot;&gt;② addTab()&lt;/font&gt; — tab widget registration&lt;br&gt;&lt;font color=&quot;#2060a0&quot;&gt;③ mAllTabs&lt;/font&gt; — observer list" style="text;html=1;strokeColor=#999999;fillColor=#ffffff;align=left;fontSize=10;spacingLeft=6;" parent="1" vertex="1">
+                    <mxGeometry x="587" y="4" width="190" height="64" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

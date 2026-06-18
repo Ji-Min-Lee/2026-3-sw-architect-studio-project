@@ -1,0 +1,51 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="AS-IS" id="asis">
+    <mxGraphModel dx="1000" dy="580" grid="0" gridSize="10" pageWidth="820" pageHeight="420">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="TTL" value="AS-IS: 5 Raw Parameters — No Domain Boundary" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="8" width="820" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- MainWindow -->
+        <mxCell id="MW" value="MainWindow" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="50" width="180" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- DSPWorker -->
+        <mxCell id="DSP" value="DSPWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="300" y="150" width="180" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- MeasurementEngine -->
+        <mxCell id="ENG" value="MeasurementEngine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="280" y="260" width="220" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Raw params box on MW→DSP edge -->
+        <mxCell id="P1" value="&lt;font color='#cc0000'&gt;int sampleRate, int bph,&lt;br/&gt;double liftAngle, int avgPeriod,&lt;br/&gt;double highPass, bool useOnset&lt;/font&gt;" style="text;html=1;strokeColor=#cc0000;fillColor=#fff0f0;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="510" y="135" width="240" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Raw params box on DSP→Engine edge -->
+        <mxCell id="P2" value="&lt;font color='#cc0000'&gt;init(int, int, double, int, double)&lt;br/&gt;— compiler cannot catch wrong order&lt;/font&gt;" style="text;html=1;strokeColor=#cc0000;fillColor=#fff0f0;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="510" y="255" width="240" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Note -->
+        <mxCell id="NOTE" value="Problems:&lt;br/&gt;① bph(int) and sampleRate(int) can&lt;br/&gt;   be silently swapped&lt;br/&gt;② No domain grouping — watch&lt;br/&gt;   properties mixed with signal config&lt;br/&gt;③ 6 unrelated args at call site" style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cc0000;fontSize=10;size=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="30" y="140" width="230" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="E1" value="«use»&lt;br/&gt;constructs" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E2" value="«use»&lt;br/&gt;init()" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="DSP" target="ENG" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

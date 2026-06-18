@@ -22,23 +22,17 @@
 
 #define SIM_NUMBER_OF_SAMPLES (mSamplesPerSecond/(1000/SIM_SAMPLE_PERIOD_MSEC))
 
-TSimWorker::TSimWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent) : QObject(parent)
+TSimWorker::TSimWorker(AudioRingBuffer *ring, int SamplesPerSecond, QObject *parent) : IAudioSource(parent)
 {
-    mRawAudio=RawAudio;
-    mRawAudio->TotalSamplesWritten=0;
-    mRawAudio->WriteIndex=0;
-    mRawAudio->MainThrd_LastTotalSamplesWritten=0;
-    mRawAudio->MainThrd_LastWriteIndex=0;
-    mRawAudio->FPS=0.0;
-    mRawAudio->SPF=0.0;
-    mRawAudio->SPS=0.0;
-    mTimerStarted=false;
-    mSamplesPerSecond=SamplesPerSecond;
-    mLastTime=0.0;
-    mFrameCount=0;
-    mSampleCount=0;
-    mDataInSize=SIM_NUMBER_OF_SAMPLES;
-    mDataIn= new float[mDataInSize];
+    mRawAudio = ring;
+    mRawAudio->reset();
+    mTimerStarted     = false;
+    mSamplesPerSecond = SamplesPerSecond;
+    mLastTime         = 0.0;
+    mFrameCount       = 0;
+    mSampleCount      = 0;
+    mDataInSize       = SIM_NUMBER_OF_SAMPLES;
+    mDataIn           = new float[mDataInSize];
 }
 
 TSimWorker::~TSimWorker()
@@ -63,7 +57,7 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
     if (!watch_synth_stream_init(&stream, &cfg, initError, sizeof(initError)))
     {
         fprintf(stderr, "init failed: %s\n", initError);
-        emit SimDone();
+        emit sourceComplete();
         emit finished();
         return;
     }
@@ -87,44 +81,28 @@ void TSimWorker::StartSim(WatchSynthStreamConfig cfg)
         {
             break; // Exit loop early
         }
-        unsigned int NumberOfSamples=fillResult.samples_written;
+        int NumberOfSamples = static_cast<int>(fillResult.samples_written);
 
-        mRawAudio->Mutex.lock();
-        unsigned int TempWriteIndex = mRawAudio->WriteIndex;
-        mRawAudio->Mutex.unlock();
-        int SamplesLeft=std::min(NumberOfSamples,mRawAudio->NumberOfAudioSamples-TempWriteIndex);
-        memcpy(&mRawAudio->Samples[TempWriteIndex], mDataIn, SamplesLeft * SAMPLE_SIZE);
-        if(SamplesLeft < NumberOfSamples)
-        {
-            memcpy(mRawAudio->Samples, &mDataIn[SamplesLeft], (NumberOfSamples - SamplesLeft) * SAMPLE_SIZE);
-            qInfo() << "MasterPlaybackData Samples Rollover";
-        }
-        mRawAudio->Mutex.lock();
-        mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
-        mRawAudio->TotalSamplesWritten+=NumberOfSamples;
-        mRawAudio->Mutex.unlock();
-        emit SimDataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
+        mRawAudio->write(mDataIn, NumberOfSamples);
+        emit dataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
 
         ++mFrameCount;
-        mSampleCount+=NumberOfSamples;
-        CurrentTime = mTimer.elapsed()/1000.0;
-        if (CurrentTime-mLastTime > 2) // average fps over 2 seconds
-        {
-            double elapsedSeconds;
-            elapsedSeconds=CurrentTime-mLastTime;
-            mRawAudio->FPS=mFrameCount/elapsedSeconds;
-            mRawAudio->SPS=mSampleCount/elapsedSeconds;
-            mRawAudio->SPF=mSampleCount/mFrameCount;
-            mLastTime=CurrentTime;
-            mFrameCount=0;
-            mSampleCount=0;
+        mSampleCount += NumberOfSamples;
+        CurrentTime = mTimer.elapsed() / 1000.0;
+        if (CurrentTime - mLastTime > 2.0) {
+            double elapsed = CurrentTime - mLastTime;
+            mRawAudio->updateStats(mFrameCount / elapsed, mSampleCount / elapsed,
+                                   mSampleCount / static_cast<double>(mFrameCount));
+            mLastTime    = CurrentTime;
+            mFrameCount  = 0;
+            mSampleCount = 0;
         }
         elapsedMs=(mTimer.elapsed()-Start)+DELAY_FUGE_TIME_MS;
         SleepTime=SIM_SAMPLE_PERIOD_MSEC-elapsedMs;
         if (SleepTime<0) SleepTime=0;
         QThread::msleep(SleepTime);
     }
-    emit SimDone();
+    emit sourceComplete();
     emit finished();
     qInfo()<<"After Finish";
 }

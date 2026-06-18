@@ -380,18 +380,18 @@ double SpectrogramTab::truePeakDbfs(const QVector<float> &pcm) const
 
 void SpectrogramTab::onMeasurement(const Measurement &m)
 {
-    if (m.hpfPcm.isEmpty()) {
+    if (m.signal.hpfPcm.isEmpty()) {
         return;
     }
 
-    mSampleRate = m.samplesPerSecond;
+    mSampleRate = m.signal.samplesPerSecond;
     mFreqBins = freqBinCount();
 
     if (mPcmBuffer.empty()) {
-        mBufferStartTick = m.graphTickStart;
+        mBufferStartTick = m.signal.tickStart;
     }
 
-    mPcmBuffer.insert(mPcmBuffer.end(), m.hpfPcm.constBegin(), m.hpfPcm.constEnd());
+    mPcmBuffer.insert(mPcmBuffer.end(), m.signal.hpfPcm.constBegin(), m.signal.hpfPcm.constEnd());
 
     const uint64_t maxSamples = static_cast<uint64_t>(kMaxBufferSec * mSampleRate);
     if (mPcmBuffer.size() > static_cast<int>(maxSamples)) {
@@ -402,7 +402,7 @@ void SpectrogramTab::onMeasurement(const Measurement &m)
 
     updateBeatMarkers(m);
 
-    const double peakDb = truePeakDbfs(m.hpfPcm);
+    const double peakDb = truePeakDbfs(m.signal.hpfPcm);
     if (peakDb > mLastPeakDbfs - 0.5) {
         mLastPeakDbfs = peakDb;
     }

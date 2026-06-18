@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="AS-IS" id="asis">
+    <mxGraphModel dx="1000" dy="620" grid="0" gridSize="10" pageWidth="820" pageHeight="480">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="TTL" value="AS-IS: Measurement God-Struct" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="8" width="820" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- MeasurementEngine -->
+        <mxCell id="ENG" value="MeasurementEngine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="50" width="200" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Measurement god-struct -->
+        <mxCell id="MEAS" value="&lt;b&gt;Measurement&lt;/b&gt;&lt;br/&gt;&lt;font color='#cc0000'&gt;god-struct — 4 concerns mixed&lt;/font&gt;&lt;hr/&gt;pcm / hpfPcm / rawPcm / threshold&lt;br/&gt;graphTickStart / graphTickEnd&lt;br/&gt;samplesPerSecond&lt;br/&gt;QVector&amp;lt;AcousticEvent&amp;gt; events&lt;br/&gt;synced / detectedBph&lt;br/&gt;rateValid + rateErrorSpd&lt;br/&gt;beatErrorValid + beatErrorMs&lt;br/&gt;amplitudeValid + amplitudeDeg&lt;br/&gt;noSignal" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#cc0000;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="240" y="140" width="300" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Tabs (consumers) -->
+        <mxCell id="TABS" value="13 Tabs&lt;br/&gt;(BaseGraphTab subclasses)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="300" y="390" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- MainWindow -->
+        <mxCell id="MW" value="MainWindow" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="560" y="390" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="E1" value="emits measurementReady()" style="html=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="ENG" target="MEAS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E2" value="«use» (all 13 fields)" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#cc0000;fontSize=10;" edge="1" source="TABS" target="MEAS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E3" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#cc0000;fontSize=10;" edge="1" source="MW" target="MEAS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Note -->
+        <mxCell id="NOTE" value="Signal data, events, sync state,&lt;br/&gt;and watch metrics all in one struct.&lt;br/&gt;Every tab gets fields it doesn't need." style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;size=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="30" y="200" width="185" height="70" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

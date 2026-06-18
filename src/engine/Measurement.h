@@ -1,8 +1,10 @@
 #pragma once
 #include <QVector>
+#include <optional>
 #include <cstdint>
 
-// Per-event data for one A(T1) or C(T3) acoustic event in a processed block
+// Per-event data for one A(T1) or C(T3) acoustic event in a processed block.
+// Value Object — immutable once produced by MeasurementEngine.
 struct AcousticEvent {
     double samplePos;        // absolute sample index (floating-point sub-sample precision)
     bool   isA;              // true = A(T1), false = C(T3)
@@ -26,41 +28,38 @@ struct AcousticEvent {
     double tocAmpDeg;
 };
 
+// Signal Processing Context — raw and processed PCM for one tg_process block.
+// Value Object — immutable snapshot of one audio block.
+struct SignalFrame {
+    QVector<double> pcm;           // envelope-filtered, for ScopePlot
+    QVector<double> threshold;
+    QVector<float>  hpfPcm;        // bipolar HPF output, delay-aligned with pcm
+    QVector<float>  rawPcm;        // pre-DSP, for SoundPrintTab
+    uint64_t        tickStart = 0;
+    uint64_t        tickEnd   = 0;
+    int             samplesPerSecond = 48000; // signal interpretation unit
+};
+
+// Watch Analysis Context — rolling-average measurement outcomes.
+// Value Object — immutable publish snapshot; absent means not yet valid.
+struct WatchMetrics {
+    std::optional<double> rate;       // s/day  (RLS average)
+    std::optional<double> amplitude;  // degrees (rolling average)
+    std::optional<double> beatError;  // ms      (rolling average)
+};
+
 // Single Measurement emitted by MeasurementEngine after each tg_process call.
 // All tabs receive the same instance — AP-4 single-source consistency guarantee.
 struct Measurement {
-    // Processed (envelope-filtered) PCM block for ScopePlot
-    QVector<double> pcm;
-    QVector<double> threshold;
-
-    // HPF output (bipolar, delay-aligned with pcm) — F1 / "raw" scope view
-    QVector<float>  hpfPcm;
-
-    uint64_t        graphTickStart = 0;
-    uint64_t        graphTickEnd   = 0;
-
-    // Raw PCM (before DSP) — needed by SoundPrintTab for SoundImageRenderer
-    QVector<float>  rawPcm;
-
-    // Events in this block
+    SignalFrame            signal;
     QVector<AcousticEvent> events;
 
     // Sync / BPH (from tg_result_t)
     bool    synced      = false;
     int     detectedBph = 0;
 
-    // Rolling-average values for the Results label
-    bool    rateValid      = false;
-    double  rateErrorSpd   = 0.0; // s/day (RLS average)
-
-    bool    beatErrorValid = false;
-    double  beatErrorMs    = 0.0; // ms (rolling average)
-
-    bool    amplitudeValid = false;
-    double  amplitudeDeg   = 0.0; // degrees (rolling average)
+    WatchMetrics metrics;
 
     // QAS-4: true when no A-event received for >= 3 s (set by MeasurementEngine)
     bool    noSignal = false;
-
-    int     samplesPerSecond = 48000;
 };
