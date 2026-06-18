@@ -114,6 +114,28 @@ initializer list alongside standard tabs, with no indication that they were trea
 differently. `addObserver()` makes the distinction visible at the call site and
 documents the intent in code.
 
+**Embedded tab limitation — intentional trade-off**
+
+`RateScopeTab` and `SoundPrintTab` cannot use `registerTab()` because their
+constructors require widget pointers that are owned by the `.ui` file
+(`ui->RatePlot`, `ui->ScopePlot`, `ui->SoundImage`). These widgets are placed and
+sized in Qt Designer as fixed layout elements; converting them to dynamically created
+widgets inside the tab constructor would require removing them from the `.ui` file and
+replicating the Designer layout in code — a larger change with no measurement benefit.
+
+The chosen design accepts this constraint:
+
+| Tab category | Registration | Construction dependency |
+|---|---|---|
+| Standard (11 tabs) | `registerTab()` — single edit point | `QWidget *parent` only |
+| Embedded (2 tabs) | `addObserver()` — observer registration only | `.ui` widget pointer(s) |
+
+Adding a new **standard tab** requires one edit. Adding a new **embedded tab**
+(one that wraps a fixed `.ui` widget) requires two edits: construction with the `.ui`
+pointer, and `addObserver()`. This two-step cost is inherent to Qt Designer-owned
+widgets and is documented here so that future contributors understand the distinction
+rather than attempting to force embedded tabs into `registerTab()`.
+
 ### 4. Relationship to Observer pattern (AP-4)
 
 `mAllTabs` is the observer registry — it holds every `BaseGraphTab*` that receives
