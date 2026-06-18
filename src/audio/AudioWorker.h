@@ -15,6 +15,7 @@
 #include <QElapsedTimer>
 #include <cstdint>
 #include "SharedAudio.h"
+#include "AudioRingBuffer.h"
 #include "IAudioSource.h"
 #include "Logger.h"   // TG_NOW()
 
@@ -24,9 +25,11 @@ class TAudioWorker : public IAudioSource
     Q_OBJECT
 
 public:
-    TAudioWorker(TMasterAudioDataRaw *RawAudio,QObject *parent = nullptr);
-     ~TAudioWorker();
-    TMasterAudioDataRaw *mRawAudio;
+    TAudioWorker(AudioRingBuffer *ring, QObject *parent = nullptr);
+    ~TAudioWorker();
+
+private:
+    AudioRingBuffer *mRawAudio;
 public slots:
     void StartAudioRecording(QAudioDevice InputDevice,int SampleRate,float Volume);
     void SetAudioInputVolume(float Volume);

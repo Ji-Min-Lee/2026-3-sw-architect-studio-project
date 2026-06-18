@@ -6,6 +6,7 @@
 #include <QElapsedTimer>
 #include <cstdint>
 #include "SharedAudio.h"
+#include "AudioRingBuffer.h"
 #include "IAudioSource.h"
 #include "WatchSynthStream.h"
 #include "Logger.h"   // TG_NOW()
@@ -15,9 +16,11 @@ class TSimWorker : public IAudioSource
     Q_OBJECT
 
 public:
-    TSimWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent = nullptr);
-     ~TSimWorker();
-    TMasterAudioDataRaw *mRawAudio;
+    TSimWorker(AudioRingBuffer *ring, int SamplesPerSecond, QObject *parent = nullptr);
+    ~TSimWorker();
+
+private:
+    AudioRingBuffer *mRawAudio;
 public slots:
     void StartSim(WatchSynthStreamConfig cfg);
 

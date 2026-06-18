@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QElapsedTimer>
-#include "SharedAudio.h"
+#include "AudioRingBuffer.h"
 #include "MeasurementEngine.h"
 #include "MovementSpec.h"
 #include "AcquisitionConfig.h"
@@ -14,7 +14,7 @@ class DSPWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit DSPWorker(TMasterAudioDataRaw *raw,
+    explicit DSPWorker(AudioRingBuffer *ring,
                        const MovementSpec &movement,
                        const AcquisitionConfig &config,
                        bool useOnset,
@@ -33,9 +33,9 @@ signals:
 private:
     static constexpr unsigned kBlockSize = 4096u;
 
-    TMasterAudioDataRaw *mRaw;
-    MeasurementEngine   *mEngine;
-    float               *mInputBlock;
+    AudioRingBuffer   *mRaw;
+    MeasurementEngine *mEngine;
+    float             *mInputBlock;
 
     QElapsedTimer mTimer;
     bool     mTimerStarted = false;

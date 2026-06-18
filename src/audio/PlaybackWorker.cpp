@@ -23,23 +23,17 @@
 
 #define PLAYBACK_NUMBER_OF_SAMPLES (mSamplesPerSecond/(1000/PLAYBACK_SAMPLE_PERIOD_MSEC))
 
-TPlaybackWorker::TPlaybackWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent) : IAudioSource(parent)
+TPlaybackWorker::TPlaybackWorker(AudioRingBuffer *ring, int SamplesPerSecond, QObject *parent) : IAudioSource(parent)
 {
-    mRawAudio=RawAudio;
-    mRawAudio->TotalSamplesWritten=0;
-    mRawAudio->WriteIndex=0;
-    mRawAudio->MainThrd_LastTotalSamplesWritten=0;
-    mRawAudio->MainThrd_LastWriteIndex=0;
-    mRawAudio->FPS=0.0;
-    mRawAudio->SPF=0.0;
-    mRawAudio->SPS=0.0;
-    mTimerStarted=false;
-    mSamplesPerSecond=SamplesPerSecond;
-    mLastTime=0.0;
-    mFrameCount=0;
-    mSampleCount=0;
-    mDataInSize=SAMPLE_SIZE*PLAYBACK_NUMBER_OF_SAMPLES;
-    mDataIn= new char[mDataInSize];
+    mRawAudio = ring;
+    mRawAudio->reset();
+    mTimerStarted    = false;
+    mSamplesPerSecond = SamplesPerSecond;
+    mLastTime         = 0.0;
+    mFrameCount       = 0;
+    mSampleCount      = 0;
+    mDataInSize       = SAMPLE_SIZE * PLAYBACK_NUMBER_OF_SAMPLES;
+    mDataIn           = new char[mDataInSize];
 }
 
 TPlaybackWorker::~TPlaybackWorker()
@@ -146,38 +140,22 @@ void TPlaybackWorker::StartPlayback(const QString &FileName)
         {
             break; // Exit loop early
         }
-        unsigned int NumberOfSamples=BytesIn/SAMPLE_SIZE;
+        int NumberOfSamples = BytesIn / SAMPLE_SIZE;
 
-        mRawAudio->Mutex.lock();
-        unsigned int TempWriteIndex = mRawAudio->WriteIndex;
-        mRawAudio->Mutex.unlock();
-        int SamplesLeft=std::min(NumberOfSamples,mRawAudio->NumberOfAudioSamples-TempWriteIndex);
-        memcpy(&mRawAudio->Samples[TempWriteIndex], mDataIn, SamplesLeft * SAMPLE_SIZE);
-        if(SamplesLeft < NumberOfSamples)
-        {
-            memcpy(mRawAudio->Samples, &mDataIn[SamplesLeft], (NumberOfSamples - SamplesLeft) * SAMPLE_SIZE);
-            qInfo() << "MasterPlaybackData Samples Rollover";
-        }
-        mRawAudio->Mutex.lock();
-        mRawAudio->WriteIndex = (TempWriteIndex+ NumberOfSamples) %  mRawAudio->NumberOfAudioSamples;
-        mRawAudio->TotalSamplesWritten+=NumberOfSamples;
-        mRawAudio->Mutex.unlock();
+        mRawAudio->write(reinterpret_cast<const float *>(mDataIn), NumberOfSamples);
         emit dataReady(TG_NOW()); // TS1: emit timestamp for wait_us measurement
 
         ++mFrameCount;
-        mSampleCount+=NumberOfSamples;
-        numSamples-=NumberOfSamples;
-        CurrentTime = mTimer.elapsed()/1000.0;
-        if (CurrentTime-mLastTime > 2) // average fps over 2 seconds
-        {
-            double elapsedSeconds;
-            elapsedSeconds=CurrentTime-mLastTime;
-            mRawAudio->FPS=mFrameCount/elapsedSeconds;
-            mRawAudio->SPS=mSampleCount/elapsedSeconds;
-            mRawAudio->SPF=mSampleCount/mFrameCount;
-            mLastTime=CurrentTime;
-            mFrameCount=0;
-            mSampleCount=0;
+        mSampleCount += NumberOfSamples;
+        numSamples   -= NumberOfSamples;
+        CurrentTime = mTimer.elapsed() / 1000.0;
+        if (CurrentTime - mLastTime > 2.0) {
+            double elapsed = CurrentTime - mLastTime;
+            mRawAudio->updateStats(mFrameCount / elapsed, mSampleCount / elapsed,
+                                   mSampleCount / static_cast<double>(mFrameCount));
+            mLastTime    = CurrentTime;
+            mFrameCount  = 0;
+            mSampleCount = 0;
         }
         elapsedMs=(mTimer.elapsed()-Start)+DELAY_FUGE_TIME_MS;
         SleepTime=PLAYBACK_SAMPLE_PERIOD_MSEC-elapsedMs;

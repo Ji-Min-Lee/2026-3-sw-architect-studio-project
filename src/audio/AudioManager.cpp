@@ -3,26 +3,29 @@
 #include "PlaybackWorker.h"
 #include "SimWorker.h"
 #include "WatchSynthStream.h"
+#include "SharedAudio.h"
 #include <QThread>
 #include <QAudioDevice>
 #include <QMediaDevices>
 
 AudioManager::AudioManager(QObject *parent) : QObject(parent)
 {
-    mRawAudio = new TMasterAudioDataRaw();
+    // Ring buffer is created per-session in startXxx(); no allocation here.
 }
 
 AudioManager::~AudioManager()
 {
     stop();
     delete mRawAudio;
-    mRawAudio = nullptr;
 }
 
 void AudioManager::startLive(int sampleRate, int /*bph*/, double /*liftAngle*/,
                               int /*averagingPeriod*/, bool /*useOnset*/)
 {
     stop();
+    delete mRawAudio;
+    mRawAudio = new AudioRingBuffer(sampleRate * SECONDS_OF_BUFFER);
+
     auto *thread = new QThread(this);
     mAudioWorker = new TAudioWorker(mRawAudio);
     mAudioWorker->moveToThread(thread);
@@ -45,6 +48,9 @@ void AudioManager::startPlayback(const QString &filePath, int sampleRate,
                                   double /*liftAngle*/, int /*averagingPeriod*/, bool /*useOnset*/)
 {
     stop();
+    delete mRawAudio;
+    mRawAudio = new AudioRingBuffer(sampleRate * SECONDS_OF_BUFFER);
+
     auto *thread = new QThread(this);
     mPlaybackWorker = new TPlaybackWorker(mRawAudio, sampleRate);
     mPlaybackWorker->moveToThread(thread);
@@ -64,6 +70,9 @@ void AudioManager::startSim(int bph, double liftAngle, int sampleRate,
                              int /*averagingPeriod*/, bool /*useOnset*/)
 {
     stop();
+    delete mRawAudio;
+    mRawAudio = new AudioRingBuffer(sampleRate * SECONDS_OF_BUFFER);
+
     auto *thread = new QThread(this);
     mSimWorker = new TSimWorker(mRawAudio, sampleRate);
     mSimWorker->moveToThread(thread);
@@ -77,8 +86,8 @@ void AudioManager::startSim(int bph, double liftAngle, int sampleRate,
     thread->start();
 
     WatchSynthStreamConfig cfg;
-    cfg.bph                 = bph;
-    cfg.lift_angle_degrees  = liftAngle;
+    cfg.bph                = bph;
+    cfg.lift_angle_degrees = liftAngle;
     QMetaObject::invokeMethod(mSimWorker, "StartSim",
                                Qt::QueuedConnection,
                                Q_ARG(WatchSynthStreamConfig, cfg));
@@ -89,5 +98,5 @@ void AudioManager::stop()
     mAudioWorker    = nullptr;
     mPlaybackWorker = nullptr;
     mSimWorker      = nullptr;
-    // Threads will clean up via finished()/deleteLater() chains set up at start
+    // Threads clean up via finished()/deleteLater() chains set up at start
 }

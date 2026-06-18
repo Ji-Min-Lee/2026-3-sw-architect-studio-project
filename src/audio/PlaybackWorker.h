@@ -6,6 +6,7 @@
 #include <QElapsedTimer>
 #include <cstdint>
 #include "SharedAudio.h"
+#include "AudioRingBuffer.h"
 #include "IAudioSource.h"
 #include "Logger.h"   // TG_NOW()
 
@@ -14,9 +15,11 @@ class TPlaybackWorker : public IAudioSource
     Q_OBJECT
 
 public:
-    TPlaybackWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent = nullptr);
-     ~TPlaybackWorker();
-    TMasterAudioDataRaw *mRawAudio;
+    TPlaybackWorker(AudioRingBuffer *ring, int SamplesPerSecond, QObject *parent = nullptr);
+    ~TPlaybackWorker();
+
+private:
+    AudioRingBuffer *mRawAudio;
 public slots:
     void StartPlayback(const QString &FileName);
 

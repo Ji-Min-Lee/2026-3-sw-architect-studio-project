@@ -15,10 +15,7 @@ SessionController::~SessionController()
     // Workers are parented to their threads (via deleteLater); ring buffer is
     // ours to free.
     delete mLogger;
-    if (mRawAudio) {
-        delete[] mRawAudio->Samples;
-        delete mRawAudio;
-    }
+    delete mRawAudio;
 }
 
 void SessionController::connectObservers(const QList<BaseGraphTab *> &tabs,
@@ -124,13 +121,8 @@ void SessionController::initRawAudio(int sampleRate)
     }
 #endif
 
-    if (mRawAudio) {
-        delete[] mRawAudio->Samples;
-        delete mRawAudio;
-    }
-    mRawAudio = new TMasterAudioDataRaw;
-    mRawAudio->NumberOfAudioSamples = sampleRate * SECONDS_OF_BUFFER;
-    mRawAudio->Samples = new float[mRawAudio->NumberOfAudioSamples];
+    delete mRawAudio;
+    mRawAudio = new AudioRingBuffer(sampleRate * SECONDS_OF_BUFFER);
 }
 
 void SessionController::startSourceThread(IAudioSource *source,

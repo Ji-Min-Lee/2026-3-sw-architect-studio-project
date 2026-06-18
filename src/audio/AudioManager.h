@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QAudioDevice>
-#include "SharedAudio.h"
+#include "AudioRingBuffer.h"
 #include "AudioWorker.h"
 #include "PlaybackWorker.h"
 #include "SimWorker.h"
@@ -24,17 +24,17 @@ public:
     void stop();
 
 signals:
-    void dataReady(TMasterAudioDataRaw *data);
+    void dataReady(AudioRingBuffer *ring);
     void playbackDone();
     void simDone();
     // Internal: forwarded to AudioWorker thread
     void liveStartRequested(QAudioDevice dev, int sampleRate, float volume);
 
 private:
-    TMasterAudioDataRaw *mRawAudio      = nullptr;
-    TAudioWorker        *mAudioWorker    = nullptr;
-    TPlaybackWorker     *mPlaybackWorker = nullptr;
-    TSimWorker          *mSimWorker      = nullptr;
+    AudioRingBuffer *mRawAudio      = nullptr;
+    TAudioWorker    *mAudioWorker   = nullptr;
+    TPlaybackWorker *mPlaybackWorker = nullptr;
+    TSimWorker      *mSimWorker      = nullptr;
 
     void stopCurrent();
 };

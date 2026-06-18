@@ -45,6 +45,8 @@ set(PROJECT_SOURCES
 set(AUDIO_SOURCES
     audio/IAudioSource.h
     audio/IAudioSource.cpp
+    audio/AudioRingBuffer.h
+    audio/AudioRingBuffer.cpp
     audio/AudioWorker.h
     audio/AudioWorker.cpp
     audio/PlaybackWorker.h

@@ -4,7 +4,7 @@
 #include <QAudioDevice>
 #include "IAudioSource.h"
 #include "DSPWorker.h"
-#include "SharedAudio.h"
+#include "AudioRingBuffer.h"
 #include "MovementSpec.h"
 #include "AcquisitionConfig.h"
 #include "Logger.h"
@@ -72,7 +72,7 @@ private:
     QObject              *mResultsReceiver = nullptr;
     const char           *mResultsSlot     = nullptr;
 
-    TMasterAudioDataRaw  *mRawAudio     = nullptr;
+    AudioRingBuffer      *mRawAudio     = nullptr;
     IAudioSource         *mActiveSource = nullptr;
     QThread              *mSourceThread = nullptr;
     DSPWorker            *mDspWorker    = nullptr;

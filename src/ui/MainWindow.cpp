@@ -6,7 +6,6 @@
 #include "ReplotCounter.h"
 #include "ui_MainWindow.h"
 #include "WaveHeader.h"
-#include "SharedAudio.h"
 #include "Timegrapher.h"
 #include "Bph.h"
 #include <QDateTime>
