@@ -46,27 +46,9 @@
 | | Correct results even under noise | [Correctness](references/qa.md#qas-4-correctness--priority-5) |
 | **Usability** | Inputs the system cannot handle must be clearly communicated | Usability |
 
-### QA Priority Order
+### QA Priority Order and Governing Goal
 
-| Rank | Quality Attribute | Rationale |
-|------|-------------------|-----------|
-| 1 | [**Measurement Accuracy, Error Detection, and Handling**](references/qa.md#qas-0-measurement-accuracy-error-detection-and-handling--priority-1-governing-goal) | The governing criterion: Rate / Amplitude / Beat Error must match Witschi reference |
-| 2 | [**Real Time Performance**](references/qa.md#qas-1-real-time-performance--priority-2) | Missed 21ms deadline → dropped beat → wrong Rate/BPH |
-| 3 | [**Low Latency and Low Number of Missed Beats**](references/qa.md#qas-2-low-latency-and-low-number-of-missed-beats--priority-3) | Late timestamp → wrong Beat Error / Amplitude |
-| 4 | [**Extensibility, Modifiability**](references/qa.md#qas-3-extensibility-modifiability--priority-4-execution-enabler) | Execution enabler — architecture changes must apply fast enough to stay on schedule |
-| 5 | [**Correctness**](references/qa.md#qas-4-correctness--priority-5) | False trigger → wrong everything |
-
-### Measurement Accuracy as the Governing Goal
-
-> Measurement Accuracy, Error Detection, and Handling is not one QA among equals. It is the criterion the entire architecture is evaluated against.
-
-```
-Goal: Measurement Accuracy, Error Detection, and Handling
-├── Enabler:      Extensibility, Modifiability               → architecture changes must apply fast
-├── Prerequisite: Real Time Performance                      → missed deadline = dropped beat = wrong Rate/BPH
-├── Prerequisite: Low Latency and Low Number of Missed Beats → late timestamp = wrong Beat Error / Amplitude
-└── Prerequisite: Correctness                               → false trigger = wrong everything
-```
+→ Full priority rationale, QAS scenarios, and traceability matrix: [references/qa.md](references/qa.md)
 
 ---
 
@@ -87,101 +69,42 @@ Views are documented only when needed and useful to a specific reader (Merson pr
 
 ### 3-A: On-Schedule Delivery
 
----
-
-#### View 1 — Deployment View: Build-Deploy Pipeline
-
-> Which hardware runs which software? What is the deploy path from dev machine to RPi?
+#### View 1 — [Deployment: Build-Deploy Pipeline](references/views/view-deployment-build-pipeline.md)
 
 ![RPi 5 Deployment View](assets/view4-deployment.png)
 
-**Deploy flow**:  
-Dev machine → code + build + unit test + run (macOS) → `git push` →  
-RPi → `git pull` → build + test + experiment
+Dev machine → build + test (macOS) → `git push` → RPi → `git pull` → build + experiment.  
+Structural validation stays on macOS; RPi reserved for hardware experiments and demo.
 
-**Constraint**: AGC must be disabled on every RPi boot (`alsamixer`). AGC on → Amplitude / Beat Error unreliable.
-
-**Why this shortens the cycle**: Structural validation happens on macOS. RPi is used only for hardware experiments and final demo. No repeated re-imaging or file transfers.
-
----
-
-#### View 2 — Layered View: 4-Layer Allowed-to-Use
-
-> Which direction do dependencies flow? Which layer changes when a new tab is added?
+#### View 2 — [Layered: 4-Layer Allowed-to-Use](references/views/view-layered-4layer.md)
 
 ![4-Layer Allowed-to-Use View](assets/view1-layered-module.png)
 
-**Four layers, one rule**: Dependencies flow downward only.  
-Acquisition → Signal Processing → Domain → Presentation.
+Dependencies flow downward only: Acquisition → Signal Processing → Domain → Presentation.  
+New graph tab = ≤ 3 files in Presentation only. Zero changes to Domain or below.
 
-**Modifiability guarantee**: New graph tab = one class in Presentation. Zero Domain changes.  
-This is how 11 graph tabs are built in parallel without team conflict.
-
----
-
-#### View 3 — Decomposition View: Graph Tab
-
-> What is the internal structure of Presentation? How is a new tab added?
+#### View 3 — [Decomposition: Graph Tab](references/views/view-decomposition-graph-tab.md)
 
 ![Graph Tab Decomposition View](assets/view2-decomposition.png)
 
-**Extension rule**: Implement `IGraphTab` + register in `GraphTabManager`. No other files touched.
-
-Each team member owns specific tabs independently. No cross-tab dependencies.
-
+Implement `IGraphTab` + register in `GraphTabManager`. No other files touched.  
 **Evidence**: All 11 graph tabs implemented ✅ by 06/22.
 
 ---
 
 ### 3-B: Accuracy
 
-> Both decisions below were forced by EXP-02 evidence — 43% deadline miss on RPi under the original single-threaded design.
+> Both decisions below were forced by [EXP-02](references/experiments/exp-02-pipeline-latency.md) evidence — 43% deadline miss on RPi under the original single-threaded design.
 
----
-
-#### View 4 — C&C View: DSP Pipeline Thread Model
-
-> How do the two threads cooperate? Where do T2 and R1 operate at runtime?
+#### View 4 — [C&C: DSP Pipeline Thread Model](references/views/view-cc-dsp-pipeline.md)
 
 ![DSP Pipeline Thread Model](assets/view3-thread-model.png)
 
-Two decisions are embedded directly in this view:
-
-| ID | Tactic | Where in diagram | Effect |
-|----|--------|-----------------|--------|
-| **ADR-001 (T2)** | DSP Offload Thread | AudioCapture → ring buffer → DSPWorker | wait_ms: 420ms → **0.013ms** (×32,000). Backlog: 47% → **0%** |
-| **ADR-002 (R1)** | Lazy Rendering Guard | `updateData()` `isVisible()` guard | replot/beat: 8.22 → **1.20** (↓85%). Est. RPi saving: ~14ms |
-
----
-
-#### Risk → Experiment → Decision (supporting detail)
-
-**Case 1 — Single-Core Saturation**
-
-| | |
-|-|-|
-| **Risk** | TR-02/03: RPi cpu2 at 91%; Qt event loop coupling causes 420ms backlog; 43% deadline miss |
-| **Experiment** | [EXP-02](references/experiments/exp-02-pipeline-latency.md): wait_ms 420ms → **0.013ms** (×32,000); backlog 47% → **0%** after T2 |
-| **Decision** | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md): `DSPWorker` thread — AudioCapture writes to ring buffer; DSP runs on separate core |
-| **Status** | ✅ Accepted — macOS validated. RPi: EXP-02 R5 on 06/23 |
-
-**Case 2 — Rendering Bottleneck in Exec Path**
-
-| | |
-|-|-|
-| **Risk** | TR-04: `replot()` in exec path = 16ms (79% of 21ms budget); scales with N active tabs |
-| **Experiment** | [EXP-02](references/experiments/exp-02-pipeline-latency.md): replot_count 8.22 → **2.08** (↓75%) / **1.20** (↓85%) after R1 |
-| **Decision** | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md): `isVisible()` guard in `updateData()`; `showEvent()` catch-up frame |
-| **Status** | ✅ Accepted — macOS validated. RPi confirmation: EXP-02 R5 on 06/23 |
-
-**Case 3 — RPi Sample Rate Ceiling (Pending)**
-
-| | |
-|-|-|
-| **Risk** | TR-01: RPi 5 may not sustain 96kHz block-drop-free while Qt GUI runs |
-| **Experiment** | [EXP-01](references/experiments/exp-01-sample-rate.md): macOS ✅ 96kHz, 0 dropped. RPi ⏳ 06/23 |
-| **Decision** | ADR-003 pending EXP-01 RPi result. Fallback: 48kHz (Beat Error resolution: 10.4µs → 20.8µs) |
-| **Status** | ⏳ Decision deferred |
+| Risk | Experiment | Decision | Key Result |
+|------|-----------|----------|------------|
+| TR-02/03: 420ms backlog, 43% deadline miss | [EXP-02](references/experiments/exp-02-pipeline-latency.md) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread | wait_ms: 420ms → **0.013ms** (×32,000). Backlog → **0%** |
+| TR-04: `replot()` = 16ms (79% of budget) | [EXP-02](references/experiments/exp-02-pipeline-latency.md) | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering | replot/beat: 8.22 → **1.20** (↓85%) |
+| TR-01: RPi 96kHz sustainability | [EXP-01](references/experiments/exp-01-sample-rate.md) ⏳ 06/23 | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) ⏳ pending | Fallback: 48kHz (10.4µs → 20.8µs resolution) |
 
 ---
 
