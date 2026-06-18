@@ -210,23 +210,22 @@ Week 3 (6/16 – 6/19)
 
 ---
 
-### Open Experiments
+### Experiment Status
 
-| ID | Experiment | Target | Blocks |
-|----|------------|:------:|--------|
-| [EXP-01](references/experiments/exp-01-sample-rate.md) | RPi sample rate (96kHz, 0 dropped blocks) | 06/23 | ADR-003 |
-| EXP-02 R5 | T2+R1 on RPi — confirm deadline miss resolved | 06/23 | Phase A go/no-go |
-| EXP-02 R6 | T1 SCHED_RR on RPi — thermal throttle mitigation | 06/24 | ADR-003 supplement |
-| [EXP-03](references/experiments/exp-03-filter-sweep.md) | LP/HP filter parameter sweep | 06/25 | Phase A task A-02 |
-| [EXP-05](references/experiments/exp-05-rendering-fps.md) | Qt 11-tab FPS on RPi | 06/26 | ADR-002 confirmation |
+| ID | Experiment | Status | Key Result |
+|----|------------|:------:|------------|
+| [EXP-01](references/experiments/exp-01-sample-rate.md) | RPi sample rate (96kHz, 0 dropped blocks) | ✅ Done 06/15 | Dropped=0 at 48k/96k/192k. SCHED_RR not needed. → [ADR-003](references/adr/ADR-003-sample-rate-selection.md) Accepted |
+| [EXP-02](references/experiments/exp-02-pipeline-latency.md) E2-5/6 | T2+R1 on RPi — confirm deadline miss resolved | ✅ Done 06/15 | E2E avg **2.05 ms**, 0 deadline miss, 0 backlog |
+| [EXP-02](references/experiments/exp-02-pipeline-latency.md) E2-7 | FG scheduling pickup latency | ✅ Done 06/16 | fg_wait avg **60.1 ms**, 84% > deadline 🔴 new bottleneck |
+| [EXP-03](references/experiments/exp-03-filter-sweep.md) | LP/HP filter parameter sweep | ⏳ In Progress | Target: 06/25 |
+| [EXP-05](references/experiments/exp-05-rendering-fps.md) | Qt 11-tab FPS on RPi | ⏳ In Progress | Target: 06/26 |
 
 ### Unresolved Critical Concerns
 
 | Concern | Plan |
 |---------|------|
-| T2+R1 unconfirmed on RPi | EXP-02 R5 — 06/23 |
-| Thermal throttle (85°C) not mitigated | SCHED_RR affinity EXP-02 R6 — 06/24 |
-| Filter cutoffs undetermined | EXP-03 — 06/25 |
+| FG scheduling: fg_wait avg 60.1 ms (84% > deadline) on RPi | T1 SCHED_RR on FG thread or QTimer-based polling — measure E2-8 |
+| Filter cutoffs undetermined | [EXP-03](references/experiments/exp-03-filter-sweep.md) — 06/25 |
 
 → Full risk register: [references/risks.md](references/risks.md)
 

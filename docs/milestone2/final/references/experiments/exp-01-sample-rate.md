@@ -2,9 +2,15 @@
 
 ## Results and Recommendations
 
-macOS result (96kHz Playback mode): 0 dropped blocks sustained. RPi 5 measurement pending (target: 2026-06-23).
+**RPi result (2026-06-15)**: Dropped Block = **0** at all tested sps (48k / 96k / 192k) under all scheduling policies (default / SCHED_RR / SCHED_FIFO). QAS-1 Pass.
 
-Recommendation: confirm 96kHz on RPi. If dropped blocks appear, fall back to 48kHz. ADR-003 will be issued after RPi result is confirmed.
+**Recommended operating point**: 96k sps — exec avg 9.6 ms (well under 21.3 ms deadline), 0 dropped blocks, 30 s ring buffer absorbs all transient overruns.
+
+**SCHED_RR / SCHED_FIFO**: No improvement in dropped block count. CPU load is distributed more evenly but exec avg is marginally higher. RT scheduling for the audio thread is **not required**.
+
+**Thermal note**: All runs operate at ≥ 85 °C (rpi1) or ~60 °C (rpi2) with some throttling at 85 °C. Throttling does not affect Dropped Block count — the ring buffer absorbs exec spikes.
+
+→ **ADR-003 transitioned to Accepted on 2026-06-15.** See [ADR-003](../adr/ADR-003-sample-rate-selection.md).
 
 ## Objective
 
@@ -16,14 +22,19 @@ Determine the maximum sustained audio sample rate the Raspberry Pi 5 can process
 
 ## Status
 
-In Progress (RPi measurement target: 2026-06-23)
+**Done** (2026-06-15)
 
-## Expected Outcomes
+## Run History
 
-- Dropped block count per minute at 48kHz / 96kHz / 192kHz on RPi 5
-- CPU load and temperature at each sample rate under combined audio + Qt load
-- Confirmed maximum sustained sample rate with 0 dropped blocks
-- ADR-003 issued with chosen sample rate and rationale
+3 runs executed 2026-06-15 on RPi (host=lg1, platform=debian). Each run covers all 3 sps sequentially. Duration = 5 min per sps. Buffer = 30 s. Deadline = **21.33 ms** for all sps (ALSA scales SPF proportionally).
+
+| Run | Scheduling | 96k exec avg/max (ms) | 96k exec > DL | Dropped | Temp avg (°C) |
+|:---:|-----------|:---------------------:|:-------------:|:-------:|:-------------:|
+| R1 | default | 9.6 / 39.2 | 8.1 % | **0** | 85.1 |
+| R2 | SCHED_RR p50 | 9.8 / 39.9 | 8.4 % | **0** | 85.3 |
+| R3 | SCHED_FIFO p50 | 9.9 / 41.4 | 8.6 % | **0** | 85.4 |
+
+exec > DL frames are absorbed by the 30 s ring buffer — Dropped stays 0 in all cases. Full 3-sps breakdown (48k/96k/192k) available in [experiment-results.md](../../../../milestone2/experiment-results.md).
 
 ## Resources Required
 

@@ -152,11 +152,47 @@ Key observations:
 
 ---
 
+---
+
+## RPi Runs (E2-3 through E2-7)
+
+All runs on rpi2 (RPi 5 2nd unit, 16 GB, no thermal throttling at ~60 °C). Platform: debian, kernel=linux, host=lg1.
+
+| Run | Date | Config | E2E avg/max (ms) | exec > DL | Backlog | Real-time |
+|:---:|------|--------|:----------------:|:---------:|:-------:|:---------:|
+| E2-3 | 2026-06-15 | rpi2 baseline (no T2/R1) | 57.2 / 208.9 | 4.4 % | 21 % | FAIL |
+| E2-4 | 2026-06-15 | baseline + multi-graph | 80.1 / 258.7 | 0 % | 28 % | exec OK, wait high |
+| E2-5 | 2026-06-15 | E2-4 + **T2** DSP Offload | **2.1 / 11.1** | **0 %** | **0 %** | ✅ ideal |
+| E2-6 | 2026-06-15 | E2-5 + **R1** Lazy Rendering | **2.05 / 5.7** | **0 %** | **0 %** | ✅ ideal, tighter max |
+| E2-7 | 2026-06-16 | E2-6 + fg_wait_ms instrumentation | DSP 2.2 / 4.8 | **0 %** | **0 %** | DSP ✅ / FG ⚠️ |
+
+### E2-7 New Finding — FG Scheduling Bottleneck
+
+E2-7 added `fg_wait_ms` measurement: time from DSPWorker `frameLogged` emit to MainWindow `onFrameLogged` entry (Qt FG-scheduler pickup latency).
+
+| fg_wait metric | Value |
+|----------------|------:|
+| avg | **60.1 ms** 🔴 |
+| p95 | 144.0 ms |
+| p99 | 167.8 ms |
+| max | 183.6 ms |
+| > deadline (21.33 ms) | **1231 / 1458 (84 %)** 🔴 |
+
+The DSP pipeline is healthy (E2E avg 2.2 ms, 0 deadline misses). The Qt FG event loop on RPi is ~7× slower to wake the FG thread than on macOS (macOS avg 8.9 ms, p99 20.5 ms). This is the next architecture concern.
+
+**Root cause**: Qt event-loop scheduling priority on RPi, not CPU load (cpu0/2/3 are near-idle; only DSP core cpu1 at 95 %).
+
+**Next action**: T1 (SCHED_RR + CPU affinity for FG thread) or `QTimer`-based periodic FG polling as an alternative to `frameLogged` signal delivery.
+
+Full per-run detail: [experiment-results.md](../../../../milestone2/experiment-results.md#exp-02)
+
+---
+
 ## Duration
 
 - Started: 2026-06-14
-- Concluded: 2026-06-15 (macOS R1–R4)
-- Next: RPi R5 — re-measure T2+R1 on RPi before M3
+- macOS runs concluded: 2026-06-15 (R1–R4)
+- RPi runs concluded: 2026-06-16 (E2-3 through E2-7)
 
 ---
 

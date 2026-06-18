@@ -18,11 +18,9 @@ Two fallback options exist if 96kHz is not achievable on RPi:
 
 ## Decision
 
-To be determined after EXP-01 RPi measurement (2026-06-23).
-
-Preliminary: We will adopt **Option A (96kHz)** if EXP-01 confirms 0 dropped blocks on RPi 5
-under combined audio + Qt GUI load. If dropped blocks appear at 96kHz, we will adopt
-**Option B (48kHz)** as the fallback.
+We adopt **Option A (96kHz)**. EXP-01 (2026-06-15) confirmed Dropped Block = 0 at 96kHz on RPi 5
+under combined audio + Qt GUI load across all 3 scheduling policies (default / SCHED_RR / SCHED_FIFO).
+Beat Error resolution: **10.4 µs/sample**. Option B (48kHz) fallback is no longer required.
 
 ## Rationale
 
@@ -42,25 +40,18 @@ Deferred unless EXP-01 produces an unexpectedly favorable result.
 
 ## Status
 
-Proposed
+**Accepted** (2026-06-15)
 
-Pending: EXP-01 RPi result — [EXP-01 Sample Rate Performance](../experiments/exp-01-sample-rate.md)
-Expected to transition to **Accepted** on 2026-06-23 after EXP-01 completes.
+EXP-01 RPi result confirmed — [EXP-01 Sample Rate Performance](../experiments/exp-01-sample-rate.md).
+Transitioned from Proposed to Accepted on 2026-06-15 (2 days ahead of target).
 
 ## Consequences
 
-**If Option A (96kHz) accepted**:
-- Beat Error resolution: 10.4 µs/sample — sufficient for WeiShi comparison
-- `FilterChain` cutoffs set to 96kHz Nyquist basis
-- T1 SCHED_RR (EXP-02 R6) may still be needed to absorb thermal throttle jitter
+**Option A (96kHz) adopted**:
+- Beat Error resolution: **10.4 µs/sample** — sufficient for WeiShi comparison
+- `FilterChain` cutoffs set on 96kHz Nyquist basis
+- SCHED_RR for audio thread: **not required** — EXP-01 showed no improvement in Dropped Block count
+- Thermal throttling at 85 °C does not affect Dropped Block count (30 s ring buffer absorbs all overruns)
+- 192kHz stretch goal remains possible (0 dropped blocks confirmed), but not required for M3
 
-**If Option B (48kHz) fallback adopted**:
-- Beat Error resolution degrades to 20.8 µs/sample — within WeiShi comparison tolerance,
-  but reduces precision for high-BPH watches
-- `FilterChain` cutoffs recalculated at 48kHz Nyquist basis
-- EXP-03 filter sweep must be re-run at 48kHz to confirm cutoff values remain valid
-- 192kHz stretch goal abandoned for M3
-
-**Either way**:
-- Sample rate constant must be committed before Phase A A-02 begins (target: 2026-06-24)
-- ADR-003 must transition from Proposed to Accepted by 2026-06-23 to avoid blocking Phase A
+**Option B (48kHz) fallback**: no longer needed.
