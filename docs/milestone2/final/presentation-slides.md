@@ -78,10 +78,10 @@ Views are documented only when needed and useful to a specific reader (Merson pr
 
 | View | Type | Goal Addressed | Primary Reader |
 |------|------|----------------|----------------|
-| Deployment: Build-Deploy Pipeline | Allocation | Deployability — shorten dev ↔ RPi cycle | Ops / hardware owners |
-| Layered: 4-Layer Allowed-to-Use | Module — Layered | Modifiability — parallel tab dev, fast architecture changes | Developers (11 tabs) |
-| Decomposition: Graph Tab | Module — Decomposition | Modifiability — how to add a new tab | Developers (per-tab) |
-| C&C: DSP Pipeline Thread Model | Runtime / C&C | Accuracy — thread isolation, lazy rendering | Developers (perf / concurrency) |
+| [Deployment: Build-Deploy Pipeline](references/views/view-deployment-build-pipeline.md) | Allocation | Deployability — shorten dev ↔ RPi cycle | Ops / hardware owners |
+| [Layered: 4-Layer Allowed-to-Use](references/views/view-layered-4layer.md) | Module — Layered | Modifiability — parallel tab dev, fast architecture changes | Developers (11 tabs) |
+| [Decomposition: Graph Tab](references/views/view-decomposition-graph-tab.md) | Module — Decomposition | Modifiability — how to add a new tab | Developers (per-tab) |
+| [C&C: DSP Pipeline Thread Model](references/views/view-cc-dsp-pipeline.md) | Runtime / C&C | Accuracy — thread isolation, lazy rendering | Developers (perf / concurrency) |
 
 ---
 

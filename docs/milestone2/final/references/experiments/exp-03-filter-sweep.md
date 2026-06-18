@@ -10,7 +10,7 @@ Preliminary: adaptive threshold is implemented and tunable via a single paramete
 
 Determine the LP (low-pass) and HP (high-pass) cutoff frequencies that best preserve beat events while rejecting ambient noise, across multiple watch BPH values.
 
-**Decision this resolves**: Filter cutoff constants in `FilterChain` — affects QAS-3 (Signal Quality) and downstream accuracy of Beat Error / Amplitude measurements.
+**Decision this resolves**: Filter cutoff constants in `FilterChain` — affects [QAS-4 Correctness](../qa.md#qas-4-correctness--priority-5) and downstream accuracy of Beat Error / Amplitude measurements.
 
 **Risk resolved**: TR-05
 

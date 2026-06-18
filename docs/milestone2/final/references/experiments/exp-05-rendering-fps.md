@@ -55,5 +55,5 @@ Target: 2026-06-26
 
 - ADR to validate or supersede: [ADR-002](../adr/ADR-002-r1-lazy-rendering.md)
 - Risk: [TR-04](../risks.md)
-- QA: [QAS-1 Real-Time Performance](../qa.md)
+- QA: [QAS-1 Real Time Performance](../qa.md#qas-1-real-time-performance--priority-2)
 - Related: [EXP-02 macOS results](exp-02-pipeline-latency.md) — baseline for comparison
