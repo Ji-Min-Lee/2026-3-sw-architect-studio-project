@@ -92,6 +92,13 @@ private:
     void   SimStart(void);
     void   resetTabs(void);
 
+    // Tab registration helpers — call instead of manually editing addTab + mAllTabs.
+    // registerTab: adds to GraphicsTabWidget AND mAllTabs; returns tab for assignment.
+    // addObserver:  adds to mAllTabs only (tabs embedded in existing .ui widgets).
+    template<typename T>
+    T*     registerTab(T *tab, const QString &label);
+    void   addObserver(BaseGraphTab *tab);
+
     // Results display
     void   DisplayResults(const Measurement &m);
 

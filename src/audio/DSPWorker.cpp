@@ -61,9 +61,9 @@ void DSPWorker::onDataReady(int64_t ts1)
         double now = mTimer.elapsed() / 1000.0;
         if (now - mLastTime > 2.0) {
             double elapsedSec = now - mLastTime;
-            mDspFPS = mFrameCount  / elapsedSec;
-            mDspSPS = mSampleCount / elapsedSec;
-            mDspSPF = mSampleCount / static_cast<double>(mFrameCount);
+            frame.fg_fps = mFrameCount  / elapsedSec;
+            frame.fg_sps = mSampleCount / elapsedSec;
+            frame.fg_spf = mSampleCount / static_cast<double>(mFrameCount);
             mLastTime    = now;
             mFrameCount  = 0;
             mSampleCount = 0;
@@ -74,9 +74,6 @@ void DSPWorker::onDataReady(int64_t ts1)
     frame.bg_fps      = mRaw->fps();
     frame.bg_sps      = mRaw->sps();
     frame.bg_spf      = mRaw->spf();
-    frame.fg_fps      = mDspFPS;  // fg = DSP thread (T2 semantics)
-    frame.fg_sps      = mDspSPS;
-    frame.fg_spf      = mDspSPF;
     frame.dsp_emit_ts = TG_NOW();  // FG wait = onFrameLogged start - this timestamp
 
     emit frameLogged(frame);

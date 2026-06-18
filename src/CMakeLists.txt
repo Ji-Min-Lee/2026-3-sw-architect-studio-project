@@ -54,8 +54,6 @@ set(AUDIO_SOURCES
     audio/SimWorker.h
     audio/SimWorker.cpp
     audio/SharedAudio.h
-    audio/AudioManager.h
-    audio/AudioManager.cpp
     audio/DSPWorker.h
     audio/DSPWorker.cpp
 )

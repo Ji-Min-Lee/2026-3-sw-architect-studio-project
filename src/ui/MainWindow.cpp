@@ -77,20 +77,23 @@ static QString ModeStrings[] =
         "Sim",
 };
 
-static int ManualAutoBPH[]={0, //Auto
+// Canonical BPH value list — shared by the Live/Playback combo (with leading 0
+// for Auto) and the Sim combo (no Auto entry).
+static constexpr int kBphValues[]={
                     3600,  6000,  7200,  7380,  7440,  7800,  9000,  9100, 10800, 11880,
                     12000, 12342, 12480, 12600, 13320, 13440, 13500, 14000, 14040, 14160,
                     14200, 14280, 14400, 14520, 14580, 14760, 14850, 15000, 15360, 15600,
                     16200, 16320, 16800, 17196, 11258, 17280, 17186, 17897, 18000, 18049,
                     18514, 19332, 19440, 19800, 20160, 20222, 20944, 21000, 21031, 21306,
                     21600, 25200, 28800, 32400, 36000, 43200};
-
-static int SimBPH[]={3600,  6000,  7200,  7380,  7440,  7800,  9000,  9100, 10800, 11880,
-                     12000, 12342, 12480, 12600, 13320, 13440, 13500, 14000, 14040, 14160,
-                     14200, 14280, 14400, 14520, 14580, 14760, 14850, 15000, 15360, 15600,
-                     16200, 16320, 16800, 17196, 11258, 17280, 17186, 17897, 18000, 18049,
-                     18514, 19332, 19440, 19800, 20160, 20222, 20944, 21000, 21031, 21306,
-                     21600, 25200, 28800, 32400, 36000, 43200};
+// Live/Playback BPH combo: prepends 0 (Auto-detect) to kBphValues.
+static constexpr int kManualAutoBPH[] = {0,
+                    3600,  6000,  7200,  7380,  7440,  7800,  9000,  9100, 10800, 11880,
+                    12000, 12342, 12480, 12600, 13320, 13440, 13500, 14000, 14040, 14160,
+                    14200, 14280, 14400, 14520, 14580, 14760, 14850, 15000, 15360, 15600,
+                    16200, 16320, 16800, 17196, 11258, 17280, 17186, 17897, 18000, 18049,
+                    18514, 19332, 19440, 19800, 20160, 20222, 20944, 21000, 21031, 21306,
+                    21600, 25200, 28800, 32400, 36000, 43200};
 
 static int AveragingPeriodList[]={2,4,8,10,12,20,20,30,40,50,60,120,240};
 
@@ -128,47 +131,32 @@ MainWindow::MainWindow(QWidget *parent)
             this,     &MainWindow::onFrameLogged, Qt::QueuedConnection);
 
     // ── Presentation layer: tabs (MVC View / Observer ConcreteObserver) ───────
-    // AP-3: RateScopeTab wraps the existing QCustomPlot widgets from .ui
-    mRateScopeTab = new RateScopeTab(ui->RatePlot, ui->ScopePlot, this);
+    // Tabs embedded in existing .ui widgets — addObserver() registers them as
+    // measurement observers without adding a new tab page.
+    mRateScopeTab  = new RateScopeTab(ui->RatePlot, ui->ScopePlot, this);
+    addObserver(mRateScopeTab);
 
-    // AP-3: remaining 10 tabs — each ≤3-file change, added as new tab pages
-    mTraceTab          = new TraceTab(this);
-    mSoundPrintTab     = new SoundPrintTab(ui->SoundImage, mCurrentSamplesPerSecond, this);
-    mBeatErrorTab      = new BeatErrorTab(this);
-    mVarioTab          = new VarioTab(this);
-    mSequenceTab       = new SequenceTab(this);
-    mBeatNoiseScopeTab = new BeatNoiseScopeTab(this);
-    mLongTermTab       = new LongTermTab(this);
-    mEscapementTab     = new EscapementTab(this);
-    mSpectrogramTab    = new SpectrogramTab(this);
-    mWaveformCompTab   = new WaveformCompTab(this);
-    mSweepScopeTab     = new SweepScopeTab(this);
-    mFilterScopeTab    = new FilterScopeTab(this);
-    // Bonus radar lives inside the Sequence tab (left = table, right = radar);
-    // SequenceTab owns and wires it. No separate top-level tab.
+    mSoundPrintTab = new SoundPrintTab(ui->SoundImage, mCurrentSamplesPerSecond, this);
+    addObserver(mSoundPrintTab);
+
+    // Standard tabs — registerTab() adds a new tab page AND registers as observer.
+    // Adding a new tab: construct it here, call registerTab(), done — no other edits.
+    // Bonus radar lives inside SequenceTab (table + radar side-by-side);
+    // SequenceTab owns and wires it, so it is not registered separately.
+    mTraceTab          = registerTab(new TraceTab(this),          "Trace");
+    mBeatErrorTab      = registerTab(new BeatErrorTab(this),      "Beat Error");
+    mVarioTab          = registerTab(new VarioTab(this),          "Vario");
+    mSequenceTab       = registerTab(new SequenceTab(this),       "Sequence");
+    mBeatNoiseScopeTab = registerTab(new BeatNoiseScopeTab(this), "Beat Scope");
+    mLongTermTab       = registerTab(new LongTermTab(this),       "Long Term");
+    mEscapementTab     = registerTab(new EscapementTab(this),     "Escapement");
+    mSpectrogramTab    = registerTab(new SpectrogramTab(this),    "Spectrogram");
+    mWaveformCompTab   = registerTab(new WaveformCompTab(this),   "Waveform");
+    mSweepScopeTab     = registerTab(new SweepScopeTab(this),     "Sweep");
+    mFilterScopeTab    = registerTab(new FilterScopeTab(this),    "Filters");
 
     mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
     mWaveformCompTab->setLiftAngle(mLiftAngle);
-
-    ui->GraphicsTabWidget->addTab(mTraceTab,          "Trace");
-    ui->GraphicsTabWidget->addTab(mBeatErrorTab,      "Beat Error");
-    ui->GraphicsTabWidget->addTab(mVarioTab,          "Vario");
-    ui->GraphicsTabWidget->addTab(mSequenceTab,       "Sequence");
-    ui->GraphicsTabWidget->addTab(mBeatNoiseScopeTab, "Beat Scope");
-    ui->GraphicsTabWidget->addTab(mLongTermTab,       "Long Term");
-    ui->GraphicsTabWidget->addTab(mEscapementTab,     "Escapement");
-    ui->GraphicsTabWidget->addTab(mSpectrogramTab,    "Spectrogram");
-    ui->GraphicsTabWidget->addTab(mWaveformCompTab,   "Waveform");
-    ui->GraphicsTabWidget->addTab(mSweepScopeTab,     "Sweep");
-    ui->GraphicsTabWidget->addTab(mFilterScopeTab,    "Filters");
-
-    // ── Observer: register() — connect Model → Views (AP-4) ──────────────────
-    // The bonus radar is embedded inside SequenceTab (event-driven, wired by
-    // SequenceTab itself), so it is not a top-level tab and not in mAllTabs.
-    mAllTabs = {mRateScopeTab, mTraceTab, mSoundPrintTab, mBeatErrorTab,
-                mVarioTab, mSequenceTab, mBeatNoiseScopeTab, mLongTermTab,
-                mEscapementTab, mSpectrogramTab, mWaveformCompTab,
-                mSweepScopeTab, mFilterScopeTab};
 
     QObject::connect(mSequenceTab, &SequenceTab::positionChanged,
                      this, [this](const QString &pos) { mActivePosition = pos; });
@@ -356,6 +344,19 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
 // Reset — reinitialise Presentation layer before a new session starts.
 // MeasurementEngine is re-created per-session inside SessionController.
 // ─────────────────────────────────────────────────────────────────────────────
+template<typename T>
+T* MainWindow::registerTab(T *tab, const QString &label)
+{
+    ui->GraphicsTabWidget->addTab(tab, label);
+    mAllTabs.append(tab);
+    return tab;
+}
+
+void MainWindow::addObserver(BaseGraphTab *tab)
+{
+    mAllTabs.append(tab);
+}
+
 void MainWindow::resetTabs(void)
 {
     qInfo() << "RESET";
@@ -431,19 +432,19 @@ void MainWindow::LoadAverageingPeriod(void)
 
 void MainWindow::LoadBPH(void)
 {
-    auto length = std::size(ManualAutoBPH);
+    auto length = std::size(kManualAutoBPH);
     for (int i = 0; i < (int)length; i++) {
-        QString name = (ManualAutoBPH[i] != 0) ? QString::number(ManualAutoBPH[i]) : "Auto BPH";
-        ui->BPHComboBox->addItem(name, ManualAutoBPH[i]);
+        QString name = (kManualAutoBPH[i] != 0) ? QString::number(kManualAutoBPH[i]) : "Auto BPH";
+        ui->BPHComboBox->addItem(name, kManualAutoBPH[i]);
     }
     ui->BPHComboBox->setCurrentIndex(0);
 }
 
 void MainWindow::LoadSimBPH(void)
 {
-    auto length = std::size(SimBPH);
+    auto length = std::size(kBphValues);
     for (int i = 0; i < (int)length; i++)
-        ui->SimBPHComboBox->addItem(QString::number(SimBPH[i]), SimBPH[i]);
+        ui->SimBPHComboBox->addItem(QString::number(kBphValues[i]), kBphValues[i]);
     ui->SimBPHComboBox->setCurrentIndex(52);
 }
 
@@ -632,7 +633,7 @@ void MainWindow::LiveStart(void)
 {
     if (!RecordSessionCheck()) return;
     resetTabs();
-    MovementSpec      movement{ ManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
+    MovementSpec      movement{ kManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
     AcquisitionConfig config  { mCurrentSamplesPerSecond,
                                 ui->HighLineEdit->text().toDouble(),
                                 mAveragingPeriod };
@@ -653,7 +654,7 @@ void MainWindow::PlaybackStart(void)
     while (dlg.exec() == QDialog::Accepted && !(status = OpenFile(dlg.selectedFiles().constFirst()))) {}
     if (!status) return;
     resetTabs();
-    MovementSpec      movement{ ManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
+    MovementSpec      movement{ kManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
     AcquisitionConfig config  { mCurrentSamplesPerSecond,
                                 ui->HighLineEdit->text().toDouble(),
                                 mAveragingPeriod };
@@ -670,7 +671,7 @@ void MainWindow::SimStart(void)
         watch_synth_stream_realistic_config(&cfg);
     else
         watch_synth_stream_clean_config(&cfg);
-    cfg.bph                     = SimBPH[ui->SimBPHComboBox->currentIndex()];
+    cfg.bph                     = kBphValues[ui->SimBPHComboBox->currentIndex()];
     cfg.sample_rate_hz          = mAvalableRates[ui->SampleRatesComboBox->currentIndex()];
     cfg.beat_error_ms           = -ui->SimBeatErrorSpinBox->value();
     cfg.pcm_peak_amplitude      = 0.40f;
@@ -683,7 +684,7 @@ void MainWindow::SimStart(void)
     if (!SetAudioDevice(PLAYBACK_OR_SIM_PCM)) qInfo() << "SetAudioDevice Failed";
     if (!SetAudioRate(mRateBeforePlaybackOrSim)) qInfo() << "SetAudioRate Failed";
     resetTabs();
-    MovementSpec      movement{ ManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
+    MovementSpec      movement{ kManualAutoBPH[ui->BPHComboBox->currentIndex()], mLiftAngle };
     AcquisitionConfig config  { mCurrentSamplesPerSecond,
                                 ui->HighLineEdit->text().toDouble(),
                                 mAveragingPeriod };

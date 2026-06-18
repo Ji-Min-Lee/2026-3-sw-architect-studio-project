@@ -42,5 +42,4 @@ private:
     double   mLastTime     = 0.0;
     uint64_t mFrameCount   = 0;
     uint64_t mSampleCount  = 0;
-    double   mDspFPS = 0, mDspSPS = 0, mDspSPF = 0;
 };
