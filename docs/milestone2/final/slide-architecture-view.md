@@ -68,6 +68,25 @@ Three design decisions together enforce extensibility.
 Acquisition → Signal Processing → Domain → Presentation. Dependencies flow downward only.  
 Adding a new tab = ≤ 3 files in Presentation. Zero changes to Domain or below. ✅ 14 tabs implemented.
 
+**Dependency Structure Matrix (actual code — `#include` trace)**
+
+Row = **used module** (depended upon) · Column = **using module** (depends on) · `1` = depends · `-` = self · `🔴` = layer violation
+
+| used ↓ \ using → | Presentation | UI Coord | Sig.Proc | Domain | Acquisition |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Presentation** (`*Tab`, `BaseGraphTab`) | - | 0 | 0 | 0 | 0 |
+| **UI Coord** (`MainWindow`, `SessionCtrl`) | 0 | - | 0 | 0 | 0 |
+| **Sig.Proc** (`DSPWorker`, `MeasurementEngine`) | 1 | 1 | - | 0 | 0 |
+| **Domain** (`Measurement`, `WatchMath`, `WatchDiagnostics`) | 1 | 1 | 1 | - | 0 |
+| **Acquisition** (`IAudioSource`, `AudioWorker`, `AudioRingBuffer`) | 0 | 1 | 1 | 0 | - |
+
+> **Layer boundary note**: `MeasurementEngine` is classified in the Sig.Proc layer because it is directly owned and driven by `DSPWorker` within the T2 thread pipeline (`DSPWorker.h:37`, `DSPWorker.cpp:12`). It does not belong to Domain — it calls `processBlock()` as part of the DSP loop, not as a stand-alone domain service. Pure domain objects (`Measurement` VO, `WatchMath`, `WatchDiagnostics`) remain in the Domain layer and have no upward dependencies.
+
+**Key observations:**
+- All 1s are in the lower triangle → no layer violations ✅
+- Domain column is all `0` → pure computation, no upward dependency ✅
+- Presentation is never used by lower layers ✅
+
 → Full view: [view-layered-4layer.md](references/views/view-layered-4layer.md)
 
 ### Interface — IAudioSource Dependency Inversion
@@ -106,7 +125,7 @@ VOs stay in the Domain layer → replacing or adding Presentation components has
 **Response**: AI-generated unit tests — structural correctness of `BaseGraphTab::updateData()` verifiable without domain expertise
 
 - Validates interface compliance and layer boundary enforcement → runnable on macOS immediately
-- All 11 tabs completed within W2 Sprint 1 without a domain expert
+- All 14 tabs completed within W2 Sprint 1 without a domain expert
 
 ---
 
