@@ -107,6 +107,8 @@ Row = **used module** (depended upon) · Column = **using module** (depends on) 
 
 The `Measurement` struct published by `MeasurementEngine` is composed of three VOs:
 
+![Domain Entity / Value Object Module View](assets/view6-domain-entity-vo.png)
+
 | Value Object | Contents | Immutability |
 |---|---|---|
 | `WatchMetrics` | Rate (s/d), Amplitude (°), Beat Error (ms), BPH | Immutable after computation |
@@ -115,6 +117,8 @@ The `Measurement` struct published by `MeasurementEngine` is composed of three V
 
 Tabs receive `Measurement` as read-only → cannot mutate measurement results → correctness guaranteed.  
 VOs stay in the Domain layer → replacing or adding Presentation components has zero impact on domain logic.
+
+→ Full view: [view-domain-entity-vo.md](references/views/view-domain-entity-vo.md)
 
 ---
 
