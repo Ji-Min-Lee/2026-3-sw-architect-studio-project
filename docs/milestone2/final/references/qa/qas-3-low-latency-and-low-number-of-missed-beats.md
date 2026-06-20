@@ -31,4 +31,4 @@
 
 - [QA Priority Summary](README.md)
 - [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — threading strategy options and trade-offs
-- [EXP-02: Pipeline Latency](../experiments/exp-02-realtime-deadline-compliance.md) — segment ① wait_ms 420ms → 0.013ms after T2
+- [EXP-02: Pipeline Latency](../experiments/exp-03-latency-e2e.md) — segment ① wait_ms 420ms → 0.013ms after T2

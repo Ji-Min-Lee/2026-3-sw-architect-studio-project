@@ -11,7 +11,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 ## 2-A. Latency: Thread Separation
 
-> 📢 **PRESENT** (~4 min) · Evidence: [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) · Decision: [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md)
+> 📢 **PRESENT** (~4 min) · Evidence: [EXP-02](references/experiments/exp-03-latency-e2e.md) · Decision: [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md)
 
 **Problem**: GUI replot blocks DSP processing on a single thread → 43% deadline miss on RPi
 
