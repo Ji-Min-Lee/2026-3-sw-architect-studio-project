@@ -20,7 +20,7 @@ WAV source: 28,800 BPH real recording + pink noise (96 kHz, float32). Platform: 
 | E5-02 | 2026-06-16 | Early grid — onset {0.02, 0.08} × noise {0, 60} dB | 8 | — |
 | E5-03 | 2026-06-17 | Full grid — onset×min_peak×noise×5 reps | **274** | [logs](../../../../../src/logs/EXP-03/) |
 
-## Architecture Decision
+## Architecture Decisions
 
 `Detector.cpp` default parameters updated to `onset=0.08`, `min_peak=0.10`.
 

@@ -36,7 +36,7 @@ Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline: 48k=42.67 ms ·
 
 ★ QAS-2 target sps
 
-## Architecture Decision
+## Architecture Decisions
 
 → **96k sps accepted** — [ADR-003](../adr/ADR-003-sample-rate-selection.md). SCHED_RR / FIFO not applied.
 
