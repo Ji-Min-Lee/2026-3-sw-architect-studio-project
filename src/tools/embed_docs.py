@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 embed_docs.py — Offline RAG embedding script (Step 3)
 
@@ -34,17 +35,18 @@ CHUNK_SIZE    = 400   # tokens (approx chars / 4)
 CHUNK_OVERLAP = 80
 DB_PATH       = os.path.join(os.path.dirname(__file__), "..", "rag", "vector.db")
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT  = os.path.join(SCRIPT_DIR, "..", "..")
+SCRIPT_DIR     = os.path.dirname(os.path.abspath(__file__))
+AI_FEATURE_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, "..", ".."))        # D:\sw_architect\ai-feature
+SW_ARCH_ROOT    = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "..", ".."))  # D:\sw_architect
 
 SOURCES = [
     # (path, label)
-    (os.path.join(REPO_ROOT, "project", "time-grapher", "assets", "Witschi-Training-Course.pdf"),           "witschi-training"),
-    (os.path.join(REPO_ROOT, "project", "time-grapher", "assets", "Witschi Chronoscope X1 G3 Instruction Manual.pdf"), "witschi-manual"),
-    (os.path.join(REPO_ROOT, "project", "time-grapher", "assets", "TimeGrapher Equations_v0.docx.pdf"),     "tg-equations"),
-    (os.path.join(REPO_ROOT, "ai-feature", "docs", "ai-features.md"),                                       "project-ai-features"),
-    (os.path.join(REPO_ROOT, "ai-feature", "docs", "metrics-explained.md"),                                 "project-metrics"),
-    (os.path.join(REPO_ROOT, "ai-feature", "docs", "week1", "kickoff-workshop", "domain-knowledge.md"),     "project-domain"),
+    (os.path.join(SW_ARCH_ROOT,    "project", "time-grapher", "assets", "Witschi-Training-Course.pdf"),           "witschi-training"),
+    (os.path.join(SW_ARCH_ROOT,    "project", "time-grapher", "assets", "Witschi Chronoscope X1 G3 Instruction Manual.pdf"), "witschi-manual"),
+    (os.path.join(SW_ARCH_ROOT,    "project", "time-grapher", "assets", "TimeGrapher Equations_v0.docx.pdf"),     "tg-equations"),
+    (os.path.join(AI_FEATURE_ROOT, "docs", "ai-features.md"),                                                     "project-ai-features"),
+    (os.path.join(AI_FEATURE_ROOT, "docs", "metrics-explained.md"),                                               "project-metrics"),
+    (os.path.join(AI_FEATURE_ROOT, "docs", "week1", "kickoff-workshop", "domain-knowledge.md"),                   "project-domain"),
 ]
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -81,18 +83,35 @@ def chunk_text(text: str, chunk_chars: int, overlap_chars: int):
         chunk = text[start:end].strip()
         if len(chunk) > 80:   # skip tiny fragments
             chunks.append(chunk)
-        start = end - overlap_chars
+        next_start = end - overlap_chars
+        if next_start <= start:   # always advance to avoid infinite loop
+            next_start = end
+        start = next_start
     return chunks
 
 
-def embed(text: str) -> list[float]:
-    resp = requests.post(
-        f"{OLLAMA_URL}/api/embeddings",
-        json={"model": EMBED_MODEL, "prompt": text},
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return resp.json()["embedding"]
+def sanitize(text: str) -> str:
+    # remove null bytes and non-printable control chars that trip up Ollama
+    text = text.replace("\x00", " ")
+    text = re.sub(r"[\x01-\x08\x0b\x0c\x0e-\x1f\x7f]", " ", text)
+    return text.strip()
+
+
+def embed(text: str) -> list[float] | None:
+    text = sanitize(text)
+    if not text:
+        return None
+    try:
+        resp = requests.post(
+            f"{OLLAMA_URL}/api/embeddings",
+            json={"model": EMBED_MODEL, "prompt": text[:2000]},  # hard cap
+            timeout=60,
+        )
+        resp.raise_for_status()
+        return resp.json()["embedding"]
+    except Exception as e:
+        print(f"  [warn] embed failed: {e} — skipping chunk")
+        return None
 
 
 def pack_embedding(vec: list[float]) -> bytes:
@@ -155,7 +174,9 @@ def main():
         print(f"[{label}] {len(chunks)} chunks → embedding ...")
 
         for i, chunk in enumerate(chunks):
-            vec  = embed(chunk)
+            vec = embed(chunk)
+            if vec is None:
+                continue
             blob = pack_embedding(vec)
             conn.execute(
                 "INSERT INTO chunks (source, text, embedding) VALUES (?, ?, ?)",
