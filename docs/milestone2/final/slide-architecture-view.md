@@ -183,7 +183,7 @@ VOs stay in the Domain layer → replacing or adding Presentation components has
 
 **Risk**: Most team members lack watch measurement domain expertise (Rate, Amplitude, Beat Error) → hard to verify correctness of tab implementations
 
-**Response**: AI-generated unit tests — structural correctness of `BaseGraphTab::updateData()` verifiable without domain expertise
+**Response**: AI-generated unit tests — structural correctness of `BaseGraphTab::onMeasurement()` verifiable without domain expertise
 
 - Validates interface compliance and layer boundary enforcement → runnable on macOS immediately
 - 11 baseline tabs completed in W2 S1; 3 more added in W2 S2 + W3 S1 (project-plan screens + bonus) — all without a domain expert
