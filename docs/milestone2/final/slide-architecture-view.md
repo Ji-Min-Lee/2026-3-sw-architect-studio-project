@@ -106,13 +106,13 @@ classDiagram
 
 ![TimeGrapher Observer Runtime Sequence](assets/view2b-observer-runtime.png)
 
-Three phases (autonumbered UML sequence, same participants as static view):
+Three phases (autonumbered UML sequence; lifelines left → right: **User** · Qt Main Thread · **MeasurementEngine** · **Mic**):
 
 1. **Register observers (once)** — `MainWindow` → `SessionController.connectObservers()`; stores `mObserverTabs` only (no `connect` yet)
-2. **Wire signal-slot (per session)** — `startLive()` / `startPlayback()` / `startSim()` → loop `connect()` ×14 tabs + `MainWindow`; `QueuedConnection` applied here
-3. **Deliver measurement (per DSP block)** — DSP Thread: `processBlock()` → `measurementReady()` async → Main: `onMeasurement()` ×14 + `onMeasurementReady()` (`{duration}` `tg_us`, `wait_ms` — EXP-02)
+2. **Wire signal-slot (per session)** — **User** `Start()` → each session start registers Qt `connect()`: `MeasurementEngine::measurementReady` → `BaseGraphTab::onMeasurement` (×14) and → `MainWindow::onMeasurementReady()`; `QueuedConnection` (DSP Thread → Main Thread)
+3. **Deliver measurement (per DSP block)** — **Mic** `PCM samples` → DSP Thread `processBlock()` / `measurementReady()` → Main Thread `onMeasurement()` ×14 + `onMeasurementReady()` (`{duration}` `tg_us`, `wait_ms` — EXP-02)
 
-> Source: [`assets/view2b-observer-runtime.puml`](assets/view2b-observer-runtime.puml) · Threads: **Qt Main Thread** / **DSP Thread** · Cross-thread via `QueuedConnection` (see 2-A)
+> Source: [`assets/view2b-observer-runtime.puml`](assets/view2b-observer-runtime.puml) · Cross-thread via `QueuedConnection` (see 2-A)
 
 **Effects**:
 - `MeasurementEngine` has **zero compile-time knowledge of tabs** — emits signal only; `SessionController` wires the abstract `onMeasurement` slot → Subject and Observer decoupled at build time

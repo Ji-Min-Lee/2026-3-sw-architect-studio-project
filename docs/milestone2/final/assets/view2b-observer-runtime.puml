@@ -31,6 +31,8 @@ title <b>TimeGrapher Observer Runtime Sequence</b>\n
 autonumber
 hide footbox
 
+actor User
+
 box "Qt Main Thread"
   participant "MainWindow" as MW
   participant "SessionController" as SC <<wiring coordinator>>
@@ -40,6 +42,8 @@ end box
 box "DSP Thread"
   participant "MeasurementEngine" as ME <<Subject>>
 end box
+
+participant "Mic" as Mic <<Acquisition>>
 
 == Register observers (once) ==
 
@@ -53,6 +57,7 @@ deactivate SC
 
 == Wire signal-slot (per session) ==
 
+User -> MW ++ : Start()
 MW -> SC ++ : startLive() / startPlayback() / startSim()
 note over SC
   create DSPWorker on T2
@@ -71,20 +76,22 @@ deactivate MW
 
 SC --> MW -- : return
 deactivate SC
+MW --> User -- : return
+deactivate MW
 
 == Deliver measurement (per DSP block) ==
 
+Mic ->> ME ++ : PCM samples
 note over ME
-  processBlock() on T2
+  processBlock()
   {duration} tg_us
   builds Measurement snapshot
+  emit measurementReady()
 end note
 
-ME ->> Tab : measurementReady()
-ME ->> MW : measurementReady()
 note over ME, Tab
   QueuedConnection
-  async post to Main thread
+  slots invoked on Main thread
   {duration} wait_ms (EXP-02)
 end note
 
@@ -101,6 +108,7 @@ end
 ME -> MW ++ : onMeasurementReady()
 note right of MW : DisplayResults()
 MW --> ME -- : return
+deactivate ME
 deactivate MW
 
 note bottom
