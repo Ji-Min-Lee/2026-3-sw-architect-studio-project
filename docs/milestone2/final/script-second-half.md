@@ -13,7 +13,7 @@
 
 "Our decision: Qt Signal-Slot as an Observer pattern. `MeasurementEngine` emits one signal — `measurementReady` — and every tab subscribes. `MeasurementEngine` has zero knowledge of any tab."
 
-"There's also a thread safety concern. DSP runs on T2, tabs render on the Qt main thread. Qt's `QueuedConnection` handles the cross-thread delivery safely — no manual locking needed."
+"There's also a thread safety concern. DSP runs on T2 — the dedicated DSP thread we saw in 2-A — while tabs render on the Qt main thread. Qt's `QueuedConnection` handles the cross-thread delivery safely — no manual locking needed."
 
 "The result: measurement logic and display logic are fully decoupled. Adding a new tab requires zero changes to `MeasurementEngine`. Correctness is guaranteed by the structure."
 
