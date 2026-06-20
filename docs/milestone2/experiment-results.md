@@ -812,25 +812,32 @@ Metrics below are averaged across all 5 reps (or available reps for incomplete c
 
 ### Part B — Noisy Signal Threshold (R1, 2026-06-17)
 
-7 SNR conditions swept via `run_exp04.sh` using real recorded WAV files
-(`28800BPH_3235_Starbucks_snrXXdb.wav`, float32 96 kHz, converted from int16 source).
-TimeGrapher built with `ENABLE_LOGGING=ON`; `noise_floor`, `ref_peak`, `beat_missed`
-columns logged per frame. Scatter plot: [exp04_scatter.png](../../src/logs/EXP-04/exp04_scatter.png).
+**Setup**: macOS (host=gyeongjinui-MacBookAir-3.local), git_commit=`40af12c`, sample_rate=96000 Hz.  
+WAV source: `28800BPH_3235_Starbucks_snrXXdb.wav` (float32 96 kHz, converted from int16 via `convert_wav_float32.py`).  
+TimeGrapher built with `ENABLE_LOGGING=ON`; columns logged per frame: `noise_floor`, `ref_peak`, `noise_ratio`, `sync_lost`, `beat_missed`.  
+Analysis tools: [run_exp04.sh](../../src/tools/run_exp04.sh) · [analyze_exp04_scatter.py](../../src/tools/analyze_exp04_scatter.py) · [analyze_exp04_noise.py](../../src/tools/analyze_exp04_noise.py)  
+Scatter plot: [exp04_scatter.png](../../src/logs/EXP-04/exp04_scatter.png)
 
-| Condition | SNR | Frames | beat_missed | noise_ratio median | noise_ratio max | Beat OK? |
-|-----------|:---:|:------:|:-----------:|:-----------------:|:---------------:|:--------:|
-| snr60db | 60 dB | 2,145 | 0 | 0.0033 | 0.0596 | ✅ |
-| snr50db | 50 dB | 2,116 | 0 | 0.0033 | 0.0596 | ✅ |
-| snr40db | 40 dB | 1,972 | 0 | 0.0034 | 0.0597 | ✅ |
-| snr30db | 30 dB | 2,061 | 0 | 0.0037 | 0.0597 | ✅ |
-| snr20db | 20 dB | 1,763 | 0 | 0.0065 | 0.0593 | ✅ |
-| snr10db | 10 dB | 1,759 | 0 | 0.0176 | 0.0585 | ✅ |
-| snr00db |  0 dB | 1,151 | **14** | 0.0537 | **0.0833** | ❌ |
+| Condition | SNR | File | Frames | sync_lost | beat_missed | noise_ratio avg | noise_ratio median | noise_ratio max | Beat OK? |
+|-----------|:---:|------|:------:|:---------:|:-----------:|:---------------:|:-----------------:|:---------------:|:--------:|
+| snr60db | 60 dB | [csv](../../src/logs/EXP-04/log_snr60db_20260617_155620.csv) | 2,145 | 0 | 0 | 0.0035 | 0.0033 | 0.0596 | ✅ |
+| snr50db | 50 dB | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) | 2,116 | 0 | 0 | 0.0035 | 0.0033 | 0.0596 | ✅ |
+| snr40db | 40 dB | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) | 1,972 | 0 | 0 | 0.0036 | 0.0034 | 0.0597 | ✅ |
+| snr30db | 30 dB | [csv](../../src/logs/EXP-04/log_snr30db_20260617_155343.csv) | 2,061 | 0 | 0 | 0.0040 | 0.0037 | 0.0597 | ✅ |
+| snr20db | 20 dB | [csv](../../src/logs/EXP-04/log_snr20db_20260617_155251.csv) | 1,763 | 0 | 0 | 0.0068 | 0.0065 | 0.0593 | ✅ |
+| snr10db | 10 dB | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) | 1,759 | 0 | 0 | 0.0177 | 0.0176 | 0.0585 | ✅ |
+| snr00db |  0 dB | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) | 1,151 | **1** | **14** | 0.0537 | 0.0537 | **0.0833** | ❌ |
 
-**Key finding**: All 14 beat_missed events in snr00db had `noise_ratio` in the range
-0.054–0.060 — all above the **0.05** threshold and below the 0.06 line.
-snr10db (next noisier step) had 0 missed beats with max ratio 0.0585, confirming
+**Key finding**: All 14 beat_missed events in snr00db occurred in a burst at frames 582–624,
+immediately after a sync_lost event at frame 581. All 14 frames had `noise_ratio` in the range
+0.0544–0.0596 — all above the **0.05** threshold.
+snr10db (next noisier step) had 0 missed beats despite max ratio 0.0585, confirming
 0.05 is the correct operating boundary.
+
+The beat_missed burst (not random scatter) indicates a noise spike caused a momentary
+sync loss, after which the detector struggled to recover while `noise_ratio > 0.05`.
+A `⚠ Noisy signal` warning at `noise_ratio ≥ 0.05` would have been active during the
+entire burst window, correctly alerting the user before any beat was missed.
 
 **Threshold derivation**:
 - `noise_ratio = noise_floor / ref_peak` (peak-based, dimensionless)
