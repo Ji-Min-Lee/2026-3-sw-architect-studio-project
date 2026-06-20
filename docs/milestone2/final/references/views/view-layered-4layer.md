@@ -15,15 +15,15 @@ This view shows the four-layer module structure of the TimeGrapher system and th
 - Extension point for new audio sources: see [Module View: IAudioSource Dependency Inversion](view-iaudiosource.md).
 
 #### Signal Processing Layer
-- Contains `DSPWorker` [ADR-001], `FilterChain` (LP/HP bandpass), `BeatDetector`, and `tg_process` (external library in `src/external/`).
+- Contains `DSPWorker` [ADR-001], `MeasurementEngine`, `FilterChain` (LP/HP bandpass), `BeatDetector`, and `tg_process` (external library in `src/external/`).
 - `DSPWorker` runs on a dedicated thread (T2); reads PCM blocks from `AudioRingBuffer` via lock-free read.
-- Emits `BeatEvent` (T1/T3 timestamps) to the Domain layer via Qt `QueuedConnection`.
+- `DSPWorker` directly owns `MeasurementEngine` as a member (`DSPWorker.h:37`) and calls `mEngine->processBlock()` within the T2 DSP loop — they form a single T2 pipeline unit.
+- `MeasurementEngine` emits a `Measurement` struct via Qt Signal-Slot to Presentation (cross-thread, `QueuedConnection`).
 
-#### Domain / Engine Layer
-- Contains `MeasurementEngine`, `WatchDiagnostics` (rule-based diagnosis), `WatchExplainer` (Ollama LLM, on-device), and value objects `SignalFrame`, `WatchMetrics`, `AcousticEvent`.
-- `MeasurementEngine` consumes `BeatEvent` objects and computes Rate (s/d), Amplitude (°), Beat Error (ms).
-- Emits a single `Measurement` struct (contains SignalFrame + WatchMetrics + AcousticEvent list) via Qt Signal-Slot to Presentation.
-- No display logic; no direct reference to any graph widget.
+#### Domain Layer
+- Contains pure computation and value objects only: `WatchMath`, `WatchDiagnostics` (rule-based diagnosis), `WatchExplainer` (Ollama LLM, on-device), and VOs `Measurement`, `SignalFrame`, `WatchMetrics`, `AcousticEvent`, `MovementSpec`.
+- No thread ownership, no Qt signal emission, no display logic.
+- `WatchDiagnostics` reads the `Measurement` VO produced by Sig.Proc; `WatchExplainer` reads the diagnosis result.
 
 #### Presentation Layer
 - Contains `GraphTabManager` and all 14 `BaseGraphTab` implementations.
