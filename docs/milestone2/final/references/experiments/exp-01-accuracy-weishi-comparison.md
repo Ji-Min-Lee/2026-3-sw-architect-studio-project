@@ -12,16 +12,18 @@ Verify that TimeChecker (RPi 5, 96 kHz, real microphone) produces Rate, Amplitud
 
 | Metric | Tolerance |
 |--------|:---------:|
-| Δ Rate | < 0.5 s/d |
-| Δ Amplitude | < 5° |
-| Δ Beat Error | < 0.1 ms |
+| Δ Rate | < 0.3 s/d |
+| Δ Amplitude | < 0.01° |
+| Δ Beat Error | 0 ms |
 
 ## Experiment Plan
 
-1. Place the same mechanical watch (28,800 BPH) on WeiShi No.1000 and TimeChecker simultaneously
-2. Run both for ≥ 5 minutes
-3. Record Rate (s/d), Amplitude (°), Beat Error (ms) from both devices
-4. Compute |TimeChecker − WeiShi| for each metric
+> **Note**: Only one watch available — measurements are taken sequentially, not simultaneously. Each round is kept to ≤ 5 minutes to minimize drift between devices.
+
+1. Place the watch on WeiShi No.1000 → run 5 min → record Rate (s/d), Amplitude (°), Beat Error (ms)
+2. Immediately transfer to TimeChecker (RPi 5, 96kHz, real mic) → run 5 min → record same metrics
+3. Repeat steps 1–2 for ≥ 3 rounds to average out short-term rate drift
+4. Compute |TimeChecker avg − WeiShi avg| for each metric across all rounds
 5. Pass if all three deltas are within tolerance
 
 ## Prerequisites

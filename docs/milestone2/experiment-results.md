@@ -33,11 +33,13 @@
 
 ### Experiment Plan
 
-1. Place the same mechanical watch on the WeiShi No.1000 reference device and on the TimeChecker (RPi 5, 96kHz, real microphone) simultaneously
-2. Run both for ≥ 5 minutes
-3. Record Rate (s/d), Amplitude (°), Beat Error (ms) from both devices
-4. Compare: |TimeChecker − WeiShi| for each metric
-5. Pass condition: Δ Rate < 0.5 s/d · Δ Amplitude < 5° · Δ Beat Error < 0.1 ms
+> **Note**: Only one watch available — measurements are taken sequentially, not simultaneously. To minimize drift between rounds, each round is kept to ≤ 5 minutes and the watch is not moved between devices.
+
+1. Place the watch on the WeiShi No.1000 → run for 5 minutes → record Rate (s/d), Amplitude (°), Beat Error (ms)
+2. Immediately transfer the watch to the TimeChecker (RPi 5, 96kHz, real microphone) → run for 5 minutes → record the same metrics
+3. Repeat steps 1–2 for ≥ 3 rounds to average out short-term rate drift
+4. Compare: |TimeChecker avg − WeiShi avg| for each metric across all rounds
+5. Pass condition: Δ Rate < 0.3 s/d · Δ Amplitude < 0.01° · Δ Beat Error = 0 ms
 
 ---
 
