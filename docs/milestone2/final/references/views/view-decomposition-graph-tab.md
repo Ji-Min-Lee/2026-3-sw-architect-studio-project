@@ -1,41 +1,45 @@
 # Decomposition View: Graph Tab
 
-This view decomposes the Presentation layer into its internal components, focusing on the `IGraphTab` interface and the `GraphTabManager` registry. It answers: "What must a developer implement to add a new graph tab?"
+This view decomposes the Presentation layer into its internal components, focusing on the `BaseGraphTab` interface and the `GraphTabManager` registry. It answers: "What must a developer implement to add a new graph tab?"
 
 ![Graph Tab Decomposition View](../../assets/view2-decomposition.png)
 
 ## Element Catalog
 
-#### IGraphTab (interface)
-- Abstract interface that every graph tab must implement.
+#### BaseGraphTab (abstract class / interface)
+- Abstract C++ base class that every graph tab must implement.
 - Key method: `updateData(const Measurement& m)` — called by `GraphTabManager` when a new measurement arrives from `MeasurementEngine`.
-- Optionally overrides `showEvent(QShowEvent*)` to render a catch-up frame when the tab becomes visible (ADR-002 R1).
+- `isVisible()` guard inside `updateData()` skips `replot()` for non-visible tabs (ADR-002 R1), reducing replot/beat from 8.22 to 1.20 (↓85%).
+- Optionally overrides `showEvent(QShowEvent*)` to render a catch-up frame when the tab becomes visible.
 - No direct reference to Signal Processing or Acquisition layers.
 
 #### GraphTabManager
-- Owns the tab widget container and the list of registered `IGraphTab` instances.
+- Owns the tab widget container and the list of registered `BaseGraphTab` instances.
 - Receives `Measurement` signals from `MeasurementEngine` (Domain layer) via Qt Signal-Slot.
 - Iterates registered tabs and calls `updateData()` on each.
 - Single point of tab registration — a new tab is added here and nowhere else.
 
-#### Concrete Tab Implementations (11 tabs)
-Each implements `IGraphTab`:
+#### Concrete Tab Implementations (14 tabs)
+Each extends `BaseGraphTab`:
 
-| Tab Class | Display |
-|-----------|---------|
-| TraceDisplay | Waveform trace |
-| VarioDisplay | Rate deviation (s/d) |
-| BeatErrorDisplay | Beat error (ms) |
-| AmplitudeDisplay | Amplitude (°) |
-| SpectrumDisplay | Frequency spectrum |
-| LongTermTrendDisplay | Long-term rate trend |
-| SequenceDisplay | Beat sequence |
-| DialDisplay | Analog-style dial |
-| RadarDisplay | Multi-metric radar |
-| DiagnosticDisplay | AI diagnostic output |
-| ClassificationDisplay | Watch condition classification |
+| Group | Tab Class | Display |
+|-------|-----------|---------|
+| Signal / Scope | `TraceTab` | Raw waveform trace |
+| | `RateScopeTab` | Rate deviation scope |
+| | `SweepScopeTab` | Sweep oscilloscope |
+| | `FilterScopeTab` | Filtered signal scope |
+| | `BeatNoiseScopeTab` | Beat noise scope |
+| | `SoundPrintTab` | Acoustic fingerprint |
+| Measurement | `VarioTab` | Rate deviation (s/d) |
+| | `BeatErrorTab` | Beat error (ms) |
+| | `EscapementTab` | Escapement analysis |
+| | `LongTermTab` | Long-term rate trend |
+| | `SequenceTab` | Beat sequence |
+| Analysis / AI | `SpectrogramTab` | Frequency spectrogram |
+| | `WaveformCompTab` | Waveform comparison |
+| | `RadarChartTab` | Multi-metric radar |
 
-All 11 tabs were implemented by 2026-06-22.
+All 14 tabs implemented by 2026-06-22.
 
 ## Behavior
 
@@ -47,9 +51,9 @@ MeasurementEngine (Domain)
     ▼
 GraphTabManager::onMeasurement(m)
     │  for each tab in registry
-    ├─▶ TraceDisplay::updateData(m)      [isVisible() guard — ADR-002]
-    ├─▶ VarioDisplay::updateData(m)      [isVisible() guard]
-    └─▶ … (all 11 tabs)
+    ├─▶ TraceTab::updateData(m)        [isVisible() guard — ADR-002]
+    ├─▶ VarioTab::updateData(m)        [isVisible() guard]
+    └─▶ … (all 14 tabs)
 ```
 
 **Tab switch catch-up (ADR-002 R1):**

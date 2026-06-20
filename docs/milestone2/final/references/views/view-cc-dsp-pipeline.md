@@ -6,52 +6,59 @@ This view shows the runtime component-and-connector structure of the audio proce
 
 ## Element Catalog
 
-#### AudioCapture (Audio Thread — T1)
-- ALSA callback component; fires every ~10ms at 96kHz (2048-sample block).
-- Writes raw PCM blocks into `SignalBuffer` (lock-free ring buffer) without blocking.
-- Must complete within the ALSA callback period or the block is dropped.
+#### SessionController (lifecycle owner — cross-cutting)
+- Extracted from `MainWindow` (i1 refactor); owns the T1 and T2 thread lifecycle.
+- Holds `IAudioSource*`, `QThread*` (source thread + DSP thread), `DSPWorker*`, and `AudioRingBuffer`.
+- Exposes `startLive()`, `startPlayback()`, `startSim()`, `stop()` to `MainWindow`.
+- Depends on `IAudioSource` interface, not concrete worker classes — enables adding a new audio source without touching `SessionController`.
 
-#### SignalBuffer (Ring Buffer Connector)
-- Lock-free single-producer / single-consumer PCM ring buffer.
-- Decouples the ALSA audio thread from the DSP worker thread.
-- Eliminates mutex lock contention between T1 (AudioCapture) and T2 (DSPWorker).
+#### IAudioSource / AudioWorker (Audio Source Thread — T1)
+- `IAudioSource` is the abstract interface (`dataReady(int64_t emitTimestampUs)`, `finished()`, `sourceComplete()` signals).
+- `AudioWorker` (ALSA live mic), `PlaybackWorker` (WAV file), `SimWorker` (synthetic signal) each `«realize»` `IAudioSource`.
+- Fires `dataReady` every ~10ms at 96kHz (2048-sample block); writes raw PCM into `AudioRingBuffer`.
+- Must complete within the audio callback period or the block is dropped.
 
-#### DSPWorker (DSP Thread — T2)
+#### AudioRingBuffer (Ring Buffer Connector)
+- Lock-free single-producer / single-consumer PCM ring buffer (i3 refactor replacing mutex-based buffer).
+- Decouples the audio source thread (T1) from the DSP worker thread (T2).
+- Eliminates mutex lock contention between T1 and T2.
+
+#### DSPWorker (DSP Thread — T2) [ADR-001]
 - Dedicated Qt thread introduced by ADR-001.
-- Reads PCM blocks from `SignalBuffer`; runs `FilterChain` → `BeatDetector`.
+- Reads PCM blocks from `AudioRingBuffer`; calls `tg_process()` which runs `FilterChain` → `BeatDetector`.
 - Emits `BeatEvent` (T1/T3 timestamps) via Qt `QueuedConnection` to `MeasurementEngine`.
 - Runs on a separate CPU core from the Qt GUI thread; eliminates single-core saturation.
 
 #### MeasurementEngine (Qt Main Thread)
 - Receives `BeatEvent` via Qt `QueuedConnection` (cross-thread signal delivery).
 - Computes Rate (s/d), Amplitude (°), Beat Error (ms), BPH.
-- Emits `Measurement` struct to all registered `IGraphTab` instances.
+- Emits `Measurement` struct (SignalFrame + WatchMetrics + AcousticEvent list) to all registered tabs.
 
-#### GraphTabManager / IGraphTab (Qt Main Thread)
-- Receives `Measurement`; calls `updateData()` on each tab.
-- `isVisible()` guard (ADR-002 R1) skips `update()` for non-visible tabs.
+#### GraphTabManager / BaseGraphTab (Qt Main Thread)
+- Receives `Measurement`; calls `updateData()` on each of the 14 `BaseGraphTab` instances.
+- `isVisible()` guard (ADR-002 R1) skips `replot()` for non-visible tabs.
 
 ## Behavior
 
 **Normal beat processing path:**
 
 ```
-ALSA callback (T1, ~10ms period)
+IAudioSource / AudioWorker (T1, ~10ms period)
     │  write PCM block
     ▼
-SignalBuffer (lock-free ring buffer)
+AudioRingBuffer (lock-free SPSC ring buffer)
     │  read PCM block
     ▼
-DSPWorker (T2, separate core)
-    │  FilterChain → BeatDetector → BeatEvent{T1_ts, T3_ts}
+DSPWorker (T2, separate core) [ADR-001]
+    │  tg_process() → FilterChain → BeatDetector → BeatEvent{T1_ts, T3_ts}
     │  Qt QueuedConnection (cross-thread)
     ▼
 MeasurementEngine (Qt main thread)
     │  compute Rate / Amplitude / Beat Error
-    │  Qt Signal
+    │  Qt Signal: measurement(Measurement)
     ▼
-GraphTabManager → IGraphTab::updateData(m)
-    │  isVisible() guard (R1)
+GraphTabManager → BaseGraphTab::updateData(m)
+    │  isVisible() guard (R1) [ADR-002]
     └─▶ update() → paintEvent() → replot()
 ```
 

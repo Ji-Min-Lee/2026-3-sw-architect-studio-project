@@ -1,29 +1,38 @@
 # Layered View: 4-Layer Allowed-to-Use
 
-This view shows the four-layer module structure of the TimeGrapher system and the allowed dependency directions between layers. It is the primary tool for enforcing modifiability: any new graph tab must be added to Presentation only, with zero changes to lower layers.
+This view shows the four-layer module structure of the TimeGrapher system and the allowed dependency directions between layers. It is the primary tool for enforcing modifiability: any new graph tab must be added to Presentation only, with zero changes to lower layers. A new audio source requires implementing `IAudioSource` only, with zero changes to `SessionController` or above.
 
 ![4-Layer Allowed-to-Use View](../../assets/view1-layered-module.png)
 
 ## Element Catalog
 
+#### UI Coordinator (cross-cutting — not a numbered layer)
+- Contains `MainWindow` (Qt top-level window), `SessionController` (owns T1+T2 thread lifecycle), and `DiagnosisDialog`.
+- `SessionController` was extracted from `MainWindow` (i1 refactor) to reduce MainWindow from ~949 to ~750 lines.
+- `SessionController` depends on `IAudioSource` (Acquisition layer) via dependency inversion; it has no knowledge of concrete worker types.
+
 #### Acquisition Layer
-- Contains `AudioCapture` — the ALSA callback handler that reads PCM blocks from the microphone.
-- Writes raw PCM samples into the `SignalBuffer` ring buffer.
-- Has no knowledge of signal processing algorithms or domain concepts.
+- Contains `IAudioSource` (abstract Qt interface), `AudioWorker` (live mic, ALSA), `PlaybackWorker` (WAV file), `SimWorker` (synthetic signal), and `AudioRingBuffer` (lock-free SPSC ring buffer).
+- Each concrete worker `«realize»` `IAudioSource`; `SessionController` depends on the interface only.
+- `AudioRingBuffer` decouples the audio source thread (T1) from the DSP thread (T2) without mutex lock contention.
+- Adding a new audio source = implement `IAudioSource` only; zero changes to `SessionController` or Signal Processing.
 
 #### Signal Processing Layer
-- Contains `FilterChain` (LP/HP bandpass), `BeatDetector`, and `DSPWorker`.
-- `DSPWorker` runs on a dedicated thread (ADR-001 T2); reads from `SignalBuffer` via lock-free ring buffer.
+- Contains `DSPWorker` [ADR-001], `FilterChain` (LP/HP bandpass), `BeatDetector`, and `tg_process` (external library in `src/external/`).
+- `DSPWorker` runs on a dedicated thread (T2); reads PCM blocks from `AudioRingBuffer` via lock-free read.
 - Emits `BeatEvent` (T1/T3 timestamps) to the Domain layer via Qt `QueuedConnection`.
 
-#### Domain Layer
-- Contains `MeasurementEngine`, which consumes `BeatEvent` objects and computes Rate (s/d), Amplitude (°), and Beat Error (ms).
-- Emits a single `Measurement` struct via Qt Signal-Slot to all subscribers in Presentation.
+#### Domain / Engine Layer
+- Contains `MeasurementEngine`, `WatchDiagnostics` (rule-based diagnosis), `WatchExplainer` (Ollama LLM, on-device), and value objects `SignalFrame`, `WatchMetrics`, `AcousticEvent`.
+- `MeasurementEngine` consumes `BeatEvent` objects and computes Rate (s/d), Amplitude (°), Beat Error (ms).
+- Emits a single `Measurement` struct (contains SignalFrame + WatchMetrics + AcousticEvent list) via Qt Signal-Slot to Presentation.
 - No display logic; no direct reference to any graph widget.
 
 #### Presentation Layer
-- Contains `GraphTabManager` and all 11 `IGraphTab` implementations (TraceDisplay, VarioDisplay, BeatErrorDisplay, …).
+- Contains `GraphTabManager` and all 14 `BaseGraphTab` implementations.
+- **14 tabs**: TraceTab, RateScopeTab, SweepScopeTab, FilterScopeTab, BeatNoiseScopeTab, SoundPrintTab, VarioTab, BeatErrorTab, EscapementTab, LongTermTab, SequenceTab, SpectrogramTab, WaveformCompTab, RadarChartTab.
 - Each tab subscribes to `MeasurementEngine`'s signal and calls `updateData(Measurement)`.
+- `isVisible()` guard (ADR-002 R1) skips `replot()` for non-visible tabs.
 - Allowed to reference Domain only; references to Signal Processing or Acquisition are forbidden.
 
 ## Behavior
@@ -44,11 +53,20 @@ Presentation       →  Domain (receives Measurement struct)
 
 | Step | File | Count |
 |------|------|:-----:|
-| Implement `IGraphTab` subclass | `GraphFoo.cpp` + `GraphFoo.h` | 1–2 |
+| Implement `BaseGraphTab` subclass | `FooTab.cpp` + `FooTab.h` | 1–2 |
 | Register in tab manager | `GraphTabManager.cpp` | 1 |
 | **Total** | | **≤ 3** |
 
 Zero changes to Domain, Signal Processing, or Acquisition layers required.
+
+**Adding a new audio source** (IAudioSource rule):
+
+| Step | File | Count |
+|------|------|:-----:|
+| Implement `IAudioSource` subclass | `NetworkWorker.cpp` + `NetworkWorker.h` | 1–2 |
+| **Total** | | **≤ 2** |
+
+Zero changes to `SessionController`, DSPWorker, or any other component required.
 
 ## Related ADRs
 
@@ -57,5 +75,6 @@ Zero changes to Domain, Signal Processing, or Acquisition layers required.
 
 ## Related views
 
-- [Decomposition View: Graph Tab](view-decomposition-graph-tab.md) — refinement of the Presentation layer; shows internal structure of a single `IGraphTab`
+- [Decomposition View: Graph Tab](view-decomposition-graph-tab.md) — refinement of the Presentation layer; shows internal structure of a single `BaseGraphTab`
 - [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — runtime view of the Acquisition ↔ Signal Processing boundary (ring buffer + thread)
+- [Module View: IAudioSource Dependency Inversion](view-iaudiosource.md) — AS-IS vs TO-BE comparison of the audio source extension point (QAS-3)
