@@ -12,7 +12,7 @@
 
 | Sprint | Focus | Key Outcome |
 |--------|-------|-------------|
-| W2 S1 (6/9–6/10) | Modifiability | 4-Layer structure established + all 11 tabs ✅ |
+| W2 S1 (6/9–6/10) | Modifiability | 4-Layer structure established + all 14 tabs ✅ |
 | W2 S2 (6/11–6/12) | Deployability | `run_exp.sh` + CSV logger + RPi workflow confirmed |
 | W3 S1 (6/16–6/17) | Real-Time / Latency | EXP-02 complete · ADR-001/002 accepted |
 | W3 S2 (6/18–6/19) | Correctness under Noise | EXP-03/05 in progress |

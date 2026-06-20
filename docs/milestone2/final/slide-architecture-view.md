@@ -93,11 +93,13 @@ Row = **used module** (depended upon) · Column = **using module** (depends on) 
 
 ![IAudioSource Dependency Inversion](assets/view5-iaudiosource.png)
 
+3 concrete sources exist: `AudioWorker` (mic) · `PlaybackWorker` (file) · `SimWorker` (simulation)
+
 | | AS-IS | TO-BE |
 |---|-------|-------|
-| Extension point | Modify `MainWindow` + `AudioManager` + `DSPWorker` | Implement `IAudioSource` only |
-| `connect()` blocks | 3 (one per concrete worker) | 1 (via interface) |
-| Adding `NetworkWorker` | 3+ file changes | **≤ 2 files** |
+| `connect()` blocks | 3 (one per concrete worker, scattered) | **1** (unified in `SessionController`) |
+| Changing audio wiring | Touch multiple files | **1 place** |
+| Readability | Duplicated logic per source | Single interface contract |
 
 → Full view: [view-iaudiosource.md](references/views/view-iaudiosource.md)
 
