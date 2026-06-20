@@ -36,32 +36,23 @@ EXP-04 (warning threshold) ─────────┘
 
 ### Run History
 
-> Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline = 21.33 ms at 96k.  
-> The 30 s buffer absorbs all deadline-exceeded frames → Dropped stays 0.  
-> **96k sps = QAS-1 target.** Table shows 96k figures only; full 3-sps data in linked files.
+> Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline: 48k=42.67 ms · **96k=21.33 ms** · 192k=10.67 ms.  
+> The 30 s buffer absorbs all deadline-exceeded frames → Dropped stays 0 in all cases.  
+> 3 runs (scheduling configs), each covering all 3 sps = **9 measurements total**.
 
-| Run | Date | Scheduling | 96k exec avg/max (ms) | exec > deadline | Dropped | Data (96k) |
-|:---:|------|-----------|:---------------------:|:---------------:|:-------:|:----------:|
-| E1-01 | 2026-06-15 | default | 9.6 / 39.2 | 8.1 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
-| E1-02 | 2026-06-15 | SCHED_RR p50 | 9.8 / 39.9 | 8.4 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
-| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 9.9 / 41.4 | 8.6 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
+| Run | Date | Scheduling | sps | exec avg/max (ms) | exec > deadline | Dropped | Data |
+|:---:|------|-----------|:---:|:-----------------:|:---------------:|:-------:|:----:|
+| E1-01 | 2026-06-15 | default | 48k | 5.8 / 36.6 | 4.9 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_203222_48000_default.png) |
+| E1-01 | 2026-06-15 | default | **96k** ★ | **9.6 / 39.2** | **8.1 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
+| E1-01 | 2026-06-15 | default | 192k | 15.8 / 51.6 | 12.1 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_210310_192000_default.png) |
+| E1-02 | 2026-06-15 | SCHED_RR p50 | 48k | 6.9 / 37.5 | 6.6 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_203730_48000_rr.png) |
+| E1-02 | 2026-06-15 | SCHED_RR p50 | **96k** ★ | **9.8 / 39.9** | **8.4 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
+| E1-02 | 2026-06-15 | SCHED_RR p50 | 192k | 16.0 / 61.7 | 12.5 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_210818_192000_rr.png) |
+| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 48k | 7.2 / 35.2 | 6.9 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.png) |
+| E1-03 | 2026-06-15 | SCHED_FIFO p50 | **96k** ★ | **9.9 / 41.4** | **8.6 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
+| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 192k | 16.0 / 52.1 | 12.5 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.png) |
 
-<details>
-<summary>All sps data (48k / 96k / 192k) per run</summary>
-
-| Run | sps | csv | plot |
-|:---:|:---:|-----|------|
-| E1-01 | 48k | [csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_203222_48000_default.png) |
-| E1-01 | 96k | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
-| E1-01 | 192k | [csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_210310_192000_default.png) |
-| E1-02 | 48k | [csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_203730_48000_rr.png) |
-| E1-02 | 96k | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
-| E1-02 | 192k | [csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_210818_192000_rr.png) |
-| E1-03 | 48k | [csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.png) |
-| E1-03 | 96k | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
-| E1-03 | 192k | [csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.png) |
-
-</details>
+★ = QAS-1 target sps
 
 ### Conclusion
 
