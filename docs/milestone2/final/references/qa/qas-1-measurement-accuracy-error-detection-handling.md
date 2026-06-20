@@ -21,5 +21,5 @@ BPH coverage narrowed to 28,800 BPH for M3. Full range (18,000–36,000 BPH) is 
 - [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md)
 - [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md)
 - [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md)
-- [EXP-02: Pipeline Latency](../experiments/exp-02-pipeline-latency.md)
-- [EXP-03: Filter Sweep](../experiments/exp-03-filter-sweep.md)
+- [EXP-02: Pipeline Latency](../experiments/exp-02-realtime-deadline-compliance.md)
+- [EXP-03: Filter Sweep](../experiments/exp-03-filter-tuning-noise-accuracy.md)

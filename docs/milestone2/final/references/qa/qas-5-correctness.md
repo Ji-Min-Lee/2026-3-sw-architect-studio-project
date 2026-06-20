@@ -29,4 +29,4 @@ EXP-03 (06/25) determines final LP/HP cutoff constants. Until then, default valu
 
 - [QA Priority Summary](README.md)
 - [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — sample rate and Beat Error resolution
-- [EXP-03: Filter Sweep](../experiments/exp-03-filter-sweep.md)
+- [EXP-03: Filter Sweep](../experiments/exp-03-filter-tuning-noise-accuracy.md)

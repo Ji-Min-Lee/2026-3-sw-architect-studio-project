@@ -1,52 +1,54 @@
-# Wrap-up M1 & Intro
+# Section 1 — Wrap-up M1 & Intro
 
 ← [Presentation Index](README.md) | Next: [Architecture Views →](slide-architecture-view.md)
 
+> **발표 시간**: ~3분 | 목표: M1 피드백 반영 확인 → 이번 발표 목표 설정 → ARS 관점으로 전환
+
 ---
 
-## 1. M1 Feedback & Improvements
+## 1-A. M1 Feedback — What We Fixed
 
-### What We Fixed
+> 📢 **PRESENT** (매우 짧게 — 항목당 한 문장)
 
 | Area | M1 Issue | M2 Fix |
 |------|----------|--------|
-| Project Plan | No owner/date. Experiments not tracked. No Kanban link | Owner + date on every task. Experiments as GitHub issues → [Board](references/github-project-status.md) |
-| Architecture Diagrams | Source unlabeled. Too detailed | Purpose-driven views: each view targets a specific reader and quality attribute |
-| Architectural Drivers | Tactics mixed into QA doc. Provisional numbers. Solution language | Structured by type and item under `references/` — separate files per QA, risk, experiment, ADR |
-| Experiments | 1 of 9 risks linked. None started | Short sprints with fast decide → execute → feedback loops — all experiments completed on schedule |
-| Navigation | No README. No cross-links | [README.md](README.md) added as entry point with document structure |
+| Project Plan | No owner/date. Experiments not tracked | Owner + date on every task. Experiments as GitHub issues |
+| Architecture Diagrams | Source unlabeled. Too detailed | Purpose-driven views: each view targets a specific reader and QA |
+| Architectural Drivers | Tactics mixed into QA doc. Provisional numbers | Structured under `references/` — separate files per QA / risk / experiment / ADR |
+| Experiments | 1 of 9 risks linked. None started | Short sprints with decide → execute → feedback loops — all scheduled experiments completed |
+| Navigation | No README. No cross-links | [README.md](README.md) as entry point; all docs cross-linked |
 
-### Updated Presentation Goals
+---
 
-Two concrete targets for this presentation:
+## 1-B. Updated Presentation Goals
+
+> 📢 **PRESENT**
 
 | Goal | Measure |
 |------|---------|
 | **Accuracy** | Every architectural claim is backed by experiment data or ADR evidence |
-| **On-time delivery** | Architecture decisions support staying on schedule — M2 deliverables complete by 06/22; Final demo on 07/01 |
+| **On-time delivery** | M2 deliverables complete by 06/22 · Final demo on 07/01 |
 
 ---
 
-## 2. Our Goals
+## 1-C. What This Presentation Covers
 
-> The architecture exists to serve these goals — every structural decision can be traced back to one of them.
+> 📢 **PRESENT** — 전환 슬라이드
 
-### Goal Map
+M2 진행사항을 세 개의 QA 우선순위 + 구조적 enabler 중심으로 설명합니다.
 
-| Category | Goal | Quality Attribute |
-|----------|------|-------------------|
-| **Accuracy** | Computed Rate / Amplitude / Beat Error must match Witschi within tolerance | [**Measurement Accuracy, Error Detection, and Handling**](references/qa/qas-1-measurement-accuracy-error-detection-handling.md) ← governing |
-| | Pipeline must process beats without missing the 21ms deadline | [Real Time Performance](references/qa/qas-2-real-time-performance.md) |
-| | Capture-to-detect latency must be low enough for correct timestamps | [Low Latency and Low Number of Missed Beats](references/qa/qas-3-low-latency-and-low-number-of-missed-beats.md) |
-| | Correct results even under noise | [Correctness](references/qa/qas-5-correctness.md) |
-| **On-Schedule Delivery** | Shorten dev machine ↔ RPi deploy cycle | Deployability |
-| | Apply architecture decisions fast enough to stay on schedule | [Extensibility, Modifiability](references/qa/qas-4-extensibility-modifiability.md) |
-| **Usability** | Inputs the system cannot handle must be clearly communicated | Usability |
+| 우선순위 | QA | 대응 View |
+|---------|-----|----------|
+| **1st** | [QAS-1 Measurement Accuracy](references/qa/qas-1-measurement-accuracy-error-detection-handling.md) ← governing | 모든 view의 목표 |
+| **2nd** | [QAS-2 Real-Time Performance](references/qa/qas-2-real-time-performance.md) | C&C: DSP Pipeline |
+| **3rd** | [QAS-3 Low Latency](references/qa/qas-3-low-latency-and-low-number-of-missed-beats.md) | C&C: DSP Pipeline |
+| **4th** | [QAS-4 Extensibility / Modifiability](references/qa/qas-4-extensibility-modifiability.md) | Layered, Decomposition, IAudioSource |
+| Enabler | Deployability | Deployment: Build-Deploy Pipeline |
 
-### QA Priority Order and Governing Goal
+→ 각 architecture view는 해당 QA 시나리오 · 실험 · ADR과 직접 연결됩니다.
 
-→ Full priority rationale, QAS scenarios, and traceability matrix: [references/qa/](references/qa/README.md)
+---
 
-### What This Presentation Covers
+*Reference only — not presented:*
 
-M2 progress is organized around three quality attribute priorities — **Accuracy** ([QAS-1](references/qa/qas-1-measurement-accuracy-error-detection-handling.md)), **Real-time Performance** ([QAS-2](references/qa/qas-2-real-time-performance.md)), **Latency** ([QAS-3](references/qa/qas-3-low-latency-and-low-number-of-missed-beats.md)) — plus **Extensibility** ([QAS-4](references/qa/qas-4-extensibility-modifiability.md)) as a structural enabler. Each architecture view links directly to the QA scenario, experiment, and ADR that motivated it.
+- Full QA priority rationale and traceability matrix: [references/qa/](references/qa/README.md)

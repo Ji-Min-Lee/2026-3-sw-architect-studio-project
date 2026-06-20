@@ -25,11 +25,11 @@
 
 | ID | Experiment | Status | Key Result |
 |----|------------|:------:|------------|
-| [EXP-01](references/experiments/exp-01-sample-rate.md) | RPi sample rate sustainability | ✅ 06/15 | Dropped=0 at 96kHz → [ADR-003](references/adr/ADR-003-sample-rate-selection.md) Accepted |
-| [EXP-02](references/experiments/exp-02-pipeline-latency.md) E2-5/6 | T2+R1 on RPi | ✅ 06/15 | E2E avg **2.05 ms**, 0 deadline miss |
-| [EXP-02](references/experiments/exp-02-pipeline-latency.md) E2-7 | FG scheduling latency | ✅ 06/16 | fg_wait avg **60.1 ms**, 84% > deadline 🔴 |
-| [EXP-03](references/experiments/exp-03-filter-sweep.md) | LP/HP filter sweep | ⏳ | Target 06/25 |
-| [EXP-05](references/experiments/exp-05-rendering-fps.md) | Qt 11-tab FPS on RPi | ⏳ | Target 06/26 |
+| [EXP-01](references/experiments/exp-01-high-res-sampling-beat-error.md) | RPi sample rate sustainability | ✅ 06/15 | Dropped=0 at 96kHz → [ADR-003](references/adr/ADR-003-sample-rate-selection.md) Accepted |
+| [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) E2-5/6 | T2+R1 on RPi | ✅ 06/15 | E2E avg **2.05 ms**, 0 deadline miss |
+| [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) E2-7 | FG scheduling latency | ✅ 06/16 | fg_wait avg **60.1 ms**, 84% > deadline 🔴 |
+| [EXP-03](references/experiments/exp-03-filter-tuning-noise-accuracy.md) | LP/HP filter sweep | ⏳ | Target 06/25 |
+| [EXP-05](references/experiments/exp-05-rendering-realtime-impact.md) | Qt 11-tab FPS on RPi | ⏳ | Target 06/26 |
 
 **Critical open risk**: FG scheduling (TR-10) — E2-8 측정 예정 (W4 S1)
 

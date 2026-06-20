@@ -56,7 +56,7 @@ eliminates the backlog and distributes load across cores.
 | Module structure change | None | Ring buffer added | Full pipeline redesign |
 | M2 feasibility | ✅ Immediate | ✅ Feasible | ⚠️ High risk |
 
-**T1 rejected**: Improves OS scheduling jitter but does not reduce exec_ms or eliminate single-core saturation. [EXP-01](../experiments/exp-01-sample-rate.md) confirmed SCHED_RR showed no improvement in Dropped Block count — T1 applied to the audio capture thread is not required. May be added on top of T2 as a supplementary measure for the FG thread (TR-10) but cannot replace T2.
+**T1 rejected**: Improves OS scheduling jitter but does not reduce exec_ms or eliminate single-core saturation. [EXP-01](../experiments/exp-01-high-res-sampling-beat-error.md) confirmed SCHED_RR showed no improvement in Dropped Block count — T1 applied to the audio capture thread is not required. May be added on top of T2 as a supplementary measure for the FG thread (TR-10) but cannot replace T2.
 
 **T3 rejected**: Provides higher parallelism but introduces three inter-stage queues and significantly higher design complexity. M2 deadline risk rated High. Deferred to post-M3 consideration.
 

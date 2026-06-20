@@ -42,7 +42,7 @@ Deferred unless EXP-01 produces an unexpectedly favorable result.
 
 **Accepted** (2026-06-15)
 
-EXP-01 RPi result confirmed — [EXP-01: Verifying Sustained High-Resolution Sampling on RPi 5 for Beat Error Timestamp Resolution](../experiments/exp-01-sample-rate.md).
+EXP-01 RPi result confirmed — [EXP-01: Verifying Sustained High-Resolution Sampling on RPi 5 for Beat Error Timestamp Resolution](../experiments/exp-01-high-res-sampling-beat-error.md).
 Transitioned from Proposed to Accepted on 2026-06-15 (2 days ahead of target).
 
 ## Consequences
