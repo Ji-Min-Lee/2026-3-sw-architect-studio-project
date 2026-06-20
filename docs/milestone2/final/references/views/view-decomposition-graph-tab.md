@@ -77,7 +77,7 @@ Three phases (autonumbered UML sequence; lifelines left → right: **User** · Q
 
 1. **Register observers (once)** — `MainWindow` → `SessionController.connectObservers()`; stores `mObserverTabs` only (no `connect` yet)
 2. **Wire signal-slot (per session)** — **User** `Start()` → each session start registers Qt `connect()`: `MeasurementEngine::measurementReady` → `BaseGraphTab::onMeasurement` (×14) and → `MainWindow::onMeasurementReady()`; `QueuedConnection` (DSP Thread → Main Thread)
-3. **Deliver measurement (per DSP block)** — **Mic** `PCM samples` → DSP Thread `processBlock()` / `measurementReady()` → Main Thread `onMeasurement()` ×14 + `onMeasurementReady()` (`{duration}` `tg_us`, `wait_ms` — EXP-02)
+3. **Deliver measurement (per DSP block)** — **Mic** `PCM samples` → DSP Thread `processBlock()` → Main Thread `onMeasurement()` ×14 + `onMeasurementReady()` (`{duration}` `tg_us`, `wait_ms` — EXP-02)
 
 > Source: [`../../assets/view2b-observer-runtime.puml`](../../assets/view2b-observer-runtime.puml) · Cross-thread via `QueuedConnection` (see [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md))
 
@@ -137,7 +137,6 @@ Mic                                      [Acquisition]
     │  PCM samples
     ▼
 MeasurementEngine::processBlock()          [DSP Thread]
-    │  measurementReady()                  [emit on DSP Thread]
     ▼  QueuedConnection → Qt Main Thread
     ├─▶ BaseGraphTab::onMeasurement()      [×14 tabs; isVisible() guard — ADR-002]
     └─▶ MainWindow::onMeasurementReady()   [DisplayResults()]

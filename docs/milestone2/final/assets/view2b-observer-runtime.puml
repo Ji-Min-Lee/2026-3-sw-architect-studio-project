@@ -86,7 +86,6 @@ note over ME
   processBlock()
   {duration} tg_us
   builds Measurement snapshot
-  emit measurementReady()
 end note
 
 note over ME, Tab
