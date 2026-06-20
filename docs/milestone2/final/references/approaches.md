@@ -2,7 +2,7 @@
 
 **Team**: Blue Sky (Team 3) | **Milestone**: M2 | **Date**: 2026-06-22
 
-Based on EXP-02 results (RPi real-time FAIL — 43% deadline miss), this document defines and compares architectural alternatives to meet [QAS-1 (Real Time Performance)](qa.md#qas-1-real-time-performance--priority-2) and [QAS-2 (Low Latency and Low Number of Missed Beats)](qa.md#qas-2-low-latency-and-low-number-of-missed-beats--priority-3). Two independent decisions are analyzed, each with three options. The chosen combination is reflected in the ADRs and Construction Plan.
+Based on EXP-02 results (RPi real-time FAIL — 43% deadline miss), this document defines and compares architectural alternatives to meet [QAS-1 (Real Time Performance)](qa/qas-2-real-time-performance.md) and [QAS-2 (Low Latency and Low Number of Missed Beats)](qa/qas-3-low-latency-and-low-number-of-missed-beats.md). Two independent decisions are analyzed, each with three options. The chosen combination is reflected in the ADRs and Construction Plan.
 
 ---
 

@@ -20,7 +20,7 @@ View document
   ├── Design Rationale → ADR (decision + trade-off)
   └── Related Views → other view files
         ↑
-        linked from QA scenario (references/qa.md)
+        linked from QA scenario (references/qa/)
         linked from Experiment (references/experiments/)
 ```
 

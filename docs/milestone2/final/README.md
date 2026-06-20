@@ -26,7 +26,7 @@ docs/milestone2/final/
 ├── assets/                       ← view diagrams (.drawio source + .png export)
 │
 └── references/
-    ├── qa.md                     ← QA scenarios, priority rationale, traceability matrix
+    ├── qa/                       ← one file per QA scenario (index: qa/README.md)
     ├── approaches.md             ← architectural approaches + trade-offs
     ├── risks.md                  ← risk register
     ├── views/                    ← one file per architecture view (Merson 7-section template)
