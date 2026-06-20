@@ -1,14 +1,12 @@
 # Decomposition View: Graph Tab
 
-This view decomposes the Presentation layer into its internal components, focusing on the `BaseGraphTab` interface and the `GraphTabManager` registry. It answers: "What must a developer implement to add a new graph tab?"
+This view decomposes the Presentation layer into its internal components, focusing on the `BaseGraphTab` interface and the `MainWindow` tab registry. It answers: "What must a developer implement to add a new graph tab?"
 
 ![Graph Tab Decomposition View](../../assets/view2-decomposition.png)
 
-## Module Relationships (Class Diagram)
+## Static Module Structure
 
-![Observer Pattern — Module View](../../assets/view2b-observer-module.png)
-
-> Source (editable): [view2b-observer-module.drawio](../../assets/view2b-observer-module.drawio)
+**Observer pattern — static structure** (Subject, Observer, wiring coordinator; compile-time contracts):
 
 ```mermaid
 classDiagram
@@ -20,81 +18,93 @@ classDiagram
         <<abstract, Observer>>
         +onMeasurement(m Measurement)*
         +replotAll()*
-        +isPaused() bool
         #mPaused bool
-        #showEvent(QShowEvent)*
     }
-    class TraceTab { +onMeasurement(m) }
-    class VarioTab { +onMeasurement(m) }
-    class BeatErrorTab { +onMeasurement(m) }
-    class EscapementTab { +onMeasurement(m) }
-    class LongTermTab { +onMeasurement(m) }
-    class OtherTabs["... + 9 more tabs"]
+    class TraceTab
+    class VarioTab
+    class BeatErrorTab
+    class OtherTabs["... + 11 more tabs"]
     class Measurement {
         <<Value Object>>
     }
     class WatchMetrics {
-        rate_spd: float
-        amplitude_deg: float
-        beatError_ms: float
-        bph: int
+        rate_spd, amplitude_deg
+        beatError_ms, bph
     }
     class SignalFrame {
         samples: PCMBlock
         timestamp: uint64
     }
     class AcousticEvent {
-        t1: uint64
-        t3: uint64
+        t1, t3: uint64
     }
     class MainWindow {
         +mAllTabs List~BaseGraphTab~
-        +registerTab(T tab, label)
+        +registerTab(tab, label)
+        +onMeasurementReady(m Measurement)
+        -mSession SessionController
     }
     class SessionController {
-        +startSourceThread()
+        <<wiring coordinator>>
+        +connectObservers(tabs, receiver, slot)
+        -mObserverTabs List~BaseGraphTab~
     }
 
-    MeasurementEngine ..> BaseGraphTab : «notify»
     MeasurementEngine ..> Measurement : «creates»
-    SessionController ..> MeasurementEngine : wires signal
-    SessionController ..> BaseGraphTab : iterates mAllTabs
-    Measurement *-- WatchMetrics : 1
-    Measurement *-- SignalFrame : 1
-    Measurement *-- AcousticEvent : 0..*
+    Measurement *-- WatchMetrics
+    Measurement *-- SignalFrame
+    Measurement *-- AcousticEvent
     BaseGraphTab <|-- TraceTab
     BaseGraphTab <|-- VarioTab
     BaseGraphTab <|-- BeatErrorTab
-    BaseGraphTab <|-- EscapementTab
-    BaseGraphTab <|-- LongTermTab
     BaseGraphTab <|-- OtherTabs
     MainWindow o-- BaseGraphTab : mAllTabs[*]
+    MainWindow *-- SessionController : mSession
+    MainWindow ..> SessionController : connectObservers(mAllTabs)
+    SessionController ..> BaseGraphTab : «uses» mObserverTabs
+    SessionController ..> MeasurementEngine : «uses» at connect
 ```
 
-**Relationship key:**
-- `..>` **Dependency** — source uses target but does not own it
-  - `«notify»` — MeasurementEngine emits Qt signal received by BaseGraphTab slots
-  - `«creates»` — MeasurementEngine constructs and owns each Measurement instance
-- `<|--` **Inheritance** — concrete tab extends abstract BaseGraphTab (hollow triangle points to parent)
-- `*--` **Composition** — Measurement owns its VO fields; they do not outlive the Measurement
-- `o--` **Aggregation** — MainWindow holds a reference list; Qt parent hierarchy owns lifetime
+> No compile-time link `MeasurementEngine → BaseGraphTab`. `SessionController` is the wiring coordinator — it stores `mObserverTabs` and applies `connect()` at session start (sequence below). Per-beat delivery remains Qt signal-slot only.
 
-> `SessionController` appears here to document the wiring role only. It is not an Observer itself — it calls `connect()` once at session start and does not appear in the per-beat data path.
+## Runtime Wiring
+
+**Runtime wiring** — [TimeGrapher Observer Runtime Sequence](../../assets/view2b-observer-runtime.puml):
+
+![TimeGrapher Observer Runtime Sequence](../../assets/view2b-observer-runtime.png)
+
+Three phases (autonumbered UML sequence, same participants as static view):
+
+1. **Register observers (once)** — `MainWindow` → `SessionController.connectObservers()`; stores `mObserverTabs` only (no `connect` yet)
+2. **Wire signal-slot (per session)** — `startLive()` / `startPlayback()` / `startSim()` → loop `connect()` ×14 tabs + `MainWindow`; `QueuedConnection` applied here
+3. **Deliver measurement (per DSP block)** — DSP Thread: `processBlock()` → `measurementReady()` async → Main: `onMeasurement()` ×14 + `onMeasurementReady()` (`{duration}` `tg_us`, `wait_ms` — EXP-02)
+
+> Source: [`../../assets/view2b-observer-runtime.puml`](../../assets/view2b-observer-runtime.puml) · Threads: **Qt Main Thread** / **DSP Thread** · Cross-thread via `QueuedConnection` (see [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md))
+
+## Effects
+
+- `MeasurementEngine` has **zero compile-time knowledge of tabs** — emits signal only; `SessionController` wires the abstract `onMeasurement` slot → Subject and Observer decoupled at build time
+- All 14 tabs inherit `BaseGraphTab` → same `onMeasurement()` contract, same `isVisible()` lazy-render guard, same `showEvent()` catch-up frame
+- Adding a new tab = 1 new subclass + 3 lines in `MainWindow` → zero changes to `MeasurementEngine` or any other tab (ADR-006)
+- `Measurement` is composed of immutable VOs — tabs receive a read-only snapshot → correctness guaranteed
 
 ## Element Catalog
 
 #### BaseGraphTab (abstract class / interface)
 - Abstract C++ base class that every graph tab must implement.
-- Key method: `updateData(const Measurement& m)` — called by `GraphTabManager` when a new measurement arrives from `MeasurementEngine`.
-- `isVisible()` guard inside `updateData()` skips `replot()` for non-visible tabs (ADR-002 R1), reducing replot/beat from 8.22 to 1.20 (↓85%).
-- Optionally overrides `showEvent(QShowEvent*)` to render a catch-up frame when the tab becomes visible.
+- Key slot: `onMeasurement(const Measurement& m)` — wired from `MeasurementEngine::measurementReady` via `SessionController`.
+- `isVisible()` guard inside `onMeasurement()` skips `replot()` for non-visible tabs (ADR-002 R1), reducing replot/beat from 8.22 to 1.20 (↓85%).
+- `showEvent()` triggers `replotAll()` for a catch-up frame when the tab becomes visible.
 - No direct reference to Signal Processing or Acquisition layers.
 
-#### GraphTabManager
-- Owns the tab widget container and the list of registered `BaseGraphTab` instances.
-- Receives `Measurement` signals from `MeasurementEngine` (Domain layer) via Qt Signal-Slot.
-- Iterates registered tabs and calls `updateData()` on each.
-- Single point of tab registration — a new tab is added here and nowhere else.
+#### MainWindow (tab registry + results observer)
+- Owns `mAllTabs` and `registerTab()` — single point of tab registration (replaces legacy `GraphTabManager`).
+- Calls `SessionController::connectObservers(mAllTabs, this, onMeasurementReady)` at startup.
+- `onMeasurementReady(m)` updates the Results label (second Observer on the same signal).
+
+#### SessionController (wiring coordinator)
+- Stores observer list from `connectObservers()`; applies `connect()` in `startSourceThread()`.
+- Not in the per-beat data path after wiring completes.
 
 #### Concrete Tab Implementations (14 tabs)
 Each extends `BaseGraphTab`:
@@ -120,26 +130,22 @@ All 14 tabs implemented by 2026-06-22.
 
 ## Behavior
 
-**Normal data flow per beat event:**
+**Normal data flow per DSP block** (phase 3 in runtime sequence):
 
 ```
-MeasurementEngine (Domain)
-    │  Qt Signal: measurement(Measurement)
-    ▼
-GraphTabManager::onMeasurement(m)
-    │  for each tab in registry
-    ├─▶ TraceTab::updateData(m)        [isVisible() guard — ADR-002]
-    ├─▶ VarioTab::updateData(m)        [isVisible() guard]
-    └─▶ … (all 14 tabs)
+MeasurementEngine::processBlock()          [DSP Thread]
+    │  measurementReady()                  [async signal]
+    ▼  QueuedConnection → Qt Main Thread
+    ├─▶ BaseGraphTab::onMeasurement()      [×14 tabs; isVisible() guard — ADR-002]
+    └─▶ MainWindow::onMeasurementReady()   [DisplayResults()]
 ```
 
 **Tab switch catch-up (ADR-002 R1):**
 
 ```
 User switches to tab T
-    → QTabWidget::currentChanged(T)
     → T::showEvent()
-    → T::update()           ← single catch-up frame rendered
+    → T::replotAll()           ← catch-up frame when tab becomes visible
 ```
 
 ## Related ADRs

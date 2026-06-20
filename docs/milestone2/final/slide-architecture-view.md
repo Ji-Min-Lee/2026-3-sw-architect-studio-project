@@ -41,7 +41,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 **Decision**: Qt Signal-Slot as Observer — `MeasurementEngine` publishes a `Measurement` struct; all tabs subscribe via `BaseGraphTab::onMeasurement()`
 
-**Module structure** (static relationships) — what the diagram shows: `MeasurementEngine` (Subject) at top, `BaseGraphTab` abstract class in the middle, and 14 concrete tab subclasses below. `Measurement` VO composition is shown on the right. `SessionController` is intentionally omitted — it is a runtime connector, not a structural dependency.
+**Observer pattern — static structure** (Subject, Observer, wiring coordinator; compile-time contracts):
 
 ```mermaid
 classDiagram
@@ -76,9 +76,15 @@ classDiagram
     class MainWindow {
         +mAllTabs List~BaseGraphTab~
         +registerTab(tab, label)
+        +onMeasurementReady(m Measurement)
+        -mSession SessionController
+    }
+    class SessionController {
+        <<wiring coordinator>>
+        +connectObservers(tabs, receiver, slot)
+        -mObserverTabs List~BaseGraphTab~
     }
 
-    MeasurementEngine ..> BaseGraphTab : «notify»
     MeasurementEngine ..> Measurement : «creates»
     Measurement *-- WatchMetrics
     Measurement *-- SignalFrame
@@ -88,12 +94,28 @@ classDiagram
     BaseGraphTab <|-- BeatErrorTab
     BaseGraphTab <|-- OtherTabs
     MainWindow o-- BaseGraphTab : mAllTabs[*]
+    MainWindow *-- SessionController : mSession
+    MainWindow ..> SessionController : connectObservers(mAllTabs)
+    SessionController ..> BaseGraphTab : «uses» mObserverTabs
+    SessionController ..> MeasurementEngine : «uses» at connect
 ```
 
-> `SessionController` wires the Qt signal-slot connection at session start — it is a runtime connector, not shown here (see 2-A C&C view).
+> No compile-time link `MeasurementEngine → BaseGraphTab`. `SessionController` is the wiring coordinator — it stores `mObserverTabs` and applies `connect()` at session start (sequence below). Per-beat delivery remains Qt signal-slot only.
+
+**Runtime wiring** — [TimeGrapher Observer Runtime Sequence](assets/view2b-observer-runtime.puml):
+
+![TimeGrapher Observer Runtime Sequence](assets/view2b-observer-runtime.png)
+
+Three phases (autonumbered UML sequence, same participants as static view):
+
+1. **Register observers (once)** — `MainWindow` → `SessionController.connectObservers()`; stores `mObserverTabs` only (no `connect` yet)
+2. **Wire signal-slot (per session)** — `startLive()` / `startPlayback()` / `startSim()` → loop `connect()` ×14 tabs + `MainWindow`; `QueuedConnection` applied here
+3. **Deliver measurement (per DSP block)** — DSP Thread: `processBlock()` → `measurementReady()` async → Main: `onMeasurement()` ×14 + `onMeasurementReady()` (`{duration}` `tg_us`, `wait_ms` — EXP-02)
+
+> Source: [`assets/view2b-observer-runtime.puml`](assets/view2b-observer-runtime.puml) · Threads: **Qt Main Thread** / **DSP Thread** · Cross-thread via `QueuedConnection` (see 2-A)
 
 **Effects**:
-- `MeasurementEngine` has zero knowledge of concrete tabs (depends only on abstract `BaseGraphTab`) → Subject and Observer fully decoupled
+- `MeasurementEngine` has **zero compile-time knowledge of tabs** — emits signal only; `SessionController` wires the abstract `onMeasurement` slot → Subject and Observer decoupled at build time
 - All 14 tabs inherit `BaseGraphTab` → same `onMeasurement()` contract, same `isVisible()` lazy-render guard, same `showEvent()` catch-up frame
 - Adding a new tab = 1 new subclass + 3 lines in `MainWindow` → zero changes to `MeasurementEngine` or any other tab (ADR-006)
 - `Measurement` is composed of immutable VOs — tabs receive a read-only snapshot → correctness guaranteed
