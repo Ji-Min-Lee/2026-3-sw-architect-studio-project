@@ -1,0 +1,132 @@
+<mxfile host="65bd71144e">
+    <diagram id="40a4xz7YsOeIpxLtp2jB" name="Observer Pattern Module View">
+        <mxGraphModel dx="1134" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="820" pageHeight="560" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+
+                <mxCell id="T0" value="Module structure (static relationships) — UML Class Diagram" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="10" width="780" height="24" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="ME" value="MeasurementEngine" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="44" width="200" height="78" as="geometry"/>
+                </mxCell>
+                <mxCell id="ME_ST" value="&lt;&lt;Subject&gt;&gt;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;" parent="ME" vertex="1">
+                    <mxGeometry y="26" width="200" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="ME_OPS" value="+measurementReady(m Measurement)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;fontSize=10;" parent="ME" vertex="1">
+                    <mxGeometry y="44" width="200" height="34" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="MST" value="Measurement" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="44" width="160" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="MST_ST" value="&lt;&lt;Value Object&gt;&gt;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" parent="MST" vertex="1">
+                    <mxGeometry y="26" width="160" height="26" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="WM" value="WatchMetrics" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="158" width="170" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="WM_ATTR" value="rate_spd, amplitude_deg&#xa;beatError_ms, bph" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;fontSize=10;" parent="WM" vertex="1">
+                    <mxGeometry y="26" width="170" height="44" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="SF" value="SignalFrame" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="530" y="158" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="SF_ATTR" value="samples: PCMBlock&#xa;timestamp: uint64" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;fontSize=10;" parent="SF" vertex="1">
+                    <mxGeometry y="26" width="160" height="44" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="AE" value="AcousticEvent" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="710" y="158" width="150" height="58" as="geometry"/>
+                </mxCell>
+                <mxCell id="AE_ATTR" value="t1, t3: uint64" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;fontSize=10;" parent="AE" vertex="1">
+                    <mxGeometry y="26" width="150" height="32" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="MW" value="MainWindow" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="258" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="MW_OPS" value="+mAllTabs List&lt;BaseGraphTab&gt;&#xa;+registerTab(tab, label)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;fontSize=10;" parent="MW" vertex="1">
+                    <mxGeometry y="26" width="220" height="44" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="BG" value="BaseGraphTab" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="248" width="250" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="BG_ST" value="&lt;&lt;abstract, Observer&gt;&gt;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" parent="BG" vertex="1">
+                    <mxGeometry y="26" width="250" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="BG_ATTR" value="#mPaused bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;fontSize=10;" parent="BG" vertex="1">
+                    <mxGeometry y="44" width="250" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="BG_OPS" value="+onMeasurement(m Measurement)*&#xa;+replotAll()*" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;fontSize=10;" parent="BG" vertex="1">
+                    <mxGeometry y="64" width="250" height="46" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="T01" value="TraceTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="438" width="100" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="T02" value="VarioTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="438" width="100" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="T03" value="BeatErrorTab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="438" width="100" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="T_MORE" value="... + 11 more tabs" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;fontSize=11;fontStyle=2;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="438" width="100" height="36" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="E_ME_CREATES" value="&lt;&lt;creates&gt;&gt;" style="edgeStyle=none;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1;fontSize=10;fontColor=#000000;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="ME" target="MST" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="E_ME_NOTIFY" value="&lt;&lt;notify&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1;fontSize=10;fontColor=#000000;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="ME" target="BG" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="140" y="148"/>
+                            <mxPoint x="140" y="218"/>
+                            <mxPoint x="545" y="218"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+
+                <mxCell id="E_MST_WM" style="edgeStyle=none;endArrow=diamondThin;endFill=1;endSize=12;strokeColor=#000000;strokeWidth=1.5;exitX=0.2;exitY=1;entryX=0.5;entryY=0;" parent="1" source="MST" target="WM" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E_MST_SF" style="edgeStyle=none;endArrow=diamondThin;endFill=1;endSize=12;strokeColor=#000000;strokeWidth=1.5;exitX=0.55;exitY=1;entryX=0.5;entryY=0;" parent="1" source="MST" target="SF" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E_MST_AE" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=diamondThin;endFill=1;endSize=12;strokeColor=#000000;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" parent="1" source="MST" target="AE" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="700" y="70"/>
+                            <mxPoint x="785" y="70"/>
+                            <mxPoint x="785" y="158"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+
+                <mxCell id="E_MW_BG" value="mAllTabs[*]" style="edgeStyle=none;startArrow=diamondThin;startFill=0;startSize=12;endArrow=none;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontColor=#000000;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="MW" target="BG" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="E_T01_BG" style="edgeStyle=none;endArrow=block;endFill=0;endSize=12;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=0;entryX=0.12;entryY=1;" parent="1" source="T01" target="BG" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E_T02_BG" style="edgeStyle=none;endArrow=block;endFill=0;endSize=12;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=0;entryX=0.4;entryY=1;" parent="1" source="T02" target="BG" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E_T03_BG" style="edgeStyle=none;endArrow=block;endFill=0;endSize=12;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=0;entryX=0.52;entryY=1;" parent="1" source="T03" target="BG" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="E_TMORE_BG" style="edgeStyle=none;endArrow=block;endFill=0;endSize=12;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=0;entryX=1;entryY=1;" parent="1" source="T_MORE" target="BG" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

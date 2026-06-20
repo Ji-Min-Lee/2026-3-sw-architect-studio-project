@@ -37,21 +37,66 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 **Problem**: Measurement results must be delivered consistently to all tabs. Direct per-tab calls increase coupling and risk missed updates.
 
-**Decision**: Qt Signal-Slot as Observer — `MeasurementEngine` publishes a `Measurement` struct; all tabs subscribe
+**Decision**: Qt Signal-Slot as Observer — `MeasurementEngine` publishes a `Measurement` struct; all tabs subscribe via `BaseGraphTab::onMeasurement()`
 
+**Module structure** (static relationships):
+
+```mermaid
+classDiagram
+    class MeasurementEngine {
+        <<Subject>>
+        +measurementReady(m Measurement)
+    }
+    class BaseGraphTab {
+        <<abstract, Observer>>
+        +onMeasurement(m Measurement)*
+        +replotAll()*
+        #mPaused bool
+    }
+    class TraceTab
+    class VarioTab
+    class BeatErrorTab
+    class OtherTabs["... + 11 more tabs"]
+    class Measurement {
+        <<Value Object>>
+    }
+    class WatchMetrics {
+        rate_spd, amplitude_deg
+        beatError_ms, bph
+    }
+    class SignalFrame {
+        samples: PCMBlock
+        timestamp: uint64
+    }
+    class AcousticEvent {
+        t1, t3: uint64
+    }
+    class MainWindow {
+        +mAllTabs List~BaseGraphTab~
+        +registerTab(tab, label)
+    }
+
+    MeasurementEngine ..> BaseGraphTab : «notify»
+    MeasurementEngine ..> Measurement : «creates»
+    Measurement *-- WatchMetrics
+    Measurement *-- SignalFrame
+    Measurement *-- AcousticEvent
+    BaseGraphTab <|-- TraceTab
+    BaseGraphTab <|-- VarioTab
+    BaseGraphTab <|-- BeatErrorTab
+    BaseGraphTab <|-- OtherTabs
+    MainWindow o-- BaseGraphTab : mAllTabs[*]
 ```
-MeasurementEngine  ── Qt Signal: measurement(Measurement) ──▶  GraphTabManager
-                                                                     ├── TraceTab::updateData(m)
-                                                                     ├── VarioTab::updateData(m)
-                                                                     └── … (14 tabs, same Measurement received)
-```
+
+> `SessionController` wires the Qt signal-slot connection at session start — it is a runtime connector, not shown here (see 2-A C&C view).
 
 **Effects**:
-- `MeasurementEngine` has no knowledge of tabs → measurement logic and display logic fully decoupled
-- Adding a new tab requires zero changes to `MeasurementEngine` → correctness preserved
-- Qt `QueuedConnection` — safe cross-thread delivery from T2 (DSP) to Qt main thread
+- `MeasurementEngine` has zero knowledge of concrete tabs (depends only on abstract `BaseGraphTab`) → Subject and Observer fully decoupled
+- All 14 tabs inherit `BaseGraphTab` → same `onMeasurement()` contract, same `isVisible()` lazy-render guard, same `showEvent()` catch-up frame
+- Adding a new tab = 1 new subclass + 3 lines in `MainWindow` → zero changes to `MeasurementEngine` or any other tab (ADR-006)
+- `Measurement` is composed of immutable VOs — tabs receive a read-only snapshot → correctness guaranteed
 
-→ Full view: [view-cc-dsp-pipeline.md](references/views/view-cc-dsp-pipeline.md) · [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md)
+→ Full view: [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) · ADR: [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md)
 
 ---
 
