@@ -13,6 +13,7 @@
 | TR-03 | Qt QueuedConnection accumulates 420ms backlog; frame queue grows unbounded | H | H | [EXP-02](experiments/exp-02-pipeline-latency.md) | **T2** eliminates coupling between audio callback and Qt event loop (RPi E2-5/6 confirmed) | ✅ Resolved |
 | TR-04 | `replot()` in exec path consumes 79% of exec budget (16ms / 21ms); scales with N tabs | H | H | [EXP-02](experiments/exp-02-pipeline-latency.md) / [EXP-05](experiments/exp-05-rendering-fps.md) | **R1 Lazy Rendering** — replot_count ↓75–85% (macOS); 11-tab load pending EXP-05 | ✅ macOS — RPi EXP-05 06/26 |
 | TR-05 | LP/HP filter defaults reject beat signal or pass ambient noise at edge BPH values | M | M | [EXP-03](experiments/exp-03-filter-sweep.md) | Parameter sweep to determine optimal cutoffs; adaptive threshold fallback | ⏳ Scheduled 06/25 |
+| TR-10 | Qt FG event loop on RPi picks up frameLogged signal avg 60.1ms late (84% > 21.33ms deadline) — graph display sluggish; UI real-time criterion violated | H | M | [EXP-02](experiments/exp-02-pipeline-latency.md) E2-7 | SCHED_RR on FG thread or QTimer-based periodic polling — measure E2-8 | 🔴 Open |
 | TR-06 | Layer refactoring introduces regression in existing DSP behavior | M | H | — | 4-layer structure enforced; 116 unit tests (7 binaries) all passing | ✅ Resolved |
 | TR-07 | Residual cross-layer coupling survives refactoring | M | M | — | Allowed-to-use rule enforced; compiler catches upward dependency | ✅ Resolved |
 | TR-08 | New graph tab requires data not in current MeasurementEngine output | L | M | — | 11-graph data requirements reviewed; all covered by current Domain output | ✅ Resolved |
@@ -34,6 +35,7 @@
 
 | Priority | ID | Concern | Blocks | Resolution Target |
 |:--------:|----|---------|--------|-------------------|
+| 🔴 Critical | TR-10 | FG scheduling: fg_wait avg 60.1ms (84% > deadline) on RPi — UI display lag | QAS-1 Real-time display | E2-8 (SCHED_RR / QTimer) |
 | 🔴 Critical | TR-04 | 11-tab rendering load on RPi not yet validated with R1 | ADR-002 confirmation | EXP-05 — 06/26 |
 | 🟡 Medium | TR-05 | Filter cutoffs undetermined | Phase A task A-02 | EXP-03 — 06/25 |
 | 🟢 Low | NTR-07 | WeiShi accuracy comparison not yet performed | M3 demo criterion | WeiShi session — 06/29 |
@@ -44,6 +46,7 @@
 
 | Date | ID | Event |
 |------|----|-------|
+| 2026-06-16 | TR-10 | EXP-02 E2-7: fg_wait avg 60.1ms discovered — Qt FG scheduling bottleneck on RPi |
 | 2026-06-15 | TR-01 | EXP-01 RPi: Dropped=0 at 48k/96k/192k under all scheduling policies; ADR-003 Accepted |
 | 2026-06-15 | TR-02/03 | EXP-02 RPi E2-5/6: T2+R1 on RPi — E2E avg 2.05ms, 0 deadline miss, 0 backlog |
 | 2026-06-15 | TR-02/03 | EXP-02 macOS R2: T2 applied — wait_ms ×32,000 reduction, backlog 0% |
