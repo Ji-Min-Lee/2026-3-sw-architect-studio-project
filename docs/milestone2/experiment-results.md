@@ -123,46 +123,19 @@ EXP-04 (warning threshold) ─────────┘
 
 ### Results
 
-#### onset=0.02 — Unstable
+Rate (s/d) averaged across all reps. Values for `min_peak=0.10` (best within each onset group; `min_peak` has minimal effect).
 
-| Noise | lock% | rate (s/d) | beat_error (ms) |
-|:-----:|:-----:|:----------:|:---------------:|
-| 00 dB | 92 | +12.11 | 0.980 |
-| 10–40 dB | 94 | +4 ~ +8 | 0.2 ~ 0.8 |
-| 50 dB | 94 | +14.65 | 2.729 |
-| **60 dB** | 93 | **−4,264** | **27.6** |
+| Noise | onset=0.02 rate (s/d) | onset=0.05 rate (s/d) | onset=0.08 rate (s/d) ✅ |
+|:-----:|:---------------------:|:---------------------:|:------------------------:|
+| 00 dB | +12.11 | +4.24 | +4.06 |
+| 10 dB | +8.07 | +4.18 | +4.02 |
+| 20 dB | +7.94 | +4.19 | +4.02 |
+| 30 dB | +8.11 | +4.15 | +4.02 |
+| 40 dB | +4.21 | +4.13 | +4.04 |
+| 50 dB | +14.65 | +4.02 | +3.86 |
+| **60 dB** | **−4,264** ❌ | **−393** ❌ | **+7.51** ✅ |
 
-> Rate fluctuates erratically with noise level. Complete failure at 60 dB.
-
-#### onset=0.05 — Fails at 60 dB
-
-| Noise | lock% | rate (s/d) | beat_error (ms) |
-|:-----:|:-----:|:----------:|:---------------:|
-| 00–50 dB | 91–94 | +4.02 ~ +4.24 | 0.189–0.191 |
-| **60 dB** | 91 | **−393** | **8.7** |
-
-> Stable at 0–50 dB but complete failure at 60 dB.
-
-#### onset=0.08 ← Recommended
-
-| Noise | lock% | rate (s/d) | beat_error (ms) |
-|:-----:|:-----:|:----------:|:---------------:|
-| 00–50 dB | 94–95 | +3.86 ~ +4.06 | 0.178 |
-| **60 dB** | **95** | **+7.51** | **1.339** |
-
-> Only setting that maintains tracking at 60 dB extreme noise.
-
-### Ranking (avg over 0–30 dB)
-
-| Rank | onset | min_peak | rate avg (s/d) | beat_error (ms) |
-|:----:|:-----:|:--------:|:--------------:|:---------------:|
-| **1** | **0.08** | **0.10** | **+4.03** | **0.178** |
-| 2 | 0.08 | 0.20 | +4.00 | 0.179 |
-| 3 | 0.08 | 0.30 | +4.03 | 0.178 |
-| 4 | 0.05 | 0.10 | +4.19 | 0.190 |
-| 5–9 | 0.02 | — | +8 ~ +12 | 0.75 ~ 0.98 |
-
-> onset=0.08 dominates top 3. min_peak has minimal effect within the onset=0.08 group.
+> onset=0.08 is the only setting that maintains tracking at 60 dB SNR. onset=0.02 and 0.05 fail catastrophically. `min_peak` has negligible effect within the onset=0.08 group — `min_peak=0.10` selected for slightly lowest beat_error.
 
 ### Sample Data Files
 
