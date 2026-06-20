@@ -4,6 +4,83 @@ This view decomposes the Presentation layer into its internal components, focusi
 
 ![Graph Tab Decomposition View](../../assets/view2-decomposition.png)
 
+## Module Relationships (Class Diagram)
+
+![Observer Pattern — Module View](../../assets/view2b-observer-module.png)
+
+> Source (editable): [view2b-observer-module.drawio](../../assets/view2b-observer-module.drawio)
+
+```mermaid
+classDiagram
+    class MeasurementEngine {
+        <<Subject>>
+        +measurementReady(m Measurement)
+    }
+    class BaseGraphTab {
+        <<abstract, Observer>>
+        +onMeasurement(m Measurement)*
+        +replotAll()*
+        +isPaused() bool
+        #mPaused bool
+        #showEvent(QShowEvent)*
+    }
+    class TraceTab { +onMeasurement(m) }
+    class VarioTab { +onMeasurement(m) }
+    class BeatErrorTab { +onMeasurement(m) }
+    class EscapementTab { +onMeasurement(m) }
+    class LongTermTab { +onMeasurement(m) }
+    class OtherTabs["... + 9 more tabs"]
+    class Measurement {
+        <<Value Object>>
+    }
+    class WatchMetrics {
+        rate_spd: float
+        amplitude_deg: float
+        beatError_ms: float
+        bph: int
+    }
+    class SignalFrame {
+        samples: PCMBlock
+        timestamp: uint64
+    }
+    class AcousticEvent {
+        t1: uint64
+        t3: uint64
+    }
+    class MainWindow {
+        +mAllTabs List~BaseGraphTab~
+        +registerTab(T tab, label)
+    }
+    class SessionController {
+        +startSourceThread()
+    }
+
+    MeasurementEngine ..> BaseGraphTab : «notify»
+    MeasurementEngine ..> Measurement : «creates»
+    SessionController ..> MeasurementEngine : wires signal
+    SessionController ..> BaseGraphTab : iterates mAllTabs
+    Measurement *-- WatchMetrics : 1
+    Measurement *-- SignalFrame : 1
+    Measurement *-- AcousticEvent : 0..*
+    BaseGraphTab <|-- TraceTab
+    BaseGraphTab <|-- VarioTab
+    BaseGraphTab <|-- BeatErrorTab
+    BaseGraphTab <|-- EscapementTab
+    BaseGraphTab <|-- LongTermTab
+    BaseGraphTab <|-- OtherTabs
+    MainWindow o-- BaseGraphTab : mAllTabs[*]
+```
+
+**Relationship key:**
+- `..>` **Dependency** — source uses target but does not own it
+  - `«notify»` — MeasurementEngine emits Qt signal received by BaseGraphTab slots
+  - `«creates»` — MeasurementEngine constructs and owns each Measurement instance
+- `<|--` **Inheritance** — concrete tab extends abstract BaseGraphTab (hollow triangle points to parent)
+- `*--` **Composition** — Measurement owns its VO fields; they do not outlive the Measurement
+- `o--` **Aggregation** — MainWindow holds a reference list; Qt parent hierarchy owns lifetime
+
+> `SessionController` appears here to document the wiring role only. It is not an Observer itself — it calls `connect()` once at session start and does not appear in the per-beat data path.
+
 ## Element Catalog
 
 #### BaseGraphTab (abstract class / interface)
