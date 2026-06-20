@@ -8,9 +8,9 @@
 
 | ID | Experiment | QA | Risk | Status | Date |
 |----|------------|----|------|:------:|------|
-| **EXP-01** | [WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000](exp-01-accuracy-weishi-comparison.md) | QAS-1 | TR-08 | ⏸ Planned | W5 S1 (2026-06-29) |
-| **EXP-02** | [RPi Real-Time Performance — Dropped Block Measurement](exp-02-realtime-dropped-block.md) | QAS-2 | TR-01, TR-02 | ✅ Done | 2026-06-15 |
-| **EXP-03** | [End-to-End Latency — 2-Segment Timestamp Measurement](exp-03-latency-e2e.md) | QAS-3 | TR-03, TR-04 | ✅ Done | 2026-06-11~16 |
+| **EXP-01** | [WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000](exp-01-accuracy-weishi-comparison.md) | QAS-1 | — | ⏸ Planned | W5 S1 (2026-06-29) |
+| **EXP-02** | [RPi Real-Time Performance — Dropped Block Measurement](exp-02-realtime-dropped-block.md) | QAS-2 | TR-01 | ✅ Done | 2026-06-15 |
+| **EXP-03** | [End-to-End Latency — 2-Segment Timestamp Measurement](exp-03-latency-e2e.md) | QAS-3 | TR-02, TR-03, TR-04 | ✅ Done | 2026-06-11~16 |
 | **EXP-04** | [Observer Pattern Compliance — Tab Extension Cost Measurement](exp-04-extensibility-observer-pattern.md) | QAS-4 | — | ✅ Done | 2026-06-21 |
 | **EXP-05** | [Detector Parameter Optimization Under Noise](exp-05-correctness-detector-optimization.md) | QAS-5 | TR-05 | ✅ Done | 2026-06-16~17 |
 
@@ -194,7 +194,7 @@ Identify `onset_fraction` and `min_peak_fraction` values that maintain accurate 
 | Parameter | Tested range | Selected | Reason |
 |-----------|-------------|:--------:|--------|
 | `onset_fraction` | 0.02, 0.05, 0.08 | **0.08** | Only value stable at 60 dB SNR |
-| `min_peak_fraction` | 0.05, 0.10, 0.15 | **0.10** | Lowest Beat Error within onset=0.08 group |
+| `min_peak_fraction` | 0.10, 0.20, 0.30 | **0.10** | Lowest Beat Error within onset=0.08 group |
 
 ### Architecture Decision
 
