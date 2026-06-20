@@ -113,15 +113,7 @@
 
 ## 3-C. M3 Schedule
 
-"The full sprint breakdown is on our GitHub Project Board — linked on the slide."
-
-"From here to July 1st demo — four sprints plus a buffer."
-
-"W4 Sprint 1 — fix FG scheduling on RPi. Sprint 2 — filter tuning experiment. Sprint 3 — 14-tab rendering benchmark. Sprint 4 — slides, accuracy validation with a real watch, and full RPi run."
-
-"Then a buffer on June 29–30 for presentation prep only — no new implementation."
-
-"Demo day is July 1st on Raspberry Pi."
+"Four sprints left. Sprint 1 — fix FG scheduling on RPi. Sprint 2 — filter tuning. Sprint 3 — 14-tab rendering benchmark. Sprint 4 — accuracy validation with a real watch and full RPi run. Then a buffer for presentation prep."
 
 ---
 
