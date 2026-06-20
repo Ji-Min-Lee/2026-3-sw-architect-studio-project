@@ -17,6 +17,17 @@
 
 "One more thing — DSP runs on a separate thread, T2, but tabs render on the Qt main thread. Qt's `QueuedConnection` takes care of the cross-thread handoff automatically. No manual locking."
 
+> **📋 Diagram — Graph Tab Observer Module View**
+>
+> 다이어그램은 세 구역으로 나뉩니다.
+>
+> - **왼쪽 상단 — Subject**: `MeasurementEngine`. `<<Subject>>` 스테레오타입, `measurementReady(m Measurement)` 시그널 하나만 노출. 탭에 대한 의존성 없음.
+> - **왼쪽 중단 — Observer**: `BaseGraphTab`. `<<abstract, Observer>>` 스테레오타입. `onMeasurement()` 순수 가상 함수와 `replotAll()`, `mPaused` 멤버 정의. 모든 탭이 이 계약을 따름.
+> - **왼쪽 하단 — Concrete Observers**: `TraceTab`, `VarioTab`, `BeatErrorTab`, `... + 11 more tabs`. 모두 `BaseGraphTab`을 상속.
+> - **오른쪽 — Value Object 구성**: `Measurement`가 `WatchMetrics`, `SignalFrame`, `AcousticEvent` 세 VO를 포함(composition). 각 VO는 불변(immutable).
+> - **`MainWindow`**: `mAllTabs[*]`로 모든 탭을 보유. `registerTab()`으로 등록.
+> - **점선 화살표**: `MeasurementEngine →«notify»→ BaseGraphTab` — 런타임 알림 관계. `SessionController`는 런타임 배선자로 이 다이어그램에 의도적으로 생략.
+
 > **📌 Q&A**
 >
 > **Q. Why Qt Signal-Slot instead of a custom Observer?**
@@ -46,6 +57,19 @@
 
 "Adding a new tab means touching only the Presentation layer. Three files or less. We verified this across all three rounds of additions. The Domain layer was never touched."
 
+> **📋 Diagram — 4-Layer Allowed-to-Use Module View**
+>
+> 다이어그램은 다섯 개의 가로 밴드로 구성됩니다 (위에서 아래로).
+>
+> - **UI Coordinator** (회색): `MainWindow`, `SessionController`, `DiagnosisDialog`. 레이어 간 배선 담당. 도메인 로직 없음.
+> - **Presentation** (파란색): `BaseGraphTab` 인터페이스 + 14개 구체 탭 + `GraphTabManager`.
+> - **Domain** (초록색): `MeasurementEngine`, `WatchDiagnostics`, `WatchExplainer`, `Measurement` VO. 순수 도메인 계산.
+> - **Signal Processing** (노란색): `DSPWorker` + 외부 라이브러리 `tg_process` (FilterChain, BeatDetector).
+> - **Acquisition** (빨간색): `IAudioSource` 인터페이스 + `AudioWorker`, `PlaybackWorker`, `SimWorker`, `AudioRingBuffer`.
+>
+> 점선 화살표(`«use»`)는 모두 아래 방향. 우측 범례(Legend)에서 화살표 종류와 레이어 색상 코딩 확인 가능.
+> 실선 테두리 = 구체 클래스, `«interface»` 태그 = 인터페이스, 점선 테두리 = Value Object 또는 외부 라이브러리.
+
 > **📌 Q&A**
 >
 > **Q. Why is `MeasurementEngine` in Signal Processing, not Domain?**
@@ -61,6 +85,14 @@
 
 "Second, `IAudioSource`. We have three audio sources — microphone, file, simulation. Before this interface, each had its own connection logic scattered around. After, they all go through one interface, one `connect()` block in `SessionController`. One place to change if anything needs to change."
 
+> **📋 Diagram — Audio Source Module Uses View**
+>
+> 다이어그램은 좌우 두 파트로 구성됩니다.
+>
+> - **AS-IS (왼쪽)**: `AudioWorker`, `PlaybackWorker`, `SimWorker` 각각이 별도의 `connect()` 블록을 가짐. 소스마다 배선 로직이 분산되어 중복 발생.
+> - **TO-BE (오른쪽)**: `SessionController`가 `IAudioSource` 인터페이스 하나만 바라봄. 세 소스 모두 이 인터페이스를 구현(`implements`). `connect()` 블록은 `SessionController` 안에 단 하나.
+> - 화살표는 의존성 역전 방향을 표시 — `SessionController`가 구체 구현이 아닌 추상 인터페이스에 의존.
+
 > **📌 Q&A**
 >
 > **Q. Are there plans to add more audio sources?**
@@ -72,6 +104,18 @@
 ### Entity / Value Object
 
 "Third, the `Measurement` struct. It's made of three Value Objects — `WatchMetrics`, `SignalFrame`, and `AcousticEvent` — all immutable once created. Tabs get it as read-only. They physically can't mutate the result. So correctness is enforced by the data structure itself, not by trust."
+
+> **📋 Diagram — Watch Measurement Domain Model**
+>
+> 다이어그램은 Domain 레이어 색상(초록)으로 통일되어 있습니다.
+>
+> - **중앙 — `Measurement`** (실선 테두리): DSP 사이클마다 생성되는 스냅샷 struct. `noSignal` 플래그 포함.
+> - **오른쪽 — 세 Value Object** (점선 테두리, 불변):
+>   - `WatchMetrics`: `rate_spd`, `amplitude_deg`, `beatError_ms`, `bph` — 계산된 시계 수치
+>   - `SignalFrame`: `samples: PCMBlock`, `timestamp: uint64` — 원시 오디오 캡처 데이터
+>   - `AcousticEvent`: `t1`, `t3: uint64` — 개별 틱 이벤트 타임스탬프
+> - **하단 노트**: 색상이 view1(4-Layer 다이어그램)의 Domain 밴드와 동일 → 이 객체들이 Domain 레이어 소속임을 시각적으로 확인 가능.
+> - Presentation 또는 Signal Processing을 교체해도 이 구조는 전혀 영향을 받지 않음.
 
 > **📌 Q&A**
 >
