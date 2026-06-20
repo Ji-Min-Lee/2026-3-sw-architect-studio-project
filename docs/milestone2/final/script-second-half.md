@@ -7,7 +7,7 @@
 
 ## 2-B. Correctness: Observer Pattern
 
-"The second quality goal is correctness. Specifically — when a measurement result is ready, every tab must receive it. No tab gets skipped, no tab gets a different result."
+"The second quality goal we're covering today is correctness. Specifically — when a measurement result is ready, every tab must receive it. No tab gets skipped, no tab gets a different result."
 
 "The problem with a naive approach is direct coupling. If `MeasurementEngine` calls each tab directly, it has to know about all 14 tabs. And if you add a new tab, you have to go back and modify `MeasurementEngine`."
 
