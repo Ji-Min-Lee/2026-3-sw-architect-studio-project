@@ -40,23 +40,32 @@ EXP-04 (warning threshold) ─────────┘
 > The 30 s buffer absorbs all deadline-exceeded frames → Dropped stays 0.  
 > **96k sps = QAS-1 target.** Table shows 96k figures only.
 
-| Run | Date | Scheduling | 96k exec avg/max (ms) | exec > deadline | Dropped | CSV (96k) |
-|:---:|------|-----------|:---------------------:|:---------------:|:-------:|:---------:|
+| Run | Date | Scheduling | 96k exec avg/max (ms) | exec > deadline | Dropped | Data (96k) |
+|:---:|------|-----------|:---------------------:|:---------------:|:-------:|:----------:|
 | E1-01 | 2026-06-15 | default | 9.6 / 39.2 | 8.1 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) |
 | E1-02 | 2026-06-15 | SCHED_RR p50 | 9.8 / 39.9 | 8.4 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) |
 | E1-03 | 2026-06-15 | SCHED_FIFO p50 | 9.9 / 41.4 | 8.6 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) |
 
-**E1-01** (default, 96k):
+<details>
+<summary>▶ E1-01 plot (default, 96k)</summary>
 
 ![E1-01 96k plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png)
 
-**E1-02** (SCHED_RR, 96k):
+</details>
+
+<details>
+<summary>▶ E1-02 plot (SCHED_RR, 96k)</summary>
 
 ![E1-02 96k plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png)
 
-**E1-03** (SCHED_FIFO, 96k):
+</details>
+
+<details>
+<summary>▶ E1-03 plot (SCHED_FIFO, 96k)</summary>
 
 ![E1-03 96k plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png)
+
+</details>
 
 <details>
 <summary>All sps CSV files (48k / 96k / 192k)</summary>
@@ -99,21 +108,33 @@ EXP-04 (warning threshold) ─────────┘
 
 ### Plots
 
-**E2-03** — rpi2 baseline (exec overrun 4.4 %):
+<details>
+<summary>▶ E2-03 plot — rpi2 baseline (exec overrun 4.4 %)</summary>
 
 ![E2-03](../../src/logs/EXP-02/log_20260615_152751.png)
 
-**E2-05** — +T2 DSP offload (ideal real-time, E2E avg 2.1 ms):
+</details>
+
+<details>
+<summary>▶ E2-05 plot — +T2 DSP offload (ideal real-time, E2E avg 2.1 ms)</summary>
 
 ![E2-05](../../src/logs/EXP-02/log_20260615_163106.png)
 
-**E2-07** — final state (DSP E2E avg 2.2 ms, FG lag revealed):
+</details>
+
+<details>
+<summary>▶ E2-07 plot — final state (DSP E2E avg 2.2 ms, FG lag revealed)</summary>
 
 ![E2-07](../../src/logs/EXP-02/log_20260616_140850.png)
 
-**E2-07 thread timeline** — FG brown bars span 3× the frame period (60 ms avg):
+</details>
+
+<details>
+<summary>▶ E2-07 thread timeline — FG bars span 3× frame period (avg 60 ms)</summary>
 
 ![E2-07 timeline](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png)
+
+</details>
 
 ### Tactic Progression
 
@@ -235,9 +256,12 @@ EXP-04 (warning threshold) ─────────┘
 | 10 dB | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) | 1,759 | 0 | 0 | 0.0177 | ✅ |
 | **0 dB** | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) | 1,151 | **1** | **14** | **0.0537** | ❌ |
 
-**Scatter plot** (noise_ratio vs beat_missed across all SNR conditions):
+<details>
+<summary>▶ Scatter plot — noise_ratio vs beat_missed across all SNR conditions</summary>
 
 ![EXP-04 scatter](../../src/logs/EXP-04/exp04_scatter.png)
+
+</details>
 
 **Key finding**: All 14 beat_missed events at snr00db occurred in a burst at frames 582–624, immediately after sync_lost at frame 581. All had `noise_ratio` in 0.054–0.060 — above the **0.05** threshold. snr10db had noise_ratio max 0.0585 but zero missed beats, confirming 0.05 is the correct boundary.
 
