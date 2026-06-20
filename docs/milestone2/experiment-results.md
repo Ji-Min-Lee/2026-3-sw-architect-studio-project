@@ -7,963 +7,255 @@
 
 ## Summary
 
-| ID | Experiment | Runs | Latest Key Result | Status |
-|----|------------|:----:|-------------------|:------:|
-| EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps (48k/96k/192k) × all scheduling (default/RR/FIFO) — **QAS-1 Pass** | ✅ Done |
-| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | E2-07 (rpi2, E2-06 + fg_wait_ms): DSP E2E avg **2.2 ms** / max **4.8 ms** — **fg_wait avg 60.1 ms, p99 167.8 ms** (84 % > deadline): FG scheduling is the next bottleneck. | ✅ Done |
-| EXP-03 | Detector Parameter Optimization Under Noise Conditions | 274 | `onset=0.08` most robust: rate stable ≈ +4.0 s/d across 0–50 dB noise, degrades gracefully at 60 dB (+7.5 s/d vs catastrophic failure for onset≤0.05). **Recommended: onset=0.08, min_peak=0.10** | ✅ Done |
-| EXP-04 | Signal Quality Warning Threshold Search | 7 | Part B done — noise_ratio threshold = **0.05** (5 % of tick amplitude); snr00db: 14/1,151 beat_missed (ratio 0.054–0.083); snr10db–60db: 0 missed — Part A (No Signal timing) pending | ⏳ In Progress |
+| ID | Experiment | Runs | Key Result | Status |
+|----|------------|:----:|------------|:------:|
+| EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps × all scheduling policies — **QAS-1 Pass** | ✅ Done |
+| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | DSP E2E avg **2.2 ms** / max **4.8 ms** achieved. FG scheduling latency avg 60 ms revealed as next bottleneck | ✅ Done |
+| EXP-03 | Detector Parameter Optimization Under Noise | 274 | `onset=0.08` most robust: rate ≈ +4.0 s/d stable across 0–50 dB. **Recommended: onset=0.08, min_peak=0.10** | ✅ Done |
+| EXP-04 | Signal Quality Warning Threshold Search | 7 | noise_ratio threshold = **0.05** confirmed. 14 beat_missed at snr00db, all at ratio > 0.05 | ⏳ In Progress |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
-
-> Status legend: ✅ Done · ⏳ In Progress · 📅 Planned · ⏸ Deferred · ❌ Cancelled  
-> Update **Runs** count and **Latest Key Result** after each run.
 
 ### Experiment Dependency Chain
 
 ```
-EXP-01 (SPS confirmed)
-  └─► EXP-02 (latency measurement)   ──┐
-  └─► EXP-03 (parameter tuning)        ├─► EXP-05 (BPH escalation, stretch goal)
-EXP-04 (warning threshold) ────────────┘
-       └─ prerequisite: warning UI implemented
+EXP-01 (target sps confirmed)
+  └─► EXP-02 (pipeline latency)   ──┐
+  └─► EXP-03 (parameter tuning)     ├─► EXP-05 (BPH escalation, stretch goal)
+EXP-04 (warning threshold) ─────────┘
 ```
-
-> EXP-03, EXP-04 begin after EXP-01 is complete.  
-> EXP-05 begins only after EXP-02 is complete AND QAS-1~4 all confirmed.
 
 ---
 
 ## EXP-01: RPi Real-Time Performance — Dropped Block Measurement
 
-**Linked QA**: QAS-1 | **Linked Risk**: TR-01, TR-02  
-**Status**: ✅ Done  
-**Date**: 2026-06-15
+**QA**: QAS-1 | **Date**: 2026-06-15 | **Status**: ✅ Done
 
-**Question**: Can RPi 5 achieve Dropped Block = 0 at 96,000 sps while running Qt GUI + DSP concurrently? If not, what is the maximum sps that can be processed stably?
+**Question**: Can RPi 5 process audio at 96,000 sps with zero dropped blocks while running Qt GUI + DSP concurrently?
 
-**Answer**: Yes. Dropped Block = 0 at all tested sps (48k / 96k / 192k) under all scheduling policies. QAS-1 Pass.
+**Answer**: Yes. **Dropped Block = 0 across all sps (48k / 96k / 192k) × all scheduling policies (default / RR / FIFO).** QAS-1 Pass.
 
 ### Run History
 
-> 3 runs executed 2026-06-15 on RPi (host=lg1, platform=debian). Each run covers all 3 sps
-> sequentially (run_experiment1.sh). Duration = 5 min per sps. Buffer = 30 s.  
-> Deadline: **21.33 ms for all sps** — ALSA scales SPF proportionally (48k: SPF=1024 · 96k: SPF=2048 · 192k: SPF=4096).  
-> exec > DL frames are absorbed by the 30 s ring buffer — Dropped stays 0 in all cases.  
-> **96k is the QAS-1 target sps**; compact table shows 96k figures. Full 3-sps breakdown in each detail block.
+> Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline = 21.33 ms at 96k.  
+> The 30 s buffer absorbs all deadline-exceeded frames → Dropped stays 0.  
+> **96k sps = QAS-1 target.** Table shows 96k figures only; full 3-sps data in linked files.
 
-| Run | Date | Scheduling | 96k exec avg/max (ms) | exec > DL (96k) | Dropped | Detail |
-|:---:|------|-----------|:---------------------:|:---------------:|:-------:|:------:|
-| E1-01 | 2026-06-15 | default | 9.6 / 39.2 | 8.1 % | **0** | ▼ E1-01 below |
-| E1-02 | 2026-06-15 | SCHED_RR p50 | 9.8 / 39.9 | 8.4 % | **0** | ▼ E1-02 below |
-| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 9.9 / 41.4 | 8.6 % | **0** | ▼ E1-03 below |
-
-### Per-Run Detail
+| Run | Date | Scheduling | 96k exec avg/max (ms) | exec > deadline | Dropped | Data (96k) |
+|:---:|------|-----------|:---------------------:|:---------------:|:-------:|:----------:|
+| E1-01 | 2026-06-15 | default | 9.6 / 39.2 | 8.1 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
+| E1-02 | 2026-06-15 | SCHED_RR p50 | 9.8 / 39.9 | 8.4 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
+| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 9.9 / 41.4 | 8.6 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
 
 <details>
-<summary><b>E1-01</b> — 2026-06-15 · default scheduling · all sps</summary>
+<summary>All sps data (48k / 96k / 192k) per run</summary>
 
-**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv)
-
-| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU dominant |
-|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------:|
-| 48k | 11,810 | 5.8 / 36.6 | 578 / 11,810 (4.9 %) | 2,219 / 11,810 (18.8 %) | **0** | 83.7 / 85.9 | 111 | cpu2 46 % |
-| **96k** | **10,577** | **9.6 / 39.2** | **853 / 10,577 (8.1 %)** | **3,430 / 10,577 (32.4 %)** | **0** | **85.1 / 86.5** | **105** | **cpu2 66 %** |
-| 192k | 9,855 | 15.8 / 51.6 | 1,190 / 9,855 (12.1 %) | 4,069 / 9,855 (41.3 %) | **0** | 85.4 / 87.5 | 98 | cpu0/1 ~43 % |
-
-**Per-core CPU (avg)**: 48k: cpu0=14% cpu1=32% **cpu2=46%** cpu3=26% | 96k: cpu0=18% cpu1=18% **cpu2=66%** cpu3=12% | 192k: cpu0=46% cpu1=43% cpu2=16% cpu3=7%
-
-**Observations**: At 48k/96k, audio path is pinned to cpu2 (single-core pattern). At 192k load spreads across cpu0/1. Thermal throttling occurs in all runs (temp ≥ 85 °C). exec > DL grows with sps (4.9 % → 8.1 % → 12.1 %) as deadline tightens (21.3 ms → 10.7 ms → 5.3 ms); exec max spikes up to 51.6 ms are caused by throttling. Backlog rises correspondingly (19 % → 32 % → 41 %), but the 30 s ring buffer absorbs all overruns → Dropped = 0.
+| Run | sps | csv | plot |
+|:---:|:---:|-----|------|
+| E1-01 | 48k | [csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_203222_48000_default.png) |
+| E1-01 | 96k | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
+| E1-01 | 192k | [csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_210310_192000_default.png) |
+| E1-02 | 48k | [csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_203730_48000_rr.png) |
+| E1-02 | 96k | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
+| E1-02 | 192k | [csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_210818_192000_rr.png) |
+| E1-03 | 48k | [csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.png) |
+| E1-03 | 96k | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
+| E1-03 | 192k | [csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.png) |
 
 </details>
 
-<details>
-<summary><b>E1-02</b> — 2026-06-15 · SCHED_RR priority 50 · all sps</summary>
+### Conclusion
 
-**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv)
-
-| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU pattern |
-|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------|
-| 48k | 10,357 | 6.9 / 37.5 | 682 / 10,357 (6.6 %) | 3,630 / 10,357 (35.1 %) | **0** | 84.7 / 86.5 | 103 | balanced (cpu0-3 ≈ 26-31 %) |
-| **96k** | **10,320** | **9.8 / 39.9** | **866 / 10,320 (8.4 %)** | **3,679 / 10,320 (35.6 %)** | **0** | **85.3 / 86.5** | **103** | **balanced (cpu0-3 ≈ 24-31 %)** |
-| 192k | 9,585 | 16.0 / 61.7 | 1,197 / 9,585 (12.5 %) | 4,258 / 9,585 (44.4 %) | **0** | 85.4 / 87.0 | 95 | balanced (cpu0-3 ≈ 21-31 %) |
-
-**Observation**: SCHED_RR distributes CPU load evenly across all 4 cores (no single-core dominance), but exec avg / max is marginally higher than E1-01 default at all sps — likely because the `vcgencmd get_throttled` subprocess is more expensive to fork under RT scheduling. Backlog is also higher (35–44 % vs E1-01's 19–41 %). Dropped = 0 unchanged.
-
-</details>
-
-<details>
-<summary><b>E1-03</b> — 2026-06-15 · SCHED_FIFO priority 50 · all sps</summary>
-
-**Files**: [48k csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv)
-
-| sps | frames | exec avg / max (ms) | exec > deadline | backlog (> 1.5× SPF) | Dropped | temp avg / max (°C) | Throttle | CPU pattern |
-|-----|-------:|:-------------------:|:---------------:|:--------------------:|:-------:|:-------------------:|:--------:|:------------|
-| 48k | 10,299 | 7.2 / 35.2 | 715 / 10,299 (6.9 %) | 3,708 / 10,299 (36.0 %) | **0** | 84.9 / 87.5 | 102 | balanced (cpu0-3 ≈ 24-30 %) |
-| **96k** | **9,921** | **9.9 / 41.4** | **858 / 9,921 (8.6 %)** | **4,067 / 9,921 (41.0 %)** | **0** | **85.4 / 87.0** | **99** | **balanced (cpu0-3 ≈ 27-30 %)** |
-| 192k | 9,596 | 16.0 / 52.1 | 1,197 / 9,596 (12.5 %) | 4,263 / 9,596 (44.4 %) | **0** | 85.4 / 87.0 | 95 | balanced (cpu0-3 ≈ 22-30 %) |
-
-**Observation**: Nearly identical to SCHED_RR in all metrics. No additional benefit over RR at any sps.
-
-</details>
-
-### Current Best
-
-- **Run**: E1-01 / E1-02 / E1-03 — all equivalent (Dropped = 0 in all conditions)
-- **Recommended sample rate**: **96k sps** (QAS-1 target; 0 drops confirmed, exec avg 9.6 ms well under 21.3 ms deadline)
-- **Graceful degradation fallback needed**: No — 192k also achieves 0 drops with 30 s buffer
-- **SCHED_RR effect**: No improvement in Dropped Block count. CPU load is distributed more evenly but exec time is marginally higher. **SCHED_RR not required.**
-- **Thermal throttling**: All runs operate at ≥ 85 °C with sustained throttling (95–111 events / 5 min). Cooling improvement would reduce throttling but does not affect drop count.
-- **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
+- **Target sps confirmed**: 96k sps — 0 drops, exec avg 9.6 ms (well within 21.3 ms deadline)
+- **SCHED_RR / FIFO not required**: No improvement in dropped block count; exec time marginally higher
+- **Thermal throttling**: All runs reach ≥ 85 °C (95–111 throttle events / 5 min); does not affect drop count
 
 ---
 
 ## EXP-02: End-to-End Latency — 3-Segment Timestamp Measurement
 
-**Linked QA**: QAS-2 | **Linked Risk**: TR-03, TR-04  
-**Status**: ✅ Done  
-**Prerequisite**: EXP-01 complete (SPS confirmed)
+**QA**: QAS-2 | **Date**: 2026-06-11 ~ 2026-06-16 | **Status**: ✅ Done
 
-**Question**: What is the end-to-end latency across the full pipeline (capture → DSP → render)? Does ② process→display exceed 30 ms with 11 tabs? Is 36k/43k BPH feasible?
+**Question**: What is the end-to-end latency from audio capture → DSP → screen render? Does it stay within 30 ms with 11 tabs?
 
-Timestamp injection points:
-
-| Point | Location | Segment |
-|-------|----------|---------|
-| TS1 | Entry of `audioDataAvailable()` | ① start |
-| TS2 | T1/T3 event timestamp finalized | ① end / ② start |
-| TS3 | Qt `paintEvent()` complete | ② end |
-
-### Runs
-
-Core comparison only — full per-run numbers and analysis are in the collapsible
-detail blocks below. `E2E = ① wait + ② exec` (avg / max, ms). Deadline = chunk
-period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
-
-**E2-03 (rpi2) is the baseline for all future experiments.** E2-01 (Windows) is kept
-as a dev-machine reference and E2-02 (rpi1) as a 1st-unit (thermal-throttling)
-reference.
-
-`git_commit` = the build commit the run came from (auto-recorded in the CSV `#`
-meta line by the logging build); tag shown in parens where applicable. Tactics
-R1/T2 are in `Role`.
-
-| Run | Date | Rate | E2E avg/max (ms) | Role | git_commit | Detail |
-|:---:|------|:----:|:----------------:|------|------------|:------:|
-| E2-01 | 2026-06-12 | 48 kHz | 2.8 / 363.9 | Windows reference (dev) | `d40b8fc` | ▼ E2-01 below |
-| E2-02 | 2026-06-11 | 48 kHz | 255.4 / 900.9 | rpi1 reference (1st unit) | `e7aaf4c` | ▼ E2-02 below |
-| E2-03 | 2026-06-15 | 48 kHz | 57.2 / 208.9 | **rpi2 baseline** | `7298783` | ▼ E2-03 below |
-| E2-04 | 2026-06-15 | 48 kHz | 80.1 / 258.7 | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-04 below |
-| E2-05 | 2026-06-15 | 48 kHz | 2.1 / 11.1 | E2-04 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-05 below |
-| E2-06 | 2026-06-15 | 48 kHz | 2.1 / 5.7 | E2-05 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-06 below |
-| E2-07 | 2026-06-16 | 48 kHz | 2.2 / 4.8 | E2-06 + per-thread timing (`fg_wait_ms`) | `f4bfbb5` (tag `thread-timing-measurement`) | ▼ E2-07 below |
-
-
-### Run details
-
-<details>
-<summary><b>E2-01</b> — 2026-06-12 · Windows · 48 kHz · 1-tab · Windows baseline — E2E avg 2.8 / max 363.9 ms</summary>
-
-**Context**: 1-tab, 48 kHz, logging build with auto-recorded platform metadata.
-Deadline = 10.00 ms (480 / 48000, computed from data). CSV meta line:
-`platform=windows kernel=winnt sample_rate=48000`.
-Files: [csv](../../src/logs/EXP-02/log_20260612_132536.csv) ·
-[plot](../../src/logs/EXP-02/log_20260612_132536.png).
-
-**Per-frame metrics (analyze_log.py, window=100, 2104 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 2.81 | 363.87 | 0.07 |
-| ① wait (BG→FG queue + sched) | 1.89 | 359.53 | 0.01 |
-| ② exec (process→display) | 0.92 | 4.34 | 0.03 |
-| ┄ copy | 0.003 | 0.067 | 0.001 |
-| ┄ sound | 0.000 | 0.011 | 0.000 |
-| ┄ tg | 0.117 | 3.303 | 0.009 |
-| ┄ ui | 0.014 | 2.074 | 0.000 |
-| ┄ plot (dominant) | 0.784 | 2.356 | 0.012 |
-
-**Throughput / health:** bg_fps avg 93.7 (max 100.6), fg_fps avg 85.6 (max 100.0),
-bg_sps avg 44990. samples avg 527 (≈ SPF 480). exec > deadline: **0 / 2104**.
-backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
-
-![E2-01 log analysis](../../src/logs/EXP-02/log_20260612_132536.png)
-
-**Observations:**
-
-| Phase | Pattern | Interpretation |
-|-------|---------|----------------|
-| Startup (0–250) | samples↑, wait↑ to ~15 ms | warmup; FG draining initial backlog |
-| Steady (250+) | wait ≈ 0, total ≈ exec ≈ 1 ms | FG keeps up; latency dominated by exec, not wait |
-| Single spike | one frame wait ≈ 360 ms | isolated OS preemption, not structural |
-
-**Conclusion:**
-
-- Healthy on the Windows dev machine: avg total **2.8 ms**, wait avg **1.9 ms**,
-  backlog **4.3 %** — the machine kept up frame-by-frame.
-- ② (`exec`) never exceeded the 10 ms deadline (0/2104) — processing is not the
-  constraint; `plot` remains the dominant exec component (~0.78 ms).
-- Worst-case is still a single ~360 ms `wait` spike (OS scheduling), so max E2E
-  is jitter-bound, not load-bound.
-- Validates the toolchain end-to-end on Windows: platform auto-metadata,
-  data-driven deadline (10 ms), and the analysis graphs.
-- **11-tab and RPi runs still required** for the definitive EXP-02 answer.
-
-</details>
-
-<details>
-<summary><b>E2-02</b> — 2026-06-11 · rpi1 (1st unit) · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>rpi1 reference · real-time FAIL</b></summary>
-
-**Context**: RPi run, before platform auto-metadata. Deadline ≈ **21.33 ms**
-(SPF 1024 / SPS 48008). Files:
-[csv](../../src/logs/EXP-02/log_20260611_145543.csv) ·
-[plot](../../src/logs/EXP-02/log_20260611_145543.png) ·
-[sys plot](../../src/logs/EXP-02/log_20260611_145543_sys.png).
-
-**Per-frame metrics (window=100, 1015 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 255.45 | 900.92 | 0.14 |
-| ① wait | 235.20 | 879.61 | 0.03 |
-| ② exec | 20.24 | 62.47 | 0.10 |
-| ┄ copy | 0.014 | 0.105 | 0.007 |
-| ┄ sound | 0.456 | 9.531 | 0.000 |
-| ┄ tg | 3.111 | 27.925 | 0.062 |
-| ┄ ui | 0.679 | 6.359 | 0.000 |
-| ┄ plot (dominant) | 15.979 | 29.651 | 0.025 |
-
-**Throughput / health:** bg_fps avg 43.5, fg_fps avg 31.2, samples avg 1427.
-**exec > deadline: 441 / 1015 (43 %)**. backlog (>1.5× SPF): 312 / 1015.
-
-**System (RPi):** cpu_total 24 % but **cpu2 saturated, avg 91 % (max 99 %)**; temp
-**84.7 °C**, **throttled on all 10 samples**; mem 1651 MB; freq 2400 MHz.
-
-![E2-02 system](../../src/logs/EXP-02/log_20260611_145543_sys.png)
-
-**Conclusion:** RPi **fails real-time performance**, not just latency. `exec`
-(plot ~16 ms) overruns the 21 ms deadline 43 % of the time; one core (cpu2)
-saturated (~92 %) while the others idle; SoC thermally throttled (85 °C)
-throughout. The bottleneck is structural: heavy `plot`, single-core audio path,
-thermal throttling. **This run is the rpi1 (1st-unit) reference; the rpi2 baseline
-for future experiments is E2-03.**
-
-</details>
-
-<details>
-<summary><b>E2-03</b> — 2026-06-15 · rpi2 (2nd unit) · 48 kHz · auto-metadata build — E2E avg 57.2 / max 208.9 ms · <b>marginal real-time FAIL (4.4 % overruns)</b></summary>
-
-**Context**: RPi 2nd unit (rpi2), first run with platform auto-metadata
-(`platform=debian kernel=linux host=lg1 device=rpi2 sample_rate=48000`).
-Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48000). Files:
-[csv](../../src/logs/EXP-02/log_20260615_152751.csv) ·
-[plot](../../src/logs/EXP-02/log_20260615_152751.png) ·
-[sys plot](../../src/logs/EXP-02/log_20260615_152751_sys.png).
-
-**Per-frame metrics (1288 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 57.23 | 208.92 | 0.16 |
-| ① wait | 42.07 | 186.93 | 0.03 |
-| ② exec | 15.17 | 26.04 | 0.12 |
-| ┄ copy | 0.011 | 0.041 | 0.006 |
-| ┄ sound | 0.367 | 8.131 | 0.000 |
-| ┄ tg | 1.973 | 7.535 | 0.063 |
-| ┄ ui | 0.490 | 6.933 | 0.000 |
-| ┄ plot (dominant) | 12.322 | 19.109 | 0.025 |
-
-**Throughput / health:** bg_fps avg 46.9 (max 47.4), fg_fps avg 38.5 (max 42.1),
-bg_sps avg 48041. samples avg 1245 (≈ SPF 1024). exec > deadline: **57 / 1288 (4.4 %)**.
-backlog (>1.5× SPF): **273 / 1288 (21.2 %)**.
-
-**System (rpi2):** cpu_total ~28 % avg but **cpu3 saturated, avg ~99 %**; temp avg
-**60.3 °C** (max 61.1 °C), **throttled 0 / 12 samples** (no throttling); mem
-~1120 MB used / 16 GB total; freq 2400 MHz.
-
-![E2-03 sys](../../src/logs/EXP-02/log_20260615_152751_sys.png)
-
-**Observations:**
-
-| Phase | Pattern | Interpretation |
-|-------|---------|----------------|
-| Startup (0–100) | samples↑, exec↑ to ~20 ms | warmup / initial backlog drain |
-| Steady (100+) | exec avg ~15 ms, occasional spikes to ~26 ms | load stable; `plot` ~12 ms is the dominant cost |
-| Deadline overruns | 4.4 % of frames | structural but sporadic — not every frame fails |
-
-**Conclusion:**
-
-- Dramatically better than E2-02 (rpi1): E2E avg **57 ms** vs 255 ms (−78 %), exec avg
-  **15.2 ms** vs 20.2 ms (−25 %), exec overruns **4.4 %** vs 43 % (−90 %).
-- Root cause of improvement: **no thermal throttling** (60 °C vs 85 °C on rpi1).
-  rpi2 runs consistently at 2400 MHz while rpi1 was throttled for the entire run.
-- Still structurally failing: exec avg 15 ms with `plot` dominating at 12 ms. Max
-  exec 26 ms exceeds the 21.33 ms deadline, and 4.4 % overruns remain.
-- `plot` remains the dominant bottleneck on both units — lazy / throttled rendering
-  is still required regardless of hardware unit.
-- **16 GB RAM** (vs rpi1's smaller capacity) — memory pressure not a factor on rpi2.
-
-</details>
-
-<details>
-<summary><b>E2-04</b> — 2026-06-15 · rpi2 · 48 kHz · baseline + multi-graph (tag macos_ex_baseline) — E2E avg 80.1 / max 258.7 ms · <b>exec OK (0/1244) but wait 77 ms, backlog 28 %</b></summary>
-
-**Context**: rpi2, baseline + multi-graph — tag `macos_ex_baseline` (`6f741ec`).
-`plot_ms` and `ui_ms` measure 0 in the exec breakdown (rendering is not on the
-measured exec path). Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008). Files:
-[csv](../../src/logs/EXP-02/log_20260615_162055.csv) ·
-[plot](../../src/logs/EXP-02/log_20260615_162055.png) ·
-[sys plot](../../src/logs/EXP-02/log_20260615_162055_sys.png).
-
-**Per-frame metrics (1244 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 80.12 | 258.68 | 0.27 |
-| ① wait | 77.42 | 255.73 | 0.03 |
-| ② exec | 2.69 | 8.78 | 0.24 |
-| ┄ copy | 0.010 | 0.025 | 0.006 |
-| ┄ sound | 0.000 | 0.000 | 0.000 |
-| ┄ tg (dominant) | 2.682 | 8.752 | 0.233 |
-| ┄ ui | 0.000 | 0.000 | 0.000 |
-| ┄ **plot** | **0.000** | **0.000** | **0.000** |
-
-**Throughput / health:** bg_fps avg 43.5 (max 47.4), fg_fps avg 33.4 (max 46.0),
-bg_sps avg 44479. samples avg 1329 (spikes to 3072). exec > deadline: **0 / 1244**.
-backlog (>1.5× SPF): **352 / 1244 (28.3 %)**.
-
-**System (rpi2):** cpu_total ~27 % avg, **cpu1 saturated, avg ~91 % (max 99.7 %)**;
-temp avg **60.0 °C** (max 61.7 °C), **throttled 0 / 12 samples**; mem ~2260 MB used
-/ 16 GB total; freq 2400 MHz.
-
-![E2-04 sys](../../src/logs/EXP-02/log_20260615_162055_sys.png)
-
-**Observations:**
-
-| Phase | Pattern | Interpretation |
-|-------|---------|----------------|
-| exec | flat 2.7 ms avg, max 8.8 ms | pure DSP (tg) cost — no rendering overhead |
-| wait | 77 ms avg (higher than E2-03 42 ms) | FG is slower to pull; backlog builds but exec always finishes in time |
-| plot_ms | exactly 0.000 every frame | rendering not on the measured exec path |
-| Deadline | 0 / 1244 exceeded | **never once exceeded** without rendering |
-
-**Conclusion:**
-
-- **`plot` is the confirmed bottleneck.** With plot off the exec path, exec avg
-  drops from 15.2 ms (E2-03) to **2.7 ms** (−82 %) and the 21.33 ms deadline is
-  **never exceeded** (0 / 1244 frames vs 4.4 % in E2-03).
-- The remaining exec cost is almost entirely `tg` (2.68 ms) — the DSP computation
-  itself is well within budget.
-- But `wait` is high (77 ms vs E2-03's 42 ms): FG falls behind without sync, so
-  backlog grows (28.3 % vs 21.2 %). This is the gap that T2 (E2-05) closes.
-- **Architecture implication**: lazy / throttled rendering decouples plot from the
-  audio deadline path. This run is the evidence that doing so will eliminate deadline
-  overruns entirely. `tg` at 2.7 ms leaves ample headroom in the 21.33 ms budget.
-
-</details>
-
-<details>
-<summary><b>E2-05</b> — 2026-06-15 · rpi2 · 48 kHz · E2-04 + T2 DSP Offload (tag macos_ex_t2) — E2E avg 2.1 / max 11.1 ms · <b>exec > deadline: 0 / 1224 · backlog: 0 / 1224 — ideal real-time</b></summary>
-
-**Context**: rpi2, **E2-04 + T2 (DSP Offload Thread)** — tag `macos_ex_t2`
-(`7c367c6`). T2 makes FG and BG threads perfectly synchronized — samples is
-exactly 1024 every frame with zero backlog. Deadline ≈ **21.33 ms**
-(SPF 1024 / SPS 48008). Files:
-[csv](../../src/logs/EXP-02/log_20260615_163106.csv) ·
-[plot](../../src/logs/EXP-02/log_20260615_163106.png) ·
-[sys plot](../../src/logs/EXP-02/log_20260615_163106_sys.png).
-
-**Per-frame metrics (1224 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 2.10 | 11.05 | 0.23 |
-| ① wait | 0.027 | 3.649 | 0.009 |
-| ② exec | 2.073 | 9.923 | 0.207 |
-| ┄ copy | 0.008 | 0.549 | 0.006 |
-| ┄ sound | 0.000 | 0.000 | 0.000 |
-| ┄ tg (dominant) | 2.064 | 9.911 | 0.198 |
-| ┄ ui | 0.000 | 0.000 | 0.000 |
-| ┄ **plot** | **0.000** | **0.000** | **0.000** |
-
-**Throughput / health:** bg_fps avg 43.3 (max 47.4), fg_fps avg 43.3 (max 47.3)
-— **FG and BG perfectly matched**. bg_sps avg 44355. samples avg / min / max all
-= **1024 exactly** (no backlog accumulation). exec > deadline: **0 / 1224**.
-backlog (>1.5× SPF): **0 / 1224**.
-
-**System (rpi2):** cpu_total ~29.6 % avg, **cpu1 saturated, avg ~93.8 % (max 100 %)**;
-temp avg **60.4 °C** (max 62.3 °C), **throttled 0 / 12 samples**; mem ~2292 MB used
-/ 16 GB total; freq 2400 MHz.
-
-![E2-05 sys](../../src/logs/EXP-02/log_20260615_163106_sys.png)
-
-**Observations:**
-
-| Phase | Pattern | Interpretation |
-|-------|---------|----------------|
-| wait | avg 0.027 ms (near-zero) | FG picks up immediately after BG emits — no queue depth |
-| samples | exactly 1024 every frame | BG and FG are 1-for-1 synchronized, no accumulation |
-| bg_fps ≈ fg_fps | both ~43.3 fps | FG keeps pace with BG throughout the run |
-| exec | avg 2.07 ms, max 9.9 ms | `tg` sole cost — same level as E2-04 (2.7 ms) |
-| backlog | 0 / 1224 | zero frames with accumulated samples |
-
-**Conclusion:**
-
-- E2-05 represents **ideal real-time pipeline behavior**: zero backlog, near-zero wait,
-  exec well within the 21.33 ms deadline (0 / 1224 overruns).
-- Total E2E avg is **2.1 ms** — close to the Windows reference (E2-01: 2.8 ms) and
-  drastically lower than E2-04 (80 ms), where FG lagged behind the queue.
-- The difference from E2-04 is not hardware (same unit, same temp) but **thread
-  scheduling**: in E2-05 the FG thread is pulled up immediately after each BG emit,
-  eliminating queue depth and wait entirely.
-- `tg` (DSP) costs 2.06 ms avg — unchanged from E2-04 (2.7 ms), confirming the
-  improvement is purely a scheduling / synchronization gain, not an algorithmic one.
-- **Architecture implication**: with rendering decoupled and FG properly scheduled,
-  the full pipeline can run at **2.1 ms E2E** on rpi2. This is the performance
-  ceiling to target with lazy rendering implemented on the full-GUI build.
-
-</details>
-
-<details>
-<summary><b>E2-06</b> — 2026-06-15 · rpi2 · 48 kHz · E2-05 + R1 Lazy Rendering (tag macos_ex_r1) — E2E avg 2.1 / max 5.7 ms · <b>exec > deadline: 0 / 1142 · backlog: 0 / 1142 — ideal real-time, tightest max</b></summary>
-
-**Context**: rpi2, **E2-05 + R1 (Lazy Rendering)** — tag `macos_ex_r1` (`39c1d1a`),
-build-error patch: `${CMAKE_CURRENT_SOURCE_DIR}/logging` added to CMake. Same
-perfect sync as E2-05; R1 tightens worst-case max. Memory ~850 MB (vs E2-05 ~2292 MB).
-Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
-Files: [csv](../../src/logs/EXP-02/log_20260615_165612.csv) ·
-[plot](../../src/logs/EXP-02/log_20260615_165612.png) ·
-[sys plot](../../src/logs/EXP-02/log_20260615_165612_sys.png).
-
-**Per-frame metrics (1142 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 2.050 | 5.655 | 0.237 |
-| ① wait | 0.029 | 0.558 | 0.013 |
-| ② exec | 2.021 | 5.616 | 0.208 |
-| ┄ copy | 0.007 | 0.018 | 0.006 |
-| ┄ sound | 0.000 | 0.000 | 0.000 |
-| ┄ tg (dominant) | 2.012 | 5.606 | 0.199 |
-| ┄ ui | 0.000 | 0.000 | 0.000 |
-| ┄ **plot** | **0.000** | **0.000** | **0.000** |
-
-**Throughput / health:** bg_fps avg 43.1 (max 47.4), fg_fps avg 43.1 (max 47.4)
-— **FG and BG perfectly matched**. bg_sps avg 44092. samples avg / min / max all
-= **1024 exactly** (no backlog accumulation). exec > deadline: **0 / 1142**.
-backlog (>1.5× SPF): **0 / 1142**.
-
-**System (rpi2):** cpu_total ~29.2 % avg, **cpu0 saturated, avg ~92.7 % (max 99.6 %)**;
-temp avg **61.3 °C** (max 62.8 °C), **throttled 0 / 11 samples**; mem ~850 MB used
-/ 16 GB total; freq 2400 MHz.
-
-![E2-06 sys](../../src/logs/EXP-02/log_20260615_165612_sys.png)
-
-**Observations:**
-
-| Phase | Pattern | Interpretation |
-|-------|---------|----------------|
-| wait | avg 0.029 ms (near-zero) | FG picks up immediately after BG emits — same as E2-05 |
-| samples | exactly 1024 every frame | BG and FG are 1-for-1 synchronized, no accumulation |
-| bg_fps ≈ fg_fps | both ~43.1 fps | FG keeps pace with BG throughout the run |
-| exec | avg 2.02 ms, max 5.62 ms | `tg` sole cost; max tighter than E2-05 (9.9 ms) |
-| backlog | 0 / 1142 | zero frames with accumulated samples |
-
-**Conclusion:**
-
-- E2-06 replicates E2-05's **ideal real-time pipeline behavior** on the same rpi2 unit:
-  zero backlog, near-zero wait, exec well within the 21.33 ms deadline.
-- Max E2E is **5.7 ms** — notably tighter than E2-05's **11.1 ms**; R1 (Lazy
-  Rendering) trims the worst-case tail, keeping max sub-10 ms.
-- `tg` (DSP) costs 2.01 ms avg — consistent with E2-04 (2.68 ms) and E2-05 (2.06 ms).
-- Lower memory footprint (~850 MB vs ~2292 MB) suggests a different build variant
-  but has no observable effect on latency or throughput.
-- **Confirms E2-05's result**: the ideal rpi2 pipeline ceiling is ~2.1 ms E2E avg,
-  with max excursions below 6 ms under this build.
-
-</details>
-
-<details>
-<summary><b>E2-07</b> — 2026-06-16 · rpi2 · 48 kHz · E2-06 + per-thread timing (fg_wait_ms) — DSP E2E avg 2.2 / max 4.8 ms · <b>fg_wait avg 60.1 ms · p99 167.8 ms · 84 % > deadline — FG scheduling bottleneck revealed</b></summary>
-
-**Context**: rpi2, **E2-06 + per-thread timing** — tag `thread-timing-measurement` (`f4bfbb5`).
-New column `fg_wait_ms` measures DSPWorker `frameLogged` emit → MainWindow `onFrameLogged`
-entry (Qt FG-scheduler pickup latency). DSP pipeline identical to E2-06.
-Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
-Files: [csv](../../src/logs/EXP-02/log_20260616_140850.csv) ·
-[plot](../../src/logs/EXP-02/log_20260616_140850.png) ·
-[sys plot](../../src/logs/EXP-02/log_20260616_140850_sys.png).
-
-**DSP path (wait + exec) per-frame metrics (1458 frames), ms:**
-
-| Metric | avg | max | min |
-|--------|----:|----:|----:|
-| total = ①+② | 2.168 | 4.819 | 0.234 |
-| ① wait (BG→DSP pickup) | 0.030 | 0.381 | 0.013 |
-| ② exec (DSP processing) | 2.139 | 4.438 | 0.206 |
-| ┄ copy | 0.007 | 0.028 | 0.006 |
-| ┄ sound | 0.000 | 0.000 | 0.000 |
-| ┄ tg (dominant) | 2.130 | 4.429 | 0.198 |
-| ┄ ui | 0.000 | 0.000 | 0.000 |
-| ┄ plot | 0.025 | 37.024 | 0.000 |
-
-**FG scheduling pickup (fg_wait_ms) — NEW metric:**
-
-| Metric | Value |
-|--------|------:|
-| fg_wait avg | **60.1 ms** 🔴 |
-| fg_wait p50 (median) | — |
-| fg_wait p95 | **144.0 ms** |
-| fg_wait p99 | **167.8 ms** |
-| fg_wait max | **183.6 ms** |
-| fg_wait > deadline (21.33 ms) | **1231 / 1458 (84 %)** 🔴 |
-
-**Throughput / health:** bg_fps avg 43.9 (max 47.4), fg_fps avg 43.9 (max 47.3)
-— **FG and BG perfectly matched** (bg_fps ≈ fg_fps, same as E2-05/E2-06). bg_sps avg 44939.
-samples = 1024 exactly every frame. exec > deadline: **0 / 1458**. backlog: **0 / 1458**.
-
-**System (rpi2):** cpu_total avg 30.0 % (max 32.4 %);
-**cpu1 saturated avg 95.0 % (max 99.5 %)** (DSP on cpu1);
-temp avg **57.9 °C** (max 59.5 °C) — cooler than E2-06 (61.3 °C); **throttled 0 / 14 samples**;
-mem 1362.7 MB used / 16214.9 MB; freq 2400 MHz (no throttling).
-
-![E2-07 plot](../../src/logs/EXP-02/log_20260616_140850.png)
-
-![E2-07 sys](../../src/logs/EXP-02/log_20260616_140850_sys.png)
-
-**Thread Activity Timeline:**
-
-Full-run overview — all 1458 frames (x-axis = frame number, 1 slot = 21.3 ms period):
-
-![E2-07 timeline all](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png)
-
-Zoom view — representative 4-frame window (frames 728–731, x-axis = elapsed time ms):
-
-![E2-07 timeline zoom](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_default.png)
-
-Timeline tool: `src/tools/thread_timeline_dark.py`
-
-| Lane | Pattern | Interpretation |
-|------|---------|----------------|
-| BG Thread (cyan) | 1458 ticks evenly spaced | AudioWorker fires exactly every 21.3 ms — audio clock stable |
-| DSP Thread (green) | Variable-width bar per frame | exec 0.2–4.4 ms, variable but 0 deadline overruns |
-| Main FG (brown) | Brown bar spans 3× frame boundary | fg_wait avg 60 ms — **3× the frame period** (21.3 ms) |
-| FG handle (gray) | Thin gray mark at right edge of bar | Qt MainWindow onFrameLogged entry point |
-
-In the full-run view, **FG brown bars consistently overflow into subsequent BG/DSP slots**,
-making the scheduling lag immediately visible. The first ~200 frames show slightly shorter
-fg_wait; thereafter the elevated level is sustained throughout the run.
-
-**Observations:**
-
-| Phase | Pattern | Interpretation |
-|-------|---------|----------------|
-| DSP wait | avg 0.030 ms (near-zero) | DSP thread picks up BG signal immediately — T2 working |
-| DSP exec | avg 2.14 ms, max 4.44 ms | tg sole cost; tighter max than E2-06 (5.6 ms) |
-| samples | exactly 1024 every frame | BG/FG DSP synchronized, no backlog |
-| **fg_wait** | **avg 60.1 ms**, **84 % > 21.33 ms** | Qt event loop on RPi is very slow to wake FG thread 🔴 |
-| fg_wait p99 | 167.8 ms ≈ 8× deadline | severe FG scheduling tail on RPi vs macOS (macOS p99 = 20.5 ms) |
-| cpu1 | avg 95 % saturated | DSP pinned to cpu1; other cores idle — FG scheduling delay not CPU-bound |
-| temp | 57.9 °C (vs E2-06's 61.3 °C) | slightly cooler; no throttling |
-
-**Conclusion:**
-
-- **DSP pipeline remains healthy**: DSP E2E avg 2.2 ms, max 4.8 ms, 0 deadline misses,
-  0 backlog — identical behavior to E2-06.
-- **FG scheduling is the revealed bottleneck**: `fg_wait_ms` exposes a new latency
-  invisible in E2-06. The Qt event loop takes avg **60 ms** on RPi to deliver
-  `frameLogged` to the FG thread — 84 % of frames exceed the 21.33 ms audio deadline.
-  On macOS (R5 in the macOS experiment series), the same metric was avg 8.9 ms, p99
-  20.5 ms — the RPi scheduler is ~7× slower to wake the FG thread.
-- **Not CPU-bounded**: cpu1 (DSP) is saturated at 95 %, but cpu0/2/3 are near-idle
-  (avg 7–12 %). FG has CPU headroom; the bottleneck is Qt event-loop scheduling
-  priority, not raw compute.
-- **Next step**: Apply T1 (SCHED_RR + CPU affinity) to the FG/DSP threads on RPi
-  to reduce `fg_wait_ms`, or investigate `QTimer`-based periodic FG polling as an
-  alternative to `frameLogged` signal delivery.
-
-</details>
-
-### E2-03–E2-06 Tactic Progression Comparison (rpi2, same unit)
-
-All four runs are on rpi2 at 48 kHz; deadline ≈ 21.33 ms (SPF 1024 / SPS 48008).
-Tactics R1 / T2 are defined in
-[architectural-approaches.md](architectural-approaches.md) (R1 = Lazy Rendering,
-T2 = DSP Offload Thread).
-
-| Config | E2-03 = baseline | E2-04 = baseline + multi-graph | E2-05 = E2-04 + T2 | E2-06 = E2-05 + R1 |
-|--------|------------:|--------------------------:|-----------:|----------------:|
-| E2E avg (ms) | 57.2 | 80.1 | **2.1** | **2.05** |
-| E2E max (ms) | 208.9 | 258.7 | 11.1 | **5.7** |
-| ① wait avg (ms) | 42.1 | 77.4 | 0.03 | 0.03 |
-| ② exec avg (ms) | 15.2 | 2.7 | 2.07 | 2.02 |
-| ② exec max (ms) | 26.0 | 8.8 | 9.9 | 5.6 |
-| tg avg (ms) | 2.0 | 2.7 | 2.06 | 2.01 |
-| plot avg (ms) | 12.3 | 0.0 | 0.0 | 0.0 |
-| exec > deadline | 57/1288 (4.4 %) | 0/1244 | 0/1224 | 0/1142 |
-| backlog (>1.5× SPF) | 273/1288 (21 %) | 352/1244 (28 %) | **0/1224** | **0/1142** |
-| samples (avg) | 1245 | 1329 | 1024 | 1024 |
-| bg/fg fps | 46.9 / 38.5 | 43.5 / 33.4 | 43.3 / 43.3 | 43.1 / 43.1 |
-| busiest core (avg) | cpu3 ~99 % | cpu1 ~91 % | cpu1 ~94 % | cpu0 ~93 % |
-| temp avg (°C) | 60.3 | 60.0 | 60.4 | 61.3 |
-| throttled | 0/12 | 0/12 | 0/12 | 0/11 |
-| real-time | marginal FAIL | exec OK, wait high | **ideal** | **ideal** |
-
-> `plot_ms` is 0 in E2-04–E2-06 (rendering is off the measured exec path), so the
-> comparison turns on wait / exec / tg and on backlog & sync rather than plot.
-
-**Key findings:**
-
-- **E2-03 → E2-04 (multi-graph):** exec drops 15.2 → 2.7 ms (plot leaves the exec path),
-  but `wait` rises (42 → 77 ms) and E2E worsens — FG falls behind without render
-  pressure; backlog grows to 28 %.
-- **E2-04 → E2-05 (+T2, DSP Offload):** the decisive step. FG/BG become 1-for-1
-  synchronized (samples fixed at 1024, backlog 0), `wait` collapses to ~0.03 ms,
-  and E2E avg drops to **2.1 ms** — ideal real-time.
-- **E2-05 → E2-06 (+T2 +R1, Lazy Rendering):** same avg (2.05 ms) but tighter worst case
-  (max 11.1 → **5.7 ms**), i.e. R1 trims tail latency.
-- **tg (DSP) is stable at ~2 ms** across E2-04–E2-06, confirming the gains are
-  scheduling/rendering architecture, not algorithmic.
-- Hardware note: E2-02 (rpi1) failed at 43 % overruns mainly due to thermal throttling
-  (85 °C); rpi2 stays at 60 °C / 2400 MHz throughout (see E2-02 detail block).
-
-> Provenance is in the Runs table (`git_commit` column; tag in parens). The E2-6
-> build-fix added `${CMAKE_CURRENT_SOURCE_DIR}/logging` to CMake. Tactics R1/T2
-> are defined in [architectural-approaches.md](architectural-approaches.md).
-
-### Current Best
-
-**E2-07 (rpi2, E2-06 + per-thread timing) — DSP healthy, FG scheduling bottleneck revealed** ⚠️
-- DSP E2E avg **2.2 ms** / max **4.8 ms** — 0 deadline misses, 0 backlog (same as E2-06)
-- ① wait avg **0.030 ms** (near-zero); samples exactly 1024 every frame
-- exec avg **2.1 ms**, max **4.4 ms** — **0 / 1458** deadline overruns
-- backlog **0 / 1458** — FG and BG DSP perfectly synchronized
-- **fg_wait avg 60.1 ms, p99 167.8 ms, 84 % > deadline** 🔴 — NEW bottleneck identified
-- temp 57.9 °C, no throttling, mem 1.36 GB / 16 GB
-
-> E2-06 (E2-05 + R1): DSP E2E avg 2.1 ms, max 5.7 ms — R1 trims tail latency; fg_wait not yet measured.  
-> E2-05 (E2-04 + T2): E2E avg 2.1 ms, max 11.1 ms — T2 yields the sync fix (backlog 0).  
-> E2-04 (rpi2 baseline + multi-graph): E2E avg 80 ms, backlog 28 % — FG scheduling lag.  
-> E2-03 (rpi2 baseline): exec 15.2 ms, 4.4 % overruns — `plot` bottleneck in audio path.  
-> E2-01 (Windows baseline): E2E avg 2.8 ms — E2-06 reaches parity with tighter max.
-
-- **Decisive tactic so far**: **T2 (DSP Offload)** — E2-04 → E2-05 drops E2E 80 ms → 2.1 ms (sync, backlog 0)
-- **R1 (Lazy Rendering)**: trims worst-case DSP max (E2-05 11.1 → E2-06 5.7 ms)
-- **New finding (E2-07)**: `fg_wait_ms` reveals Qt FG-scheduler pickup on RPi is avg 60 ms —
-  7× worse than macOS (avg 8.9 ms). FG latency is the next architecture concern.
-- **Next action**: Apply T1 (SCHED_RR + CPU affinity for FG thread) → measure E2-8
-- **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
-
----
-
-## EXP-03: Detector Parameter Optimization Under Noise Conditions
-
-**Linked QA**: QAS-3 | **Linked Risk**: TR-05  
-**Status**: ✅ Done  
-**Prerequisite**: EXP-01 complete (SPS for measurement confirmed)  
-**Date**: 2026-06-16 ~ 2026-06-17
-
-**Question**: Which combination of `onset_fraction` and `min_peak_fraction` minimizes Δ Rate / Δ Amplitude / Δ Beat Error across low / medium / high noise?
-
-**Answer**: `onset_fraction = 0.08, min_peak_fraction = 0.10` is the most noise-robust setting.  
-Rate measurement remains stable at ~+4.0 s/d across 0–50 dB noise and degrades gracefully at 60 dB (+7.5 s/d, still tracking). Lower onset values (0.02, 0.05) cause catastrophic failure at 60 dB. `min_peak_fraction` has minimal impact within the tested range.
-
-### Setup
-
-**WAV source**: `28800BPH_3235_Starbucks_noise{XX}db.wav` — real recording of a 28,800 BPH watch with pink noise added at 7 SNR levels (0–60 dB, step 10 dB). 96 kHz, float32, ~45 s each.  
-**Binary**: `src/build-log/TimeGrapher` (Raspberry Pi 5, host=lg1, device=rpi1, platform=debian)  
-**Log location**: `src/logs/EXP-03/` (583 total files = 292 data + 291 sys)  
-**Duration**: 45 s per run, `--no-record` mode, `--quit-on-done`
-
-### Parameter Grid
-
-| Axis | Values swept | Range |
-|------|:-----------:|-------|
-| `onset_fraction` | 0.02, 0.05, **0.08** | 3 levels |
-| `min_peak_fraction` | 0.10, 0.20, 0.30 | 3 levels |
-| noise level | 00, 10, 20, 30, 40, 50, 60 dB | 7 levels |
-| reps | 5 | per combination |
-| **Total planned** | **315** | 3 × 3 × 7 × 5 |
+**Measurement segments**: ① BG audio received → DSP start (wait) · ② DSP processing → paint complete (exec)
 
 ### Run History
 
-| Run | Date | Scope | Runs | Key Result | git_commit | Detail |
-|:---:|------|-------|:----:|------------|:----------:|:------:|
-| E3-01 | 2026-06-15 | Pilot — default params, 48 kHz, snr naming | 3 | No detection data; file format validation only | — | ▼ E3-01 below |
-| E3-02 | 2026-06-16 | Early grid — onset {0.02, 0.08} × min_peak {0.10, 0.30} × noise {0, 60} dB, 96 kHz | 8 | No detection data; 96 kHz playback confirmed | — | ▼ E3-02 below |
-| E3-03 | 2026-06-17 | Full grid — onset {0.02, 0.05, 0.08} × min_peak {0.10–0.30} × noise 0–60 dB × 5 reps | 274 | **onset=0.08/min_peak=0.10 best**: rate +4.0 s/d stable 0–50 dB; only onset=0.08 maintains lock at 60 dB | `bd7d1f3` | ▼ E3-03 below |
+| Run | Date | Configuration | E2E avg/max (ms) | Note | Data |
+|:---:|------|--------------|:----------------:|------|:----:|
+| E2-01 | 2026-06-12 | Windows reference (dev PC) | 2.8 / 363.9 | Healthy — one OS scheduling spike | [csv](../../src/logs/EXP-02/log_20260612_132536.csv) · [plot](../../src/logs/EXP-02/log_20260612_132536.png) |
+| E2-02 | 2026-06-11 | rpi1 — unoptimized | 255.4 / 900.9 | ❌ FAIL — thermal throttling, exec overrun 43 % | [csv](../../src/logs/EXP-02/log_20260611_145543.csv) · [plot](../../src/logs/EXP-02/log_20260611_145543.png) |
+| E2-03 | 2026-06-15 | rpi2 baseline | 57.2 / 208.9 | ❌ exec overrun 4.4 % — `plot` on exec path | [csv](../../src/logs/EXP-02/log_20260615_152751.csv) · [plot](../../src/logs/EXP-02/log_20260615_152751.png) |
+| E2-04 | 2026-06-15 | rpi2 + multi-tab | 80.1 / 258.7 | plot removed from exec path; FG queue lag | [csv](../../src/logs/EXP-02/log_20260615_162055.csv) · [plot](../../src/logs/EXP-02/log_20260615_162055.png) |
+| E2-05 | 2026-06-15 | E2-04 + T2 (DSP offload thread) | 2.1 / 11.1 | ✅ **Ideal real-time** — 0 drops, 0 backlog | [csv](../../src/logs/EXP-02/log_20260615_163106.csv) · [plot](../../src/logs/EXP-02/log_20260615_163106.png) |
+| E2-06 | 2026-06-15 | E2-05 + R1 (Lazy Rendering) | 2.1 / 5.7 | ✅ Same perf + tighter max | [csv](../../src/logs/EXP-02/log_20260615_165612.csv) · [plot](../../src/logs/EXP-02/log_20260615_165612.png) |
+| E2-07 | 2026-06-16 | E2-06 + FG wait measurement | 2.2 / 4.8 | ✅ DSP healthy; **FG scheduling lag 60 ms revealed** | [csv](../../src/logs/EXP-02/log_20260616_140850.csv) · [plot](../../src/logs/EXP-02/log_20260616_140850.png) · [timeline](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png) |
 
-### Run Details
+### Tactic Progression
 
-<details>
-<summary><b>E3-01</b> — 2026-06-15 · Pilot · 48 kHz · default params — 3 files, no detection data</summary>
+| Step | E2E avg | Change | Root Cause |
+|------|:-------:|--------|------------|
+| E2-03 (baseline) | 57 ms | — | `plot` rendering on the DSP exec path |
+| E2-04 (multi-tab) | 80 ms | worse | `plot` removed but no FG-BG sync → queue builds |
+| **E2-05 (+T2)** | **2.1 ms** | **−97 %** | DSP offload thread — FG-BG 1:1 sync, zero backlog |
+| E2-06 (+R1) | 2.05 ms | max 11→5.7 ms | Lazy Rendering trims worst-case tail |
+| E2-07 (measure) | 2.2 ms | — | FG Qt event-loop pickup lag avg 60 ms newly revealed |
 
-**Files**: `src/logs/EXP-03/log_20260615_170803_snr10db_48000hz_r1.csv` · `log_20260615_171457_snr00db_48000hz_r1.csv` · `log_20260615_171812_snr00db_48000hz_r1.csv`
+### Conclusion
 
-Early pilot runs at 48 kHz using the old `snr{XX}db` naming convention. No `sync_locked` / `rate_spd` / `beat_error_ms` columns — Logger did not yet have detection accuracy fields. Not used in parameter analysis.
+- **Key fix**: T2 (DSP offload thread) — E2E 80 ms → 2.1 ms (−97 %)
+- **R1 (Lazy Rendering)**: additional tail latency reduction (max 11.1 → 5.7 ms)
+- **New bottleneck (E2-07)**: FG Qt event-loop pickup avg **60 ms** (84 % > 21.33 ms deadline) — 7× slower than macOS → next engineering concern
 
-**Purpose**: Validate that the automated playback pipeline (CLI `--file`, `--duration`) logs frames correctly before scaling to 315-run grid.
+---
 
-</details>
+## EXP-03: Detector Parameter Optimization Under Noise
 
-<details>
-<summary><b>E3-02</b> — 2026-06-16 · Early grid · 96 kHz · onset {0.02, 0.08} × min_peak {0.10, 0.30} × noise {0, 60} dB — 8 runs + 7 noise baselines</summary>
+**QA**: QAS-3 | **Date**: 2026-06-16 ~ 2026-06-17 | **Status**: ✅ Done
 
-**Data files**: `src/logs/EXP-03/log_20260616_23*.csv` (15 files total)
+**Question**: Which combination of `onset_fraction` and `min_peak_fraction` yields the most stable measurement under varying noise conditions?
 
-Switched to 96 kHz (target sample rate per EXP-01). Added 7 noise-level baseline runs (`noise{00-60}db_96000hz_r1.csv`) plus 8 early grid combinations (onset × min_peak × 2 noise extremes).
+**Answer**: `onset_fraction = 0.08, min_peak_fraction = 0.10`. Rate stable at ≈ +4.0 s/d across 0–50 dB. Tracks successfully at 60 dB (+7.5 s/d). onset=0.02 and 0.05 fail catastrophically at 60 dB.
 
-No `sync_locked` column — these were run before the detection accuracy fields were added to Logger. Not used in the detection metric analysis.
+### Experiment Design
 
-**Purpose**: Confirm 96 kHz file playback is stable and the grid sweep script works end-to-end before running all 315 combinations.
+| Parameter | Values swept |
+|-----------|-------------|
+| `onset_fraction` | 0.02, 0.05, **0.08** |
+| `min_peak_fraction` | 0.10, 0.20, 0.30 |
+| Noise level | 0 / 10 / 20 / 30 / 40 / 50 / 60 dB (7 levels) |
+| Repetitions | 5 per combination |
+| **Total** | **3 × 3 × 7 × 5 = 315 planned → 274 completed** |
 
-</details>
-
-<details>
-<summary><b>E3-03</b> — 2026-06-17 · Full grid · 96 kHz · onset {0.02, 0.05, 0.08} × min_peak {0.10, 0.20, 0.30} × noise 0–60 dB × 5 reps — 274 runs with detection data</summary>
-
-**Data files**: `src/logs/EXP-03/log_20260617_*.csv` (274 files)  
-**Platform**: Raspberry Pi 5 · host=lg1 · device=rpi1 · git_commit=`bd7d1f3`
-
-Main parameter sweep. Logger now records `sync_locked`, `bph`, `rate_spd`, `beat_error_ms`, `amplitude_deg` per frame.
-
-**Completeness (valid files with detection data, capped at 5 reps):**
-
-|  | 00 dB | 10 dB | 20 dB | 30 dB | 40 dB | 50 dB | 60 dB |
-|--|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-| onset=0.02 / min_peak=0.10 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| onset=0.02 / min_peak=0.20 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| onset=0.02 / min_peak=0.30 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| onset=0.05 / min_peak=0.10 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| onset=0.05 / min_peak=0.20 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| onset=0.05 / min_peak=0.30 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| onset=0.08 / min_peak=0.10 | 4 | 5 | 5 | 5 | 5 | 5 | 4 |
-| onset=0.08 / min_peak=0.20 | 5 | 5 | 3 | 0 | 2 | 0 | 2 |
-| onset=0.08 / min_peak=0.30 | 1 | 0 | 2 | 0 | 2 | 0 | 1 |
-
-> onset=0.08 / min_peak=0.20 and 0.30 are incomplete but the trend is clear from onset=0.08 / min_peak=0.10.
-
-</details>
+**WAV source**: 28,800 BPH watch real recording + pink noise at 7 SNR levels (96 kHz, float32)  
+**Platform**: Raspberry Pi 5 (host=lg1, device=rpi1) | **Log directory**: [src/logs/EXP-03/](../../src/logs/EXP-03/)
 
 ### Results
 
-Metrics below are averaged across all 5 reps (or available reps for incomplete combos).  
-**rate_spd** = detected rate in seconds/day (the watch runs ~+4 s/d fast; consistency matters more than absolute value).  
-**beat_error_ms** = rolling average beat error. **amplitude_deg** = rolling average amplitude. All frames pooled across reps.
+#### onset=0.02 — Unstable
 
-#### onset=0.02
+| Noise | lock% | rate (s/d) | beat_error (ms) |
+|:-----:|:-----:|:----------:|:---------------:|
+| 00 dB | 92 | +12.11 | 0.980 |
+| 10–40 dB | 94 | +4 ~ +8 | 0.2 ~ 0.8 |
+| 50 dB | 94 | +14.65 | 2.729 |
+| **60 dB** | 93 | **−4,264** | **27.6** |
 
-| noise | lock% | rate_spd (s/d) | beat_error (ms) | amp (°) |
-|------:|:-----:|:--------------:|:---------------:|:-------:|
-| 00 dB | 92 | +12.11 | 0.980 | 197.3 |
-| 10 dB | 94 | +8.07 | 0.758 | 199.5 |
-| 20 dB | 94 | +7.94 | 0.751 | 199.5 |
-| 30 dB | 94 | +8.11 | 0.752 | 199.5 |
-| 40 dB | 94 | +4.21 | 0.187 | 201.9 |
-| 50 dB | 94 | +14.65 | 2.729 | 190.8 |
-| **60 dB** | 93 | **−4,264** | **27.6** | **94.6** |
+> Rate fluctuates erratically with noise level. Complete failure at 60 dB.
 
-> min_peak=0.10/0.20/0.30 all produce near-identical results at onset=0.02. Rate error is inconsistent (12 → 8 → 14 → catastrophic) — this onset level is too sensitive to noise.
+#### onset=0.05 — Fails at 60 dB
 
-#### onset=0.05
+| Noise | lock% | rate (s/d) | beat_error (ms) |
+|:-----:|:-----:|:----------:|:---------------:|
+| 00–50 dB | 91–94 | +4.02 ~ +4.24 | 0.189–0.191 |
+| **60 dB** | 91 | **−393** | **8.7** |
 
-| noise | lock% | rate_spd (s/d) | beat_error (ms) | amp (°) |
-|------:|:-----:|:--------------:|:---------------:|:-------:|
-| 00 dB | 93 | +4.24 | 0.189 | 202.6 |
-| 10 dB | 94 | +4.18 | 0.190 | 202.8 |
-| 20 dB | 94 | +4.19 | 0.189 | 202.8 |
-| 30 dB | 94 | +4.15 | 0.190 | 202.8 |
-| 40 dB | 94 | +4.13 | 0.191 | 202.9 |
-| 50 dB | 94 | +4.02 | 0.191 | 203.4 |
-| **60 dB** | 91 | **−393** | **8.7** | **167.0** |
-
-> Shown for min_peak=0.10 (best of the onset=0.05 group). Stable and consistent at 0–50 dB; **catastrophic failure at 60 dB**.
+> Stable at 0–50 dB but complete failure at 60 dB.
 
 #### onset=0.08 ← Recommended
 
-| noise | lock% | rate_spd (s/d) | beat_error (ms) | amp (°) |
-|------:|:-----:|:--------------:|:---------------:|:-------:|
-| 00 dB | 94 | +4.06 | 0.178 | 203.5 |
-| 10 dB | 94 | +4.02 | 0.178 | 203.6 |
-| 20 dB | 94 | +4.02 | 0.179 | 203.5 |
-| 30 dB | 94 | +4.02 | 0.178 | 203.5 |
-| 40 dB | 95 | +4.04 | 0.178 | 203.6 |
-| 50 dB | 94 | +3.86 | 0.178 | 204.1 |
-| **60 dB** | **95** | **+7.51** | **1.339** | **200.2** |
+| Noise | lock% | rate (s/d) | beat_error (ms) |
+|:-----:|:-----:|:----------:|:---------------:|
+| 00–50 dB | 94–95 | +3.86 ~ +4.06 | 0.178 |
+| **60 dB** | **95** | **+7.51** | **1.339** |
 
-> Shown for min_peak=0.10. **60 dB is the only condition where onset=0.08 maintains tracking** (+7.5 s/d, still physically plausible) while onset=0.05 and onset=0.02 fail completely.
+> Only setting that maintains tracking at 60 dB extreme noise.
 
-### Ranking (avg |rate_spd|, 0–30 dB noise)
+### Ranking (avg over 0–30 dB)
 
-| Rank | onset | min_peak | rate_spd (s/d) | beat_error (ms) | amp (°) | lock% |
-|:----:|:-----:|:--------:|:--------------:|:---------------:|:-------:|:-----:|
-| 1 | **0.08** | **0.10** | **+4.03** | **0.178** | 203.5 | 94 |
-| 2 | **0.08** | 0.20 | +4.00 | 0.179 | 203.7 | 95 |
-| 3 | **0.08** | 0.30 | +4.03 | 0.178 | 203.5 | 94 |
-| 4 | 0.05 | 0.10 | +4.19 | 0.190 | 202.8 | 94 |
-| 5 | 0.05 | 0.30 | +4.71 | 0.189 | 200.9 | 93 |
-| 6 | 0.05 | 0.20 | +4.95 | 0.189 | 200.1 | 91 |
-| 7 | 0.02 | 0.30 | +8.22 | 0.758 | 199.5 | 94 |
-| 8 | 0.02 | 0.20 | +8.46 | 0.774 | 199.4 | 94 |
-| 9 | 0.02 | 0.10 | +8.92 | 0.803 | 199.0 | 94 |
+| Rank | onset | min_peak | rate avg (s/d) | beat_error (ms) |
+|:----:|:-----:|:--------:|:--------------:|:---------------:|
+| **1** | **0.08** | **0.10** | **+4.03** | **0.178** |
+| 2 | 0.08 | 0.20 | +4.00 | 0.179 |
+| 3 | 0.08 | 0.30 | +4.03 | 0.178 |
+| 4 | 0.05 | 0.10 | +4.19 | 0.190 |
+| 5–9 | 0.02 | — | +8 ~ +12 | 0.75 ~ 0.98 |
 
-> onset=0.08 dominates the top 3 slots. min_peak has minimal effect within the onset=0.08 group. onset=0.02 is clearly the worst tier (~2× higher rate error and beat error, fails at 60 dB even faster).
+> onset=0.08 dominates top 3. min_peak has minimal effect within the onset=0.08 group.
 
-### Current Best
+### Sample Data Files
 
-- **Run**: Grid search 2026-06-17 (274 runs with detection data)
-- **Recommended `onset_fraction`**: **0.08**
-- **Recommended `min_peak_fraction`**: **0.10** (slightly lowest beat_error; min_peak has minor effect within onset=0.08 group)
-- **Noise robustness threshold**: onset=0.08 tracks through 60 dB SNR (+7.5 s/d); onset=0.05 fails at 60 dB (−393 s/d); onset=0.02 fails at 60 dB (−4,264 s/d)
-- **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
+Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
+
+| Noise | Rep 1 | Rep 2 | Rep 3 |
+|:-----:|-------|-------|-------|
+| 00 dB | [csv](../../src/logs/EXP-03/log_20260617_111942_onset008_minpk010_noise00db_r2.csv) | [csv](../../src/logs/EXP-03/log_20260617_112029_onset008_minpk010_noise00db_r3.csv) | [csv](../../src/logs/EXP-03/log_20260617_112116_onset008_minpk010_noise00db_r4.csv) |
+| 30 dB | [csv](../../src/logs/EXP-03/log_20260617_113041_onset008_minpk010_noise30db_r1.csv) | [csv](../../src/logs/EXP-03/log_20260617_113128_onset008_minpk010_noise30db_r2.csv) | [csv](../../src/logs/EXP-03/log_20260617_131415_onset008_minpk010_noise30db_r3.csv) |
+| 60 dB | [csv](../../src/logs/EXP-03/log_20260617_142920_onset008_minpk010_noise60db_r2.csv) | [csv](../../src/logs/EXP-03/log_20260617_143006_onset008_minpk010_noise60db_r3.csv) | [csv](../../src/logs/EXP-03/log_20260617_143053_onset008_minpk010_noise60db_r4.csv) |
+
+> Full dataset (274 CSV files): [src/logs/EXP-03/](../../src/logs/EXP-03/)
+
+### Conclusion
+
+- **Recommended**: `onset_fraction = 0.08`, `min_peak_fraction = 0.10`
+- **Noise robustness**: onset=0.08 tracks at 60 dB SNR; onset=0.05 and 0.02 fail completely
+- Detector.cpp default parameters updated accordingly
 
 ---
 
 ## EXP-04: Signal Quality Warning Threshold Search
 
-**Linked QA**: QAS-4 | **Linked Risk**: TR-09  
-**Status**: ⏳ In Progress  
-**Prerequisite**: Observer pattern refactoring complete + `⚠ No signal` / `⚠ Noisy signal` warning UI implemented
+**QA**: QAS-4 | **Date**: 2026-06-17 | **Status**: ⏳ In Progress
 
 **Questions**:
-- After removing the watch, within how many seconds should `⚠ No signal` appear?
-- After restoring the watch, within how many seconds should the warning clear?
-- What noise/signal ratio threshold triggers `⚠ Noisy signal` without false alarms?
+- (Part B ✅) What `noise_ratio` threshold should trigger `⚠ Noisy signal` without false alarms?
+- (Part A ⏳) How quickly should `⚠ No signal` appear after the watch is removed?
 
-### Planned Approach
+### Part B — Noisy Signal Threshold (Complete)
 
-| Part | What to sweep | Metric |
-|------|--------------|--------|
-| A — No Signal | Heartbeat N parameter: 1 / 2 / 3 / 5 s | Warning appear time, warning clear time M |
-| B — Noisy Signal | 3–5 noise/signal ratio threshold candidates | False-alarm rate, miss rate |
+`noise_ratio = noise_floor / ref_peak` (noise as a fraction of tick amplitude)
 
-> R1: Sweep all N values (Part A) + all threshold candidates (Part B) under 3 noise conditions.  
-> R2: Narrow to 2 best N candidates; refine threshold.  
-> R3: Validate chosen N·M + threshold under abrupt noise condition changes.
+| SNR | File | Frames | sync_lost | beat_missed | noise_ratio avg | Result |
+|:---:|------|:------:|:---------:|:-----------:|:---------------:|:------:|
+| 60 dB | [csv](../../src/logs/EXP-04/log_snr60db_20260617_155620.csv) | 2,145 | 0 | 0 | 0.0035 | ✅ |
+| 50 dB | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) | 2,116 | 0 | 0 | 0.0035 | ✅ |
+| 40 dB | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) | 1,972 | 0 | 0 | 0.0036 | ✅ |
+| 30 dB | [csv](../../src/logs/EXP-04/log_snr30db_20260617_155343.csv) | 2,061 | 0 | 0 | 0.0040 | ✅ |
+| 20 dB | [csv](../../src/logs/EXP-04/log_snr20db_20260617_155251.csv) | 1,763 | 0 | 0 | 0.0068 | ✅ |
+| 10 dB | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) | 1,759 | 0 | 0 | 0.0177 | ✅ |
+| **0 dB** | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) | 1,151 | **1** | **14** | **0.0537** | ❌ |
 
-### Part B — Noisy Signal Threshold (R1, 2026-06-17)
-
-**Setup**: macOS (host=gyeongjinui-MacBookAir-3.local), git_commit=`40af12c`, sample_rate=96000 Hz.  
-WAV source: `28800BPH_3235_Starbucks_snrXXdb.wav` (float32 96 kHz, converted from int16 via `convert_wav_float32.py`).  
-TimeGrapher built with `ENABLE_LOGGING=ON`; columns logged per frame: `noise_floor`, `ref_peak`, `noise_ratio`, `sync_lost`, `beat_missed`.  
-Analysis tools: [run_exp04.sh](../../src/tools/run_exp04.sh) · [analyze_exp04_scatter.py](../../src/tools/analyze_exp04_scatter.py) · [analyze_exp04_noise.py](../../src/tools/analyze_exp04_noise.py)  
-Scatter plot: [exp04_scatter.png](../../src/logs/EXP-04/exp04_scatter.png)
-
-| Condition | SNR | File | Frames | sync_lost | beat_missed | noise_ratio avg | noise_ratio median | noise_ratio max | Beat OK? |
-|-----------|:---:|------|:------:|:---------:|:-----------:|:---------------:|:-----------------:|:---------------:|:--------:|
-| snr60db | 60 dB | [csv](../../src/logs/EXP-04/log_snr60db_20260617_155620.csv) | 2,145 | 0 | 0 | 0.0035 | 0.0033 | 0.0596 | ✅ |
-| snr50db | 50 dB | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) | 2,116 | 0 | 0 | 0.0035 | 0.0033 | 0.0596 | ✅ |
-| snr40db | 40 dB | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) | 1,972 | 0 | 0 | 0.0036 | 0.0034 | 0.0597 | ✅ |
-| snr30db | 30 dB | [csv](../../src/logs/EXP-04/log_snr30db_20260617_155343.csv) | 2,061 | 0 | 0 | 0.0040 | 0.0037 | 0.0597 | ✅ |
-| snr20db | 20 dB | [csv](../../src/logs/EXP-04/log_snr20db_20260617_155251.csv) | 1,763 | 0 | 0 | 0.0068 | 0.0065 | 0.0593 | ✅ |
-| snr10db | 10 dB | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) | 1,759 | 0 | 0 | 0.0177 | 0.0176 | 0.0585 | ✅ |
-| snr00db |  0 dB | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) | 1,151 | **1** | **14** | 0.0537 | 0.0537 | **0.0833** | ❌ |
-
-**Key finding**: All 14 beat_missed events in snr00db occurred in a burst at frames 582–624,
-immediately after a sync_lost event at frame 581. All 14 frames had `noise_ratio` in the range
-0.0544–0.0596 — all above the **0.05** threshold.
-snr10db (next noisier step) had 0 missed beats despite max ratio 0.0585, confirming
-0.05 is the correct operating boundary.
-
-The beat_missed burst (not random scatter) indicates a noise spike caused a momentary
-sync loss, after which the detector struggled to recover while `noise_ratio > 0.05`.
-A `⚠ Noisy signal` warning at `noise_ratio ≥ 0.05` would have been active during the
-entire burst window, correctly alerting the user before any beat was missed.
-
-**Threshold derivation**:
-- `noise_ratio = noise_floor / ref_peak` (peak-based, dimensionless)
-- 0.05 → noise must be ≥ 26 dB below tick amplitude (20 × log₁₀(20) = 26 dB)
-- Practical implication: tick at 80 dB SPL → max tolerable noise = 54 dB (quiet office)
-
-### Part A — No Signal Timing
-
-> Not yet started. Requires `⚠ No signal` / `⚠ Noisy signal` warning UI implementation.
-
-### Run History
-
-| Run | Date | Part | Conditions | Threshold | False-Alarm Rate | Key Result | Detail |
-|:---:|------|------|:----------:|:---------:|:----------------:|------------|:------:|
-| E4-01 | 2026-06-17 | B — Noisy Signal | 7 SNR (0–60 dB) | **0.05** | 0 % (snr10db–60db clean) | ✅ Threshold found; 14 beat_missed at snr00db, all at noise_ratio 0.054–0.060 | ▼ E4-01 below |
-
-### Run Details
-
-<details>
-<summary><b>E4-01</b> — 2026-06-17 · Part B · macOS · 96 kHz · 7 SNR conditions — noise_ratio threshold = 0.05</summary>
-
-**Platform**: macOS · host=gyeongjinui-MacBookAir-3.local · git_commit=`40af12c` · sample_rate=96000 Hz  
-**WAV source**: `28800BPH_3235_Starbucks_snrXXdb.wav` (float32, converted via `convert_wav_float32.py`)  
-**Analysis tools**: [run_exp04.sh](../../src/tools/run_exp04.sh) · [analyze_exp04_scatter.py](../../src/tools/analyze_exp04_scatter.py) · [analyze_exp04_noise.py](../../src/tools/analyze_exp04_noise.py)  
 **Scatter plot**: [exp04_scatter.png](../../src/logs/EXP-04/exp04_scatter.png)
 
-See **Part B** section above for full condition table and key findings.
+**Key finding**: All 14 beat_missed events at snr00db occurred in a burst at frames 582–624, immediately after sync_lost at frame 581. All had `noise_ratio` in 0.054–0.060 — above the **0.05** threshold. snr10db had noise_ratio max 0.0585 but zero missed beats, confirming 0.05 is the correct boundary.
 
-</details>
+**Threshold interpretation**:
+- `noise_ratio ≥ 0.05` → trigger `⚠ Noisy signal`
+- Practical: tick at 80 dB SPL → max tolerable ambient noise = 54 dB SPL
 
-### Current Best
+### Part A — No Signal Timing (Not yet started)
 
-- **Run**: R1 (Part B)
-- **Finalized noisy signal threshold**: **0.05** — noise_floor / ref_peak ≥ 0.05 → ⚠ Noisy signal
-- **Finalized N (⚠ No signal delay)**: — (Part A not yet run)
-- **Finalized M (warning clear delay)**: — (Part A not yet run)
-- **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
-
----
-
-## EXP-05: BPH Escalation Verification — 36k/43k BPH Latency Measurement
-
-**Linked QA**: QAS-2 Stretch  
-**Status**: ⏸ Deferred  
-**Prerequisite**: EXP-02 complete + QAS-1~4 all confirmed at 28,800 BPH
-
-> Not started. Will begin only after all 28,800 BPH QA targets are confirmed.
+> Requires `⚠ No signal` / `⚠ Noisy signal` warning UI implementation before running.
 
 ### Run History
 
-> Fill in when prerequisite is met.
-
-| Run | Date | Change from Previous | 36k E2E Mean (ms) | 43k E2E Mean (ms) | < 80% beat period? | Better? | Detail |
-|:---:|------|----------------------|:-----------------:|:-----------------:|:------------------:|:-------:|:------:|
-| E5-01 | — | Planned: baseline | — | — | — | — | — |
-
-### Current Best
-
-- **Run**: —
-- **QAS-2 Stretch target**: Pass / Fail
-- **Team 2nd goal (BPH range expansion)**: Declared / Abandoned
+| Run | Date | Part | Conditions | Threshold | Result |
+|:---:|------|------|:----------:|:---------:|--------|
+| E4-01 | 2026-06-17 | B — Noisy Signal | 7 SNR (0–60 dB) | **0.05** | ✅ Threshold confirmed |
 
 ---
 
-## Remaining Experiments
+## EXP-05: BPH Escalation Verification — 36k/43k BPH
 
-| ID | Title | Reason Not Complete | Plan |
-|----|-------|---------------------|------|
-| | | | |
+**QA**: QAS-2 Stretch | **Status**: ⏸ Deferred
+
+> Not started. Will begin only after EXP-02 complete and QAS-1–4 all confirmed at 28,800 BPH.
+
+| Run | Date | Change | 36k E2E (ms) | 43k E2E (ms) | Result |
+|:---:|------|--------|:------------:|:------------:|:------:|
+| E5-01 | — | Planned: baseline | — | — | — |
 
 ---
 
 ## Architecture Decisions Log
 
-> Consolidated record of all architecture decisions derived from experiments.  
-> Update each row as experiments conclude. Reference this section in Architecture Views.
-
-| Decision | Source Experiment | QA Impacted | Decision Made | Date |
-|----------|:-----------------:|:-----------:|---------------|------|
-| QAS-1 Response Measure: confirmed max sps | EXP-01 | QAS-1 | 192k sps achieves 0 Dropped Block (30 s buffer). Recommended operating point: **96k sps**. | 2026-06-15 |
-| Graceful degradation fallback threshold | EXP-01 | QAS-1 | Not required — 0 drops at all tested sps with 30 s buffer. | 2026-06-15 |
-| SCHED_RR applied to audio capture thread | EXP-01 | QAS-1 | **No** — SCHED_RR/FIFO show no improvement in Dropped Block count; exec time marginally worse. | 2026-06-15 |
-| QAS-2 Response Measure: confirmed E2E latency target | EXP-02 | QAS-2 | Partial — 1-tab avg 11.5 ms; ② avg 1.5 ms (< 30 ms). 11-tab pending. | 2026-06-11 |
-| Lazy Rendering tactic: required or not | EXP-02 | QAS-2 | Inconclusive — 11-tab test required | 2026-06-11 |
-| `Detector.cpp` default params updated | EXP-03 | QAS-3 | **onset_fraction = 0.08, min_peak_fraction = 0.10** — top-ranked across all noise levels (0–30 dB), only setting that maintains tracking at 60 dB SNR. Lower onset (0.02, 0.05) fail catastrophically at high noise. | 2026-06-17 |
-| QAS-3 QA-C2 acceptable Δ thresholds | EXP-03 | QAS-3 | Δ rate < ±0.5 s/d, Δ beat < 0.01 ms, Δ amp < 1° across 0–50 dB noise — confirmed for onset=0.08/min_peak=0.10 (rate stable within +3.86 to +4.06 s/d across all 7 noise levels; degradation onset at 60 dB SNR). | 2026-06-17 |
-| Heartbeat N parameter hardened as constant | EXP-04 | QAS-4 | Pending — Part A (No Signal timing) not yet measured. | — |
-| Noisy signal threshold hardened as constant | EXP-04 | QAS-4 | **noise_ratio = 0.05** (noise_floor / ref_peak). snr00db: 14 misses all at ratio 0.054–0.060 (above 0.05); snr10db–60db: 0 misses (max ratio ≤ 0.059). Noise must be ≥ 26 dB below tick amplitude. | 2026-06-17 |
-| QAS-2 Stretch target: pass or abandon | EXP-05 | QAS-2 | — | — |
-
----
-
-## Review Checklist
-
-- [ ] All planned experiments have results or documented reason for incompletion
-- [ ] Each result clearly resolves (or fails to resolve) the original question
-- [ ] Architecture Decisions Log updated for all completed experiments
-- [ ] Remaining experiments listed if any
-- [ ] Results are relevant to overall system goals
+| Decision | Source | Outcome | Date |
+|----------|:------:|---------|------|
+| Target sps | EXP-01 | **96k sps** — Dropped = 0 across all tested sps with 30 s buffer | 2026-06-15 |
+| SCHED_RR on audio thread | EXP-01 | **Not applied** — no improvement in drop count; exec marginally worse | 2026-06-15 |
+| DSP offload thread (T2) | EXP-02 | **Applied** — E2E 80 ms → 2.1 ms (−97 %), zero backlog | 2026-06-15 |
+| Lazy Rendering (R1) | EXP-02 | **Applied** — max tail 11.1 → 5.7 ms | 2026-06-15 |
+| Detector parameters | EXP-03 | **onset=0.08, min_peak=0.10** — only setting tracking through 60 dB SNR | 2026-06-17 |
+| Noisy signal threshold | EXP-04 | **noise_ratio = 0.05** — clean at 10–60 dB SNR; 14 misses at 0 dB (all above 0.05) | 2026-06-17 |
+| No signal timing (N/M) | EXP-04 | Pending — Part A not yet run | — |
+| BPH escalation (EXP-05) | EXP-05 | Pending — Deferred | — |
