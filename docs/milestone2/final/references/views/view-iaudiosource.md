@@ -51,7 +51,7 @@ SessionController «use» IAudioSource
 
 ## Related ADRs
 
-- [ADR-P1: IAudioSource Dependency Inversion](../adr/) — introduces `IAudioSource` interface; eliminates `AudioManager`
+- [ADR-005: IAudioSource Dependency Inversion](../adr/ADR-005-p1-iaudiosource-dependency-inversion.md) — introduces `IAudioSource` interface; eliminates `AudioManager`
 - [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — `DSPWorker` connects to `IAudioSource::dataReady` via `AudioRingBuffer`
 
 ## Related views
