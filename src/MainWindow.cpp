@@ -152,9 +152,12 @@ MainWindow::MainWindow(QWidget *parent)
             else if (cliArgs[i] == "--autostart")                           mCmdAutoStart   = true;
             else if (cliArgs[i] == "--no-record")                           mNoRecord       = true;
             else if (cliArgs[i] == "--duration" && i + 1 < cliArgs.size()) mCmdDurationSec = cliArgs[++i].toInt();
-            else if (cliArgs[i] == "--file"     && i + 1 < cliArgs.size()) mCmdFile        = cliArgs[++i];
-            else if ((cliArgs[i] == "--onset" || cliArgs[i] == "--onset-fraction") && i + 1 < cliArgs.size()) mCmdOnset   = cliArgs[++i].toDouble();
+            else if ((cliArgs[i] == "--file" || cliArgs[i] == "--wav") && i + 1 < cliArgs.size()) mCmdFile = cliArgs[++i];
+            else if ((cliArgs[i] == "--onset" || cliArgs[i] == "--onset-fraction") && i + 1 < cliArgs.size()) mCmdOnset    = cliArgs[++i].toDouble();
             else if ((cliArgs[i] == "--min-peak" || cliArgs[i] == "--min-peak-fraction") && i + 1 < cliArgs.size()) mCmdMinPeak = cliArgs[++i].toDouble();
+            else if (cliArgs[i] == "--quit-on-done")                        mCmdQuitOnDone  = true;
+            else if (cliArgs[i] == "--log-dir"  && i + 1 < cliArgs.size()) mCmdLogDir      = cliArgs[++i];
+            else if (cliArgs[i] == "--log-label"&& i + 1 < cliArgs.size()) mCmdLogLabel    = cliArgs[++i];
         }
         if (mCmdAutoStart) {
             QTimer::singleShot(500, this, [this]() {
@@ -168,17 +171,23 @@ MainWindow::MainWindow(QWidget *parent)
             });
         }
         if (!mCmdFile.isEmpty()) {
+            mNoRecord = true;
             QTimer::singleShot(500, this, [this]() {
                 if (mCmdRate > 0) SetAudioRate(mCmdRate);
                 int pbIdx = ui->ModeComboBox->findText(ModeStrings[PLAYBACK]);
                 if (pbIdx >= 0) ui->ModeComboBox->setCurrentIndex(pbIdx);
-                if (OpenFile(mCmdFile)) {
-                    StartPlaybackThread(mCmdFile);
-                    SetGuiRunMode();
-                    statusBar()->showMessage("Running");
-                    if (mCmdDurationSec > 0)
-                        mCmdDurationTimer.start();
+                if (mCmdOnset    > 0) mCfg.onset_fraction_init    = mCmdOnset;
+                if (mCmdMinPeak  > 0) mCfg.min_peak_fraction_init = mCmdMinPeak;
+                if (!OpenFile(mCmdFile)) {
+                    qWarning("[--file] cannot open: %s", qPrintable(mCmdFile));
+                    close();
+                    return;
                 }
+                StartPlaybackThread(mCmdFile);
+                SetGuiRunMode();
+                statusBar()->showMessage("Running (--file)");
+                if (mCmdDurationSec > 0)
+                    mCmdDurationTimer.start();
             });
         }
     }
@@ -660,14 +669,18 @@ MainWindow::~MainWindow()
 void MainWindow::StartAudioThread(void)
 {
 #ifdef ENABLE_LOGGING
-    // Create Logger here so mCurrentSamplesPerSecond is already the correct rate
-    // (CLI --rate is applied before on_StartPushButton_clicked fires this).
     delete mLogger;
-    QString logDir = QCoreApplication::applicationDirPath() + "/../logs";
-    QString csvPath = QString("%1/log_%2.csv")
-                          .arg(logDir)
-                          .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
-    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+    {
+        QString logDir = mCmdLogDir.isEmpty()
+                         ? QCoreApplication::applicationDirPath() + "/../logs"
+                         : mCmdLogDir;
+        QDir().mkpath(logDir);
+        QString stamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+        QString csvPath = mCmdLogLabel.isEmpty()
+            ? QString("%1/log_%2.csv").arg(logDir, stamp)
+            : QString("%1/log_%2_%3.csv").arg(logDir, mCmdLogLabel, stamp);
+        mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+    }
 #endif
 
     QVariant v = ui->InputDeviceComboBox->currentData();
@@ -713,11 +726,17 @@ void MainWindow::StartPlaybackThread(const QString &FileName)
 {
 #ifdef ENABLE_LOGGING
     delete mLogger;
-    QString logDir = QCoreApplication::applicationDirPath() + "/../logs";
-    QString csvPath = QString("%1/log_%2.csv")
-                          .arg(logDir)
-                          .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
-    mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+    {
+        QString logDir = mCmdLogDir.isEmpty()
+                         ? QCoreApplication::applicationDirPath() + "/../logs"
+                         : mCmdLogDir;
+        QDir().mkpath(logDir);
+        QString stamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+        QString csvPath = mCmdLogLabel.isEmpty()
+            ? QString("%1/log_%2.csv").arg(logDir, stamp)
+            : QString("%1/log_%2_%3.csv").arg(logDir, mCmdLogLabel, stamp);
+        mLogger = new Logger(csvPath, 100, mCurrentSamplesPerSecond);
+    }
 #endif
     Reset();
     if (mRawAudio)
@@ -1006,6 +1025,7 @@ void MainWindow::HandlePlaybackDoneReadingFile()
     }
     AudioCloseCheck();
     statusBar()->showMessage("Stopped");
+    if (mCmdQuitOnDone) close();
 }
 void MainWindow::HandleSimDone()
 {
@@ -1068,6 +1088,12 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr, Logger::Fram
           }
           bd.tg_us += TG_NOW() - ts;
 
+#ifdef ENABLE_LOGGING
+          bd.noise_floor = r.noise_floor;
+          bd.ref_peak    = r.reference_peak;
+          bd.sync_lost  |= (int)r.sync_lost_event;
+#endif
+
           ts = TG_NOW();
           double threshhold=r.onset_threshold;
           for (int i=0;i<r.processed_pcm_len;i++)
@@ -1100,6 +1126,8 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr, Logger::Fram
                     }
                     mLastA=val;
                     mHaveLastA=true;
+                    mAbsLastASample = r.events[i].sample_index;  // absolute index (tg_context coord)
+                    mHaveAbsLastA   = true;
                     A_Event(val,(r.sync_status==TG_SYNC_SYNCED),r.detected_bph);
                     if (mSoundRenderHasBPH)
                     {
@@ -1152,6 +1180,22 @@ void MainWindow::ProcessSamples(TMasterAudioDataRaw *SharedDataPtr, Logger::Fram
         mForegroundSampleCount+=slice;
         SamplesToAdd=SamplesToAdd-slice;
         }
+
+#ifdef ENABLE_LOGGING
+        if (mHaveAbsLastA && mRateErrorEvents.BPH_Valid) {
+            double period_samp = (double)mCurrentSamplesPerSecond * 3600.0
+                                 / (double)mRateErrorEvents.BPH;
+            // mLocalGraphTicks and mAbsLastASample share the same tg_context coordinate space
+            if (mLocalGraphTicks > mAbsLastASample) {
+                double gap = (double)(mLocalGraphTicks - mAbsLastASample);
+                if (gap > 1.5 * period_samp) {
+                    bd.beat_missed = 1;
+                    uint64_t n = (uint64_t)(gap / period_samp);
+                    mAbsLastASample += n * (uint64_t)period_samp;
+                }
+            }
+        }
+#endif
 
         ts = TG_NOW();
         SharedDataPtr->MainThrd_LastTotalSamplesWritten=mLocalTotalSamplesWritten;
@@ -1240,6 +1284,8 @@ void MainWindow::Reset(void)
     ui->ScopePlot->clearItems();
     ui->ScopePlot->replot();
     mHaveLastA=false;
+    mHaveAbsLastA=false;
+    mAbsLastASample=0;
     CreateDectectors();
     EventsReset();
 

@@ -114,10 +114,12 @@ void Logger::writeCsv()
     out << "frame,samples,block_drops,buffer_pct,total_ms,wait_ms,exec_ms,"
         << "copy_ms,sound_ms,tg_ms,ui_ms,plot_ms,"
         << "bg_fps,bg_sps,bg_spf,fg_fps,fg_sps,fg_spf,"
-        << "sync_locked,bph,rate_spd,beat_error_ms,amplitude_deg\n";
+        << "sync_locked,bph,rate_spd,beat_error_ms,amplitude_deg,"
+        << "noise_floor,ref_peak,noise_ratio,sync_lost,beat_missed\n";
     uint64_t idx = 0;
     for (const Frame &f : mFrames) {
         ++idx;
+        float noise_ratio = (f.ref_peak > 0.0f) ? f.noise_floor / f.ref_peak : 0.0f;
         out << idx << ','
             << f.samples << ','
             << f.block_drops << ','
@@ -140,7 +142,12 @@ void Logger::writeCsv()
             << (f.sync_locked ? QString::number(f.bph) : "") << ','
             << (f.rate_valid  ? QString::number(f.rate_spd,      'f', 2) : "") << ','
             << (f.beat_valid  ? QString::number(f.beat_error_ms, 'f', 3) : "") << ','
-            << (f.amp_valid   ? QString::number(f.amplitude_deg, 'f', 1) : "") << '\n';
+            << (f.amp_valid   ? QString::number(f.amplitude_deg, 'f', 1) : "") << ','
+            << QString::number(f.noise_floor,  'f', 6) << ','
+            << QString::number(f.ref_peak,     'f', 6) << ','
+            << QString::number(noise_ratio,    'f', 6) << ','
+            << f.sync_lost   << ','
+            << f.beat_missed << '\n';
     }
     out.flush();
     file.close();

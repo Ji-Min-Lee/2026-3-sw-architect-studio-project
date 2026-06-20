@@ -196,16 +196,22 @@ private:
     uint64_t                   mForegroundSampleCount=0;
     Logger                    *mLogger=nullptr;
 
-    // CLI automation flags (--autostart, --no-record, --rate N, --duration N, --file PATH,
-    //                       --onset FRAC, --min-peak FRAC)
+    // CLI automation flags (--autostart, --no-record, --rate N, --duration N, --file/--wav PATH,
+    //                       --onset FRAC, --min-peak FRAC, --quit-on-done, --log-dir DIR, --log-label LABEL)
     bool                       mNoRecord=false;
     bool                       mCmdAutoStart=false;
     int                        mCmdRate=0;
     int                        mCmdDurationSec=0;
-    QString                    mCmdFile;           // --file <path>: skip dialog, open directly
-    QElapsedTimer              mCmdDurationTimer;  // wall-clock duration check
-    double                     mCmdOnset=0.0;      // --onset <frac>: override onset_fraction_init
-    double                     mCmdMinPeak=0.0;    // --min-peak <frac>: override min_peak_fraction_init
+    QString                    mCmdFile;           // --file/--wav <path>
+    QElapsedTimer              mCmdDurationTimer;
+    double                     mCmdOnset=0.0;      // --onset/--onset-fraction
+    double                     mCmdMinPeak=0.0;    // --min-peak/--min-peak-fraction
+    bool                       mCmdQuitOnDone=false;
+    QString                    mCmdLogDir;
+    QString                    mCmdLogLabel;
+    // EXP-04 beat-missed tracking (absolute sample counters)
+    uint64_t                   mAbsLastASample=0;
+    bool                       mHaveAbsLastA=false;
 
 };
 #endif

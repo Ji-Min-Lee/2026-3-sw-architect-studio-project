@@ -65,6 +65,11 @@ public:
         double beat_error_ms = 0.0;   // rolling avg beat error in ms
         bool   amp_valid     = false;
         double amplitude_deg = 0.0;   // rolling avg amplitude in degrees
+        // EXP-04 signal quality (from tg_result_t, last slice per frame)
+        float   noise_floor = 0.0f;
+        float   ref_peak    = 0.0f;
+        int     sync_lost   = 0;
+        int     beat_missed = 0;
     };
 
     explicit Logger(const QString &csvPath, int consoleEvery = 100, int sampleRate = 0);
