@@ -8,7 +8,7 @@
 
 | # | Section | Document | Time |
 |---|---------|----------|------|
-| 1 | Wrap-up M1 & Intro | [slide-wrapup-intro.md](slide-wrapup-intro.md) | ~3 min |
+| 1 | Milestone 1 Wrap-up & Intro | [slide-m1-wrapup-intro.md](slide-m1-wrapup-intro.md) | ~3 min |
 | 2 | Architecture Views | [slide-architecture-view.md](slide-architecture-view.md) | ~12 min |
 | 3 | Remaining Schedule | [slide-schedule.md](slide-schedule.md) | ~5 min |
 
@@ -62,13 +62,13 @@
 
 ## Architecture Views
 
-| View | Type | Primary QA | Document |
-|------|------|------------|----------|
-| C&C: DSP Pipeline Thread Model | C&C / Runtime | QAS-2, QAS-3 | [view-cc-dsp-pipeline.md](references/views/view-cc-dsp-pipeline.md) |
-| Layered: 4-Layer Allowed-to-Use | Module — Layered | QAS-4 | [view-layered-4layer.md](references/views/view-layered-4layer.md) |
-| Decomposition: Graph Tab | Module — Decomposition | QAS-4 | [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) |
-| Module: IAudioSource Dependency Inversion | Module — Decomposition | QAS-4 (Extensibility) | [view-iaudiosource.md](references/views/view-iaudiosource.md) |
-| Deployment: Build-Deploy Pipeline | Deployment | Deployability | [view-deployment-build-pipeline.md](references/views/view-deployment-build-pipeline.md) |
+| | View | Type | Primary QA | Document |
+|--|------|------|------------|----------|
+| ★ | C&C: DSP Pipeline Thread Model | C&C / Runtime | QAS-2, QAS-3 | [view-cc-dsp-pipeline.md](references/views/view-cc-dsp-pipeline.md) |
+| ★ | Layered: 4-Layer Allowed-to-Use | Module — Layered | QAS-4 | [view-layered-4layer.md](references/views/view-layered-4layer.md) |
+| | Decomposition: Graph Tab | Module — Decomposition | QAS-4 | [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) |
+| ★ | Module: IAudioSource Dependency Inversion | Module — Decomposition | QAS-4 (Extensibility) | [view-iaudiosource.md](references/views/view-iaudiosource.md) |
+| | Deployment: Build-Deploy Pipeline | Deployment | Deployability | [view-deployment-build-pipeline.md](references/views/view-deployment-build-pipeline.md) |
 
 ---
 
@@ -77,7 +77,7 @@
 ```
 docs/milestone2/final/
 ├── README.md                         ← this file — full traceability map
-├── slide-wrapup-intro.md             ← Section 1: M1 feedback + ARS overview
+├── slide-m1-wrapup-intro.md             ← Section 1: M1 feedback + ARS overview
 ├── slide-architecture-view.md        ← Section 2: Latency / Correctness / Extensibility / Risk
 ├── slide-schedule.md                 ← Section 3: sprint recap + M2→Final schedule
 ├── assets/                           ← view diagrams (.drawio + .png)
