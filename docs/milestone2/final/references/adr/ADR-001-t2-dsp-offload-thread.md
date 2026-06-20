@@ -56,7 +56,7 @@ eliminates the backlog and distributes load across cores.
 | Module structure change | None | Ring buffer added | Full pipeline redesign |
 | M2 feasibility | ✅ Immediate | ✅ Feasible | ⚠️ High risk |
 
-**T1 rejected**: Improves OS scheduling jitter but does not reduce exec_ms or eliminate single-core saturation. [EXP-01](../experiments/exp-01-high-res-sampling-beat-error.md) confirmed SCHED_RR showed no improvement in Dropped Block count — T1 applied to the audio capture thread is not required. May be added on top of T2 as a supplementary measure for the FG thread (TR-10) but cannot replace T2.
+**T1 rejected**: Improves OS scheduling jitter but does not reduce exec_ms or eliminate single-core saturation. [EXP-01](../experiments/exp-01-high-res-sampling-beat-error.md) confirmed SCHED_RR did not reduce processing time — frames over deadline stayed at ~8% across all scheduling policies (default: 8.1%, SCHED_RR: 8.4%, SCHED_FIFO: 8.6%). The problem is not scheduling priority; one thread simply has too much work to do. T1 applied to the audio capture thread is not required. May be added on top of T2 as a supplementary measure for the FG thread (TR-10) but cannot replace T2.
 
 **T3 rejected**: Provides higher parallelism but introduces three inter-stage queues and significantly higher design complexity. M2 deadline risk rated High. Deferred to post-M3 consideration.
 
@@ -71,6 +71,10 @@ eliminates the backlog and distributes load across cores.
 | T3 + R3 | ★★★★★ | ★★★★★ | ★★★★★ | High | Post-M3 only |
 
 Selected combination **T2 + R1** confirmed by EXP-02 on both macOS and RPi (E2-5/E2-6): E2E avg 2.05ms, 0 deadline miss, 0 backlog.
+
+> **R1/R2/R3 — Rendering strategies** (evaluated in parallel with threading options):
+> R1: lazy rendering · R2: timer-decoupled · R3: double-buffer async.
+> Full rationale: [ADR-002](ADR-002-r1-lazy-rendering.md)
 
 ## Status
 
