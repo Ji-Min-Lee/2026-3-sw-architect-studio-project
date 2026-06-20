@@ -15,7 +15,8 @@
 ## Related
 
 - [QA Priority Summary](README.md)
-- [Architectural Approaches](../approaches.md) — layered structure and interface tactics addressing this QA
+- [ADR-005: IAudioSource Dependency Inversion](../adr/ADR-005-p1-iaudiosource-dependency-inversion.md)
+- [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md)
 - [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md)
 - [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md)
 - [Module View: IAudioSource Dependency Inversion](../views/view-iaudiosource.md)

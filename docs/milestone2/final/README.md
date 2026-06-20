@@ -27,7 +27,6 @@ docs/milestone2/final/
 │
 └── references/
     ├── qa/                       ← one file per QA scenario (index: qa/README.md)
-    ├── approaches.md             ← architectural approaches + trade-offs
     ├── risks.md                  ← risk register
     ├── views/                    ← one file per architecture view (Merson 7-section template)
     ├── experiments/              ← one file per experiment (hypothesis → method → results)

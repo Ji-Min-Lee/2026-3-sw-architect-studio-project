@@ -24,5 +24,6 @@ The block period sets the real-time deadline: every audio block must complete DS
 ## Related
 
 - [QA Priority Summary](README.md)
-- [Architectural Approaches](../approaches.md) — tactics and design decisions addressing this QA
+- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — threading strategy options and trade-offs
+- [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md) — rendering strategy options and trade-offs
 - [EXP-02: Pipeline Latency](../experiments/exp-02-pipeline-latency.md) — confirmed 43% baseline miss; 0% after T2+R1

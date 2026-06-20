@@ -46,16 +46,20 @@ Tab switch UX: `QTimer::singleShot(0)` fires after the event loop processes the 
 delivering a catch-up frame with no UI blocking. Stale display duration is less than
 one beat period (< 21ms at 28,800 BPH), which is imperceptible.
 
-Rejected alternative — Option R2 (Timer-Decoupled Rendering): a Qt timer fires `update()`
-at fixed FPS independent of beat events. Provides cleaner temporal decoupling but requires
-timer lifecycle management (start/stop with pipeline) and introduces over-rendering at low BPH.
-R1 was preferred for M2 due to minimal change scope; R2 remains a viable upgrade path if
-11-tab full-load tests (EXP-05) reveal R1 is insufficient.
+### Options Considered
 
-Rejected alternative — Option R3 (Double-Buffer Async Rendering): maximum isolation between
-audio path and rendering. QPixmap creation is UI-thread-only in Qt, requiring a worker thread
-for off-screen rendering and a separate blit step. Design change scope rated High; M2 deadline
-risk rated High. Deferred to post-M3 review.
+| Item | R1: Lazy Rendering | R2: Timer-Decoupled Rendering | R3: Double-Buffer Async Rendering |
+|------|--------------------|-------------------------------|-----------------------------------|
+| Core tactic | Repaint visible tab only | Fixed-FPS timer drives repaint | Render to QPixmap off-screen; UI blits finished pixmap |
+| Implementation complexity | Low | Medium | High |
+| exec reduction | High (single tab) | Medium (bounded FPS) | Very high (full audio-path isolation) |
+| 11 tabs all open | Only 1 renders | N_active × (1/FPS) | Async — no audio-path impact |
+| Data consistency risk | None | None | Requires lock on QPixmap sharing |
+| M2 feasibility | ✅ Immediate | ✅ Feasible | ⚠️ Design change too large |
+
+**R2 rejected**: Provides cleaner temporal decoupling but requires timer lifecycle management (start/stop with pipeline) and introduces over-rendering at low BPH. R1 preferred for M2 due to minimal change scope. R2 remains a viable upgrade path if EXP-05 reveals R1 insufficient under 11-tab full load — documented in [ADR-004](ADR-004-r2-timer-decoupled-rendering.md).
+
+**R3 rejected**: Maximum isolation between audio path and rendering. QPixmap creation is UI-thread-only in Qt, requiring a worker thread for off-screen rendering and a separate blit step. Design change scope rated High; M2 deadline risk rated High. Deferred to post-M3 review.
 
 ## Status
 

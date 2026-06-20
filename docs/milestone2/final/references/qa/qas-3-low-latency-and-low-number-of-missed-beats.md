@@ -30,5 +30,5 @@
 ## Related
 
 - [QA Priority Summary](README.md)
-- [Architectural Approaches](../approaches.md) — tactics and design decisions addressing this QA
+- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — threading strategy options and trade-offs
 - [EXP-02: Pipeline Latency](../experiments/exp-02-pipeline-latency.md) — segment ① wait_ms 420ms → 0.013ms after T2
