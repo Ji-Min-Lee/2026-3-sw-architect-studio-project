@@ -39,7 +39,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 **Decision**: Qt Signal-Slot as Observer — `MeasurementEngine` publishes a `Measurement` struct; all tabs subscribe via `BaseGraphTab::onMeasurement()`
 
-**Module structure** (static relationships):
+**Module structure** (static relationships) — what the diagram shows: `MeasurementEngine` (Subject) at top, `BaseGraphTab` abstract class in the middle, and 14 concrete tab subclasses below. `Measurement` VO composition is shown on the right. `SessionController` is intentionally omitted — it is a runtime connector, not a structural dependency.
 
 ```mermaid
 classDiagram
@@ -110,8 +110,27 @@ Three design decisions together enforce extensibility.
 
 ![4-Layer Allowed-to-Use View](assets/view1-layered-module.png)
 
+> **What the diagram shows**: Five horizontal bands (colored by layer), each containing its key modules. Dashed arrows indicate allowed-to-use direction — downward only. UI Coordinator (`MainWindow`, `SessionController`) sits above Presentation as a wiring layer; it is not counted as a domain layer.
+
+| Layer | Responsibility | Key Modules |
+|-------|---------------|-------------|
+| **Presentation** | Render measurement data in graphs and charts | `BaseGraphTab`, 14 concrete tabs (`TraceTab`, `VarioTab`, `BeatErrorTab`, …) |
+| **Signal Processing** | DSP computation and beat detection on T2 thread | `DSPWorker`, `MeasurementEngine`, `FilterChain`, `BeatDetector` |
+| **Domain** | Watch physics math and AI diagnosis | `WatchMath`, `WatchDiagnostics`, `WatchExplainer`, `Measurement` VOs |
+| **Acquisition** | Audio input abstraction and ring buffer | `IAudioSource`, `AudioWorker`, `PlaybackWorker`, `SimWorker`, `AudioRingBuffer` |
+
 Acquisition → Signal Processing → Domain → Presentation. Dependencies flow downward only.  
-Adding a new tab = ≤ 3 files in Presentation. Zero changes to Domain or below. ✅ 14 tabs implemented.
+Adding a new tab = ≤ 3 files in Presentation. Zero changes to Domain or below.
+
+| Batch | Tabs | Trigger | Files changed (excl. build/test) |
+|---|---|---|---|
+| W2 S1 | 11 (baseline) | Core requirements | NewTab + MainWindow = **2** |
+| W2 S2 | +2 → 13 | Project-plan screen requirements (Fig 7-19) | FilterScopeTab + SweepScopeTab + MainWindow = **2 each** |
+| W3 S1 | +1 → **14** | Radar/Polar chart (bonus) | RadarChartTab + SequenceTab + MainWindow = **3** ¹ |
+
+¹ RadarChartTab reads per-position data from SequenceTab (not via `measurementReady`) → SequenceTab modified to expose `capturedReadings()` + `sequenceUpdated()`.
+
+✅ All 14 added within ≤ 3-component rule — Domain layer untouched each time.
 
 **Dependency Structure Matrix (actual code — `#include` trace)**
 
@@ -138,6 +157,8 @@ Row = **used module** (depended upon) · Column = **using module** (depends on) 
 
 ![IAudioSource Dependency Inversion](assets/view5-iaudiosource.png)
 
+> **What the diagram shows**: AS-IS (left) — 3 separate `connect()` blocks, one per concrete worker. TO-BE (right) — a single `connect()` block in `SessionController` through the `IAudioSource` interface. Arrows show the direction of dependency inversion.
+
 3 concrete sources exist: `AudioWorker` (mic) · `PlaybackWorker` (file) · `SimWorker` (simulation)
 
 | | AS-IS | TO-BE |
@@ -153,6 +174,8 @@ Row = **used module** (depended upon) · Column = **using module** (depends on) 
 The `Measurement` struct published by `MeasurementEngine` is composed of three VOs:
 
 ![Domain Entity / Value Object Module View](assets/view6-domain-entity-vo.png)
+
+> **What the diagram shows**: `Measurement` as a composition root (solid border) with three immutable Value Objects (dashed borders). Color coding matches the Domain layer in view1. No arrows point upward — the domain has zero dependency on Presentation or Signal Processing.
 
 | Value Object | Contents | Immutability |
 |---|---|---|
@@ -173,10 +196,10 @@ VOs stay in the Domain layer → replacing or adding Presentation components has
 
 **Risk**: Most team members lack watch measurement domain expertise (Rate, Amplitude, Beat Error) → hard to verify correctness of tab implementations
 
-**Response**: AI-generated unit tests — structural correctness of `BaseGraphTab::updateData()` verifiable without domain expertise
+**Response**: AI-generated unit tests — structural correctness of `BaseGraphTab::onMeasurement()` verifiable without domain expertise
 
 - Validates interface compliance and layer boundary enforcement → runnable on macOS immediately
-- All 14 tabs completed within W2 Sprint 1 without a domain expert
+- 11 baseline tabs completed in W2 S1; 3 more added in W2 S2 + W3 S1 (project-plan screens + bonus) — all without a domain expert
 
 ---
 

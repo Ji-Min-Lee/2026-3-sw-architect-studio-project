@@ -43,6 +43,7 @@ M2 progress is organized around three QA priorities plus a structural enabler.
 | **2nd** | [QAS-2 Real-Time Performance](references/qa/qas-2-real-time-performance.md) | C&C: DSP Pipeline |
 | **3rd** | [QAS-3 Low Latency](references/qa/qas-3-low-latency-and-low-number-of-missed-beats.md) | C&C: DSP Pipeline |
 | **4th** | [QAS-4 Extensibility / Modifiability](references/qa/qas-4-extensibility-modifiability.md) | Layered, IAudioSource |
+| **5th** | [QAS-5 Correctness](references/qa/qas-5-correctness.md) | C&C: FilterChain → BeatDetector |
 | Enabler | Deployability | Deployment: Build-Deploy Pipeline |
 
 → Each architecture view links directly to its QA scenario, experiment, and ADR.
