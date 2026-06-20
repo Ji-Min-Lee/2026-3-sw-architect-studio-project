@@ -10,7 +10,7 @@
 | ID | Experiment | Runs | Latest Key Result | Status |
 |----|------------|:----:|-------------------|:------:|
 | EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps (48k/96k/192k) × all scheduling (default/RR/FIFO) — **QAS-1 Pass** | ✅ Done |
-| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | E2-7 (rpi2, E2-6 + fg_wait_ms): DSP E2E avg **2.2 ms** / max **4.8 ms** — **fg_wait avg 60.1 ms, p99 167.8 ms** (84 % > deadline): FG scheduling is the next bottleneck. | ✅ Done |
+| EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | E2-07 (rpi2, E2-06 + fg_wait_ms): DSP E2E avg **2.2 ms** / max **4.8 ms** — **fg_wait avg 60.1 ms, p99 167.8 ms** (84 % > deadline): FG scheduling is the next bottleneck. | ✅ Done |
 | EXP-03 | Detector Parameter Optimization Under Noise Conditions | 274 | `onset=0.08` most robust: rate stable ≈ +4.0 s/d across 0–50 dB noise, degrades gracefully at 60 dB (+7.5 s/d vs catastrophic failure for onset≤0.05). **Recommended: onset=0.08, min_peak=0.10** | ✅ Done |
 | EXP-04 | Signal Quality Warning Threshold Search | 7 | Part B done — noise_ratio threshold = **0.05** (5 % of tick amplitude); snr00db: 14/1,151 beat_missed (ratio 0.054–0.083); snr10db–60db: 0 missed — Part A (No Signal timing) pending | ⏳ In Progress |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
@@ -51,22 +51,16 @@ EXP-04 (warning threshold) ────────────┘
 > exec > DL frames are absorbed by the 30 s ring buffer — Dropped stays 0 in all cases.  
 > **96k is the QAS-1 target sps**; compact table shows 96k figures. Full 3-sps breakdown in each detail block.
 
-| Run | sps | Scheduling | exec avg / max (ms) | exec > DL | Dropped | Detail |
-|:---:|:---:|-----------|:-------------------:|:---------:|:-------:|:------:|
-| R1 | 48k | default | 5.8 / 36.6 | 4.9 % | **0** | ▼ R1 below |
-| R1 | **96k** | default | **9.6 / 39.2** | **8.1 %** | **0** | ▼ R1 below |
-| R1 | 192k | default | 15.8 / 51.6 | 12.1 % | **0** | ▼ R1 below |
-| R2 | 48k | SCHED_RR p50 | 6.9 / 37.5 | 6.6 % | **0** | ▼ R2 below |
-| R2 | **96k** | SCHED_RR p50 | **9.8 / 39.9** | **8.4 %** | **0** | ▼ R2 below |
-| R2 | 192k | SCHED_RR p50 | 16.0 / 61.7 | 12.5 % | **0** | ▼ R2 below |
-| R3 | 48k | SCHED_FIFO p50 | 7.2 / 35.2 | 6.9 % | **0** | ▼ R3 below |
-| R3 | **96k** | SCHED_FIFO p50 | **9.9 / 41.4** | **8.6 %** | **0** | ▼ R3 below |
-| R3 | 192k | SCHED_FIFO p50 | 16.0 / 52.1 | 12.5 % | **0** | ▼ R3 below |
+| Run | Date | Scheduling | 96k exec avg/max (ms) | exec > DL (96k) | Dropped | Detail |
+|:---:|------|-----------|:---------------------:|:---------------:|:-------:|:------:|
+| E1-01 | 2026-06-15 | default | 9.6 / 39.2 | 8.1 % | **0** | ▼ E1-01 below |
+| E1-02 | 2026-06-15 | SCHED_RR p50 | 9.8 / 39.9 | 8.4 % | **0** | ▼ E1-02 below |
+| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 9.9 / 41.4 | 8.6 % | **0** | ▼ E1-03 below |
 
 ### Per-Run Detail
 
 <details>
-<summary><b>R1</b> — 2026-06-15 · default scheduling · all sps</summary>
+<summary><b>E1-01</b> — 2026-06-15 · default scheduling · all sps</summary>
 
 **Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv)
 
@@ -83,7 +77,7 @@ EXP-04 (warning threshold) ────────────┘
 </details>
 
 <details>
-<summary><b>R2</b> — 2026-06-15 · SCHED_RR priority 50 · all sps</summary>
+<summary><b>E1-02</b> — 2026-06-15 · SCHED_RR priority 50 · all sps</summary>
 
 **Files**: [48k csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv)
 
@@ -93,12 +87,12 @@ EXP-04 (warning threshold) ────────────┘
 | **96k** | **10,320** | **9.8 / 39.9** | **866 / 10,320 (8.4 %)** | **3,679 / 10,320 (35.6 %)** | **0** | **85.3 / 86.5** | **103** | **balanced (cpu0-3 ≈ 24-31 %)** |
 | 192k | 9,585 | 16.0 / 61.7 | 1,197 / 9,585 (12.5 %) | 4,258 / 9,585 (44.4 %) | **0** | 85.4 / 87.0 | 95 | balanced (cpu0-3 ≈ 21-31 %) |
 
-**Observation**: SCHED_RR distributes CPU load evenly across all 4 cores (no single-core dominance), but exec avg / max is marginally higher than R1 default at all sps — likely because the `vcgencmd get_throttled` subprocess is more expensive to fork under RT scheduling. Backlog is also higher (35–44 % vs R1's 19–41 %). Dropped = 0 unchanged.
+**Observation**: SCHED_RR distributes CPU load evenly across all 4 cores (no single-core dominance), but exec avg / max is marginally higher than E1-01 default at all sps — likely because the `vcgencmd get_throttled` subprocess is more expensive to fork under RT scheduling. Backlog is also higher (35–44 % vs E1-01's 19–41 %). Dropped = 0 unchanged.
 
 </details>
 
 <details>
-<summary><b>R3</b> — 2026-06-15 · SCHED_FIFO priority 50 · all sps</summary>
+<summary><b>E1-03</b> — 2026-06-15 · SCHED_FIFO priority 50 · all sps</summary>
 
 **Files**: [48k csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [96k csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [192k csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv)
 
@@ -114,7 +108,7 @@ EXP-04 (warning threshold) ────────────┘
 
 ### Current Best
 
-- **Run**: R1 / R2 / R3 — all equivalent (Dropped = 0 in all conditions)
+- **Run**: E1-01 / E1-02 / E1-03 — all equivalent (Dropped = 0 in all conditions)
 - **Recommended sample rate**: **96k sps** (QAS-1 target; 0 drops confirmed, exec avg 9.6 ms well under 21.3 ms deadline)
 - **Graceful degradation fallback needed**: No — 192k also achieves 0 drops with 30 s buffer
 - **SCHED_RR effect**: No improvement in Dropped Block count. CPU load is distributed more evenly but exec time is marginally higher. **SCHED_RR not required.**
@@ -145,8 +139,8 @@ Core comparison only — full per-run numbers and analysis are in the collapsibl
 detail blocks below. `E2E = ① wait + ② exec` (avg / max, ms). Deadline = chunk
 period (`BG_SPF / BG_SPS`): Windows ≈ 10 ms, RPi ≈ 21 ms.
 
-**E2-3 (rpi2) is the baseline for all future experiments.** E2-1 (Windows) is kept
-as a dev-machine reference and E2-2 (rpi1) as a 1st-unit (thermal-throttling)
+**E2-03 (rpi2) is the baseline for all future experiments.** E2-01 (Windows) is kept
+as a dev-machine reference and E2-02 (rpi1) as a 1st-unit (thermal-throttling)
 reference.
 
 `git_commit` = the build commit the run came from (auto-recorded in the CSV `#`
@@ -155,19 +149,19 @@ R1/T2 are in `Role`.
 
 | Run | Date | Rate | E2E avg/max (ms) | Role | git_commit | Detail |
 |:---:|------|:----:|:----------------:|------|------------|:------:|
-| E2-1 | 2026-06-12 | 48 kHz | 2.8 / 363.9 | Windows reference (dev) | `d40b8fc` | ▼ E2-1 below |
-| E2-2 | 2026-06-11 | 48 kHz | 255.4 / 900.9 | rpi1 reference (1st unit) | `e7aaf4c` | ▼ E2-2 below |
-| E2-3 | 2026-06-15 | 48 kHz | 57.2 / 208.9 | **rpi2 baseline** | `7298783` | ▼ E2-3 below |
-| E2-4 | 2026-06-15 | 48 kHz | 80.1 / 258.7 | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-4 below |
-| E2-5 | 2026-06-15 | 48 kHz | 2.1 / 11.1 | E2-4 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-5 below |
-| E2-6 | 2026-06-15 | 48 kHz | 2.1 / 5.7 | E2-5 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-6 below |
-| E2-7 | 2026-06-16 | 48 kHz | 2.2 / 4.8 | E2-6 + per-thread timing (`fg_wait_ms`) | `f4bfbb5` (tag `thread-timing-measurement`) | ▼ E2-7 below |
+| E2-01 | 2026-06-12 | 48 kHz | 2.8 / 363.9 | Windows reference (dev) | `d40b8fc` | ▼ E2-01 below |
+| E2-02 | 2026-06-11 | 48 kHz | 255.4 / 900.9 | rpi1 reference (1st unit) | `e7aaf4c` | ▼ E2-02 below |
+| E2-03 | 2026-06-15 | 48 kHz | 57.2 / 208.9 | **rpi2 baseline** | `7298783` | ▼ E2-03 below |
+| E2-04 | 2026-06-15 | 48 kHz | 80.1 / 258.7 | rpi2 baseline + multi-graph | `6f741ec` (tag `macos_ex_baseline`) | ▼ E2-04 below |
+| E2-05 | 2026-06-15 | 48 kHz | 2.1 / 11.1 | E2-04 + T2 (DSP Offload) | `7c367c6` (tag `macos_ex_t2`) | ▼ E2-05 below |
+| E2-06 | 2026-06-15 | 48 kHz | 2.1 / 5.7 | E2-05 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-06 below |
+| E2-07 | 2026-06-16 | 48 kHz | 2.2 / 4.8 | E2-06 + per-thread timing (`fg_wait_ms`) | `f4bfbb5` (tag `thread-timing-measurement`) | ▼ E2-07 below |
 
 
 ### Run details
 
 <details>
-<summary><b>E2-1</b> — 2026-06-12 · Windows · 48 kHz · 1-tab · Windows baseline — E2E avg 2.8 / max 363.9 ms</summary>
+<summary><b>E2-01</b> — 2026-06-12 · Windows · 48 kHz · 1-tab · Windows baseline — E2E avg 2.8 / max 363.9 ms</summary>
 
 **Context**: 1-tab, 48 kHz, logging build with auto-recorded platform metadata.
 Deadline = 10.00 ms (480 / 48000, computed from data). CSV meta line:
@@ -192,7 +186,7 @@ Files: [csv](../../src/logs/EXP-02/log_20260612_132536.csv) ·
 bg_sps avg 44990. samples avg 527 (≈ SPF 480). exec > deadline: **0 / 2104**.
 backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
 
-![E2-1 log analysis](../../src/logs/EXP-02/log_20260612_132536.png)
+![E2-01 log analysis](../../src/logs/EXP-02/log_20260612_132536.png)
 
 **Observations:**
 
@@ -217,7 +211,7 @@ backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
 </details>
 
 <details>
-<summary><b>E2-2</b> — 2026-06-11 · rpi1 (1st unit) · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>rpi1 reference · real-time FAIL</b></summary>
+<summary><b>E2-02</b> — 2026-06-11 · rpi1 (1st unit) · 48 kHz · pre-metadata build — E2E avg 255.4 / max 900.9 ms · <b>rpi1 reference · real-time FAIL</b></summary>
 
 **Context**: RPi run, before platform auto-metadata. Deadline ≈ **21.33 ms**
 (SPF 1024 / SPS 48008). Files:
@@ -244,19 +238,19 @@ backlog (>1.5× SPF): **91 / 2104 (4.3 %)**.
 **System (RPi):** cpu_total 24 % but **cpu2 saturated, avg 91 % (max 99 %)**; temp
 **84.7 °C**, **throttled on all 10 samples**; mem 1651 MB; freq 2400 MHz.
 
-![E2-2 system](../../src/logs/EXP-02/log_20260611_145543_sys.png)
+![E2-02 system](../../src/logs/EXP-02/log_20260611_145543_sys.png)
 
 **Conclusion:** RPi **fails real-time performance**, not just latency. `exec`
 (plot ~16 ms) overruns the 21 ms deadline 43 % of the time; one core (cpu2)
 saturated (~92 %) while the others idle; SoC thermally throttled (85 °C)
 throughout. The bottleneck is structural: heavy `plot`, single-core audio path,
 thermal throttling. **This run is the rpi1 (1st-unit) reference; the rpi2 baseline
-for future experiments is E2-3.**
+for future experiments is E2-03.**
 
 </details>
 
 <details>
-<summary><b>E2-3</b> — 2026-06-15 · rpi2 (2nd unit) · 48 kHz · auto-metadata build — E2E avg 57.2 / max 208.9 ms · <b>marginal real-time FAIL (4.4 % overruns)</b></summary>
+<summary><b>E2-03</b> — 2026-06-15 · rpi2 (2nd unit) · 48 kHz · auto-metadata build — E2E avg 57.2 / max 208.9 ms · <b>marginal real-time FAIL (4.4 % overruns)</b></summary>
 
 **Context**: RPi 2nd unit (rpi2), first run with platform auto-metadata
 (`platform=debian kernel=linux host=lg1 device=rpi2 sample_rate=48000`).
@@ -286,7 +280,7 @@ backlog (>1.5× SPF): **273 / 1288 (21.2 %)**.
 **60.3 °C** (max 61.1 °C), **throttled 0 / 12 samples** (no throttling); mem
 ~1120 MB used / 16 GB total; freq 2400 MHz.
 
-![E2-3 sys](../../src/logs/EXP-02/log_20260615_152751_sys.png)
+![E2-03 sys](../../src/logs/EXP-02/log_20260615_152751_sys.png)
 
 **Observations:**
 
@@ -298,7 +292,7 @@ backlog (>1.5× SPF): **273 / 1288 (21.2 %)**.
 
 **Conclusion:**
 
-- Dramatically better than E2-2 (rpi1): E2E avg **57 ms** vs 255 ms (−78 %), exec avg
+- Dramatically better than E2-02 (rpi1): E2E avg **57 ms** vs 255 ms (−78 %), exec avg
   **15.2 ms** vs 20.2 ms (−25 %), exec overruns **4.4 %** vs 43 % (−90 %).
 - Root cause of improvement: **no thermal throttling** (60 °C vs 85 °C on rpi1).
   rpi2 runs consistently at 2400 MHz while rpi1 was throttled for the entire run.
@@ -311,7 +305,7 @@ backlog (>1.5× SPF): **273 / 1288 (21.2 %)**.
 </details>
 
 <details>
-<summary><b>E2-4</b> — 2026-06-15 · rpi2 · 48 kHz · baseline + multi-graph (tag macos_ex_baseline) — E2E avg 80.1 / max 258.7 ms · <b>exec OK (0/1244) but wait 77 ms, backlog 28 %</b></summary>
+<summary><b>E2-04</b> — 2026-06-15 · rpi2 · 48 kHz · baseline + multi-graph (tag macos_ex_baseline) — E2E avg 80.1 / max 258.7 ms · <b>exec OK (0/1244) but wait 77 ms, backlog 28 %</b></summary>
 
 **Context**: rpi2, baseline + multi-graph — tag `macos_ex_baseline` (`6f741ec`).
 `plot_ms` and `ui_ms` measure 0 in the exec breakdown (rendering is not on the
@@ -341,26 +335,26 @@ backlog (>1.5× SPF): **352 / 1244 (28.3 %)**.
 temp avg **60.0 °C** (max 61.7 °C), **throttled 0 / 12 samples**; mem ~2260 MB used
 / 16 GB total; freq 2400 MHz.
 
-![E2-4 sys](../../src/logs/EXP-02/log_20260615_162055_sys.png)
+![E2-04 sys](../../src/logs/EXP-02/log_20260615_162055_sys.png)
 
 **Observations:**
 
 | Phase | Pattern | Interpretation |
 |-------|---------|----------------|
 | exec | flat 2.7 ms avg, max 8.8 ms | pure DSP (tg) cost — no rendering overhead |
-| wait | 77 ms avg (higher than E2-3 42 ms) | FG is slower to pull; backlog builds but exec always finishes in time |
+| wait | 77 ms avg (higher than E2-03 42 ms) | FG is slower to pull; backlog builds but exec always finishes in time |
 | plot_ms | exactly 0.000 every frame | rendering not on the measured exec path |
 | Deadline | 0 / 1244 exceeded | **never once exceeded** without rendering |
 
 **Conclusion:**
 
 - **`plot` is the confirmed bottleneck.** With plot off the exec path, exec avg
-  drops from 15.2 ms (E2-3) to **2.7 ms** (−82 %) and the 21.33 ms deadline is
-  **never exceeded** (0 / 1244 frames vs 4.4 % in E2-3).
+  drops from 15.2 ms (E2-03) to **2.7 ms** (−82 %) and the 21.33 ms deadline is
+  **never exceeded** (0 / 1244 frames vs 4.4 % in E2-03).
 - The remaining exec cost is almost entirely `tg` (2.68 ms) — the DSP computation
   itself is well within budget.
-- But `wait` is high (77 ms vs E2-3's 42 ms): FG falls behind without sync, so
-  backlog grows (28.3 % vs 21.2 %). This is the gap that T2 (E2-5) closes.
+- But `wait` is high (77 ms vs E2-03's 42 ms): FG falls behind without sync, so
+  backlog grows (28.3 % vs 21.2 %). This is the gap that T2 (E2-05) closes.
 - **Architecture implication**: lazy / throttled rendering decouples plot from the
   audio deadline path. This run is the evidence that doing so will eliminate deadline
   overruns entirely. `tg` at 2.7 ms leaves ample headroom in the 21.33 ms budget.
@@ -368,9 +362,9 @@ temp avg **60.0 °C** (max 61.7 °C), **throttled 0 / 12 samples**; mem ~2260 MB
 </details>
 
 <details>
-<summary><b>E2-5</b> — 2026-06-15 · rpi2 · 48 kHz · E2-4 + T2 DSP Offload (tag macos_ex_t2) — E2E avg 2.1 / max 11.1 ms · <b>exec > deadline: 0 / 1224 · backlog: 0 / 1224 — ideal real-time</b></summary>
+<summary><b>E2-05</b> — 2026-06-15 · rpi2 · 48 kHz · E2-04 + T2 DSP Offload (tag macos_ex_t2) — E2E avg 2.1 / max 11.1 ms · <b>exec > deadline: 0 / 1224 · backlog: 0 / 1224 — ideal real-time</b></summary>
 
-**Context**: rpi2, **E2-4 + T2 (DSP Offload Thread)** — tag `macos_ex_t2`
+**Context**: rpi2, **E2-04 + T2 (DSP Offload Thread)** — tag `macos_ex_t2`
 (`7c367c6`). T2 makes FG and BG threads perfectly synchronized — samples is
 exactly 1024 every frame with zero backlog. Deadline ≈ **21.33 ms**
 (SPF 1024 / SPS 48008). Files:
@@ -400,7 +394,7 @@ backlog (>1.5× SPF): **0 / 1224**.
 temp avg **60.4 °C** (max 62.3 °C), **throttled 0 / 12 samples**; mem ~2292 MB used
 / 16 GB total; freq 2400 MHz.
 
-![E2-5 sys](../../src/logs/EXP-02/log_20260615_163106_sys.png)
+![E2-05 sys](../../src/logs/EXP-02/log_20260615_163106_sys.png)
 
 **Observations:**
 
@@ -409,19 +403,19 @@ temp avg **60.4 °C** (max 62.3 °C), **throttled 0 / 12 samples**; mem ~2292 MB
 | wait | avg 0.027 ms (near-zero) | FG picks up immediately after BG emits — no queue depth |
 | samples | exactly 1024 every frame | BG and FG are 1-for-1 synchronized, no accumulation |
 | bg_fps ≈ fg_fps | both ~43.3 fps | FG keeps pace with BG throughout the run |
-| exec | avg 2.07 ms, max 9.9 ms | `tg` sole cost — same level as E2-4 (2.7 ms) |
+| exec | avg 2.07 ms, max 9.9 ms | `tg` sole cost — same level as E2-04 (2.7 ms) |
 | backlog | 0 / 1224 | zero frames with accumulated samples |
 
 **Conclusion:**
 
-- E2-5 represents **ideal real-time pipeline behavior**: zero backlog, near-zero wait,
+- E2-05 represents **ideal real-time pipeline behavior**: zero backlog, near-zero wait,
   exec well within the 21.33 ms deadline (0 / 1224 overruns).
-- Total E2E avg is **2.1 ms** — close to the Windows reference (E2-1: 2.8 ms) and
-  drastically lower than E2-4 (80 ms), where FG lagged behind the queue.
-- The difference from E2-4 is not hardware (same unit, same temp) but **thread
-  scheduling**: in E2-5 the FG thread is pulled up immediately after each BG emit,
+- Total E2E avg is **2.1 ms** — close to the Windows reference (E2-01: 2.8 ms) and
+  drastically lower than E2-04 (80 ms), where FG lagged behind the queue.
+- The difference from E2-04 is not hardware (same unit, same temp) but **thread
+  scheduling**: in E2-05 the FG thread is pulled up immediately after each BG emit,
   eliminating queue depth and wait entirely.
-- `tg` (DSP) costs 2.06 ms avg — unchanged from E2-4 (2.7 ms), confirming the
+- `tg` (DSP) costs 2.06 ms avg — unchanged from E2-04 (2.7 ms), confirming the
   improvement is purely a scheduling / synchronization gain, not an algorithmic one.
 - **Architecture implication**: with rendering decoupled and FG properly scheduled,
   the full pipeline can run at **2.1 ms E2E** on rpi2. This is the performance
@@ -430,11 +424,11 @@ temp avg **60.4 °C** (max 62.3 °C), **throttled 0 / 12 samples**; mem ~2292 MB
 </details>
 
 <details>
-<summary><b>E2-6</b> — 2026-06-15 · rpi2 · 48 kHz · E2-5 + R1 Lazy Rendering (tag macos_ex_r1) — E2E avg 2.1 / max 5.7 ms · <b>exec > deadline: 0 / 1142 · backlog: 0 / 1142 — ideal real-time, tightest max</b></summary>
+<summary><b>E2-06</b> — 2026-06-15 · rpi2 · 48 kHz · E2-05 + R1 Lazy Rendering (tag macos_ex_r1) — E2E avg 2.1 / max 5.7 ms · <b>exec > deadline: 0 / 1142 · backlog: 0 / 1142 — ideal real-time, tightest max</b></summary>
 
-**Context**: rpi2, **E2-5 + R1 (Lazy Rendering)** — tag `macos_ex_r1` (`39c1d1a`),
+**Context**: rpi2, **E2-05 + R1 (Lazy Rendering)** — tag `macos_ex_r1` (`39c1d1a`),
 build-error patch: `${CMAKE_CURRENT_SOURCE_DIR}/logging` added to CMake. Same
-perfect sync as E2-5; R1 tightens worst-case max. Memory ~850 MB (vs E2-5 ~2292 MB).
+perfect sync as E2-05; R1 tightens worst-case max. Memory ~850 MB (vs E2-05 ~2292 MB).
 Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
 Files: [csv](../../src/logs/EXP-02/log_20260615_165612.csv) ·
 [plot](../../src/logs/EXP-02/log_20260615_165612.png) ·
@@ -462,38 +456,38 @@ backlog (>1.5× SPF): **0 / 1142**.
 temp avg **61.3 °C** (max 62.8 °C), **throttled 0 / 11 samples**; mem ~850 MB used
 / 16 GB total; freq 2400 MHz.
 
-![E2-6 sys](../../src/logs/EXP-02/log_20260615_165612_sys.png)
+![E2-06 sys](../../src/logs/EXP-02/log_20260615_165612_sys.png)
 
 **Observations:**
 
 | Phase | Pattern | Interpretation |
 |-------|---------|----------------|
-| wait | avg 0.029 ms (near-zero) | FG picks up immediately after BG emits — same as E2-5 |
+| wait | avg 0.029 ms (near-zero) | FG picks up immediately after BG emits — same as E2-05 |
 | samples | exactly 1024 every frame | BG and FG are 1-for-1 synchronized, no accumulation |
 | bg_fps ≈ fg_fps | both ~43.1 fps | FG keeps pace with BG throughout the run |
-| exec | avg 2.02 ms, max 5.62 ms | `tg` sole cost; max tighter than E2-5 (9.9 ms) |
+| exec | avg 2.02 ms, max 5.62 ms | `tg` sole cost; max tighter than E2-05 (9.9 ms) |
 | backlog | 0 / 1142 | zero frames with accumulated samples |
 
 **Conclusion:**
 
-- E2-6 replicates E2-5's **ideal real-time pipeline behavior** on the same rpi2 unit:
+- E2-06 replicates E2-05's **ideal real-time pipeline behavior** on the same rpi2 unit:
   zero backlog, near-zero wait, exec well within the 21.33 ms deadline.
-- Max E2E is **5.7 ms** — notably tighter than E2-5's **11.1 ms**; R1 (Lazy
+- Max E2E is **5.7 ms** — notably tighter than E2-05's **11.1 ms**; R1 (Lazy
   Rendering) trims the worst-case tail, keeping max sub-10 ms.
-- `tg` (DSP) costs 2.01 ms avg — consistent with E2-4 (2.68 ms) and E2-5 (2.06 ms).
+- `tg` (DSP) costs 2.01 ms avg — consistent with E2-04 (2.68 ms) and E2-05 (2.06 ms).
 - Lower memory footprint (~850 MB vs ~2292 MB) suggests a different build variant
   but has no observable effect on latency or throughput.
-- **Confirms E2-5's result**: the ideal rpi2 pipeline ceiling is ~2.1 ms E2E avg,
+- **Confirms E2-05's result**: the ideal rpi2 pipeline ceiling is ~2.1 ms E2E avg,
   with max excursions below 6 ms under this build.
 
 </details>
 
 <details>
-<summary><b>E2-7</b> — 2026-06-16 · rpi2 · 48 kHz · E2-6 + per-thread timing (fg_wait_ms) — DSP E2E avg 2.2 / max 4.8 ms · <b>fg_wait avg 60.1 ms · p99 167.8 ms · 84 % > deadline — FG scheduling bottleneck revealed</b></summary>
+<summary><b>E2-07</b> — 2026-06-16 · rpi2 · 48 kHz · E2-06 + per-thread timing (fg_wait_ms) — DSP E2E avg 2.2 / max 4.8 ms · <b>fg_wait avg 60.1 ms · p99 167.8 ms · 84 % > deadline — FG scheduling bottleneck revealed</b></summary>
 
-**Context**: rpi2, **E2-6 + per-thread timing** — tag `thread-timing-measurement` (`f4bfbb5`).
+**Context**: rpi2, **E2-06 + per-thread timing** — tag `thread-timing-measurement` (`f4bfbb5`).
 New column `fg_wait_ms` measures DSPWorker `frameLogged` emit → MainWindow `onFrameLogged`
-entry (Qt FG-scheduler pickup latency). DSP pipeline identical to E2-6.
+entry (Qt FG-scheduler pickup latency). DSP pipeline identical to E2-06.
 Deadline ≈ **21.33 ms** (SPF 1024 / SPS 48008).
 Files: [csv](../../src/logs/EXP-02/log_20260616_140850.csv) ·
 [plot](../../src/logs/EXP-02/log_20260616_140850.png) ·
@@ -524,27 +518,27 @@ Files: [csv](../../src/logs/EXP-02/log_20260616_140850.csv) ·
 | fg_wait > deadline (21.33 ms) | **1231 / 1458 (84 %)** 🔴 |
 
 **Throughput / health:** bg_fps avg 43.9 (max 47.4), fg_fps avg 43.9 (max 47.3)
-— **FG and BG perfectly matched** (bg_fps ≈ fg_fps, same as E2-5/E2-6). bg_sps avg 44939.
+— **FG and BG perfectly matched** (bg_fps ≈ fg_fps, same as E2-05/E2-06). bg_sps avg 44939.
 samples = 1024 exactly every frame. exec > deadline: **0 / 1458**. backlog: **0 / 1458**.
 
 **System (rpi2):** cpu_total avg 30.0 % (max 32.4 %);
 **cpu1 saturated avg 95.0 % (max 99.5 %)** (DSP on cpu1);
-temp avg **57.9 °C** (max 59.5 °C) — cooler than E2-6 (61.3 °C); **throttled 0 / 14 samples**;
+temp avg **57.9 °C** (max 59.5 °C) — cooler than E2-06 (61.3 °C); **throttled 0 / 14 samples**;
 mem 1362.7 MB used / 16214.9 MB; freq 2400 MHz (no throttling).
 
-![E2-7 plot](../../src/logs/EXP-02/log_20260616_140850.png)
+![E2-07 plot](../../src/logs/EXP-02/log_20260616_140850.png)
 
-![E2-7 sys](../../src/logs/EXP-02/log_20260616_140850_sys.png)
+![E2-07 sys](../../src/logs/EXP-02/log_20260616_140850_sys.png)
 
 **Thread Activity Timeline:**
 
 Full-run overview — all 1458 frames (x-axis = frame number, 1 slot = 21.3 ms period):
 
-![E2-7 timeline all](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png)
+![E2-07 timeline all](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png)
 
 Zoom view — representative 4-frame window (frames 728–731, x-axis = elapsed time ms):
 
-![E2-7 timeline zoom](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_default.png)
+![E2-07 timeline zoom](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_default.png)
 
 Timeline tool: `src/tools/thread_timeline_dark.py`
 
@@ -564,19 +558,19 @@ fg_wait; thereafter the elevated level is sustained throughout the run.
 | Phase | Pattern | Interpretation |
 |-------|---------|----------------|
 | DSP wait | avg 0.030 ms (near-zero) | DSP thread picks up BG signal immediately — T2 working |
-| DSP exec | avg 2.14 ms, max 4.44 ms | tg sole cost; tighter max than E2-6 (5.6 ms) |
+| DSP exec | avg 2.14 ms, max 4.44 ms | tg sole cost; tighter max than E2-06 (5.6 ms) |
 | samples | exactly 1024 every frame | BG/FG DSP synchronized, no backlog |
 | **fg_wait** | **avg 60.1 ms**, **84 % > 21.33 ms** | Qt event loop on RPi is very slow to wake FG thread 🔴 |
 | fg_wait p99 | 167.8 ms ≈ 8× deadline | severe FG scheduling tail on RPi vs macOS (macOS p99 = 20.5 ms) |
 | cpu1 | avg 95 % saturated | DSP pinned to cpu1; other cores idle — FG scheduling delay not CPU-bound |
-| temp | 57.9 °C (vs E2-6's 61.3 °C) | slightly cooler; no throttling |
+| temp | 57.9 °C (vs E2-06's 61.3 °C) | slightly cooler; no throttling |
 
 **Conclusion:**
 
 - **DSP pipeline remains healthy**: DSP E2E avg 2.2 ms, max 4.8 ms, 0 deadline misses,
-  0 backlog — identical behavior to E2-6.
+  0 backlog — identical behavior to E2-06.
 - **FG scheduling is the revealed bottleneck**: `fg_wait_ms` exposes a new latency
-  invisible in E2-6. The Qt event loop takes avg **60 ms** on RPi to deliver
+  invisible in E2-06. The Qt event loop takes avg **60 ms** on RPi to deliver
   `frameLogged` to the FG thread — 84 % of frames exceed the 21.33 ms audio deadline.
   On macOS (R5 in the macOS experiment series), the same metric was avg 8.9 ms, p99
   20.5 ms — the RPi scheduler is ~7× slower to wake the FG thread.
@@ -589,14 +583,14 @@ fg_wait; thereafter the elevated level is sustained throughout the run.
 
 </details>
 
-### E2-3–E2-6 Tactic Progression Comparison (rpi2, same unit)
+### E2-03–E2-06 Tactic Progression Comparison (rpi2, same unit)
 
 All four runs are on rpi2 at 48 kHz; deadline ≈ 21.33 ms (SPF 1024 / SPS 48008).
 Tactics R1 / T2 are defined in
 [architectural-approaches.md](architectural-approaches.md) (R1 = Lazy Rendering,
 T2 = DSP Offload Thread).
 
-| Config | E2-3 = baseline | E2-4 = baseline + multi-graph | E2-5 = E2-4 + T2 | E2-6 = E2-5 + R1 |
+| Config | E2-03 = baseline | E2-04 = baseline + multi-graph | E2-05 = E2-04 + T2 | E2-06 = E2-05 + R1 |
 |--------|------------:|--------------------------:|-----------:|----------------:|
 | E2E avg (ms) | 57.2 | 80.1 | **2.1** | **2.05** |
 | E2E max (ms) | 208.9 | 258.7 | 11.1 | **5.7** |
@@ -614,23 +608,23 @@ T2 = DSP Offload Thread).
 | throttled | 0/12 | 0/12 | 0/12 | 0/11 |
 | real-time | marginal FAIL | exec OK, wait high | **ideal** | **ideal** |
 
-> `plot_ms` is 0 in E2-4–E2-6 (rendering is off the measured exec path), so the
+> `plot_ms` is 0 in E2-04–E2-06 (rendering is off the measured exec path), so the
 > comparison turns on wait / exec / tg and on backlog & sync rather than plot.
 
 **Key findings:**
 
-- **E2-3 → E2-4 (multi-graph):** exec drops 15.2 → 2.7 ms (plot leaves the exec path),
+- **E2-03 → E2-04 (multi-graph):** exec drops 15.2 → 2.7 ms (plot leaves the exec path),
   but `wait` rises (42 → 77 ms) and E2E worsens — FG falls behind without render
   pressure; backlog grows to 28 %.
-- **E2-4 → E2-5 (+T2, DSP Offload):** the decisive step. FG/BG become 1-for-1
+- **E2-04 → E2-05 (+T2, DSP Offload):** the decisive step. FG/BG become 1-for-1
   synchronized (samples fixed at 1024, backlog 0), `wait` collapses to ~0.03 ms,
   and E2E avg drops to **2.1 ms** — ideal real-time.
-- **E2-5 → E2-6 (+T2 +R1, Lazy Rendering):** same avg (2.05 ms) but tighter worst case
+- **E2-05 → E2-06 (+T2 +R1, Lazy Rendering):** same avg (2.05 ms) but tighter worst case
   (max 11.1 → **5.7 ms**), i.e. R1 trims tail latency.
-- **tg (DSP) is stable at ~2 ms** across E2-4–E2-6, confirming the gains are
+- **tg (DSP) is stable at ~2 ms** across E2-04–E2-06, confirming the gains are
   scheduling/rendering architecture, not algorithmic.
-- Hardware note: E2-2 (rpi1) failed at 43 % overruns mainly due to thermal throttling
-  (85 °C); rpi2 stays at 60 °C / 2400 MHz throughout (see E2-2 detail block).
+- Hardware note: E2-02 (rpi1) failed at 43 % overruns mainly due to thermal throttling
+  (85 °C); rpi2 stays at 60 °C / 2400 MHz throughout (see E2-02 detail block).
 
 > Provenance is in the Runs table (`git_commit` column; tag in parens). The E2-6
 > build-fix added `${CMAKE_CURRENT_SOURCE_DIR}/logging` to CMake. Tactics R1/T2
@@ -638,23 +632,23 @@ T2 = DSP Offload Thread).
 
 ### Current Best
 
-**E2-7 (rpi2, E2-6 + per-thread timing) — DSP healthy, FG scheduling bottleneck revealed** ⚠️
-- DSP E2E avg **2.2 ms** / max **4.8 ms** — 0 deadline misses, 0 backlog (same as E2-6)
+**E2-07 (rpi2, E2-06 + per-thread timing) — DSP healthy, FG scheduling bottleneck revealed** ⚠️
+- DSP E2E avg **2.2 ms** / max **4.8 ms** — 0 deadline misses, 0 backlog (same as E2-06)
 - ① wait avg **0.030 ms** (near-zero); samples exactly 1024 every frame
 - exec avg **2.1 ms**, max **4.4 ms** — **0 / 1458** deadline overruns
 - backlog **0 / 1458** — FG and BG DSP perfectly synchronized
 - **fg_wait avg 60.1 ms, p99 167.8 ms, 84 % > deadline** 🔴 — NEW bottleneck identified
 - temp 57.9 °C, no throttling, mem 1.36 GB / 16 GB
 
-> E2-6 (E2-5 + R1): DSP E2E avg 2.1 ms, max 5.7 ms — R1 trims tail latency; fg_wait not yet measured.  
-> E2-5 (E2-4 + T2): E2E avg 2.1 ms, max 11.1 ms — T2 yields the sync fix (backlog 0).  
-> E2-4 (rpi2 baseline + multi-graph): E2E avg 80 ms, backlog 28 % — FG scheduling lag.  
-> E2-3 (rpi2 baseline): exec 15.2 ms, 4.4 % overruns — `plot` bottleneck in audio path.  
-> E2-1 (Windows baseline): E2E avg 2.8 ms — E2-6 reaches parity with tighter max.
+> E2-06 (E2-05 + R1): DSP E2E avg 2.1 ms, max 5.7 ms — R1 trims tail latency; fg_wait not yet measured.  
+> E2-05 (E2-04 + T2): E2E avg 2.1 ms, max 11.1 ms — T2 yields the sync fix (backlog 0).  
+> E2-04 (rpi2 baseline + multi-graph): E2E avg 80 ms, backlog 28 % — FG scheduling lag.  
+> E2-03 (rpi2 baseline): exec 15.2 ms, 4.4 % overruns — `plot` bottleneck in audio path.  
+> E2-01 (Windows baseline): E2E avg 2.8 ms — E2-06 reaches parity with tighter max.
 
-- **Decisive tactic so far**: **T2 (DSP Offload)** — E2-4 → E2-5 drops E2E 80 ms → 2.1 ms (sync, backlog 0)
-- **R1 (Lazy Rendering)**: trims worst-case DSP max (E2-5 11.1 → E2-6 5.7 ms)
-- **New finding (E2-7)**: `fg_wait_ms` reveals Qt FG-scheduler pickup on RPi is avg 60 ms —
+- **Decisive tactic so far**: **T2 (DSP Offload)** — E2-04 → E2-05 drops E2E 80 ms → 2.1 ms (sync, backlog 0)
+- **R1 (Lazy Rendering)**: trims worst-case DSP max (E2-05 11.1 → E2-06 5.7 ms)
+- **New finding (E2-07)**: `fg_wait_ms` reveals Qt FG-scheduler pickup on RPi is avg 60 ms —
   7× worse than macOS (avg 8.9 ms). FG latency is the next architecture concern.
 - **Next action**: Apply T1 (SCHED_RR + CPU affinity for FG thread) → measure E2-8
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
@@ -926,9 +920,9 @@ See **Part B** section above for full condition table and key findings.
 
 > Fill in when prerequisite is met.
 
-| Run | Date | Change from Previous | 36k E2E Mean (ms) | 43k E2E Mean (ms) | < 80% beat period? | Better? | Next Action |
-|:---:|------|----------------------|:-----------------:|:-----------------:|:------------------:|:-------:|-------------|
-| R1 | — | Planned: baseline | — | — | — | — | |
+| Run | Date | Change from Previous | 36k E2E Mean (ms) | 43k E2E Mean (ms) | < 80% beat period? | Better? | Detail |
+|:---:|------|----------------------|:-----------------:|:-----------------:|:------------------:|:-------:|:------:|
+| E5-01 | — | Planned: baseline | — | — | — | — | — |
 
 ### Current Best
 
