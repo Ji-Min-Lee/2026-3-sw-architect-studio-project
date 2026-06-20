@@ -58,10 +58,11 @@ graph TD
 
 ### Unresolved Critical Concerns
 
-| Concern | Plan |
-|---------|------|
-| FG scheduling: fg_wait avg 60.1 ms (84% > deadline) on RPi | SCHED_RR on FG thread or QTimer polling — measure E2-8 |
-| Filter cutoffs undetermined | [EXP-03](references/experiments/exp-03-filter-sweep.md) — 06/25 |
+| ID | Concern | Plan | Target |
+|----|---------|------|--------|
+| [TR-10](references/risks.md) 🔴 | FG scheduling: fg_wait avg 60.1 ms (84% > deadline) on RPi | SCHED_RR on FG thread or QTimer polling — measure E2-8 | 06/24 |
+| [TR-05](references/risks.md) 🟡 | Filter cutoffs undetermined | [EXP-03](references/experiments/exp-03-filter-sweep.md) parameter sweep | 06/25 |
+| [NTR-07](references/risks.md) 🟢 | WeiShi accuracy comparison not yet performed | WeiShi validation session on RPi | 06/29 |
 
 → Full risk register: [references/risks.md](references/risks.md)
 
@@ -75,14 +76,14 @@ W2–W3 complete. See sprint summary above.
 
 ### M2 → Final (W4–W5)
 
-| Sprint | Date | Focus | Deliverable Target |
-|--------|------|-------|--------------------|
-| W4 S1 | 6/22–6/23 | RPi experiments + M2 feedback incorporation | EXP-01/02 RPi results |
-| W4 S2 | 6/24–6/25 | EXP-03 filter sweep + ADR-003 finalized | ADR-003 accepted |
-| W4 S3 | 6/25–6/26 | EXP-05 rendering FPS + Usability + AI feature | ADR-004/005 drafted |
-| W4 S4 | 6/26–6/28 | Radar Chart + Diagnosis / Classification + buffer | Feature complete |
-| W5 S1 | 6/29–6/30 | RPi integration + WeiShi accuracy validation + Demo rehearsal | QAS-0 validated |
-| **M3 Demo** | **7/1** | **Final Demo on Raspberry Pi** | — |
+| Sprint | Date | Focus | Risks Addressed | Deliverable Target |
+|--------|------|-------|-----------------|-------------------|
+| W4 S1 | 6/22–6/23 | RPi experiments + M2 feedback | TR-10 (E2-8 FG scheduling) | EXP-02 E2-8 result |
+| W4 S2 | 6/24–6/25 | EXP-03 filter sweep + ADR-003 finalized | TR-05 (filter cutoffs) | ADR-003 accepted |
+| W4 S3 | 6/25–6/26 | EXP-05 rendering FPS + Usability + AI feature | TR-04 (11-tab load) | ADR-002/004 confirmed |
+| W4 S4 | 6/26–6/28 | Radar Chart + Diagnosis / Classification + buffer | — | Feature complete |
+| W5 S1 | 6/29–6/30 | RPi integration + WeiShi accuracy validation + Demo rehearsal | NTR-07 (WeiShi comparison) | QAS-0 validated |
+| **M3 Demo** | **7/1** | **Final Demo on Raspberry Pi** | — | — |
 
 ### Final Deliverable Readiness
 
