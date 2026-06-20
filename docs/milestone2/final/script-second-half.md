@@ -7,7 +7,7 @@
 
 ## 2-B. Correctness: Observer Pattern
 
-"Today I'm covering the second and third quality goals — correctness and extensibility."
+"In the topics I'm covering today, the second is correctness and the third is extensibility."
 
 "First, correctness. The question is simple: when a measurement is ready, does every tab get it? Every single time?"
 
