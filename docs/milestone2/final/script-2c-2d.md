@@ -13,9 +13,9 @@
 
 ## 2-C. Extensibility
 
-"We have **14** display tabs. Each one shows different watch metrics. The question is — how do we add a new tab **without breaking anything** that already works?"
+"We now have **14** display tabs — 11 from the core requirements, 2 more added when we aligned with the project-plan screens, and 1 bonus Radar chart. Each one shows different watch metrics. The question is — how did we keep adding tabs **without breaking anything** that already works?"
 
-"We made three design decisions together to answer that."
+"Three design decisions made that possible."
 
 ---
 
@@ -23,7 +23,7 @@
 
 "First, layers. We have four layers: Acquisition, Signal Processing, Domain, and Presentation. The design rule is: dependencies only go **downward**."
 
-"Adding a new tab means touching **only** the Presentation layer. Three files or less. Nothing below changes. We verified this — all 14 tabs were added this way."
+"Adding a new tab means touching **only** the Presentation layer. Three files or less. Nothing below changes. We verified this across all three batches — 11, then 13, then 14. Each time, the Domain layer stayed untouched."
 
 "But we also did an honest check using a Dependency Structure Matrix — tracing actual `#include` statements in the code. And we found one violation: `DSPWorker` in Signal Processing holds a reference to `MeasurementEngine` in Domain. That's an upward dependency."
 
@@ -59,7 +59,7 @@
 
 "So we used AI-generated unit tests. They validate that each tab correctly implements the interface — that `updateData()` receives the right data and doesn't mutate it."
 
-"No domain expert needed. All 14 tabs passed within Sprint 1 of Week 2."
+"No domain expert needed. The 11 baseline tabs passed in W2 Sprint 1, and the same approach covered the 3 additional tabs added later."
 
 "This was our mitigation for NTR-07 — using automation to cover a knowledge gap."
 
@@ -77,7 +77,7 @@
 
 "Here's a quick recap of the last two weeks."
 
-"Week 2 Sprint 1 — we built the 4-layer structure and completed all 14 tabs. Sprint 2 — we set up the RPi deployment workflow."
+"Week 2 Sprint 1 — we built the 4-layer structure and completed the first 11 tabs. Sprint 2 — we set up the RPi deployment workflow."
 
 "Week 3 Sprint 1 — EXP-02 completed, ADR-001 and 002 accepted. Sprint 2 — we ran noise experiments, still in progress."
 

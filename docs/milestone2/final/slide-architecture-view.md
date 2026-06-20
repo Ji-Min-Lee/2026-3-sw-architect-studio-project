@@ -111,7 +111,17 @@ Three design decisions together enforce extensibility.
 ![4-Layer Allowed-to-Use View](assets/view1-layered-module.png)
 
 Acquisition → Signal Processing → Domain → Presentation. Dependencies flow downward only.  
-Adding a new tab = ≤ 3 files in Presentation. Zero changes to Domain or below. ✅ 14 tabs implemented.
+Adding a new tab = ≤ 3 files in Presentation. Zero changes to Domain or below.
+
+| Batch | Tabs | Trigger | Files changed (excl. build/test) |
+|---|---|---|---|
+| W2 S1 | 11 (baseline) | Core requirements | NewTab + MainWindow = **2** |
+| W2 S2 | +2 → 13 | Project-plan screen requirements (Fig 7-19) | FilterScopeTab + SweepScopeTab + MainWindow = **2 each** |
+| W3 S1 | +1 → **14** | Radar/Polar chart (bonus) | RadarChartTab + SequenceTab + MainWindow = **3** ¹ |
+
+¹ RadarChartTab reads per-position data from SequenceTab (not via `measurementReady`) → SequenceTab modified to expose `capturedReadings()` + `sequenceUpdated()`.
+
+✅ All 14 added within ≤ 3-component rule — Domain layer untouched each time.
 
 **Dependency Structure Matrix (actual code — `#include` trace)**
 
@@ -176,7 +186,7 @@ VOs stay in the Domain layer → replacing or adding Presentation components has
 **Response**: AI-generated unit tests — structural correctness of `BaseGraphTab::updateData()` verifiable without domain expertise
 
 - Validates interface compliance and layer boundary enforcement → runnable on macOS immediately
-- All 14 tabs completed within W2 Sprint 1 without a domain expert
+- 11 baseline tabs completed in W2 S1; 3 more added in W2 S2 + W3 S1 (project-plan screens + bonus) — all without a domain expert
 
 ---
 
