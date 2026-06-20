@@ -1,0 +1,154 @@
+<mxGraphModel dx="1005" dy="466" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="400" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    <mxCell id="2" parent="1" style="text;html=1;fontStyle=1;fontSize=13;align=left;" value="AS-IS" vertex="1">
+      <mxGeometry height="20" width="80" x="14" y="5" as="geometry" />
+    </mxCell>
+    <mxCell id="3" parent="1" style="text;html=1;fontStyle=1;fontSize=13;align=left;" value="TO-BE  (ADR-001)" vertex="1">
+      <mxGeometry height="20" width="220" x="393" y="5" as="geometry" />
+    </mxCell>
+    <mxCell id="4" parent="1" style="line;strokeColor=#dddddd;dashed=1;dashPattern=5 4;fillColor=none;" value="" vertex="1">
+      <mxGeometry height="310" width="1" x="364" y="5" as="geometry" />
+    </mxCell>
+    <mxCell id="10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="Audio Source Thread  (BG)" vertex="1">
+      <mxGeometry height="64" width="330" x="10" y="33" as="geometry" />
+    </mxCell>
+    <mxCell id="11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Capture Audio Data" vertex="1">
+      <mxGeometry height="26" width="298" x="26" y="61" as="geometry" />
+    </mxCell>
+    <mxCell id="12" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=11;fontStyle=2;" value="Audio Buffer" vertex="1">
+      <mxGeometry height="26" width="200" x="75" y="131" as="geometry" />
+    </mxCell>
+    <mxCell id="13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;fontColor=#2a5090;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="Qt Main Thread  (FG)" vertex="1">
+      <mxGeometry height="179" width="330" x="10" y="195" as="geometry" />
+    </mxCell>
+    <mxCell id="14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Analyze Audio Data" vertex="1">
+      <mxGeometry height="30" width="298" x="26" y="238" as="geometry" />
+    </mxCell>
+    <mxCell id="15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Render Data&lt;br&gt;&lt;span style=&quot;color: rgb(106, 154, 205); font-size: 9px; font-weight: 400;&quot;&gt;draw all tabs&lt;/span&gt;" vertex="1">
+      <mxGeometry height="43" width="298" x="26" y="318" as="geometry" />
+    </mxCell>
+    <mxCell id="20" edge="1" parent="1" source="11" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="12" value="write">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="21" edge="1" parent="1" source="11" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="14" value="notify">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="352" y="74" />
+          <mxPoint x="350" y="253" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="22" edge="1" parent="1" source="14" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="12" value="read">
+      <mxGeometry relative="1" x="-0.4568" y="-3" as="geometry">
+        <mxPoint as="offset" />
+        <mxPoint x="195.00000000000023" y="200" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="23" edge="1" parent="1" source="14" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="15" value="notify">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="30" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="Audio Source Thread  (BG)" vertex="1">
+      <mxGeometry height="63" width="388" x="389" y="33" as="geometry" />
+    </mxCell>
+    <mxCell id="31" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Capture Audio Data" vertex="1">
+      <mxGeometry height="26" width="356" x="405" y="61" as="geometry" />
+    </mxCell>
+    <mxCell id="32" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=11;fontStyle=2;" value="Audio Buffer" vertex="1">
+      <mxGeometry height="26" width="238" x="464" y="133" as="geometry" />
+    </mxCell>
+    <mxCell id="33" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="DSP Thread  (BG)" vertex="1">
+      <mxGeometry height="78" width="388" x="389" y="198" as="geometry" />
+    </mxCell>
+    <mxCell id="34" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Analyze Audio Data" vertex="1">
+      <mxGeometry height="26" width="356" x="405" y="234" as="geometry" />
+    </mxCell>
+    <mxCell id="35" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;fontColor=#2a5090;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="Qt Main Thread  (FG)" vertex="1">
+      <mxGeometry height="89" width="388" x="389" y="286" as="geometry" />
+    </mxCell>
+    <mxCell id="36" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontSize=12;" value="&lt;b&gt;Render Data&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#6a9acd&quot; style=&quot;font-size: 9px;&quot;&gt;draw the tab visible only&amp;nbsp; [ADR-002]&lt;/font&gt;" vertex="1">
+      <mxGeometry height="40" width="356" x="405" y="320" as="geometry" />
+    </mxCell>
+    <mxCell id="40" edge="1" parent="1" source="31" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="32" value="write">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="41" edge="1" parent="1" source="31" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="34" value="notify">
+      <mxGeometry relative="1" x="-0.0507" y="3" as="geometry">
+        <mxPoint as="offset" />
+        <Array as="points">
+          <mxPoint x="786" y="74" />
+          <mxPoint x="786" y="247" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="42" edge="1" parent="1" source="34" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="32" value="read">
+      <mxGeometry relative="1" x="-0.6" as="geometry">
+        <mxPoint as="offset" />
+        <mxPoint x="595" y="200" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="43" edge="1" parent="1" source="34" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="36" value="notify">
+      <mxGeometry relative="1" x="0.1333" as="geometry">
+        <mxPoint as="offset" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="Q6rnTVYkd1wGd5bwxZPc-64" connectable="0" parent="1" style="group" value="" vertex="1">
+      <mxGeometry height="180" width="290" x="788" y="29" as="geometry" />
+    </mxCell>
+    <mxCell id="50" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#cccccc;" value="" vertex="1">
+      <mxGeometry height="180" width="201" x="15" as="geometry" />
+    </mxCell>
+    <mxCell id="51" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontStyle=1;fontSize=12;align=left;" value="Legend" vertex="1">
+      <mxGeometry height="20" width="100" x="31" y="10" as="geometry" />
+    </mxCell>
+    <mxCell id="52" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;" value="" vertex="1">
+      <mxGeometry height="16" width="24" x="31" y="41" as="geometry" />
+    </mxCell>
+    <mxCell id="53" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="BG (Background) Thread" vertex="1">
+      <mxGeometry height="16" width="220" x="61" y="41" as="geometry" />
+    </mxCell>
+    <mxCell id="54" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;" value="" vertex="1">
+      <mxGeometry height="16" width="24" x="31" y="63" as="geometry" />
+    </mxCell>
+    <mxCell id="55" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="FG (Foreground) Thread" vertex="1">
+      <mxGeometry height="16" width="220" x="61" y="63" as="geometry" />
+    </mxCell>
+    <mxCell id="56" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;" value="" vertex="1">
+      <mxGeometry height="16" width="24" x="31" y="85" as="geometry" />
+    </mxCell>
+    <mxCell id="57" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="Component  (runtime instance)" vertex="1">
+      <mxGeometry height="16" width="240" x="61" y="85" as="geometry" />
+    </mxCell>
+    <mxCell id="58" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=8;fontStyle=2;" value="" vertex="1">
+      <mxGeometry height="16" width="27" x="31" y="107" as="geometry" />
+    </mxCell>
+    <mxCell id="60" edge="1" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;" value="">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="31" y="137" as="sourcePoint" />
+        <mxPoint x="59" y="137" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="61" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="write / read PCM audio data" vertex="1">
+      <mxGeometry height="16" width="240" x="65" y="129" as="geometry" />
+    </mxCell>
+    <mxCell id="62" edge="1" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;" value="">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="31" y="157" as="sourcePoint" />
+        <mxPoint x="59" y="157" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="63" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="notify  (Qt::QueuedConnection)" vertex="1">
+      <mxGeometry height="16" width="240" x="65" y="149" as="geometry" />
+    </mxCell>
+    <mxCell id="Q6rnTVYkd1wGd5bwxZPc-65" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="Shared Ring Buffer" vertex="1">
+      <mxGeometry height="16" width="240" x="65" y="107" as="geometry" />
+    </mxCell>
+    <mxCell id="Q6rnTVYkd1wGd5bwxZPc-69" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" value="">
+      <mxGeometry height="50" relative="1" width="50" as="geometry">
+        <mxPoint x="370" y="391" as="sourcePoint" />
+        <mxPoint x="370" y="6" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+  </root>
+</mxGraphModel>
