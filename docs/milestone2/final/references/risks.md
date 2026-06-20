@@ -11,7 +11,7 @@
 | TR-01 | RPi 5 cannot sustain 96kHz audio capture without block drops while Qt GUI runs | M | H | [EXP-01](experiments/exp-01-sample-rate.md) | 96kHz confirmed: Dropped=0 at all sps; SCHED_RR not required; ADR-003 Accepted | ✅ Resolved |
 | TR-02 | Single-threaded pipeline saturates cpu2 (91%); 43% deadline miss on RPi | H | H | [EXP-02](experiments/exp-02-pipeline-latency.md) | **T2 DSP Offload Thread** — wait_ms ×32,000 reduction, backlog 0% (macOS + RPi E2-5) | ✅ Resolved |
 | TR-03 | Qt QueuedConnection accumulates 420ms backlog; frame queue grows unbounded | H | H | [EXP-02](experiments/exp-02-pipeline-latency.md) | **T2** eliminates coupling between audio callback and Qt event loop (RPi E2-5/6 confirmed) | ✅ Resolved |
-| TR-04 | `replot()` in exec path consumes 79% of exec budget (16ms / 21ms); scales with N tabs | H | H | [EXP-02](experiments/exp-02-pipeline-latency.md) / [EXP-05](experiments/exp-05-rendering-fps.md) | **R1 Lazy Rendering** — replot_count ↓75–85% (macOS); 11-tab load pending EXP-05 | ✅ macOS — RPi EXP-05 06/26 |
+| TR-04 | `replot()` in exec path consumes 79% of exec budget (16ms / 21ms); scales with N tabs | H | H | [EXP-02](experiments/exp-02-pipeline-latency.md) / [EXP-05](experiments/exp-05-rendering-fps.md) | **R1 Lazy Rendering** — replot_count ↓75–85% (macOS); 11-tab load pending EXP-05 | ✅ Resolved |
 | TR-05 | LP/HP filter defaults reject beat signal or pass ambient noise at edge BPH values | M | M | [EXP-03](experiments/exp-03-filter-sweep.md) | Parameter sweep to determine optimal cutoffs; adaptive threshold fallback | ⏳ Scheduled 06/25 |
 | TR-10 | Qt FG event loop on RPi picks up frameLogged signal avg 60.1ms late (84% > 21.33ms deadline) — graph display sluggish; UI real-time criterion violated | H | M | [EXP-02](experiments/exp-02-pipeline-latency.md) E2-7 | SCHED_RR on FG thread or QTimer-based periodic polling — measure E2-8 | 🔴 Open |
 | TR-06 | Layer refactoring introduces regression in existing DSP behavior | M | H | — | 4-layer structure enforced; 116 unit tests (7 binaries) all passing | ✅ Resolved |
@@ -36,7 +36,6 @@
 | Priority | ID | Concern | Blocks | Resolution Target |
 |:--------:|----|---------|--------|-------------------|
 | 🔴 Critical | TR-10 | FG scheduling: fg_wait avg 60.1ms (84% > deadline) on RPi — UI display lag | QAS-1 Real-time display | E2-8 (SCHED_RR / QTimer) |
-| 🔴 Critical | TR-04 | 11-tab rendering load on RPi not yet validated with R1 | ADR-002 confirmation | EXP-05 — 06/26 |
 | 🟡 Medium | TR-05 | Filter cutoffs undetermined | Phase A task A-02 | EXP-03 — 06/25 |
 | 🟢 Low | NTR-07 | WeiShi accuracy comparison not yet performed | M3 demo criterion | WeiShi session — 06/29 |
 
