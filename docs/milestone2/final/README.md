@@ -2,6 +2,8 @@
 
 **Team**: Blue Sky (Team 3) | **Date**: 2026-06-22
 
+> **★ = Covered in today's presentation (06/22)**
+
 ---
 
 ## Presentation
@@ -17,8 +19,6 @@
 ## Traceability: QA → Risk → Experiment → Architecture Decision
 
 > Includes items not covered in the presentation. Full design rationale at a glance.
->
-> **★ = Covered in today's presentation (06/22)**
 
 ### QAS-1 — Measurement Accuracy *(Governing Goal)*
 
