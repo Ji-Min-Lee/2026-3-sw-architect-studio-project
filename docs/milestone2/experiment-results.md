@@ -38,43 +38,28 @@ EXP-04 (warning threshold) ─────────┘
 
 > Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline = 21.33 ms at 96k.  
 > The 30 s buffer absorbs all deadline-exceeded frames → Dropped stays 0.  
-> **96k sps = QAS-1 target.** Table shows 96k figures only.
+> **96k sps = QAS-1 target.** Table shows 96k figures only; full 3-sps data in linked files.
 
 | Run | Date | Scheduling | 96k exec avg/max (ms) | exec > deadline | Dropped | Data (96k) |
 |:---:|------|-----------|:---------------------:|:---------------:|:-------:|:----------:|
-| E1-01 | 2026-06-15 | default | 9.6 / 39.2 | 8.1 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) |
-| E1-02 | 2026-06-15 | SCHED_RR p50 | 9.8 / 39.9 | 8.4 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) |
-| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 9.9 / 41.4 | 8.6 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) |
+| E1-01 | 2026-06-15 | default | 9.6 / 39.2 | 8.1 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
+| E1-02 | 2026-06-15 | SCHED_RR p50 | 9.8 / 39.9 | 8.4 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
+| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 9.9 / 41.4 | 8.6 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
 
 <details>
-<summary>▶ E1-01 plot (default, 96k)</summary>
+<summary>All sps data (48k / 96k / 192k) per run</summary>
 
-![E1-01 96k plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png)
-
-</details>
-
-<details>
-<summary>▶ E1-02 plot (SCHED_RR, 96k)</summary>
-
-![E1-02 96k plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png)
-
-</details>
-
-<details>
-<summary>▶ E1-03 plot (SCHED_FIFO, 96k)</summary>
-
-![E1-03 96k plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png)
-
-</details>
-
-<details>
-<summary>All sps CSV files (48k / 96k / 192k)</summary>
-
-| Run | 48k | 96k | 192k |
-|:---:|-----|-----|------|
-| E1-01 | [csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) | [csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) |
-| E1-02 | [csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) | [csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) |
-| E1-03 | [csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) | [csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) |
+| Run | sps | csv | plot |
+|:---:|:---:|-----|------|
+| E1-01 | 48k | [csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_203222_48000_default.png) |
+| E1-01 | 96k | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
+| E1-01 | 192k | [csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) | [plot](../../src/logs/EXP-01/log_20260615_210310_192000_default.png) |
+| E1-02 | 48k | [csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_203730_48000_rr.png) |
+| E1-02 | 96k | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
+| E1-02 | 192k | [csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) | [plot](../../src/logs/EXP-01/log_20260615_210818_192000_rr.png) |
+| E1-03 | 48k | [csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.png) |
+| E1-03 | 96k | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
+| E1-03 | 192k | [csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) | [plot](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.png) |
 
 </details>
 
@@ -96,45 +81,15 @@ EXP-04 (warning threshold) ─────────┘
 
 ### Run History
 
-| Run | Date | Configuration | E2E avg/max (ms) | Note | CSV |
-|:---:|------|--------------|:----------------:|------|:---:|
-| E2-01 | 2026-06-12 | Windows reference (dev PC) | 2.8 / 363.9 | Healthy — one OS scheduling spike | [csv](../../src/logs/EXP-02/log_20260612_132536.csv) |
-| E2-02 | 2026-06-11 | rpi1 — unoptimized | 255.4 / 900.9 | ❌ FAIL — thermal throttling, exec overrun 43 % | [csv](../../src/logs/EXP-02/log_20260611_145543.csv) |
-| E2-03 | 2026-06-15 | rpi2 baseline | 57.2 / 208.9 | ❌ exec overrun 4.4 % — `plot` on exec path | [csv](../../src/logs/EXP-02/log_20260615_152751.csv) |
-| E2-04 | 2026-06-15 | rpi2 + multi-tab | 80.1 / 258.7 | plot removed from exec path; FG queue lag | [csv](../../src/logs/EXP-02/log_20260615_162055.csv) |
-| E2-05 | 2026-06-15 | E2-04 + T2 (DSP offload thread) | 2.1 / 11.1 | ✅ **Ideal real-time** — 0 drops, 0 backlog | [csv](../../src/logs/EXP-02/log_20260615_163106.csv) |
-| E2-06 | 2026-06-15 | E2-05 + R1 (Lazy Rendering) | 2.1 / 5.7 | ✅ Same perf + tighter max | [csv](../../src/logs/EXP-02/log_20260615_165612.csv) |
-| E2-07 | 2026-06-16 | E2-06 + FG wait measurement | 2.2 / 4.8 | ✅ DSP healthy; **FG scheduling lag 60 ms revealed** | [csv](../../src/logs/EXP-02/log_20260616_140850.csv) |
-
-### Plots
-
-<details>
-<summary>▶ E2-03 plot — rpi2 baseline (exec overrun 4.4 %)</summary>
-
-![E2-03](../../src/logs/EXP-02/log_20260615_152751.png)
-
-</details>
-
-<details>
-<summary>▶ E2-05 plot — +T2 DSP offload (ideal real-time, E2E avg 2.1 ms)</summary>
-
-![E2-05](../../src/logs/EXP-02/log_20260615_163106.png)
-
-</details>
-
-<details>
-<summary>▶ E2-07 plot — final state (DSP E2E avg 2.2 ms, FG lag revealed)</summary>
-
-![E2-07](../../src/logs/EXP-02/log_20260616_140850.png)
-
-</details>
-
-<details>
-<summary>▶ E2-07 thread timeline — FG bars span 3× frame period (avg 60 ms)</summary>
-
-![E2-07 timeline](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png)
-
-</details>
+| Run | Date | Configuration | E2E avg/max (ms) | Note | Data |
+|:---:|------|--------------|:----------------:|------|:----:|
+| E2-01 | 2026-06-12 | Windows reference (dev PC) | 2.8 / 363.9 | Healthy — one OS scheduling spike | [csv](../../src/logs/EXP-02/log_20260612_132536.csv) · [plot](../../src/logs/EXP-02/log_20260612_132536.png) |
+| E2-02 | 2026-06-11 | rpi1 — unoptimized | 255.4 / 900.9 | ❌ FAIL — thermal throttling, exec overrun 43 % | [csv](../../src/logs/EXP-02/log_20260611_145543.csv) · [plot](../../src/logs/EXP-02/log_20260611_145543.png) |
+| E2-03 | 2026-06-15 | rpi2 baseline | 57.2 / 208.9 | ❌ exec overrun 4.4 % — `plot` on exec path | [csv](../../src/logs/EXP-02/log_20260615_152751.csv) · [plot](../../src/logs/EXP-02/log_20260615_152751.png) |
+| E2-04 | 2026-06-15 | rpi2 + multi-tab | 80.1 / 258.7 | plot removed from exec path; FG queue lag | [csv](../../src/logs/EXP-02/log_20260615_162055.csv) · [plot](../../src/logs/EXP-02/log_20260615_162055.png) |
+| E2-05 | 2026-06-15 | E2-04 + T2 (DSP offload thread) | 2.1 / 11.1 | ✅ **Ideal real-time** — 0 drops, 0 backlog | [csv](../../src/logs/EXP-02/log_20260615_163106.csv) · [plot](../../src/logs/EXP-02/log_20260615_163106.png) |
+| E2-06 | 2026-06-15 | E2-05 + R1 (Lazy Rendering) | 2.1 / 5.7 | ✅ Same perf + tighter max | [csv](../../src/logs/EXP-02/log_20260615_165612.csv) · [plot](../../src/logs/EXP-02/log_20260615_165612.png) |
+| E2-07 | 2026-06-16 | E2-06 + FG wait measurement | 2.2 / 4.8 | ✅ DSP healthy; **FG scheduling lag 60 ms revealed** | [csv](../../src/logs/EXP-02/log_20260616_140850.csv) · [plot](../../src/logs/EXP-02/log_20260616_140850.png) · [timeline](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png) |
 
 ### Tactic Progression
 
@@ -173,7 +128,7 @@ EXP-04 (warning threshold) ─────────┘
 | **Total** | **3 × 3 × 7 × 5 = 315 planned → 274 completed** |
 
 **WAV source**: 28,800 BPH watch real recording + pink noise at 7 SNR levels (96 kHz, float32)  
-**Platform**: Raspberry Pi 5 (host=lg1, device=rpi1) | **Full log directory**: [src/logs/EXP-03/](../../src/logs/EXP-03/)
+**Platform**: Raspberry Pi 5 (host=lg1, device=rpi1) | **Log directory**: [src/logs/EXP-03/](../../src/logs/EXP-03/)
 
 ### Results
 
@@ -218,13 +173,17 @@ EXP-04 (warning threshold) ─────────┘
 
 > onset=0.08 dominates top 3. min_peak has minimal effect within the onset=0.08 group.
 
-### Sample CSV Files (onset=0.08 / min_peak=0.10 — recommended setting)
+### Sample Data Files
+
+Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 
 | Noise | Rep 1 | Rep 2 | Rep 3 |
 |:-----:|-------|-------|-------|
 | 00 dB | [csv](../../src/logs/EXP-03/log_20260617_111942_onset008_minpk010_noise00db_r2.csv) | [csv](../../src/logs/EXP-03/log_20260617_112029_onset008_minpk010_noise00db_r3.csv) | [csv](../../src/logs/EXP-03/log_20260617_112116_onset008_minpk010_noise00db_r4.csv) |
 | 30 dB | [csv](../../src/logs/EXP-03/log_20260617_113041_onset008_minpk010_noise30db_r1.csv) | [csv](../../src/logs/EXP-03/log_20260617_113128_onset008_minpk010_noise30db_r2.csv) | [csv](../../src/logs/EXP-03/log_20260617_131415_onset008_minpk010_noise30db_r3.csv) |
 | 60 dB | [csv](../../src/logs/EXP-03/log_20260617_142920_onset008_minpk010_noise60db_r2.csv) | [csv](../../src/logs/EXP-03/log_20260617_143006_onset008_minpk010_noise60db_r3.csv) | [csv](../../src/logs/EXP-03/log_20260617_143053_onset008_minpk010_noise60db_r4.csv) |
+
+> Full dataset (274 CSV files): [src/logs/EXP-03/](../../src/logs/EXP-03/)
 
 ### Conclusion
 
@@ -246,8 +205,8 @@ EXP-04 (warning threshold) ─────────┘
 
 `noise_ratio = noise_floor / ref_peak` (noise as a fraction of tick amplitude)
 
-| SNR | CSV | Frames | sync_lost | beat_missed | noise_ratio avg | Result |
-|:---:|-----|:------:|:---------:|:-----------:|:---------------:|:------:|
+| SNR | File | Frames | sync_lost | beat_missed | noise_ratio avg | Result |
+|:---:|------|:------:|:---------:|:-----------:|:---------------:|:------:|
 | 60 dB | [csv](../../src/logs/EXP-04/log_snr60db_20260617_155620.csv) | 2,145 | 0 | 0 | 0.0035 | ✅ |
 | 50 dB | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) | 2,116 | 0 | 0 | 0.0035 | ✅ |
 | 40 dB | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) | 1,972 | 0 | 0 | 0.0036 | ✅ |
@@ -256,12 +215,7 @@ EXP-04 (warning threshold) ─────────┘
 | 10 dB | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) | 1,759 | 0 | 0 | 0.0177 | ✅ |
 | **0 dB** | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) | 1,151 | **1** | **14** | **0.0537** | ❌ |
 
-<details>
-<summary>▶ Scatter plot — noise_ratio vs beat_missed across all SNR conditions</summary>
-
-![EXP-04 scatter](../../src/logs/EXP-04/exp04_scatter.png)
-
-</details>
+**Scatter plot**: [exp04_scatter.png](../../src/logs/EXP-04/exp04_scatter.png)
 
 **Key finding**: All 14 beat_missed events at snr00db occurred in a burst at frames 582–624, immediately after sync_lost at frame 581. All had `noise_ratio` in 0.054–0.060 — above the **0.05** threshold. snr10db had noise_ratio max 0.0585 but zero missed beats, confirming 0.05 is the correct boundary.
 
