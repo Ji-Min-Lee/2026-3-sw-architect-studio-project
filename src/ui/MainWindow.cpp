@@ -134,6 +134,10 @@ MainWindow::MainWindow(QWidget *parent)
             });
     mWatchExplainer.checkAvailability();   // async: populates combobox, then warms up
 
+    // RAG: load pre-computed embeddings from vector.db if present
+    const QString ragDb = QCoreApplication::applicationDirPath() + "/rag/vector.db";
+    mWatchExplainer.loadRag(ragDb);
+
     // clicking the diagnosis label opens the LLM explanation dialog
     ui->DiagnosisLabel->setCursor(Qt::PointingHandCursor);
     ui->DiagnosisLabel->setToolTip(tr("Click for AI explanation"));
