@@ -45,6 +45,7 @@ signals:
     void errorOccurred(const QString &errorMsg);
     void availabilityChanged(bool available);
     void modelsAvailable(const QStringList &models);
+    void ragStatusChanged(bool active, int chunkCount);
 
 private slots:
     void onReadyRead();

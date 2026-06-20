@@ -70,7 +70,7 @@ void WatchExplainer::explain(const ExplainRequest &req)
             .arg(req.input.rate_spd, 0, 'f', 1)
             .arg(req.input.amplitude_deg, 0, 'f', 0)
             .arg(req.input.beat_error_ms, 0, 'f', 2);
-        m_rag.retrieve(query, req.modelName);
+        m_rag.retrieve(query, "nomic-embed-text");
         m_timeout->start(kTimeoutMs);
         return;
     }
@@ -92,6 +92,13 @@ void WatchExplainer::onRagError(const QString &msg)
 
 void WatchExplainer::explainWithContext(const ExplainRequest &req, const QStringList &context)
 {
+    if (context.isEmpty())
+        qInfo() << "[WatchExplainer] RAG: no context (vector.db not loaded or retrieval failed)";
+    else
+        qInfo() << "[WatchExplainer] RAG: injected" << context.size() << "chunks into prompt";
+
+    emit ragStatusChanged(!context.isEmpty(), context.size());
+
     QNetworkRequest request(QUrl(QString("%1/api/chat").arg(kOllamaBase)));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setAttribute(QNetworkRequest::User, QVariant("explain"));
@@ -101,8 +108,9 @@ void WatchExplainer::explainWithContext(const ExplainRequest &req, const QString
     userMsg["content"] = buildPrompt(req, context);
 
     QJsonObject options;
-    options["num_ctx"]    = 512;
-    options["num_thread"] = 2;  // leave 2 cores free for audio/DSP on RPi5
+    options["num_ctx"]     = 512;
+    options["num_thread"]  = 2;    // leave 2 cores free for audio/DSP on RPi5
+    options["num_predict"] = 120;  // cap response to ~3 sentences
 
     QJsonObject body;
     body["model"]    = req.modelName;
@@ -206,7 +214,8 @@ void WatchExplainer::onTagsReplyFinished(QNetworkReply *reply)
               [](const ModelEntry &a, const ModelEntry &b){ return a.size < b.size; });
     QStringList models;
     for (const ModelEntry &e : entries)
-        models << e.name;
+        if (!e.name.contains("embed", Qt::CaseInsensitive))  // skip embedding-only models
+            models << e.name;
     if (!models.isEmpty())
         emit modelsAvailable(models);
 }
@@ -231,22 +240,26 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
 
     QString contextBlock;
     if (!context.isEmpty()) {
-        contextBlock = "Reference:\n";
-        for (const QString &chunk : context)
-            contextBlock += chunk.left(300) + "\n---\n";
-        contextBlock += "\n";
+        contextBlock = "\nBackground from watchmaking manual:\n";
+        for (const QString &chunk : context) {
+            // keep only printable ASCII to avoid confusing small models
+            QString clean;
+            for (QChar c : chunk.left(200))
+                if (c.isPrint() && c.unicode() < 128) clean += c;
+            if (!clean.trimmed().isEmpty())
+                contextBlock += clean.trimmed() + "\n";
+        }
     }
 
     return QString(
-        "%1"
-        "You are a watchmaker. A %2 watch timegrapher reading:\n"
-        "Rate %3 s/d, Amplitude %4 deg, Beat Error %5 ms. Diagnosis: %6.\n"
-        "In 3 sentences: why this diagnosis, likely mechanical cause, what to service."
+        "You are a watchmaker. A %1 watch timegrapher reading:\n"
+        "Rate %2 s/d, Amplitude %3 deg, Beat Error %4 ms. Diagnosis: %5.\n"
+        "In 3 sentences: why this diagnosis, likely mechanical cause, what to service.%6"
     )
-    .arg(contextBlock)
     .arg(watchType)
     .arg(in.rate_spd,        0, 'f', 1)
     .arg(in.amplitude_deg,   0, 'f', 0)
     .arg(in.beat_error_ms,   0, 'f', 2)
-    .arg(levelStr);
+    .arg(levelStr)
+    .arg(contextBlock);
 }
