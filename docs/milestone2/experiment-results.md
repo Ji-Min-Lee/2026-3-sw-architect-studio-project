@@ -108,6 +108,17 @@ EXP-04 (warning threshold) ─────────┘
 
 **Answer**: `onset_fraction = 0.08, min_peak_fraction = 0.10`. Rate stable at ≈ +4.0 s/d across 0–50 dB. Tracks successfully at 60 dB (+7.5 s/d). onset=0.02 and 0.05 fail catastrophically at 60 dB.
 
+### Run History
+
+> WAV source: 28,800 BPH watch real recording + pink noise (96 kHz, float32). Platform: RPi 5 (host=lg1, device=rpi1).  
+> Parameter grid: onset {0.02, 0.05, 0.08} × min_peak {0.10, 0.20, 0.30} × noise {0–60 dB, 7 levels} × 5 reps = 315 planned.
+
+| Run | Date | Scope | Measurements | Key Result | Data |
+|:---:|------|-------|:------------:|------------|:----:|
+| E3-01 | 2026-06-15 | Pilot — default params, 48 kHz | 3 | File format validation only; no detection data | — |
+| E3-02 | 2026-06-16 | Early grid — onset {0.02, 0.08} × noise {0, 60} dB, 96 kHz | 8 | 96 kHz playback confirmed; no detection data | — |
+| E3-03 | 2026-06-17 | Full grid — 3×3×7 onset×min_peak×noise × 5 reps | 274 | **onset=0.08/min_peak=0.10 best across all noise levels** | [logs](../../src/logs/EXP-03/) |
+
 ### Experiment Design
 
 | Parameter | Values swept |
@@ -117,9 +128,6 @@ EXP-04 (warning threshold) ─────────┘
 | Noise level | 0 / 10 / 20 / 30 / 40 / 50 / 60 dB (7 levels) |
 | Repetitions | 5 per combination |
 | **Total** | **3 × 3 × 7 × 5 = 315 planned → 274 completed** |
-
-**WAV source**: 28,800 BPH watch real recording + pink noise at 7 SNR levels (96 kHz, float32)  
-**Platform**: Raspberry Pi 5 (host=lg1, device=rpi1) | **Log directory**: [src/logs/EXP-03/](../../src/logs/EXP-03/)
 
 ### Results
 
@@ -165,21 +173,25 @@ Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 - (Part B ✅) What `noise_ratio` threshold should trigger `⚠ Noisy signal` without false alarms?
 - (Part A ⏳) How quickly should `⚠ No signal` appear after the watch is removed?
 
+### Run History
+
+| Run | Date | Part | Conditions | Threshold | Result | Data |
+|:---:|------|------|:----------:|:---------:|:------:|:----:|
+| E4-01 | 2026-06-17 | B — Noisy Signal | 7 SNR (0–60 dB) | **0.05** | ✅ Threshold confirmed | [logs](../../src/logs/EXP-04/) · [scatter](../../src/logs/EXP-04/exp04_scatter.png) |
+
 ### Part B — Noisy Signal Threshold (Complete)
 
 `noise_ratio = noise_floor / ref_peak` (noise as a fraction of tick amplitude)
 
-| SNR | File | Frames | sync_lost | beat_missed | noise_ratio avg | Result |
-|:---:|------|:------:|:---------:|:-----------:|:---------------:|:------:|
-| 60 dB | [csv](../../src/logs/EXP-04/log_snr60db_20260617_155620.csv) | 2,145 | 0 | 0 | 0.0035 | ✅ |
-| 50 dB | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) | 2,116 | 0 | 0 | 0.0035 | ✅ |
-| 40 dB | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) | 1,972 | 0 | 0 | 0.0036 | ✅ |
-| 30 dB | [csv](../../src/logs/EXP-04/log_snr30db_20260617_155343.csv) | 2,061 | 0 | 0 | 0.0040 | ✅ |
-| 20 dB | [csv](../../src/logs/EXP-04/log_snr20db_20260617_155251.csv) | 1,763 | 0 | 0 | 0.0068 | ✅ |
-| 10 dB | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) | 1,759 | 0 | 0 | 0.0177 | ✅ |
-| **0 dB** | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) | 1,151 | **1** | **14** | **0.0537** | ❌ |
-
-**Scatter plot**: [exp04_scatter.png](../../src/logs/EXP-04/exp04_scatter.png)
+| Run | Date | SNR | Frames | sync_lost | beat_missed | noise_ratio avg | Result | Data |
+|:---:|------|:---:|:------:|:---------:|:-----------:|:---------------:|:------:|:----:|
+| E4-01 | 2026-06-17 | 60 dB | 2,145 | 0 | 0 | 0.0035 | ✅ | [csv](../../src/logs/EXP-04/log_snr60db_20260617_155620.csv) |
+| E4-01 | 2026-06-17 | 50 dB | 2,116 | 0 | 0 | 0.0035 | ✅ | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) |
+| E4-01 | 2026-06-17 | 40 dB | 1,972 | 0 | 0 | 0.0036 | ✅ | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) |
+| E4-01 | 2026-06-17 | 30 dB | 2,061 | 0 | 0 | 0.0040 | ✅ | [csv](../../src/logs/EXP-04/log_snr30db_20260617_155343.csv) |
+| E4-01 | 2026-06-17 | 20 dB | 1,763 | 0 | 0 | 0.0068 | ✅ | [csv](../../src/logs/EXP-04/log_snr20db_20260617_155251.csv) |
+| E4-01 | 2026-06-17 | 10 dB | 1,759 | 0 | 0 | 0.0177 | ✅ | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) |
+| E4-01 | 2026-06-17 | **0 dB** | 1,151 | **1** | **14** | **0.0537** | ❌ | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) |
 
 **Key finding**: All 14 beat_missed events at snr00db occurred in a burst at frames 582–624, immediately after sync_lost at frame 581. All had `noise_ratio` in 0.054–0.060 — above the **0.05** threshold. snr10db had noise_ratio max 0.0585 but zero missed beats, confirming 0.05 is the correct boundary.
 
@@ -190,12 +202,6 @@ Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 ### Part A — No Signal Timing (Not yet started)
 
 > Requires `⚠ No signal` / `⚠ Noisy signal` warning UI implementation before running.
-
-### Run History
-
-| Run | Date | Part | Conditions | Threshold | Result |
-|:---:|------|------|:----------:|:---------:|--------|
-| E4-01 | 2026-06-17 | B — Noisy Signal | 7 SNR (0–60 dB) | **0.05** | ✅ Threshold confirmed |
 
 ---
 
