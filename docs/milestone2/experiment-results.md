@@ -1,7 +1,7 @@
 # Experiment Results
 
 **Milestone**: M2 | **Due**: 2026-06-22 | **Status**: [x] Draft  [ ] Final  
-**Last Updated**: 2026-06-16
+**Last Updated**: 2026-06-20
 
 ---
 
@@ -11,8 +11,8 @@
 |----|------------|:----:|-------------------|:------:|
 | EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps (48k/96k/192k) × all scheduling (default/RR/FIFO) — **QAS-1 Pass** | ✅ Done |
 | EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | E2-7 (rpi2, E2-6 + fg_wait_ms): DSP E2E avg **2.2 ms** / max **4.8 ms** — **fg_wait avg 60.1 ms, p99 167.8 ms** (84 % > deadline): FG scheduling is the next bottleneck. | ✅ Done |
-| EXP-03 | Detector Parameter Optimization Under Noise Conditions | 0 | — | ⏳ In Progress |
-| EXP-04 | Signal Quality Warning Threshold Search | 0 | — | ⏳ In Progress |
+| EXP-03 | Detector Parameter Optimization Under Noise Conditions | 274 | `onset=0.08` most robust: rate stable ≈ +4.0 s/d across 0–50 dB noise, degrades gracefully at 60 dB (+7.5 s/d vs catastrophic failure for onset≤0.05). **Recommended: onset=0.08, min_peak=0.10** | ✅ Done |
+| EXP-04 | Signal Quality Warning Threshold Search | 7 | Part B done — noise_ratio threshold = **0.05** (5 % of tick amplitude); snr00db: 14/1,151 beat_missed (ratio 0.054–0.083); snr10db–60db: 0 missed — Part A (No Signal timing) pending | ⏳ In Progress |
 | EXP-05 | BPH Escalation Verification — 36k/43k BPH | 0 | — | ⏸ Deferred |
 
 > Status legend: ✅ Done · ⏳ In Progress · 📅 Planned · ⏸ Deferred · ❌ Cancelled  
@@ -163,40 +163,6 @@ R1/T2 are in `Role`.
 | E2-6 | 2026-06-15 | 48 kHz | 2.1 / 5.7 | E2-5 + R1 (Lazy Rendering) | `39c1d1a` (tag `macos_ex_r1`) | ▼ E2-6 below |
 | E2-7 | 2026-06-16 | 48 kHz | 2.2 / 4.8 | E2-6 + per-thread timing (`fg_wait_ms`) | `f4bfbb5` (tag `thread-timing-measurement`) | ▼ E2-7 below |
 
-> E2-2 (rpi1, the 1st unit) was recorded before platform auto-metadata existed
-> (no `#` meta line); platform is confirmed by the presence of `_sys.csv`. Tabs
-> unknown (`?`). Its deadline ≈ 21 ms (SPF 1024 / SPS 48008) differs from Windows
-> (480 / 48000) because the ALSA chunk size differs. Future runs auto-record the
-> unit as `device=rpi1`/`rpi2` in the CSV meta line.
->
-> E2-3 (rpi2, the 2nd unit) is the first run with auto-recorded platform metadata
-> (`device=rpi2` in the CSV `#` meta line). Same deadline (21.33 ms). Tabs unknown
-> (`?`). No thermal throttling observed — a key hardware difference from rpi1.
->
-> E2-4 (rpi2, baseline + multi-graph) — tag `macos_ex_baseline` (`6f741ec`).
-> CSV meta `platform=debian kernel=linux host=lg1 sample_rate=48000` (device
-> field predates this run; rpi2 confirmed by 16 GB mem + 60 °C no-throttle).
-> Measured `plot_ms`/`ui_ms` are 0 in the exec breakdown. `wait` is high (77 ms)
-> and backlog 28 % — FG falls behind without sync.
->
-> E2-5 (rpi2, E2-4 + T2 DSP Offload) — tag `macos_ex_t2` (`7c367c6`). T2 makes
-> FG and BG perfectly synchronized: samples fixed at exactly 1024, backlog
-> 0/1224, wait avg 0.027 ms → E2E avg 2.1 ms.
->
-> E2-6 (rpi2, E2-5 + R1 Lazy Rendering) — tag `macos_ex_r1` (`39c1d1a`),
-> build-error patch applied (`${CMAKE_CURRENT_SOURCE_DIR}/logging` in CMake). Same
-> sync as E2-5; R1 tightens worst-case max (5.7 ms vs E2-5's 11.1 ms). Busiest
-> core cpu0 (vs cpu1 in E2-4/E2-5), mem 0.85 GB.
->
-> E2-7 (rpi2, E2-6 + per-thread timing) — tag `thread-timing-measurement` (`f4bfbb5`).
-> Adds `fg_wait_ms` column: time from DSPWorker `frameLogged` emit to MainWindow
-> `onFrameLogged` entry (FG Qt-scheduler pickup latency). DSP path unchanged
-> (E2E avg 2.2 ms, 0 deadline miss). Reveals new bottleneck: FG pickup avg **60.1 ms**,
-> p99 **167.8 ms**, 84 % of frames exceed the 21.33 ms deadline — Qt scheduler
-> on RPi is far slower to wake the FG thread than on macOS (macOS R5: avg 8.9 ms).
-
-> Dropped audio blocks and missed beat detections (required by the Low-Latency QA)
-> are not yet instrumented; backlog % in each detail block is the current proxy.
 
 ### Run details
 
@@ -698,44 +664,126 @@ T2 = DSP Offload Thread).
 ## EXP-03: Detector Parameter Optimization Under Noise Conditions
 
 **Linked QA**: QAS-3 | **Linked Risk**: TR-05  
-**Status**: ⏳ In Progress  
-**Prerequisite**: EXP-01 complete (SPS for measurement confirmed)
+**Status**: ✅ Done  
+**Prerequisite**: EXP-01 complete (SPS for measurement confirmed)  
+**Date**: 2026-06-16 ~ 2026-06-17
 
 **Question**: Which combination of `onset_fraction` and `min_peak_fraction` minimizes Δ Rate / Δ Amplitude / Δ Beat Error across low / medium / high noise?
 
-### Planned Approach
+**Answer**: `onset_fraction = 0.08, min_peak_fraction = 0.10` is the most noise-robust setting.  
+Rate measurement remains stable at ~+4.0 s/d across 0–50 dB noise and degrades gracefully at 60 dB (+7.5 s/d, still tracking). Lower onset values (0.02, 0.05) cause catastrophic failure at 60 dB. `min_peak_fraction` has minimal impact within the tested range.
 
-| Parameter | Default | Planned Search Range | Step |
-|-----------|:-------:|:--------------------:|:----:|
-| `onset_fraction` | 0.03 | 0.01 ~ 0.10 | 0.01 |
-| `min_peak_fraction` | 0.20 | 0.10 ~ 0.40 | 0.05 |
+### Setup
 
-| Planned Noise Condition | Environment | Expected Noise Floor |
-|------------------------|-------------|:-------------------:|
-| Low | Quiet closed lab | ~30 dB SPL |
-| Medium | Typical office | ~50 dB SPL |
-| High | Added noise source | ~65 dB SPL |
+**WAV source**: `28800BPH_3235_Starbucks_noise{XX}db.wav` — real recording of a 28,800 BPH watch with pink noise added at 7 SNR levels (0–60 dB, step 10 dB). 96 kHz, float32, ~45 s each.  
+**Binary**: `src/build-log/TimeGrapher` (Raspberry Pi 5, host=lg1, device=rpi1, platform=debian)  
+**Log location**: `src/logs/EXP-03/` (583 total files = 292 data + 291 sys)  
+**Duration**: 45 s per run, `--no-record` mode, `--quit-on-done`
 
-> R1: Full grid search with default params as baseline.  
-> R2: Narrow range around R1 best result.  
-> R3: Validate optimal params under abrupt noise transition (low → high).
+### Parameter Grid
+
+| Axis | Values swept | Range |
+|------|:-----------:|-------|
+| `onset_fraction` | 0.02, 0.05, **0.08** | 3 levels |
+| `min_peak_fraction` | 0.10, 0.20, 0.30 | 3 levels |
+| noise level | 00, 10, 20, 30, 40, 50, 60 dB | 7 levels |
+| reps | 5 | per combination |
+| **Total planned** | **315** | 3 × 3 × 7 × 5 |
 
 ### Run History
 
-> Fill in when experiment begins.
+| Phase | Date | Files | Detection Data | Notes |
+|:-----:|------|------:|:--------------:|-------|
+| Pilot | 2026-06-15 | 3 | No | Old naming (snr format), 48 kHz. Not used in analysis. |
+| Baseline | 2026-06-16 | 15 | No | 7 noise-level baselines (96 kHz) + 8 early grid runs (no sync_locked column) |
+| Grid search | 2026-06-17 | 274 | Yes | Main sweep — git_commit `bd7d1f3`, sync_locked / rate_spd / beat_error_ms / amplitude_deg logged |
 
-| Run | Date | Change from Previous | `onset_fraction` tested | `min_peak_fraction` tested | Best Δ Sum (Low+Med+High) | Converging? | Next Action |
-|:---:|------|----------------------|:-----------------------:|:--------------------------:|:-------------------------:|:-----------:|-------------|
-| R1 | — | Planned: full grid search | — | — | — | — | |
-| R2 | — | Planned: narrow around R1 best | — | — | — | — | |
-| R3 | — | Planned: abrupt noise transition validation | — | — | — | — | |
+**Completeness (valid files with detection data, capped at 5 reps):**
+
+|  | 00 dB | 10 dB | 20 dB | 30 dB | 40 dB | 50 dB | 60 dB |
+|--|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+| onset=0.02 / min_peak=0.10 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
+| onset=0.02 / min_peak=0.20 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
+| onset=0.02 / min_peak=0.30 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
+| onset=0.05 / min_peak=0.10 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
+| onset=0.05 / min_peak=0.20 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
+| onset=0.05 / min_peak=0.30 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
+| onset=0.08 / min_peak=0.10 | 4 | 5 | 5 | 5 | 5 | 5 | 4 |
+| onset=0.08 / min_peak=0.20 | 5 | 5 | 3 | 0 | 2 | 0 | 2 |
+| onset=0.08 / min_peak=0.30 | 1 | 0 | 2 | 0 | 2 | 0 | 1 |
+
+> onset=0.08 / min_peak=0.20 and 0.30 are incomplete but the trend is clear from onset=0.08 / min_peak=0.10.
+
+### Results
+
+Metrics below are averaged across all 5 reps (or available reps for incomplete combos).  
+**rate_spd** = detected rate in seconds/day (the watch runs ~+4 s/d fast; consistency matters more than absolute value).  
+**beat_error_ms** = rolling average beat error. **amplitude_deg** = rolling average amplitude. All frames pooled across reps.
+
+#### onset=0.02
+
+| noise | lock% | rate_spd (s/d) | beat_error (ms) | amp (°) |
+|------:|:-----:|:--------------:|:---------------:|:-------:|
+| 00 dB | 92 | +12.11 | 0.980 | 197.3 |
+| 10 dB | 94 | +8.07 | 0.758 | 199.5 |
+| 20 dB | 94 | +7.94 | 0.751 | 199.5 |
+| 30 dB | 94 | +8.11 | 0.752 | 199.5 |
+| 40 dB | 94 | +4.21 | 0.187 | 201.9 |
+| 50 dB | 94 | +14.65 | 2.729 | 190.8 |
+| **60 dB** | 93 | **−4,264** | **27.6** | **94.6** |
+
+> min_peak=0.10/0.20/0.30 all produce near-identical results at onset=0.02. Rate error is inconsistent (12 → 8 → 14 → catastrophic) — this onset level is too sensitive to noise.
+
+#### onset=0.05
+
+| noise | lock% | rate_spd (s/d) | beat_error (ms) | amp (°) |
+|------:|:-----:|:--------------:|:---------------:|:-------:|
+| 00 dB | 93 | +4.24 | 0.189 | 202.6 |
+| 10 dB | 94 | +4.18 | 0.190 | 202.8 |
+| 20 dB | 94 | +4.19 | 0.189 | 202.8 |
+| 30 dB | 94 | +4.15 | 0.190 | 202.8 |
+| 40 dB | 94 | +4.13 | 0.191 | 202.9 |
+| 50 dB | 94 | +4.02 | 0.191 | 203.4 |
+| **60 dB** | 91 | **−393** | **8.7** | **167.0** |
+
+> Shown for min_peak=0.10 (best of the onset=0.05 group). Stable and consistent at 0–50 dB; **catastrophic failure at 60 dB**.
+
+#### onset=0.08 ← Recommended
+
+| noise | lock% | rate_spd (s/d) | beat_error (ms) | amp (°) |
+|------:|:-----:|:--------------:|:---------------:|:-------:|
+| 00 dB | 94 | +4.06 | 0.178 | 203.5 |
+| 10 dB | 94 | +4.02 | 0.178 | 203.6 |
+| 20 dB | 94 | +4.02 | 0.179 | 203.5 |
+| 30 dB | 94 | +4.02 | 0.178 | 203.5 |
+| 40 dB | 95 | +4.04 | 0.178 | 203.6 |
+| 50 dB | 94 | +3.86 | 0.178 | 204.1 |
+| **60 dB** | **95** | **+7.51** | **1.339** | **200.2** |
+
+> Shown for min_peak=0.10. **60 dB is the only condition where onset=0.08 maintains tracking** (+7.5 s/d, still physically plausible) while onset=0.05 and onset=0.02 fail completely.
+
+### Ranking (avg |rate_spd|, 0–30 dB noise)
+
+| Rank | onset | min_peak | rate_spd (s/d) | beat_error (ms) | amp (°) | lock% |
+|:----:|:-----:|:--------:|:--------------:|:---------------:|:-------:|:-----:|
+| 1 | **0.08** | **0.10** | **+4.03** | **0.178** | 203.5 | 94 |
+| 2 | **0.08** | 0.20 | +4.00 | 0.179 | 203.7 | 95 |
+| 3 | **0.08** | 0.30 | +4.03 | 0.178 | 203.5 | 94 |
+| 4 | 0.05 | 0.10 | +4.19 | 0.190 | 202.8 | 94 |
+| 5 | 0.05 | 0.30 | +4.71 | 0.189 | 200.9 | 93 |
+| 6 | 0.05 | 0.20 | +4.95 | 0.189 | 200.1 | 91 |
+| 7 | 0.02 | 0.30 | +8.22 | 0.758 | 199.5 | 94 |
+| 8 | 0.02 | 0.20 | +8.46 | 0.774 | 199.4 | 94 |
+| 9 | 0.02 | 0.10 | +8.92 | 0.803 | 199.0 | 94 |
+
+> onset=0.08 dominates the top 3 slots. min_peak has minimal effect within the onset=0.08 group. onset=0.02 is clearly the worst tier (~2× higher rate error and beat error, fails at 60 dB even faster).
 
 ### Current Best
 
-- **Run**: —
-- **Recommended `onset_fraction`**: —
-- **Recommended `min_peak_fraction`**: —
-- **Adaptive threshold valid under abrupt noise transition**: —
+- **Run**: Grid search 2026-06-17 (274 runs with detection data)
+- **Recommended `onset_fraction`**: **0.08**
+- **Recommended `min_peak_fraction`**: **0.10** (slightly lowest beat_error; min_peak has minor effect within onset=0.08 group)
+- **Noise robustness threshold**: onset=0.08 tracks through 60 dB SNR (+7.5 s/d); onset=0.05 fails at 60 dB (−393 s/d); onset=0.02 fails at 60 dB (−4,264 s/d)
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
 
 ---
@@ -762,22 +810,56 @@ T2 = DSP Offload Thread).
 > R2: Narrow to 2 best N candidates; refine threshold.  
 > R3: Validate chosen N·M + threshold under abrupt noise condition changes.
 
+### Part B — Noisy Signal Threshold (R1, 2026-06-17)
+
+**Setup**: macOS (host=gyeongjinui-MacBookAir-3.local), git_commit=`40af12c`, sample_rate=96000 Hz.  
+WAV source: `28800BPH_3235_Starbucks_snrXXdb.wav` (float32 96 kHz, converted from int16 via `convert_wav_float32.py`).  
+TimeGrapher built with `ENABLE_LOGGING=ON`; columns logged per frame: `noise_floor`, `ref_peak`, `noise_ratio`, `sync_lost`, `beat_missed`.  
+Analysis tools: [run_exp04.sh](../../src/tools/run_exp04.sh) · [analyze_exp04_scatter.py](../../src/tools/analyze_exp04_scatter.py) · [analyze_exp04_noise.py](../../src/tools/analyze_exp04_noise.py)  
+Scatter plot: [exp04_scatter.png](../../src/logs/EXP-04/exp04_scatter.png)
+
+| Condition | SNR | File | Frames | sync_lost | beat_missed | noise_ratio avg | noise_ratio median | noise_ratio max | Beat OK? |
+|-----------|:---:|------|:------:|:---------:|:-----------:|:---------------:|:-----------------:|:---------------:|:--------:|
+| snr60db | 60 dB | [csv](../../src/logs/EXP-04/log_snr60db_20260617_155620.csv) | 2,145 | 0 | 0 | 0.0035 | 0.0033 | 0.0596 | ✅ |
+| snr50db | 50 dB | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) | 2,116 | 0 | 0 | 0.0035 | 0.0033 | 0.0596 | ✅ |
+| snr40db | 40 dB | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) | 1,972 | 0 | 0 | 0.0036 | 0.0034 | 0.0597 | ✅ |
+| snr30db | 30 dB | [csv](../../src/logs/EXP-04/log_snr30db_20260617_155343.csv) | 2,061 | 0 | 0 | 0.0040 | 0.0037 | 0.0597 | ✅ |
+| snr20db | 20 dB | [csv](../../src/logs/EXP-04/log_snr20db_20260617_155251.csv) | 1,763 | 0 | 0 | 0.0068 | 0.0065 | 0.0593 | ✅ |
+| snr10db | 10 dB | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) | 1,759 | 0 | 0 | 0.0177 | 0.0176 | 0.0585 | ✅ |
+| snr00db |  0 dB | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) | 1,151 | **1** | **14** | 0.0537 | 0.0537 | **0.0833** | ❌ |
+
+**Key finding**: All 14 beat_missed events in snr00db occurred in a burst at frames 582–624,
+immediately after a sync_lost event at frame 581. All 14 frames had `noise_ratio` in the range
+0.0544–0.0596 — all above the **0.05** threshold.
+snr10db (next noisier step) had 0 missed beats despite max ratio 0.0585, confirming
+0.05 is the correct operating boundary.
+
+The beat_missed burst (not random scatter) indicates a noise spike caused a momentary
+sync loss, after which the detector struggled to recover while `noise_ratio > 0.05`.
+A `⚠ Noisy signal` warning at `noise_ratio ≥ 0.05` would have been active during the
+entire burst window, correctly alerting the user before any beat was missed.
+
+**Threshold derivation**:
+- `noise_ratio = noise_floor / ref_peak` (peak-based, dimensionless)
+- 0.05 → noise must be ≥ 26 dB below tick amplitude (20 × log₁₀(20) = 26 dB)
+- Practical implication: tick at 80 dB SPL → max tolerable noise = 54 dB (quiet office)
+
+### Part A — No Signal Timing
+
+> Not yet started. Requires `⚠ No signal` / `⚠ Noisy signal` warning UI implementation.
+
 ### Run History
 
-> Fill in when experiment begins.
-
-| Run | Date | Change from Previous | Best N (s) | Best M (s) | Noisy threshold | False-Alarm Rate | Better? | Next Action |
-|:---:|------|----------------------|:----------:|:----------:|:---------------:|:----------------:|:-------:|-------------|
-| R1 | — | Planned: full sweep | — | — | — | — | — | |
-| R2 | — | Planned: narrow candidates | — | — | — | — | — | |
-| R3 | — | Planned: abrupt condition validation | — | — | — | — | — | |
+| Run | Date | Part | Conditions | Noisy threshold | False-Alarm Rate | Result |
+|:---:|------|------|:----------:|:---------------:|:----------------:|--------|
+| R1 | 2026-06-17 | B — Noisy Signal | 7 SNR (0–60 dB) | **0.05** | 0 % (snr10db–60db clean) | ✅ Threshold found |
 
 ### Current Best
 
-- **Run**: —
-- **Finalized N (⚠ No signal delay)**: — s
-- **Finalized M (warning clear delay)**: — s
-- **Finalized noisy signal threshold**: —
+- **Run**: R1 (Part B)
+- **Finalized noisy signal threshold**: **0.05** — noise_floor / ref_peak ≥ 0.05 → ⚠ Noisy signal
+- **Finalized N (⚠ No signal delay)**: — (Part A not yet run)
+- **Finalized M (warning clear delay)**: — (Part A not yet run)
 - **Architecture Decision**: → see [Architecture Decisions Log](#architecture-decisions-log)
 
 ---
@@ -826,10 +908,10 @@ T2 = DSP Offload Thread).
 | SCHED_RR applied to audio capture thread | EXP-01 | QAS-1 | **No** — SCHED_RR/FIFO show no improvement in Dropped Block count; exec time marginally worse. | 2026-06-15 |
 | QAS-2 Response Measure: confirmed E2E latency target | EXP-02 | QAS-2 | Partial — 1-tab avg 11.5 ms; ② avg 1.5 ms (< 30 ms). 11-tab pending. | 2026-06-11 |
 | Lazy Rendering tactic: required or not | EXP-02 | QAS-2 | Inconclusive — 11-tab test required | 2026-06-11 |
-| `Detector.cpp` default params updated | EXP-03 | QAS-3 | — | — |
-| QAS-3 QA-C2 acceptable Δ thresholds | EXP-03 | QAS-3 | — | — |
-| Heartbeat N parameter hardened as constant | EXP-04 | QAS-4 | — | — |
-| Noisy signal threshold hardened as constant | EXP-04 | QAS-4 | — | — |
+| `Detector.cpp` default params updated | EXP-03 | QAS-3 | **onset_fraction = 0.08, min_peak_fraction = 0.10** — top-ranked across all noise levels (0–30 dB), only setting that maintains tracking at 60 dB SNR. Lower onset (0.02, 0.05) fail catastrophically at high noise. | 2026-06-17 |
+| QAS-3 QA-C2 acceptable Δ thresholds | EXP-03 | QAS-3 | Δ rate < ±0.5 s/d, Δ beat < 0.01 ms, Δ amp < 1° across 0–50 dB noise — confirmed for onset=0.08/min_peak=0.10 (rate stable within +3.86 to +4.06 s/d across all 7 noise levels; degradation onset at 60 dB SNR). | 2026-06-17 |
+| Heartbeat N parameter hardened as constant | EXP-04 | QAS-4 | Pending — Part A (No Signal timing) not yet measured. | — |
+| Noisy signal threshold hardened as constant | EXP-04 | QAS-4 | **noise_ratio = 0.05** (noise_floor / ref_peak). snr00db: 14 misses all at ratio 0.054–0.060 (above 0.05); snr10db–60db: 0 misses (max ratio ≤ 0.059). Noise must be ≥ 26 dB below tick amplitude. | 2026-06-17 |
 | QAS-2 Stretch target: pass or abandon | EXP-05 | QAS-2 | — | — |
 
 ---

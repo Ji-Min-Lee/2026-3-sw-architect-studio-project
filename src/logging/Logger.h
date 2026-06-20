@@ -62,6 +62,11 @@ public:
         // throughput snapshots (~every 2s)
         double  bg_fps = 0, bg_sps = 0, bg_spf = 0;
         double  fg_fps = 0, fg_sps = 0, fg_spf = 0;
+        // EXP-04 signal quality (noise_floor / ref_peak from tg_result_t, last slice per frame)
+        float   noise_floor = 0.0f;
+        float   ref_peak    = 0.0f;
+        int     sync_lost   = 0;
+        int     beat_missed = 0;
     };
 
     explicit Logger(const QString &csvPath, int consoleEvery = 100, int sampleRate = 0);
