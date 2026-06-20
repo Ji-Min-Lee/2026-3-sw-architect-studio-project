@@ -83,13 +83,15 @@
 
 ## 3-A. What We Did in Milestone 2
 
-"Here's a quick recap of what we delivered."
+"Milestone 2 followed a clear arc: we built the foundation, measured it, discovered a new problem, and responded."
 
-"Week 2 Sprint 1 — 4-layer decomposition and all 11 baseline tabs. Sprint 2 — structured logging, RPi system metrics, full unit-test suite, and EXP-02 baseline runs started."
+"We started by establishing the architecture — 4-layer decomposition, all 11 baseline tabs, and the unit-test infrastructure to verify them. That gave us a stable base to experiment on."
 
-"Week 3 Sprint 1 — EXP-01 done, ADR-003 accepted. EXP-02 confirmed T2 works on RPi. But we found a new problem: FG scheduling latency is way over budget — that's the red item we'll talk about in a moment. We also shipped AI Step 1, rule-based watch diagnosis."
+"Then we ran the experiments. EXP-01 confirmed our filter approach. EXP-02 confirmed the T2 thread design works on RPi. But it also surfaced something we didn't expect — FG scheduling latency is still over budget. That's our main open risk going into M3."
 
-"Week 3 Sprint 2 — AI Step 2, an LLM explainer running on RPi via Ollama. And we completed the 4-layer refactor — IAudioSource and SessionController fully in place."
+"In parallel, we added AI capabilities — first a rule-based watch diagnosis engine, then an LLM explainer running locally on RPi via Ollama. And we completed the 4-layer refactor with IAudioSource and SessionController fully in place."
+
+"So the story of M2: build → measure → discover → respond."
 
 ---
 
