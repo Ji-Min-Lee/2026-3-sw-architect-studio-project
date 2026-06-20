@@ -1,118 +1,76 @@
 # Presentation Script — Second Half (2-B · 2-C · 2-D · Section 3)
 
 > Speaker: covers from **2-B. Correctness** through **Section 3 Schedule**
-> Estimated time: ~13 min
+> Estimated time: ~10 min
 
 ---
 
 ## 2-B. Correctness: Observer Pattern
 
-"The second quality goal we're covering today is correctness. Specifically — when a measurement result is ready, every tab must receive it. No tab gets skipped, no tab gets a different result."
+"The second quality goal we're covering today is correctness — every tab must receive each measurement result, no exceptions."
 
-"The problem with a naive approach is direct coupling. If `MeasurementEngine` calls each tab directly, it has to know about all 14 tabs. And if you add a new tab, you have to go back and modify `MeasurementEngine`."
-
-"Our decision: Qt Signal-Slot as an Observer pattern. `MeasurementEngine` emits one signal — `measurementReady` — and every tab subscribes. `MeasurementEngine` has zero knowledge of any tab."
-
-"There's also a thread safety concern. DSP runs on the T2 (DSP) thread, tabs render on the Qt main thread. Qt's `QueuedConnection` handles the cross-thread delivery safely — no manual locking needed."
-
-"The result: measurement logic and display logic are fully decoupled. Adding a new tab requires zero changes to `MeasurementEngine`. Correctness is guaranteed by the structure."
+"Our decision: Qt Signal-Slot as Observer. `MeasurementEngine` emits `measurementReady`, every tab subscribes via `BaseGraphTab::onMeasurement()`. `MeasurementEngine` has zero knowledge of any tab. And Qt's `QueuedConnection` handles the T2 (DSP) to Qt main thread delivery safely — no manual locking needed."
 
 ---
 
 ## Transition from 2-B
 
-"So far we've seen how we solved **latency** with thread separation, and **correctness** with the Observer pattern. Now the third quality goal: **extensibility**."
+"Latency — threads. Correctness — Observer. Now: **extensibility**."
 
 ---
 
 ## 2-C. Extensibility
 
-"We now have **14** display tabs — 11 from the core requirements, 2 more added when we aligned with the project-plan screens, and 1 bonus Radar chart. Each one shows different watch metrics. The question is — how did we keep adding tabs **without breaking anything** that already works?"
+"We ended up with 14 tabs. The question is how we kept adding them without breaking what already works. Three decisions made that possible."
 
-"Three design decisions made that possible."
+### Layer
 
----
-
-### Layer — 4-Layer Architecture
-
-"First, layers. The diagram shows five horizontal bands. At the bottom — **Acquisition**: microphone input, file playback, simulation, all behind a single interface. Above that — **Signal Processing**: the DSP worker and beat detector, running on a dedicated T2 thread. Then **Domain**: watch physics math and AI diagnosis. At the top — **Presentation**: the 14 display tabs. There's also a thin **UI Coordinator** band — `MainWindow` and `SessionController` — that wires the layers together at startup but owns no business logic."
-
-"The rule is: dependencies only go **downward**. That's what the dashed arrows in the diagram show — every arrow points down, never up."
-
-"Adding a new tab means touching **only** the Presentation layer. Three components or less. Nothing below changes. We added tabs in three rounds — first 11, then 2 more, then 1 bonus. Each time, the Domain layer stayed untouched."
-
----
+"First, layers. Four layers — Acquisition, Signal Processing, Domain, Presentation — dependencies go downward only. Adding a new tab touches only the Presentation layer, three files or less. We did this three times: 11 baseline, +2, +1 bonus. Domain layer untouched each time."
 
 ### Interface — IAudioSource
 
-"Second, the audio source. The diagram shows two sides — AS-IS on the left, TO-BE on the right. On the left, three separate `connect()` blocks, one per concrete worker, scattered across the code. On the right, one `SessionController` calling one interface: `IAudioSource`. All three sources plug into that single block."
-
-"If we need to change how audio wiring works, we touch **one place**. That's the real benefit — not adding new sources, but making the existing code easier to read and modify."
-
----
+"Second, `IAudioSource`. AS-IS: three separate `connect()` blocks, one per audio source. TO-BE: one interface, one block in `SessionController`. Changing audio wiring means touching one place."
 
 ### Entity / Value Object
 
-"Third, the `Measurement` struct. The diagram shows `Measurement` at the center — solid border, meaning it's a concrete struct. Composed of three Value Objects with dashed borders: `WatchMetrics` holds the computed watch numbers — rate, amplitude, beat error, BPH. `SignalFrame` holds the raw PCM samples and timestamp. `AcousticEvent` holds the individual tick event timestamps."
-
-"All three are immutable after creation. Tabs receive `Measurement` as read-only — they **cannot** modify measurement results. Correctness is guaranteed by structure."
-
-"And because these VOs live in the Domain layer — same green color as the Domain band in the layer diagram — replacing or adding any Presentation component has zero impact on the domain logic."
+"Third, `Measurement`. Composed of three immutable Value Objects — `WatchMetrics`, `SignalFrame`, `AcousticEvent`. Tabs receive it read-only. They cannot mutate results. Correctness by structure."
 
 ---
 
 ## 2-D. Risk — AI-Assisted Unit Test
 
-"One real risk we had: most team members don't have deep watch-measurement domain knowledge. Rate, Amplitude, Beat Error — hard to verify by reading code alone."
-
-"So we used AI-generated unit tests. They validate that each tab correctly implements the interface — that `onMeasurement()` receives the right data and doesn't mutate it."
-
-"Deep domain expertise takes time to build. AI-generated tests let us verify structural correctness in the short term, while the team continues to build that knowledge. The 11 baseline tabs passed in W2 Sprint 1, and the same approach covered the 3 additional tabs added later."
-
-"This was our mitigation for NTR-07 — using automation to cover a knowledge gap."
+"NTR-07: team lacks deep watch-measurement domain knowledge. Mitigation: AI-generated unit tests that verify `onMeasurement()` interface compliance. Deep expertise takes time — AI helps us verify structural correctness in the short term while the team continues building that knowledge."
 
 ---
 
-## Wrap-up (handoff to Schedule section)
+## Wrap-up
 
-"So to summarize this section: latency solved by threads, correctness by Observer, extensibility by layers plus interfaces plus immutable VOs. And AI-assisted tests closed the domain knowledge gap."
-
-"Now let's look at where we are on the schedule, and what's left before the final demo."
+"Latency — threads. Correctness — Observer. Extensibility — layers, interface, immutable VOs. Domain knowledge gap — AI-assisted tests."
 
 ---
 
 ## 3-A. What We Did in Milestone 2
 
-"Milestone 2 followed a clear arc: we built the foundation, measured it, discovered a new problem, and responded."
+"M2 in one line: build → measure → discover → respond."
 
-"We started by establishing the architecture — 4-layer decomposition, all 11 baseline tabs, and the unit-test infrastructure to verify them. That gave us a stable base to experiment on."
-
-"Then we ran the experiments. EXP-01 confirmed our filter approach. EXP-02 confirmed the T2 thread design works on RPi. But it also surfaced something we didn't expect — FG scheduling latency is still over budget. That's our main open risk going into M3."
-
-"In parallel, we added AI capabilities — first a rule-based watch diagnosis engine, then an LLM explainer running locally on RPi via Ollama. And we completed the 4-layer refactor with IAudioSource and SessionController fully in place."
-
-"So the story of M2: build → measure → discover → respond."
+"We built the 4-layer architecture and 11 baseline tabs. Ran experiments — EXP-01 and EXP-02 confirmed our thread design on RPi. But found a new problem: FG scheduling latency is over budget. We responded with AI capabilities and completed the full 4-layer refactor."
 
 ---
 
-## 3-B. Remaining Risks & Open Items
+## 3-B. Remaining Risks
 
-"We have four open risks going into the final sprint."
+"Four open risks. Two critical — TR-10: FG scheduling latency, fix targeted W4 S1. TR-05: end-to-end accuracy not yet validated, targeted W4 S4. Two medium — filter tuning and rendering benchmark on RPi, both targeting this week."
 
-"Two are critical. TR-10 — FG scheduling latency on RPi is still over budget. We'll apply priority scheduling and measure next week. TR-05 — end-to-end accuracy against a real watch hasn't been validated yet. That's W4 Sprint 4."
-
-"Two are medium. TR-08 — filter tuning needs to be validated on a real noisy signal, targeting June 25. TR-09 — we haven't measured rendering performance under all 14 tabs on RPi yet, targeting June 26."
-
-"The critical path is: fix FG scheduling → run filter and rendering experiments → validate accuracy → demo."
+"Critical path: FG fix → experiments → accuracy validation → demo."
 
 ---
 
 ## 3-C. M3 Schedule
 
-"Four sprints left. Sprint 1 — fix FG scheduling on RPi. Sprint 2 — filter tuning. Sprint 3 — 14-tab rendering benchmark. Sprint 4 — accuracy validation with a real watch and full RPi run. Then a buffer for presentation prep."
+"Four sprints. S1 — FG fix. S2 — filter tuning. S3 — rendering benchmark. S4 — accuracy validation and full RPi run. Then buffer and demo on July 1st."
 
 ---
 
-## Closing — Milestone 2 Wrap-up
+## Closing
 
 "That's everything for Milestone 2. Thank you."
