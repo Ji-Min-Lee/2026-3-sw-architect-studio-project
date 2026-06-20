@@ -67,7 +67,7 @@
 
 "So we used AI-generated unit tests. They validate that each tab correctly implements the interface — that `onMeasurement()` receives the right data and doesn't mutate it."
 
-"No domain expert needed. The 11 baseline tabs passed in W2 Sprint 1, and the same approach covered the 3 additional tabs added later."
+"Deep domain expertise takes time to build. AI-generated tests let us verify structural correctness in the short term, while the team continues to build that knowledge. The 11 baseline tabs passed in W2 Sprint 1, and the same approach covered the 3 additional tabs added later."
 
 "This was our mitigation for NTR-07 — using automation to cover a knowledge gap."
 
