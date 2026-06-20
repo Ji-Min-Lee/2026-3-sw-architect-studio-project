@@ -17,6 +17,8 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 ![DSP Pipeline Thread Model](assets/view3-thread-model-simple.png)
 
+![E2E Latency Comparison](assets/thread-latency-chart.png)
+
 **Decision**: Separate into three threads — T1 (audio capture) · T2 (DSP) · Qt main (rendering), connected by a lock-free ring buffer
 
 | Metric | Before (single thread) | After (T2 offload) |
