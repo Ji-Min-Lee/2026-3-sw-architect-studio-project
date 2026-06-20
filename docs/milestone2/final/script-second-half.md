@@ -37,11 +37,7 @@
 
 "First, layers. We have four layers: Acquisition, Signal Processing, Domain, and Presentation. The design rule is: dependencies only go **downward**."
 
-"Adding a new tab means touching **only** the Presentation layer. Three files or less. Nothing below changes. We verified this across all three batches — 11, then 13, then 14. Each time, the Domain layer stayed untouched."
-
-"But we also did an honest check using a Dependency Structure Matrix — tracing actual `#include` statements in the code. And we found one violation: `DSPWorker` in Signal Processing holds a reference to `MeasurementEngine` in Domain. That's an upward dependency."
-
-"We've identified the fix — `SessionController` should own `MeasurementEngine` and pass it down, so `DSPWorker` never touches Domain directly. This is scheduled for W4."
+"Adding a new tab means touching **only** the Presentation layer. Three components or less. Nothing below changes. We added tabs in three rounds — first 11, then 2 more, then 1 bonus. Each time, the Domain layer stayed untouched."
 
 ---
 
