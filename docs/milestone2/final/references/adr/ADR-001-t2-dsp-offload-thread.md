@@ -45,13 +45,32 @@ The wait_ms reduction confirms that the Qt event loop was the congestion point, 
 computation itself (exec_ms was already 0.57ms before T2). Separating capture from DSP
 eliminates the backlog and distributes load across cores.
 
-Rejected alternative — Option T1 (SCHED_RR + CPU Affinity only): improves OS scheduling jitter
-but does not reduce exec_ms or eliminate the single-core saturation. T1 may be added on top
-of T2 as a supplementary measure (EXP-02 R6) but cannot replace it.
+### Options Considered
 
-Rejected alternative — Option T3 (Full Pipeline Thread Split): provides higher parallelism
-but introduces three inter-stage queues and significantly higher design complexity.
-M2 deadline risk rated High. Deferred to post-M3 consideration.
+| Item | T1: SCHED_RR + CPU Affinity | T2: DSP Offload Thread | T3: Full Pipeline Split |
+|------|-----------------------------|------------------------|-------------------------|
+| Core tactic | OS real-time scheduling + core pinning | Separate capture from DSP onto two threads | One thread per pipeline stage |
+| Core distribution | Partial (capture core isolated) | Medium (capture + DSP on separate cores) | High (stage-per-core) |
+| Implementation complexity | Low (OS API only) | Medium | High |
+| Direct exec reduction | None (scheduling improvement only) | Medium | High |
+| Module structure change | None | Ring buffer added | Full pipeline redesign |
+| M2 feasibility | ✅ Immediate | ✅ Feasible | ⚠️ High risk |
+
+**T1 rejected**: Improves OS scheduling jitter but does not reduce exec_ms or eliminate single-core saturation. [EXP-01](../experiments/exp-01-high-res-sampling-beat-error.md) confirmed SCHED_RR showed no improvement in Dropped Block count — T1 applied to the audio capture thread is not required. May be added on top of T2 as a supplementary measure for the FG thread (TR-10) but cannot replace T2.
+
+**T3 rejected**: Provides higher parallelism but introduces three inter-stage queues and significantly higher design complexity. M2 deadline risk rated High. Deferred to post-M3 consideration.
+
+### Combined Trade-off Matrix (Threading × Rendering)
+
+| Combo | exec reduction | Core distribution | Complexity | M2 risk | Recommendation |
+|:-----:|:--------------:|:-----------------:|:----------:|:-------:|----------------|
+| **T2 + R1** | ★★★★☆ | ★★★★☆ | ★★★☆☆ | Medium | **Selected — balanced** |
+| T2 + R2 | ★★★★★ | ★★★★☆ | ★★★★☆ | Medium | Structural completeness priority |
+| T1 + R1 | ★★★★☆ | ★★☆☆☆ | ★☆☆☆☆ | Low | Fast MVP, weaker threading |
+| T1 + R2 | ★★★☆☆ | ★★☆☆☆ | ★★☆☆☆ | Low | Render timing control priority |
+| T3 + R3 | ★★★★★ | ★★★★★ | ★★★★★ | High | Post-M3 only |
+
+Selected combination **T2 + R1** confirmed by EXP-02 on both macOS and RPi (E2-5/E2-6): E2E avg 2.05ms, 0 deadline miss, 0 backlog.
 
 ## Status
 

@@ -1,4 +1,4 @@
-# Experiment 3: LP/HP Filter Parameter Sweep
+# EXP-03: Filter Tuning for Beat Detection Accuracy under Environmental Noise
 
 ## Results and Recommendations
 
@@ -10,7 +10,7 @@ Preliminary: adaptive threshold is implemented and tunable via a single paramete
 
 Determine the LP (low-pass) and HP (high-pass) cutoff frequencies that best preserve beat events while rejecting ambient noise, across multiple watch BPH values.
 
-**Decision this resolves**: Filter cutoff constants in `FilterChain` — affects QAS-3 (Signal Quality) and downstream accuracy of Beat Error / Amplitude measurements.
+**Decision this resolves**: Filter cutoff constants in `FilterChain` — affects [QAS-4 Correctness](../qa/qas-5-correctness.md) and downstream accuracy of Beat Error / Amplitude measurements.
 
 **Risk resolved**: TR-05
 
@@ -54,4 +54,4 @@ Target: 2026-06-25 (blocks Phase A task A-02)
 
 - Risk: [TR-05](../risks.md)
 - Phase A dependency: task A-02 (LP/HP filter chain cutoffs)
-- QA: [QAS-3 Signal Quality](../qa.md)
+- QA: [QAS-4 Correctness](../qa/qas-5-correctness.md)
