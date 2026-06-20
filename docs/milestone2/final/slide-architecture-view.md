@@ -15,7 +15,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 **Problem**: GUI replot blocks DSP processing on a single thread → 43% deadline miss on RPi
 
-![DSP Pipeline Thread Model](assets/view3-thread-model.png)
+![DSP Pipeline Thread Model](assets/view3-thread-model-simple.png)
 
 **Decision**: Separate into three threads — T1 (audio capture) · T2 (DSP) · Qt main (rendering), connected by a lock-free ring buffer
 

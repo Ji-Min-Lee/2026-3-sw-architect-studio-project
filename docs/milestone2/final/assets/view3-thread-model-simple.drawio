@@ -1,207 +1,154 @@
-<mxfile host="app.diagrams.net">
-  <diagram name="DSP Pipeline Thread Model">
-    <mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="400" math="0" shadow="0">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-
-        <!-- Titles -->
-        <mxCell id="2" value="AS-IS" style="text;html=1;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
-          <mxGeometry x="14" y="5" width="80" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="3" value="TO-BE  (ADR-001)" style="text;html=1;fontStyle=1;fontSize=13;align=left;" vertex="1" parent="1">
-          <mxGeometry x="366" y="5" width="220" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- Divider -->
-        <mxCell id="4" value="" style="line;strokeColor=#dddddd;dashed=1;dashPattern=5 4;fillColor=none;" vertex="1" parent="1">
-          <mxGeometry x="352" y="5" width="1" height="310" as="geometry" />
-        </mxCell>
-
-        <!-- ===== AS-IS ===== -->
-
-        <!-- Audio Source Thread (BG) lane -->
-        <mxCell id="10" value="Audio Source Thread  (BG)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
-          <mxGeometry x="10" y="24" width="330" height="52" as="geometry" />
-        </mxCell>
-
-        <!-- Capture Audio component -->
-        <mxCell id="11" value="Capture Audio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="26" y="44" width="298" height="26" as="geometry" />
-        </mxCell>
-
-        <!-- Audio Buffer connector (pill) -->
-        <mxCell id="12" value="Audio Buffer" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=11;fontStyle=2;" vertex="1" parent="1">
-          <mxGeometry x="75" y="98" width="200" height="26" as="geometry" />
-        </mxCell>
-
-        <!-- Qt Main Thread (FG) lane -->
-        <mxCell id="13" value="Qt Main Thread  (FG)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;fontColor=#2a5090;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
-          <mxGeometry x="10" y="144" width="330" height="160" as="geometry" />
-        </mxCell>
-
-        <!-- Analyze Audio Data component -->
-        <mxCell id="14" value="Analyze Audio Data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="26" y="168" width="298" height="30" as="geometry" />
-        </mxCell>
-
-        <!-- Render Data component -->
-        <mxCell id="15" value="Render Data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="26" y="232" width="298" height="30" as="geometry" />
-        </mxCell>
-
-        <!-- AS-IS ARROWS -->
-
-        <!-- write: Capture Audio bottom → Audio Buffer -->
-        <mxCell id="20" value="write" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.4;exitY=1;exitDx=0;exitDy=0;entryX=0.4;entryY=0;entryDx=0;entryDy=0;" edge="1" source="11" target="12" parent="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <!-- notify: Capture Audio right → Analyze Audio Data right (straight vertical) -->
-        <mxCell id="21" value="notify" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" source="11" target="14" parent="1">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="344" y="57" />
-              <mxPoint x="344" y="168" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-
-        <!-- read: Analyze Audio Data → Audio Buffer -->
-        <mxCell id="22" value="read" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.6;exitY=0;exitDx=0;exitDy=0;entryX=0.6;entryY=1;entryDx=0;entryDy=0;" edge="1" source="14" target="12" parent="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <!-- notify: Analyze Audio Data → Render Data -->
-        <mxCell id="23" value="notify" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=0.85;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" edge="1" source="14" target="15" parent="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <!-- ===== TO-BE ===== -->
-
-        <!-- Audio Source Thread (BG) lane -->
-        <mxCell id="30" value="Audio Source Thread  (BG)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
-          <mxGeometry x="362" y="24" width="388" height="52" as="geometry" />
-        </mxCell>
-
-        <!-- Capture Audio component -->
-        <mxCell id="31" value="Capture Audio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="378" y="44" width="356" height="26" as="geometry" />
-        </mxCell>
-
-        <!-- Audio Buffer connector (pill) -->
-        <mxCell id="32" value="Audio Buffer" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=11;fontStyle=2;" vertex="1" parent="1">
-          <mxGeometry x="448" y="98" width="238" height="26" as="geometry" />
-        </mxCell>
-
-        <!-- DSP Thread (BG) lane -->
-        <mxCell id="33" value="DSP Thread  (BG)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
-          <mxGeometry x="362" y="144" width="388" height="52" as="geometry" />
-        </mxCell>
-
-        <!-- Analyze Audio Data component (DSP) -->
-        <mxCell id="34" value="Analyze Audio Data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="378" y="164" width="356" height="26" as="geometry" />
-        </mxCell>
-
-        <!-- Qt Main Thread (FG) lane -->
-        <mxCell id="35" value="Qt Main Thread  (FG)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;fontColor=#2a5090;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
-          <mxGeometry x="362" y="216" width="388" height="72" as="geometry" />
-        </mxCell>
-
-        <!-- Render Data component -->
-        <mxCell id="36" value="&lt;b&gt;Render Data&lt;/b&gt;&lt;br/&gt;&lt;font color=&apos;#6a9acd&apos; style=&apos;font-size:9px&apos;&gt;draw only when visible  [ADR-002]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="378" y="238" width="356" height="40" as="geometry" />
-        </mxCell>
-
-        <!-- TO-BE ARROWS -->
-
-        <!-- write: Capture Audio bottom → Audio Buffer -->
-        <mxCell id="40" value="write" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.4;exitY=1;exitDx=0;exitDy=0;entryX=0.4;entryY=0;entryDx=0;entryDy=0;" edge="1" source="31" target="32" parent="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <!-- notify: Capture Audio right → Analyze Audio Data right (straight vertical) -->
-        <mxCell id="41" value="notify" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" source="31" target="34" parent="1">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="755" y="57" />
-              <mxPoint x="755" y="164" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-
-        <!-- read: Analyze Audio Data → Audio Buffer (diagonal) -->
-        <mxCell id="42" value="read" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.2;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" source="34" target="32" parent="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <!-- notify: Analyze Audio Data → Render Data -->
-        <mxCell id="43" value="notify" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="34" target="36" parent="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <!-- ===== LEGEND ===== -->
-
-        <mxCell id="50" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#cccccc;" vertex="1" parent="1">
-          <mxGeometry x="764" y="24" width="310" height="180" as="geometry" />
-        </mxCell>
-        <mxCell id="51" value="Legend" style="text;html=1;fontStyle=1;fontSize=12;align=left;" vertex="1" parent="1">
-          <mxGeometry x="780" y="32" width="100" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- BG Thread -->
-        <mxCell id="52" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;" vertex="1" parent="1">
-          <mxGeometry x="780" y="56" width="24" height="16" as="geometry" />
-        </mxCell>
-        <mxCell id="53" value="BG (Background) Thread" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="810" y="56" width="220" height="16" as="geometry" />
-        </mxCell>
-
-        <!-- FG Thread -->
-        <mxCell id="54" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;" vertex="1" parent="1">
-          <mxGeometry x="780" y="78" width="24" height="16" as="geometry" />
-        </mxCell>
-        <mxCell id="55" value="FG (Foreground) Thread" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="810" y="78" width="220" height="16" as="geometry" />
-        </mxCell>
-
-        <!-- Component -->
-        <mxCell id="56" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;" vertex="1" parent="1">
-          <mxGeometry x="780" y="100" width="24" height="16" as="geometry" />
-        </mxCell>
-        <mxCell id="57" value="Component  (runtime instance)" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="810" y="100" width="240" height="16" as="geometry" />
-        </mxCell>
-
-        <!-- Connector pill -->
-        <mxCell id="58" value="Shared Ring Buffer" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=8;fontStyle=2;" vertex="1" parent="1">
-          <mxGeometry x="780" y="122" width="100" height="16" as="geometry" />
-        </mxCell>
-
-        <!-- write/read arrow legend -->
-        <mxCell id="60" value="" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;" edge="1" parent="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="780" y="152" as="sourcePoint" />
-            <mxPoint x="808" y="152" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="61" value="write / read PCM audio data" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="814" y="144" width="240" height="16" as="geometry" />
-        </mxCell>
-
-        <!-- notify arrow legend -->
-        <mxCell id="62" value="" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;" edge="1" parent="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="780" y="172" as="sourcePoint" />
-            <mxPoint x="808" y="172" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="63" value="notify  (Qt::QueuedConnection)" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="814" y="164" width="240" height="16" as="geometry" />
-        </mxCell>
-
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>
+<mxGraphModel dx="1005" dy="466" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="400" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    <mxCell id="2" parent="1" style="text;html=1;fontStyle=1;fontSize=13;align=left;" value="AS-IS" vertex="1">
+      <mxGeometry height="20" width="80" x="14" y="5" as="geometry" />
+    </mxCell>
+    <mxCell id="3" parent="1" style="text;html=1;fontStyle=1;fontSize=13;align=left;" value="TO-BE  (ADR-001)" vertex="1">
+      <mxGeometry height="20" width="220" x="393" y="5" as="geometry" />
+    </mxCell>
+    <mxCell id="4" parent="1" style="line;strokeColor=#dddddd;dashed=1;dashPattern=5 4;fillColor=none;" value="" vertex="1">
+      <mxGeometry height="310" width="1" x="364" y="5" as="geometry" />
+    </mxCell>
+    <mxCell id="10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="Audio Source Thread  (BG)" vertex="1">
+      <mxGeometry height="64" width="330" x="10" y="33" as="geometry" />
+    </mxCell>
+    <mxCell id="11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Capture Audio Data" vertex="1">
+      <mxGeometry height="26" width="298" x="26" y="61" as="geometry" />
+    </mxCell>
+    <mxCell id="12" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=11;fontStyle=2;" value="Audio Buffer" vertex="1">
+      <mxGeometry height="26" width="200" x="75" y="131" as="geometry" />
+    </mxCell>
+    <mxCell id="13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;fontColor=#2a5090;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="Qt Main Thread  (FG)" vertex="1">
+      <mxGeometry height="179" width="330" x="10" y="195" as="geometry" />
+    </mxCell>
+    <mxCell id="14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Analyze Audio Data" vertex="1">
+      <mxGeometry height="30" width="298" x="26" y="238" as="geometry" />
+    </mxCell>
+    <mxCell id="15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Render Data&lt;br&gt;&lt;span style=&quot;color: rgb(106, 154, 205); font-size: 9px; font-weight: 400;&quot;&gt;draw all tabs&lt;/span&gt;" vertex="1">
+      <mxGeometry height="43" width="298" x="26" y="318" as="geometry" />
+    </mxCell>
+    <mxCell id="20" edge="1" parent="1" source="11" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="12" value="write">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="21" edge="1" parent="1" source="11" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="14" value="notify">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="352" y="74" />
+          <mxPoint x="350" y="253" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="22" edge="1" parent="1" source="14" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="12" value="read">
+      <mxGeometry relative="1" x="-0.4568" y="-3" as="geometry">
+        <mxPoint as="offset" />
+        <mxPoint x="195.00000000000023" y="200" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="23" edge="1" parent="1" source="14" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="15" value="notify">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="30" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="Audio Source Thread  (BG)" vertex="1">
+      <mxGeometry height="63" width="388" x="389" y="33" as="geometry" />
+    </mxCell>
+    <mxCell id="31" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Capture Audio Data" vertex="1">
+      <mxGeometry height="26" width="356" x="405" y="61" as="geometry" />
+    </mxCell>
+    <mxCell id="32" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=11;fontStyle=2;" value="Audio Buffer" vertex="1">
+      <mxGeometry height="26" width="238" x="464" y="133" as="geometry" />
+    </mxCell>
+    <mxCell id="33" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="DSP Thread  (BG)" vertex="1">
+      <mxGeometry height="78" width="388" x="389" y="198" as="geometry" />
+    </mxCell>
+    <mxCell id="34" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=12;" value="Analyze Audio Data" vertex="1">
+      <mxGeometry height="26" width="356" x="405" y="234" as="geometry" />
+    </mxCell>
+    <mxCell id="35" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;fontColor=#2a5090;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" value="Qt Main Thread  (FG)" vertex="1">
+      <mxGeometry height="89" width="388" x="389" y="286" as="geometry" />
+    </mxCell>
+    <mxCell id="36" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontSize=12;" value="&lt;b&gt;Render Data&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#6a9acd&quot; style=&quot;font-size: 9px;&quot;&gt;draw the tab visible only&amp;nbsp; [ADR-002]&lt;/font&gt;" vertex="1">
+      <mxGeometry height="40" width="356" x="405" y="320" as="geometry" />
+    </mxCell>
+    <mxCell id="40" edge="1" parent="1" source="31" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="32" value="write">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="41" edge="1" parent="1" source="31" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="34" value="notify">
+      <mxGeometry relative="1" x="-0.0507" y="3" as="geometry">
+        <mxPoint as="offset" />
+        <Array as="points">
+          <mxPoint x="786" y="74" />
+          <mxPoint x="786" y="247" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="42" edge="1" parent="1" source="34" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="32" value="read">
+      <mxGeometry relative="1" x="-0.6" as="geometry">
+        <mxPoint as="offset" />
+        <mxPoint x="595" y="200" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="43" edge="1" parent="1" source="34" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="36" value="notify">
+      <mxGeometry relative="1" x="0.1333" as="geometry">
+        <mxPoint as="offset" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="Q6rnTVYkd1wGd5bwxZPc-64" connectable="0" parent="1" style="group" value="" vertex="1">
+      <mxGeometry height="180" width="290" x="788" y="29" as="geometry" />
+    </mxCell>
+    <mxCell id="50" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#cccccc;" value="" vertex="1">
+      <mxGeometry height="180" width="201" x="15" as="geometry" />
+    </mxCell>
+    <mxCell id="51" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontStyle=1;fontSize=12;align=left;" value="Legend" vertex="1">
+      <mxGeometry height="20" width="100" x="31" y="10" as="geometry" />
+    </mxCell>
+    <mxCell id="52" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;" value="" vertex="1">
+      <mxGeometry height="16" width="24" x="31" y="41" as="geometry" />
+    </mxCell>
+    <mxCell id="53" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="BG (Background) Thread" vertex="1">
+      <mxGeometry height="16" width="220" x="61" y="41" as="geometry" />
+    </mxCell>
+    <mxCell id="54" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;" value="" vertex="1">
+      <mxGeometry height="16" width="24" x="31" y="63" as="geometry" />
+    </mxCell>
+    <mxCell id="55" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="FG (Foreground) Thread" vertex="1">
+      <mxGeometry height="16" width="220" x="61" y="63" as="geometry" />
+    </mxCell>
+    <mxCell id="56" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;" value="" vertex="1">
+      <mxGeometry height="16" width="24" x="31" y="85" as="geometry" />
+    </mxCell>
+    <mxCell id="57" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="Component  (runtime instance)" vertex="1">
+      <mxGeometry height="16" width="240" x="61" y="85" as="geometry" />
+    </mxCell>
+    <mxCell id="58" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontSize=8;fontStyle=2;" value="" vertex="1">
+      <mxGeometry height="16" width="27" x="31" y="107" as="geometry" />
+    </mxCell>
+    <mxCell id="60" edge="1" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;" value="">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="31" y="137" as="sourcePoint" />
+        <mxPoint x="59" y="137" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="61" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="write / read PCM audio data" vertex="1">
+      <mxGeometry height="16" width="240" x="65" y="129" as="geometry" />
+    </mxCell>
+    <mxCell id="62" edge="1" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;" value="">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="31" y="157" as="sourcePoint" />
+        <mxPoint x="59" y="157" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="63" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="notify  (Qt::QueuedConnection)" vertex="1">
+      <mxGeometry height="16" width="240" x="65" y="149" as="geometry" />
+    </mxCell>
+    <mxCell id="Q6rnTVYkd1wGd5bwxZPc-65" parent="Q6rnTVYkd1wGd5bwxZPc-64" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" value="Shared Ring Buffer" vertex="1">
+      <mxGeometry height="16" width="240" x="65" y="107" as="geometry" />
+    </mxCell>
+    <mxCell id="Q6rnTVYkd1wGd5bwxZPc-69" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" value="">
+      <mxGeometry height="50" relative="1" width="50" as="geometry">
+        <mxPoint x="370" y="391" as="sourcePoint" />
+        <mxPoint x="370" y="6" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+  </root>
+</mxGraphModel>
