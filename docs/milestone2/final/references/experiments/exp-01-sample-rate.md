@@ -1,4 +1,4 @@
-# Experiment 1: Sample Rate Performance on Raspberry Pi 5
+# EXP-01: Verifying Sustained High-Resolution Sampling on RPi 5 for Beat Error Timestamp Resolution
 
 ## Results and Recommendations
 

@@ -1,4 +1,4 @@
-# EXP-02: E2E Audio Pipeline Latency Baseline Measurement
+# EXP-02: Measuring Real-Time Beat Processing Deadline Compliance and Pipeline Backlog Root Cause
 
 ---
 

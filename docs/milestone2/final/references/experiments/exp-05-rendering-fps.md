@@ -1,4 +1,4 @@
-# Experiment 5: Qt Multi-Tab Rendering Performance on RPi 5
+# EXP-05: Measuring Multi-Tab Concurrent Rendering Impact on Real-Time Pipeline Performance on RPi 5
 
 ## Results and Recommendations
 

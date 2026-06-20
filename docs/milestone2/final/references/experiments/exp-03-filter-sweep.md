@@ -1,4 +1,4 @@
-# Experiment 3: LP/HP Filter Parameter Sweep
+# EXP-03: Filter Tuning for Beat Detection Accuracy under Environmental Noise
 
 ## Results and Recommendations
 
