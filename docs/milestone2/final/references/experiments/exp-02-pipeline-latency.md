@@ -79,7 +79,7 @@ The experiment ran across 5 sequential runs:
 
 ---
 
-## Results
+## Detailed Results
 
 ### Run History
 

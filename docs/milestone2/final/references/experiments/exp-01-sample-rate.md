@@ -24,6 +24,13 @@ Determine the maximum sustained audio sample rate the Raspberry Pi 5 can process
 
 **Done** (2026-06-15)
 
+## Expected Outcomes
+
+- Dropped block count at 48kHz / 96kHz / 192kHz under default, SCHED_RR, and SCHED_FIFO scheduling
+- Maximum sustained sample rate with 0 dropped blocks under stable thermal conditions
+- RT scheduling (SCHED_RR / SCHED_FIFO) necessity determination
+- ADR-003 sample rate decision (96kHz vs 48kHz) and Beat Error resolution (10.4µs vs 20.8µs/sample)
+
 ## Run History
 
 3 runs executed 2026-06-15 on RPi (host=lg1, platform=debian). Each run covers all 3 sps sequentially. Duration = 5 min per sps. Buffer = 30 s. Deadline = **21.33 ms** for all sps (ALSA scales SPF proportionally).
