@@ -39,6 +39,8 @@
 
 > 📢 **PRESENT** (~2 min)
 
+GitHub Project Board: [Board](https://github.com/users/Ji-Min-Lee/projects/3/views/2?filterQuery=milestone%3A%22Mileston3+-+Demo%22) · [Table](https://github.com/users/Ji-Min-Lee/projects/3/views/3?filterQuery=milestone%3A%22Mileston3+-+Demo%22) · [Roadmap](https://github.com/users/Ji-Min-Lee/projects/3/views/5?filterQuery=milestone%3A%22Mileston3+-+Demo%22)
+
 | Sprint | Date | Tasks | Grading Area |
 |--------|------|-------|--------------|
 | W4 S1 | 6/22–6/23 | Fix FG scheduling latency on RPi · Microphone auto-recovery | Area 4, Area 6 |

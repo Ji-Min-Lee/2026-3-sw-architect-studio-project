@@ -71,7 +71,7 @@
 
 "One real risk we had: most team members don't have deep watch-measurement domain knowledge. Rate, Amplitude, Beat Error — hard to verify by reading code alone."
 
-"So we used AI-generated unit tests. They validate that each tab correctly implements the interface — that `updateData()` receives the right data and doesn't mutate it."
+"So we used AI-generated unit tests. They validate that each tab correctly implements the interface — that `onMeasurement()` receives the right data and doesn't mutate it."
 
 "No domain expert needed. The 11 baseline tabs passed in W2 Sprint 1, and the same approach covered the 3 additional tabs added later."
 
@@ -87,38 +87,44 @@
 
 ---
 
-## 3-A. Sprint Summary (W2–W3)
+## 3-A. What We Did in Milestone 2
 
-"Here's a quick recap of the last two weeks."
+"Here's a quick recap of what we delivered."
 
-"Week 2 Sprint 1 — we built the 4-layer structure and completed the first 11 tabs. Sprint 2 — we set up the RPi deployment workflow."
+"Week 2 Sprint 1 — 4-layer decomposition and all 11 baseline tabs. Sprint 2 — structured logging, RPi system metrics, full unit-test suite, and EXP-02 baseline runs started."
 
-"Week 3 Sprint 1 — EXP-02 completed, ADR-001 and 002 accepted. Sprint 2 — we ran noise experiments, still in progress."
+"Week 3 Sprint 1 — EXP-01 done, ADR-003 accepted. EXP-02 confirmed T2 works on RPi. But we found a new problem: FG scheduling latency is way over budget — that's the red item we'll talk about in a moment. We also shipped AI Step 1, rule-based watch diagnosis."
 
----
-
-## 3-B. Experiment Status
-
-"Five experiments total. Three are done."
-
-"EXP-01 confirmed 96kHz is sustainable on RPi — zero dropped blocks. EXP-02 E2-5/6 confirmed DSP latency is 2.05ms on RPi — well under the 10ms target."
-
-"But E2-7 showed a problem. Foreground scheduling latency averages 60ms — 84% of cycles miss the deadline. This is our critical open risk, TR-10. We have E2-8 scheduled for next week to fix it."
-
-"EXP-03 and EXP-05 are still running — targets are June 25 and 26."
+"Week 3 Sprint 2 — AI Step 2, an LLM explainer running on RPi via Ollama. And we completed the 4-layer refactor — IAudioSource and SessionController fully in place."
 
 ---
 
-## 3-C. M2 → Final Schedule
+## 3-B. Remaining Risks & Open Items
 
-"From here to the final demo on July 1st — about ten days, five sprints."
+"We have four open risks going into the final sprint."
 
-"Next week, W4: fix the FG scheduling issue, run filter sweep and rendering FPS experiments, and build the Radar Chart and Diagnosis features."
+"Two are critical. TR-10 — FG scheduling latency on RPi is still over budget. We'll apply priority scheduling and measure next week. TR-05 — end-to-end accuracy against a real watch hasn't been validated yet. That's W4 Sprint 4."
 
-"W5 Sprint 1 — RPi integration, accuracy validation against WeiShi, and demo rehearsal."
+"Two are medium. TR-08 — filter tuning needs to be validated on a real noisy signal, targeting June 25. TR-09 — we haven't measured rendering performance under all 14 tabs on RPi yet, targeting June 26."
 
-"The critical path is: fix RPi scheduling → validate accuracy → demo."
+"The critical path is: fix FG scheduling → run filter and rendering experiments → validate accuracy → demo."
 
-"Before M3 we have six quality gates. Three are already green — real-time block drops, DSP latency, and extensibility. Three are still pending — FG latency, rendering under 14-tab load, and core accuracy against WeiShi. Those drive the W4–W5 work."
+---
 
-"That's our plan. Thank you."
+## 3-C. M3 Schedule
+
+"The full sprint breakdown is on our GitHub Project Board — linked on the slide."
+
+"From here to July 1st demo — four sprints plus a buffer."
+
+"W4 Sprint 1 — fix FG scheduling on RPi. Sprint 2 — filter tuning experiment. Sprint 3 — 14-tab rendering benchmark. Sprint 4 — slides, accuracy validation with a real watch, and full RPi run."
+
+"Then a buffer on June 29–30 for presentation prep only — no new implementation."
+
+"Demo day is July 1st on Raspberry Pi."
+
+---
+
+## Closing — Milestone 2 Wrap-up
+
+"That's everything for Milestone 2. Thank you."
