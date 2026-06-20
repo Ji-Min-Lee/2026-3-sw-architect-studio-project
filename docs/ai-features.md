@@ -187,6 +187,7 @@ public:
 | `stream` | `true` | Tokens forwarded via `readyRead` as they arrive |
 | `num_ctx` | `512` | Reduces KV-cache from ~1.5 GB → ~192 MB on RPi5 |
 | `num_thread` | `2` | Leaves 2 of 4 RPi5 cores free for the audio/DSP pipeline |
+| `num_predict` | `120` | Caps response at ~3 sentences; prevents small models from rambling |
 
 Inference only runs when the user clicks — it does not run
 continuously and does not affect the real-time measurement loop.
@@ -252,10 +253,90 @@ first launch.
 
 ---
 
+## Step 3 — RAG (Retrieval-Augmented Generation)
+
+At inference time, the top-3 most relevant chunks from a pre-computed
+vector database are injected into the prompt, allowing the LLM to
+reference Witschi documentation and project-specific thresholds rather
+than relying solely on its pre-trained knowledge.
+
+### Architecture
+
+```
+[Offline — external PC, once]
+PDF/MD documents → chunk → nomic-embed-text → vector.db (SQLite, 768 KB)
+
+[Runtime — RPi5 on-device]
+diagnosis context → nomic-embed-text embed → cosine search (top-3)
+→ inject chunks into prompt → Ollama LLM → DiagnosisDialog
+```
+
+### Modules
+
+| File | Contents |
+|------|----------|
+| [`src/rag/RagRetriever.h`](../src/rag/RagRetriever.h) | Loads `vector.db`, async query embedding, cosine similarity search |
+| [`src/rag/RagRetriever.cpp`](../src/rag/RagRetriever.cpp) | SQLite load, Ollama `/api/embeddings` POST, top-k retrieval |
+| [`src/tools/embed_docs.py`](../src/tools/embed_docs.py) | Offline script: chunks PDFs/MDs, embeds via `nomic-embed-text`, saves to SQLite |
+| [`src/rag/vector.db`](../src/rag/vector.db) | Pre-computed embeddings (161 chunks, 768 KB) |
+
+### Embedded documents
+
+| Source | Chunks |
+|--------|--------|
+| Witschi Training Course (PDF) | 56 |
+| Witschi Chronoscope X1 Manual (PDF) | 53 |
+| TimeGrapher Equations (PDF) | 13 |
+| `docs/ai-features.md` | 10 |
+| `docs/metrics-explained.md` | 14 |
+| `docs/week1/kickoff-workshop/domain-knowledge.md` | 15 |
+| **Total** | **161** |
+
+### Runtime flow
+
+1. App startup: `RagRetriever::load("rag/vector.db")` loads all 161 embeddings into RAM (~25 MB)
+2. User clicks label: query string built from diagnosis label + measurement values
+3. `nomic-embed-text` embeds query via Ollama `/api/embeddings`
+4. Cosine similarity against all 161 embeddings → top-3 chunks selected
+5. Chunks appended to prompt (ASCII-only, 200 chars each)
+6. LLM generates response with context
+
+If `vector.db` is missing, `WatchExplainer` falls back silently to Step 2 (no context). Status is shown in the dialog: `📚 RAG: 3 chunks from Witschi docs` or `RAG: no context`.
+
+### Offline re-embedding
+
+To regenerate `vector.db` (e.g. after adding documents):
+
+```bash
+# Requires: pip install pymupdf requests
+# Requires: ollama pull nomic-embed-text
+python -X utf8 src/tools/embed_docs.py
+cp src/rag/vector.db <build_dir>/rag/vector.db
+```
+
+### RPi5 setup
+
+```bash
+# Pull embedding model (274 MB, one-time)
+ollama pull nomic-embed-text
+
+# Copy vector.db to app directory
+mkdir -p <build_dir>/rag
+cp src/rag/vector.db <build_dir>/rag/
+```
+
+`nomic-embed-text` is used only for the brief query embedding at click time (~0.5 s on RPi5) and does not stay loaded between requests.
+
+### Known limitation
+
+`qwen2.5:0.5b` (500M parameters) tends to ignore injected context and hallucinate values. `phi3:mini` produces significantly better RAG utilization at the cost of slower inference (~5× slower on RPi5). Select via the **AI Model** dropdown.
+
+---
+
 ## Roadmap
 
 | Step | Status | Description |
 |------|--------|-------------|
 | 1 | Done | Rule-based diagnosis (`WatchDiagnostics`) |
 | 2 | Done | On-device LLM explanation (`WatchExplainer` + `DiagnosisDialog`) |
-| 3 | Planned | RAG — inject project PDFs and Witschi documentation as context so the model can reference project-specific thresholds when explaining a diagnosis |
+| 3 | Done | RAG context injection from Witschi docs (`RagRetriever` + `vector.db`) |
