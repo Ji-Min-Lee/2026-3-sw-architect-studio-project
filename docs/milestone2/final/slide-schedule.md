@@ -97,6 +97,27 @@ W2–W3 complete. See sprint summary above.
 
 **Critical path: RPi experiments → WeiShi accuracy validation → demo.**
 
+### Quality Gates *(must pass before M3 demo)*
+
+| Gate | Criteria | Status |
+|------|----------|:------:|
+| Core pipeline | Rate/Amplitude/Beat Error match WeiShi within tolerance | ⏳ |
+| Real-time | Dropped blocks = 0 at 96kHz on RPi | ✅ EXP-01 confirmed |
+| DSP latency | E2E DSP avg < 10ms on RPi | ✅ E2-6: 2.05ms |
+| FG latency | fg_wait avg < 21ms on RPi (currently 60.1ms 🔴) | ⏳ EXP-02 E2-8 |
+| Rendering | 0% deadline miss under 11-tab load on RPi | ⏳ [EXP-05](references/experiments/exp-05-rendering-fps.md) |
+| RPi demo | All HIGH-priority graphs running on RPi 5 | ⏳ |
+| Extensibility | New graph tab ≤ 3 file changes, 0 Domain changes | ✅ |
+
+### Explicitly Deferred to M3
+
+| Item | Reason |
+|------|--------|
+| Timeline scrub (Pause + rewind) | Pause freeze implemented; full scrub exceeds M2 scope |
+| `⚠ Noisy signal` warning | Requires SNR computation; deferred pending EXP-03 |
+| BPH range beyond 28,800 BPH | Confirmed operating point first; stretch goal |
+| Sound Print improvements | M2 scope exceeded |
+
 ---
 
 ## M2 Deliverable Status
@@ -109,4 +130,4 @@ W2–W3 complete. See sprint summary above.
 | Architecture — Decomposition View: Graph Tab | ✅ |
 | Architecture — C&C View: DSP Pipeline Thread Model | ✅ |
 | Architecture — Deployment View: Build-Deploy Pipeline | ✅ |
-| [Construction Plan](references/construction-plan.md) | ✅ |
+| Construction Plan (absorbed into schedule) | ✅ |
