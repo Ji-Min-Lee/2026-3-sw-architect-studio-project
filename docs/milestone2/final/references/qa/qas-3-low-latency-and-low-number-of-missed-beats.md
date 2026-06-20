@@ -1,6 +1,6 @@
 # QAS-3: Low Latency and Low Number of Missed Beats — Priority 3
 
-> M1 status: Provisional (pending EXP-02). M2 status: macOS segment ① confirmed; RPi confirmed 06/15.
+> M1 status: Provisional (pending EXP-03). M2 status: ✅ RPi confirmed 06/16.
 
 | Field | Detail |
 |-------|--------|
@@ -31,4 +31,4 @@
 
 - [QA Priority Summary](README.md)
 - [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — threading strategy options and trade-offs
-- [EXP-02: Pipeline Latency](../experiments/exp-03-latency-e2e.md) — segment ① wait_ms 420ms → 0.013ms after T2
+- [EXP-03: End-to-End Latency](../experiments/exp-03-latency-e2e.md) — E2E 80ms → 2.1ms (−97%) after T2; FG avg 60ms unresolved

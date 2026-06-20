@@ -4,6 +4,10 @@
 
 ---
 
+## Objective
+
+Identify `onset_fraction` and `min_peak_fraction` values that maintain accurate beat detection across 0–60 dB SNR noise conditions, confirming the default parameters for `Detector.cpp`.
+
 ## Result
 
 **Recommended: `onset_fraction = 0.08`, `min_peak_fraction = 0.10`**

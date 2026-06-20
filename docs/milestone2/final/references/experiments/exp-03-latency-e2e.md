@@ -4,6 +4,10 @@
 
 ---
 
+## Objective
+
+Measure end-to-end latency from audio block ready to beat result delivered, and identify the bottleneck causing deadline misses — guiding the T2 and R1 tactic decisions ([ADR-001](../adr/ADR-001-t2-dsp-offload-thread.md), [ADR-002](../adr/ADR-002-r1-lazy-rendering.md)).
+
 ## Result
 
 DSP E2E avg **2.2 ms** / max **4.8 ms** — within QAS-3 target (< 100 ms).  

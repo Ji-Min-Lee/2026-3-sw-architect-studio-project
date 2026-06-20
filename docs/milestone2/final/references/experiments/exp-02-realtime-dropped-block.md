@@ -4,6 +4,10 @@
 
 ---
 
+## Objective
+
+Verify that RPi 5 sustains **zero dropped audio blocks** at 96k sps under continuous operation, confirming QAS-2 is achievable without real-time scheduling extensions.
+
 ## Result
 
 **Dropped Block = 0** across all 9 runs (3 sps × 3 scheduling policies). QAS-2 Pass.

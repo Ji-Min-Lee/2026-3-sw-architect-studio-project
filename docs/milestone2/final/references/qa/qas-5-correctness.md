@@ -1,7 +1,7 @@
 # QAS-5: Correctness — Priority 5
 
 > M1 name: "Correctness (QA-C2)". M2 refactor: split into signal quality (this) and accuracy goal (QAS-1).
-> M1 status: Provisional (pending EXP-03). M2 status: Pending — EXP-03 scheduled 06/25.
+> M1 status: Provisional (pending EXP-05). M2 status: ✅ Verified 06/17 — onset=0.08, min_peak=0.10 confirmed.
 
 | Field | Detail |
 |-------|--------|
@@ -19,14 +19,10 @@
 | No signal | No beat event for N seconds | `⚠ No signal` — auto-cleared on recovery |
 | Noisy signal | Beat event inter-arrival variance exceeds threshold | `⚠ Noisy signal` — auto-cleared on stabilization |
 
-N values to be confirmed after EXP-03.
-
-## Pending
-
-EXP-03 (06/25) determines final LP/HP cutoff constants. Until then, default values are conservative but unconfirmed for edge cases.
+N values to be confirmed after EXP-05 (completed 06/17 — onset=0.08, min_peak=0.10 confirmed stable across 0–60 dB SNR).
 
 ## Related
 
 - [QA Priority Summary](README.md)
 - [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — sample rate and Beat Error resolution
-- [EXP-03: Filter Sweep](../experiments/exp-05-correctness-detector-optimization.md)
+- [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md)

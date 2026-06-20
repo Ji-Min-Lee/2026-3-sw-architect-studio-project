@@ -17,6 +17,7 @@
 - [QA Priority Summary](README.md)
 - [ADR-005: IAudioSource Dependency Inversion](../adr/ADR-005-p1-iaudiosource-dependency-inversion.md)
 - [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md)
+- [EXP-04: Observer Pattern Compliance](../experiments/exp-04-extensibility-observer-pattern.md) — ≤3 files, 0 layer violations, 14 tabs verified
 - [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md)
 - [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md)
 - [Module View: IAudioSource Dependency Inversion](../views/view-iaudiosource.md)

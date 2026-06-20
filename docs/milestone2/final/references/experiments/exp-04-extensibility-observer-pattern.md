@@ -4,6 +4,10 @@
 
 ---
 
+## Objective
+
+Verify that the BaseGraphTab observer pattern allows adding a new graph tab with **≤ 3 file changes** and **zero references** from Presentation to Signal Processing or Acquisition layers.
+
 ## Result
 
 All 14 tabs implemented under the ≤ 3-file constraint. Zero layer violations. QAS-4 Pass.
