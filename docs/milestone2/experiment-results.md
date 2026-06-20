@@ -692,11 +692,45 @@ Rate measurement remains stable at ~+4.0 s/d across 0–50 dB noise and degrades
 
 ### Run History
 
-| Phase | Date | Files | Detection Data | Notes |
-|:-----:|------|------:|:--------------:|-------|
-| Pilot | 2026-06-15 | 3 | No | Old naming (snr format), 48 kHz. Not used in analysis. |
-| Baseline | 2026-06-16 | 15 | No | 7 noise-level baselines (96 kHz) + 8 early grid runs (no sync_locked column) |
-| Grid search | 2026-06-17 | 274 | Yes | Main sweep — git_commit `bd7d1f3`, sync_locked / rate_spd / beat_error_ms / amplitude_deg logged |
+| Run | Date | Scope | Runs | Key Result | git_commit | Detail |
+|:---:|------|-------|:----:|------------|:----------:|:------:|
+| E3-01 | 2026-06-15 | Pilot — default params, 48 kHz, snr naming | 3 | No detection data; file format validation only | — | ▼ E3-01 below |
+| E3-02 | 2026-06-16 | Early grid — onset {0.02, 0.08} × min_peak {0.10, 0.30} × noise {0, 60} dB, 96 kHz | 8 | No detection data; 96 kHz playback confirmed | — | ▼ E3-02 below |
+| E3-03 | 2026-06-17 | Full grid — onset {0.02, 0.05, 0.08} × min_peak {0.10–0.30} × noise 0–60 dB × 5 reps | 274 | **onset=0.08/min_peak=0.10 best**: rate +4.0 s/d stable 0–50 dB; only onset=0.08 maintains lock at 60 dB | `bd7d1f3` | ▼ E3-03 below |
+
+### Run Details
+
+<details>
+<summary><b>E3-01</b> — 2026-06-15 · Pilot · 48 kHz · default params — 3 files, no detection data</summary>
+
+**Files**: `src/logs/EXP-03/log_20260615_170803_snr10db_48000hz_r1.csv` · `log_20260615_171457_snr00db_48000hz_r1.csv` · `log_20260615_171812_snr00db_48000hz_r1.csv`
+
+Early pilot runs at 48 kHz using the old `snr{XX}db` naming convention. No `sync_locked` / `rate_spd` / `beat_error_ms` columns — Logger did not yet have detection accuracy fields. Not used in parameter analysis.
+
+**Purpose**: Validate that the automated playback pipeline (CLI `--file`, `--duration`) logs frames correctly before scaling to 315-run grid.
+
+</details>
+
+<details>
+<summary><b>E3-02</b> — 2026-06-16 · Early grid · 96 kHz · onset {0.02, 0.08} × min_peak {0.10, 0.30} × noise {0, 60} dB — 8 runs + 7 noise baselines</summary>
+
+**Data files**: `src/logs/EXP-03/log_20260616_23*.csv` (15 files total)
+
+Switched to 96 kHz (target sample rate per EXP-01). Added 7 noise-level baseline runs (`noise{00-60}db_96000hz_r1.csv`) plus 8 early grid combinations (onset × min_peak × 2 noise extremes).
+
+No `sync_locked` column — these were run before the detection accuracy fields were added to Logger. Not used in the detection metric analysis.
+
+**Purpose**: Confirm 96 kHz file playback is stable and the grid sweep script works end-to-end before running all 315 combinations.
+
+</details>
+
+<details>
+<summary><b>E3-03</b> — 2026-06-17 · Full grid · 96 kHz · onset {0.02, 0.05, 0.08} × min_peak {0.10, 0.20, 0.30} × noise 0–60 dB × 5 reps — 274 runs with detection data</summary>
+
+**Data files**: `src/logs/EXP-03/log_20260617_*.csv` (274 files)  
+**Platform**: Raspberry Pi 5 · host=lg1 · device=rpi1 · git_commit=`bd7d1f3`
+
+Main parameter sweep. Logger now records `sync_locked`, `bph`, `rate_spd`, `beat_error_ms`, `amplitude_deg` per frame.
 
 **Completeness (valid files with detection data, capped at 5 reps):**
 
@@ -713,6 +747,8 @@ Rate measurement remains stable at ~+4.0 s/d across 0–50 dB noise and degrades
 | onset=0.08 / min_peak=0.30 | 1 | 0 | 2 | 0 | 2 | 0 | 1 |
 
 > onset=0.08 / min_peak=0.20 and 0.30 are incomplete but the trend is clear from onset=0.08 / min_peak=0.10.
+
+</details>
 
 ### Results
 
@@ -850,9 +886,23 @@ entire burst window, correctly alerting the user before any beat was missed.
 
 ### Run History
 
-| Run | Date | Part | Conditions | Noisy threshold | False-Alarm Rate | Result |
-|:---:|------|------|:----------:|:---------------:|:----------------:|--------|
-| R1 | 2026-06-17 | B — Noisy Signal | 7 SNR (0–60 dB) | **0.05** | 0 % (snr10db–60db clean) | ✅ Threshold found |
+| Run | Date | Part | Conditions | Threshold | False-Alarm Rate | Key Result | Detail |
+|:---:|------|------|:----------:|:---------:|:----------------:|------------|:------:|
+| E4-01 | 2026-06-17 | B — Noisy Signal | 7 SNR (0–60 dB) | **0.05** | 0 % (snr10db–60db clean) | ✅ Threshold found; 14 beat_missed at snr00db, all at noise_ratio 0.054–0.060 | ▼ E4-01 below |
+
+### Run Details
+
+<details>
+<summary><b>E4-01</b> — 2026-06-17 · Part B · macOS · 96 kHz · 7 SNR conditions — noise_ratio threshold = 0.05</summary>
+
+**Platform**: macOS · host=gyeongjinui-MacBookAir-3.local · git_commit=`40af12c` · sample_rate=96000 Hz  
+**WAV source**: `28800BPH_3235_Starbucks_snrXXdb.wav` (float32, converted via `convert_wav_float32.py`)  
+**Analysis tools**: [run_exp04.sh](../../src/tools/run_exp04.sh) · [analyze_exp04_scatter.py](../../src/tools/analyze_exp04_scatter.py) · [analyze_exp04_noise.py](../../src/tools/analyze_exp04_noise.py)  
+**Scatter plot**: [exp04_scatter.png](../../src/logs/EXP-04/exp04_scatter.png)
+
+See **Part B** section above for full condition table and key findings.
+
+</details>
 
 ### Current Best
 
