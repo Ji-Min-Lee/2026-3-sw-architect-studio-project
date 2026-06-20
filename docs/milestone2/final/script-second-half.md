@@ -1,7 +1,21 @@
-# Presentation Script — Section 2-C & 2-D
+# Presentation Script — Second Half (2-B · 2-C · 2-D · Section 3)
 
-> Speaker: covers from **2-C. Extensibility** through **2-D. Risk** and **Section 3 Schedule**
-> Estimated time: ~10 min
+> Speaker: covers from **2-B. Correctness** through **Section 3 Schedule**
+> Estimated time: ~13 min
+
+---
+
+## 2-B. Correctness: Observer Pattern
+
+"The second quality goal is correctness. Specifically — when a measurement result is ready, every tab must receive it. No tab gets skipped, no tab gets a different result."
+
+"The problem with a naive approach is direct coupling. If `MeasurementEngine` calls each tab directly, it has to know about all 14 tabs. And if you add a new tab, you have to go back and modify `MeasurementEngine`."
+
+"Our decision: Qt Signal-Slot as an Observer pattern. `MeasurementEngine` emits one signal — `measurementReady` — and every tab subscribes. `MeasurementEngine` has zero knowledge of any tab."
+
+"There's also a thread safety concern. DSP runs on T2, tabs render on the Qt main thread. Qt's `QueuedConnection` handles the cross-thread delivery safely — no manual locking needed."
+
+"The result: measurement logic and display logic are fully decoupled. Adding a new tab requires zero changes to `MeasurementEngine`. Correctness is guaranteed by the structure."
 
 ---
 
