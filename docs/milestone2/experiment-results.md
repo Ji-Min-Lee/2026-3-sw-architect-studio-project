@@ -9,7 +9,7 @@
 
 | ID | Experiment | Runs | Key Result | Status |
 |----|------------|:----:|------------|:------:|
-| EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 3 | Dropped Block = **0** across all sps × all scheduling policies — **QAS-1 Pass** | ✅ Done |
+| EXP-01 | RPi Real-Time Performance — Dropped Block Measurement | 9 | Dropped Block = **0** across all sps × all scheduling policies — **QAS-1 Pass** | ✅ Done |
 | EXP-02 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | DSP E2E avg **2.2 ms** / max **4.8 ms** achieved. FG scheduling latency avg 60 ms revealed as next bottleneck | ✅ Done |
 | EXP-03 | Detector Parameter Optimization Under Noise | 274 | `onset=0.08` most robust: rate ≈ +4.0 s/d stable across 0–50 dB. **Recommended: onset=0.08, min_peak=0.10** | ✅ Done |
 | EXP-04 | Signal Quality Warning Threshold Search | 7 | noise_ratio threshold = **0.05** confirmed. 14 beat_missed at snr00db, all at ratio > 0.05 | ⏳ In Progress |
@@ -38,19 +38,19 @@ EXP-04 (warning threshold) ─────────┘
 
 > Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline: 48k=42.67 ms · **96k=21.33 ms** · 192k=10.67 ms.  
 > The 30 s buffer absorbs all deadline-exceeded frames → Dropped stays 0 in all cases.  
-> 3 runs (scheduling configs), each covering all 3 sps = **9 measurements total**.
+> **9 runs total** (E1-01 ~ E1-09): 3 scheduling configs × 3 sps.
 
 | Run | Date | Scheduling | sps | exec avg/max (ms) | exec > deadline | Dropped | Data |
 |:---:|------|-----------|:---:|:-----------------:|:---------------:|:-------:|:----:|
 | E1-01 | 2026-06-15 | default | 48k | 5.8 / 36.6 | 4.9 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_203222_48000_default.png) |
-| E1-01 | 2026-06-15 | default | **96k** ★ | **9.6 / 39.2** | **8.1 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
-| E1-01 | 2026-06-15 | default | 192k | 15.8 / 51.6 | 12.1 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_210310_192000_default.png) |
-| E1-02 | 2026-06-15 | SCHED_RR p50 | 48k | 6.9 / 37.5 | 6.6 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_203730_48000_rr.png) |
-| E1-02 | 2026-06-15 | SCHED_RR p50 | **96k** ★ | **9.8 / 39.9** | **8.4 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
-| E1-02 | 2026-06-15 | SCHED_RR p50 | 192k | 16.0 / 61.7 | 12.5 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_210818_192000_rr.png) |
-| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 48k | 7.2 / 35.2 | 6.9 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.png) |
-| E1-03 | 2026-06-15 | SCHED_FIFO p50 | **96k** ★ | **9.9 / 41.4** | **8.6 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
-| E1-03 | 2026-06-15 | SCHED_FIFO p50 | 192k | 16.0 / 52.1 | 12.5 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.png) |
+| E1-02 | 2026-06-15 | default | **96k** ★ | **9.6 / 39.2** | **8.1 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
+| E1-03 | 2026-06-15 | default | 192k | 15.8 / 51.6 | 12.1 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) · [plot](../../src/logs/EXP-01/log_20260615_210310_192000_default.png) |
+| E1-04 | 2026-06-15 | SCHED_RR p50 | 48k | 6.9 / 37.5 | 6.6 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_203730_48000_rr.png) |
+| E1-05 | 2026-06-15 | SCHED_RR p50 | **96k** ★ | **9.8 / 39.9** | **8.4 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
+| E1-06 | 2026-06-15 | SCHED_RR p50 | 192k | 16.0 / 61.7 | 12.5 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) · [plot](../../src/logs/EXP-01/log_20260615_210818_192000_rr.png) |
+| E1-07 | 2026-06-15 | SCHED_FIFO p50 | 48k | 7.2 / 35.2 | 6.9 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_204238_48000_fifo.png) |
+| E1-08 | 2026-06-15 | SCHED_FIFO p50 | **96k** ★ | **9.9 / 41.4** | **8.6 %** | **0** | [csv](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
+| E1-09 | 2026-06-15 | SCHED_FIFO p50 | 192k | 16.0 / 52.1 | 12.5 % | **0** | [csv](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) · [plot](../../src/logs/EXP-01/log_20260615_211326_192000_fifo.png) |
 
 ★ = QAS-1 target sps
 
@@ -82,7 +82,9 @@ EXP-04 (warning threshold) ─────────┘
 | E2-06 | 2026-06-15 | E2-05 + R1 (Lazy Rendering) | 2.1 / 5.7 | ✅ Same perf + tighter max | [csv](../../src/logs/EXP-02/log_20260615_165612.csv) · [plot](../../src/logs/EXP-02/log_20260615_165612.png) |
 | E2-07 | 2026-06-16 | E2-06 + FG wait measurement | 2.2 / 4.8 | ✅ DSP healthy; **FG scheduling lag 60 ms revealed** | [csv](../../src/logs/EXP-02/log_20260616_140850.csv) · [plot](../../src/logs/EXP-02/log_20260616_140850.png) · [timeline](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png) |
 
-### Tactic Progression
+### Optimization Progression (E2-03 → E2-07)
+
+> E2-01 (Windows reference) and E2-02 (RPi unoptimized — thermal throttling) are baselines, not part of the RPi optimization chain.
 
 | Step | E2E avg | Change | Root Cause |
 |------|:-------:|--------|------------|
@@ -118,16 +120,6 @@ EXP-04 (warning threshold) ─────────┘
 | E3-01 | 2026-06-15 | Pilot — default params, 48 kHz | 3 | File format validation only; no detection data | — |
 | E3-02 | 2026-06-16 | Early grid — onset {0.02, 0.08} × noise {0, 60} dB, 96 kHz | 8 | 96 kHz playback confirmed; no detection data | — |
 | E3-03 | 2026-06-17 | Full grid — 3×3×7 onset×min_peak×noise × 5 reps | 274 | **onset=0.08/min_peak=0.10 best across all noise levels** | [logs](../../src/logs/EXP-03/) |
-
-### Experiment Design
-
-| Parameter | Values swept |
-|-----------|-------------|
-| `onset_fraction` | 0.02, 0.05, **0.08** |
-| `min_peak_fraction` | 0.10, 0.20, 0.30 |
-| Noise level | 0 / 10 / 20 / 30 / 40 / 50 / 60 dB (7 levels) |
-| Repetitions | 5 per combination |
-| **Total** | **3 × 3 × 7 × 5 = 315 planned → 274 completed** |
 
 ### Results
 
@@ -169,63 +161,62 @@ Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 
 **QA**: QAS-4 | **Date**: 2026-06-17 | **Status**: ⏳ In Progress
 
-**Questions**:
-- (Part B ✅) What `noise_ratio` threshold should trigger `⚠ Noisy signal` without false alarms?
-- (Part A ⏳) How quickly should `⚠ No signal` appear after the watch is removed?
+**Question**: What are the correct thresholds for signal quality warnings (`⚠ Noisy signal` and `⚠ No signal`)?
+
+**Answer**: Part B confirmed — `noise_ratio ≥ 0.05` triggers `⚠ Noisy signal` (2026-06-17). Part A (no-signal timing) not yet run — pending UI implementation.
 
 ### Run History
 
-| Run | Date | Part | Conditions | Threshold | Result | Data |
-|:---:|------|------|:----------:|:---------:|:------:|:----:|
-| E4-01 | 2026-06-17 | B — Noisy Signal | 7 SNR (0–60 dB) | **0.05** | ✅ Threshold confirmed | [logs](../../src/logs/EXP-04/) · [scatter](../../src/logs/EXP-04/exp04_scatter.png) |
-
-### Part B — Noisy Signal Threshold (Complete)
-
-`noise_ratio = noise_floor / ref_peak` (noise as a fraction of tick amplitude)
+`noise_ratio = noise_floor / ref_peak` (noise as a fraction of tick amplitude) · [scatter](../../src/logs/EXP-04/exp04_scatter.png)
 
 | Run | Date | SNR | Frames | sync_lost | beat_missed | noise_ratio avg | Result | Data |
 |:---:|------|:---:|:------:|:---------:|:-----------:|:---------------:|:------:|:----:|
 | E4-01 | 2026-06-17 | 60 dB | 2,145 | 0 | 0 | 0.0035 | ✅ | [csv](../../src/logs/EXP-04/log_snr60db_20260617_155620.csv) |
-| E4-01 | 2026-06-17 | 50 dB | 2,116 | 0 | 0 | 0.0035 | ✅ | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) |
-| E4-01 | 2026-06-17 | 40 dB | 1,972 | 0 | 0 | 0.0036 | ✅ | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) |
-| E4-01 | 2026-06-17 | 30 dB | 2,061 | 0 | 0 | 0.0040 | ✅ | [csv](../../src/logs/EXP-04/log_snr30db_20260617_155343.csv) |
-| E4-01 | 2026-06-17 | 20 dB | 1,763 | 0 | 0 | 0.0068 | ✅ | [csv](../../src/logs/EXP-04/log_snr20db_20260617_155251.csv) |
-| E4-01 | 2026-06-17 | 10 dB | 1,759 | 0 | 0 | 0.0177 | ✅ | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) |
-| E4-01 | 2026-06-17 | **0 dB** | 1,151 | **1** | **14** | **0.0537** | ❌ | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) |
+| E4-02 | 2026-06-17 | 50 dB | 2,116 | 0 | 0 | 0.0035 | ✅ | [csv](../../src/logs/EXP-04/log_snr50db_20260617_155527.csv) |
+| E4-03 | 2026-06-17 | 40 dB | 1,972 | 0 | 0 | 0.0036 | ✅ | [csv](../../src/logs/EXP-04/log_snr40db_20260617_155435.csv) |
+| E4-04 | 2026-06-17 | 30 dB | 2,061 | 0 | 0 | 0.0040 | ✅ | [csv](../../src/logs/EXP-04/log_snr30db_20260617_155343.csv) |
+| E4-05 | 2026-06-17 | 20 dB | 1,763 | 0 | 0 | 0.0068 | ✅ | [csv](../../src/logs/EXP-04/log_snr20db_20260617_155251.csv) |
+| E4-06 | 2026-06-17 | 10 dB | 1,759 | 0 | 0 | 0.0177 | ✅ | [csv](../../src/logs/EXP-04/log_snr10db_20260617_155158.csv) |
+| E4-07 | 2026-06-17 | **0 dB** | 1,151 | **1** | **14** | **0.0537** | ❌ | [csv](../../src/logs/EXP-04/log_snr00db_20260617_155107.csv) |
 
-**Key finding**: All 14 beat_missed events at snr00db occurred in a burst at frames 582–624, immediately after sync_lost at frame 581. All had `noise_ratio` in 0.054–0.060 — above the **0.05** threshold. snr10db had noise_ratio max 0.0585 but zero missed beats, confirming 0.05 is the correct boundary.
+**Key finding**: All 14 beat_missed at 0 dB occurred in frames 582–624, immediately after sync_lost at frame 581. All had `noise_ratio` in 0.054–0.060 — above **0.05**. E4-06 (10 dB) had max 0.0585 but zero missed beats, confirming 0.05 is the correct boundary.
 
-**Threshold interpretation**:
-- `noise_ratio ≥ 0.05` → trigger `⚠ Noisy signal`
-- Practical: tick at 80 dB SPL → max tolerable ambient noise = 54 dB SPL
+**Threshold**: `noise_ratio ≥ 0.05` → trigger `⚠ Noisy signal` · Practical: tick at 80 dB SPL → max tolerable ambient = 54 dB SPL
 
 ### Part A — No Signal Timing (Not yet started)
 
 > Requires `⚠ No signal` / `⚠ Noisy signal` warning UI implementation before running.
 
+### Conclusion
+
+- **Threshold confirmed**: `noise_ratio ≥ 0.05` triggers `⚠ Noisy signal` — 0 misses at 10–60 dB SNR, 14 misses at 0 dB (all above 0.05)
+- **Part A** (no signal timing) pending — requires warning UI implementation first
+
 ---
 
 ## EXP-05: BPH Escalation Verification — 36k/43k BPH
 
-**QA**: QAS-2 Stretch | **Status**: ⏸ Deferred
+**QA**: QAS-2 Stretch | **Date**: — | **Status**: ⏸ Deferred
 
-> Not started. Will begin only after EXP-02 complete and QAS-1–4 all confirmed at 28,800 BPH.
+**Question**: Does the detector track correctly at 36,000 BPH and 43,200 BPH, and does E2E latency stay within 30 ms?
 
-| Run | Date | Change | 36k E2E (ms) | 43k E2E (ms) | Result |
-|:---:|------|--------|:------------:|:------------:|:------:|
-| E5-01 | — | Planned: baseline | — | — | — |
+**Answer**: Not yet run — deferred until QAS-1–4 all confirmed at 28,800 BPH.
+
+| Run | Date | 36k E2E (ms) | 43k E2E (ms) | Result |
+|:---:|------|:------------:|:------------:|:------:|
+| E5-01 | — | — | — | — |
 
 ---
 
 ## Architecture Decisions Log
 
-| Decision | Source | Outcome | Date |
-|----------|:------:|---------|------|
-| Target sps | EXP-01 | **96k sps** — Dropped = 0 across all tested sps with 30 s buffer | 2026-06-15 |
-| SCHED_RR on audio thread | EXP-01 | **Not applied** — no improvement in drop count; exec marginally worse | 2026-06-15 |
-| DSP offload thread (T2) | EXP-02 | **Applied** — E2E 80 ms → 2.1 ms (−97 %), zero backlog | 2026-06-15 |
-| Lazy Rendering (R1) | EXP-02 | **Applied** — max tail 11.1 → 5.7 ms | 2026-06-15 |
-| Detector parameters | EXP-03 | **onset=0.08, min_peak=0.10** — only setting tracking through 60 dB SNR | 2026-06-17 |
-| Noisy signal threshold | EXP-04 | **noise_ratio = 0.05** — clean at 10–60 dB SNR; 14 misses at 0 dB (all above 0.05) | 2026-06-17 |
-| No signal timing (N/M) | EXP-04 | Pending — Part A not yet run | — |
-| BPH escalation (EXP-05) | EXP-05 | Pending — Deferred | — |
+| Decision | QA | Source | Outcome | Date |
+|----------|:--:|:------:|---------|------|
+| Target sps | QAS-1 | EXP-01 | **96k sps** — Dropped = 0 across all tested sps with 30 s buffer | 2026-06-15 |
+| SCHED_RR on audio thread | QAS-1 | EXP-01 | **Not applied** — no improvement in drop count; exec marginally worse | 2026-06-15 |
+| DSP offload thread (T2) | QAS-2 | EXP-02 | **Applied** — E2E 80 ms → 2.1 ms (−97 %), zero backlog | 2026-06-15 |
+| Lazy Rendering (R1) | QAS-2 | EXP-02 | **Applied** — max tail 11.1 → 5.7 ms | 2026-06-15 |
+| Detector parameters | QAS-3 | EXP-03 | **onset=0.08, min_peak=0.10** — only setting tracking through 60 dB SNR | 2026-06-17 |
+| Noisy signal threshold | QAS-4 | EXP-04 | **noise_ratio = 0.05** — clean at 10–60 dB SNR; 14 misses at 0 dB (all above 0.05) | 2026-06-17 |
+| No signal timing | QAS-4 | EXP-04 | Pending — Part A not yet run | — |
+| BPH escalation | QAS-2 | EXP-05 | Pending — Deferred | — |
