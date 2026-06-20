@@ -138,6 +138,8 @@ private slots:
     void escapementTab_deltaMs_matchesEventSpacing()
     {
         EscapementTab tab;
+        tab.show();
+        QApplication::processEvents();
         Measurement m;
         m.signal.samplesPerSecond = 48000;
         m.signal.tickStart = 0;
@@ -207,8 +209,7 @@ private slots:
         LongTermTab tab;
         Measurement m;
         m.signal.pcm.fill(0.0, 4800);
-        m.metrics.rate.reset();
-        m.metrics.rate = 99.0;
+        m.metrics.rate.reset();   // leave rate unset — no data point should be added
         tab.onMeasurement(m);
         QCOMPARE(plotOf(&tab)->graph(0)->data()->size(), 0);
     }
@@ -217,6 +218,8 @@ private slots:
     void beatNoise_capturesBeatWaveformWindow()
     {
         BeatNoiseScopeTab tab;
+        tab.show();
+        QApplication::processEvents();
         Measurement m;
         m.signal.samplesPerSecond = 48000;
         m.signal.tickStart = 0;
@@ -248,6 +251,8 @@ private slots:
     void waveformComp_ticWindow_matchesHpfPcm()
     {
         WaveformCompTab tab;
+        tab.show();
+        QApplication::processEvents();
         Measurement m;
         m.signal.tickStart = 0;
         m.signal.samplesPerSecond = 48000;
@@ -282,6 +287,8 @@ private slots:
     void waveformComp_tocPair_completesBeat()
     {
         WaveformCompTab tab;
+        tab.show();
+        QApplication::processEvents();
         Measurement m;
         m.signal.tickStart = 0;
         m.signal.samplesPerSecond = 48000;
@@ -349,7 +356,7 @@ private slots:
         Measurement m;
         m.metrics.rate = 4.0;
         m.metrics.beatError = 0.2;
-        // amplitude set via optional m.amplitudeDeg = 285.0;
+        m.metrics.amplitude = 285.0;
         tab.setActivePosition("CH");
         tab.onMeasurement(m);
         tab.captureCurrent();
@@ -378,10 +385,12 @@ private slots:
     {
         SequenceTab seq;
         RadarChartTab radar(&seq);
-        radar.show();                                // lazy render needs visibility
+        radar.show();
+        QApplication::processEvents();
 
         auto cap = [&](const QString &pos, double amp) {
-            Measurement m; // amplitude set via optional m.amplitudeDeg = amp;
+            Measurement m;
+            m.metrics.amplitude = amp;
             seq.setActivePosition(pos);
             seq.onMeasurement(m);
             seq.captureCurrent();
@@ -399,8 +408,10 @@ private slots:
         SequenceTab seq;
         RadarChartTab radar(&seq);
         radar.show();
+        QApplication::processEvents();
         auto cap = [&](const QString &pos, double amp) {
-            Measurement m; // amplitude set via optional m.amplitudeDeg = amp;
+            Measurement m;
+            m.metrics.amplitude = amp;
             seq.setActivePosition(pos);
             seq.onMeasurement(m);
             seq.captureCurrent();

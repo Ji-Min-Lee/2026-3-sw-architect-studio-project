@@ -121,6 +121,12 @@ void EscapementTab::onMeasurement(const Measurement &m)
                 if (mOnsetHistory.size() > kHistoryN) mOnsetHistory.removeFirst();
             }
 
+            // Update mCurrentMs immediately so callers (e.g. unit tests) can
+            // read the value without requiring the widget to be visible first.
+            bool useOnset = mRefCombo->currentIndex() == 1 && mBeat.cOnsetValid;
+            double cAbs   = useOnset ? mBeat.cOnsetPos : mBeat.cPeakPos;
+            mCurrentMs    = (cAbs - mBeat.aPos) / mSps * 1000.0;
+
             if (!mPaused && isVisible()) redraw();
         } else if (start < mBufStartAbs) {
             mHavePending = false;  // too old, drop

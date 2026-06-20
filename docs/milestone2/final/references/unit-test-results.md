@@ -1,9 +1,9 @@
 # Unit Test Results
 
-**Branch**: `feature/layer-ex-baseline`  
-**Run date**: 2026-06-22  
+**Branch**: `feature/m2-presentaion`  
+**Run date**: 2026-06-21 (re-run after fixes)  
 **Environment**: macOS 14.6.1, Qt 6.11.1, Apple LLVM 16.0.0 (arm64)  
-**Build**: `src/build/` (CMake release)
+**Build**: `src/build-mac/` (CMake release)
 
 ---
 
@@ -16,9 +16,12 @@
 | TestRollingAverage | 14 | 0 | 14 | ✅ PASS |
 | TestRollingLeastSquares | 13 | 0 | 13 | ✅ PASS |
 | TestGraphTabs | 17 | 0 | 17 | ✅ PASS |
-| TestAddedTabs | 12 | 4 | 16 | ❌ 4 FAIL |
-| TestRemainingTabs | 11 | 2 + crash | 13+ | ❌ FAIL |
-| **Total** | **119** | **6+** | **125+** | |
+| TestAddedTabs | 20 | 0 | 20 | ✅ PASS |
+| TestRateScopeTab | 7 | 0 | 7 | ✅ PASS |
+| TestSweepScopeTab | 6 | 0 | 6 | ✅ PASS |
+| TestFilterScopeTab | 7 | 0 | 7 | ✅ PASS |
+| TestSoundPrintTab | 6 | 0 | 6 | ✅ PASS |
+| **Total** | **142** | **0** | **142** | ✅ ALL PASS |
 
 ---
 
@@ -50,7 +53,7 @@ End-to-end MeasurementEngine integration: Beat Event stream → Rate / Amplitude
 |------|-----------------|
 | `beatError_workedExample_matchesEquation` | BE rolling average = 0.8ms matches Equations p.8 |
 | `computeAmplitude_ticAndTocProduceSplitAndAverage` | Tic/toc split computed, average stored in rolling buffer |
-| `computeRateError_perfectWatch_setsZeroWrappedPoints` | Perfect beat stream → rate = 0, wrapped error = 0 |
+| `computeRateError_perfectWatch_setsZeroWrappedPointsAndZeroRate` | Perfect beat stream → rate = 0, wrapped error = 0 |
 | `computeRateError_knownDeviation_rateSpd_8p64` | T_tic=249.980ms, T_tac=249.970ms → Rate = +8.640 s/day |
 | `computeRateError_multibeat_rateConverges` | 20-beat averaging → tolerance tightens to ±0.01 s/day |
 | `computeRateError_slowWatch_rateSpd_negative` | T=250.010ms → Rate ≈ −3.456 s/day |
@@ -85,30 +88,63 @@ UI-layer graph tab data contract tests (no rendering — data model only).
 
 ---
 
-## Failing Binaries
+### TestRateScopeTab — 7 / 7 ✅
 
-### TestAddedTabs — 12 passed / 4 failed ❌
-
-| Failed Test | Error | Root Cause |
-|-------------|-------|------------|
-| `escapementTab_deltaMs_matchesEventSpacing` | `qAbs(currentEscapementMs() - 5.0) < 1e-6` returned FALSE | EscapementTab internal state not updated via test-accessible path |
-| `beatNoise_capturesBeatWaveformWindow` | `data->size()` = 0, expected 960 | BeatNoiseScopeTab waveform buffer not populated without full audio pipeline |
-| `waveformComp_ticWindow_matchesHpfPcm` | `data->size() > 0` returned FALSE | WaveformComparisonTab requires HPF PCM path not wired in unit context |
-| `waveformComp_tocPair_completesBeat` | `data->size() > 0` returned FALSE | Same as above |
-
-**Assessment**: Failures are in tabs that require raw PCM pipeline input (BeatNoise, WaveformComparison) or internal state not exposed by the current test interface (EscapementTab). These are **integration-level gaps**, not logic bugs. Core measurement logic (WatchMath, MeasurementEngine) is fully verified.
+| Test | What it verifies |
+|------|-----------------|
+| `pcmBlock_appearsInScopePlot` | PCM block data appears in scope plot |
+| `ticEvent_appendsToTicSeries` | Tic event appended to tic series |
+| `tocEvent_appendsToTocSeries` | Toc event appended to toc series |
+| `wrappedValue_isPreserved` | Wrapped rate value preserved across update |
+| `reset_clearsSeries` | Reset clears all series data |
 
 ---
 
-### TestRemainingTabs — 11 passed / 2 failed + 1 crash ❌
+### TestSweepScopeTab — 6 / 6 ✅
 
-| Failed Test | Error | Root Cause |
-|-------------|-------|------------|
-| `SweepScopeTab::pcmBlock_producesPlotData` | `dataCount() > 0` returned FALSE | Sweep trigger condition not met in headless test context |
-| `SweepScopeTab::bufferLength_matchesBphMultiple` | x-axis upper = 5ms, expected 250ms | BPH not propagated to tab before test assertion |
-| `FilterScopeTab::f0_outputSizeMatchesInput` | **SIGSEGV** (signal 11) | Null pointer dereference — filter chain not initialized before PCM input |
+| Test | What it verifies |
+|------|-----------------|
+| `pcmBlock_producesPlotData` | PCM block triggers sweep plot population |
+| `bufferLength_matchesBphMultiple` | X-axis upper = 250ms at 28800 BPH |
+| `reset_clearsSweepAndPlot` | Reset clears sweep buffer and plot |
+| `absoluteValue_storedInSweep` | Absolute PCM values stored in sweep buffer |
 
-**Assessment**: SIGSEGV in FilterScopeTab is the one issue that warrants a fix. The two SweepScopeTab failures are test setup issues (BPH not set, trigger not fired). None affect the core audio pipeline or measurement correctness.
+---
+
+### TestFilterScopeTab — 7 / 7 ✅
+
+| Test | What it verifies |
+|------|-----------------|
+| `f0_outputSizeMatchesInput` | Filter output size matches PCM input size |
+| `f0_mirroredGraph1HasData` | Mirror graph has data after f0 processing |
+| `f1_allValuesNonNegative` | f1 (envelope) output is non-negative |
+| `f1_graph1IsEmpty` | Graph 1 is empty in f1 mode |
+| `reset_clearsBothGraphs` | Reset clears both graphs |
+
+---
+
+### TestSoundPrintTab — 6 / 6 ✅
+
+Null-safety smoke tests for SoundPrintTab.
+
+Covers: construction with null widget, empty PCM input, reset with null widget, setBph / setSampleRate no-crash guards.
+
+---
+
+## Fixes Applied (2026-06-21)
+
+All 8 previously failing tests resolved. Root causes and fixes:
+
+| Failed Test | Root Cause | Fix Type |
+|-------------|-----------|----------|
+| `escapementTab_deltaMs_matchesEventSpacing` | `mCurrentMs` updated only inside `redraw()`, which is skipped when `!isVisible()` | **Code fix** — compute `mCurrentMs` in `onMeasurement()` before visibility check; TC also needed `tab.show()` for the plot assertion |
+| `longTermTab_invalidRate_notDrawn` | `rate.reset()` followed immediately by `= 99.0` re-set the optional to a valid value | TC fix — removed `m.metrics.rate = 99.0` line |
+| `beatNoise_capturesBeatWaveformWindow` | `redrawScope1()` blocked by `!isVisible()` guard; tab not shown | TC fix — added `tab.show() + processEvents()` |
+| `waveformComp_ticWindow_matchesHpfPcm` | `redrawPlots()` blocked by `!isVisible()` guard | TC fix — added `tab.show() + processEvents()` |
+| `waveformComp_tocPair_completesBeat` | Same as above | TC fix — added `tab.show() + processEvents()` |
+| `sequence_capturedReadings_reflectValues` | `m.metrics.amplitude` never set (was left as a comment) | TC fix — added `m.metrics.amplitude = 285.0` |
+| `radar_plotsCapturedPositions_closedPolygon` | Amplitude not passed into Measurement in lambda; `rebuild()` needed `processEvents()` after `show()` | TC fix — added `m.metrics.amplitude = amp` + `processEvents()` |
+| `radar_flagsOutOfTolerance_inVerdict` | Same as above | TC fix — same fix |
 
 ---
 
@@ -119,4 +155,5 @@ UI-layer graph tab data contract tests (no rendering — data model only).
 | Domain equation correctness (Rate / Amplitude / Beat Error) | TestWatchMath + TestMeasurementEngine — all 52 tests pass |
 | Regression during layer refactoring (God Object → 4-layer) | TestGraphTabs — 17 tests verify data contract unchanged |
 | Rolling buffer correctness (smoothing, trend) | TestRollingAverage + TestRollingLeastSquares — 27 tests pass |
-| Tab data model integrity | TestAddedTabs (partial), TestRemainingTabs (partial) |
+| Scope tab rendering pipeline | TestRateScopeTab + TestSweepScopeTab + TestFilterScopeTab + TestSoundPrintTab — 26 tests pass |
+| Tab data model integrity | TestAddedTabs — all 20 tests pass |

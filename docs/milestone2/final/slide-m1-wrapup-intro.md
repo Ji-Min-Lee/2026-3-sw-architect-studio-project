@@ -12,7 +12,7 @@
 
 | Area | M1 Issue | M2 Fix |
 |------|----------|--------|
-| Project Plan | No owner/date. Experiments not tracked | Owner + date on every task. Experiments tracked as GitHub issues |
+| Project Plan | No owner/date. Experiments not tracked | Owner + date on every task. Experiments tracked as [GitHub issues](references/github-project-status.md) |
 | Architecture Diagrams | Source unlabeled. Too detailed | Purpose-driven views: each view targets a specific reader and QA |
 | Architectural Drivers | Tactics mixed into QA doc. Provisional numbers | Structured under `references/` — separate files per QA / risk / experiment / ADR |
 | Experiments | 1 of 9 risks linked. None started | Short sprints with decide → execute → feedback loops — all scheduled experiments completed |
