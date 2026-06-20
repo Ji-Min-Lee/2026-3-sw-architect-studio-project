@@ -17,13 +17,6 @@
 | W3 S1 | 6/15–6/16 | Experiments & AI Step 1 | EXP-01 ✅ (Dropped=0 at 96kHz → ADR-003); EXP-02 E2-3~E2-7 ✅ (T2+R1 on RPi, E2-7 FG latency 🔴); rule-based watch diagnosis (AI Step 1); Radar/Polar tab; QAS-4 live detach alarm |
 | W3 S2 | 6/17–6/18 | Enhancements & AI Step 2 | AI Step 2 — LLM explainer via Ollama (WatchExplainer, streaming, RPi-tuned); Sound Print SP-1/SP-2/SP-3; RS-1/RS-2 trend+stats overlay; RS-4 zoom slider; RS-5 click-to-sync; 4-layer refactor (SessionController, VOs, IAudioSource) |
 
-### Experiments Completed in M2
-
-| ID | Experiment | Result |
-|----|------------|--------|
-| [EXP-01](references/experiments/exp-01-high-res-sampling-beat-error.md) | RPi sample rate sustainability (9 combinations: 48k/96k/192k × default/rr/fifo) | Dropped=0 at 96kHz → [ADR-003](references/adr/ADR-003-sample-rate-selection.md) Accepted ✅ |
-| [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) E2-3~E2-6 | Tactic progression: baseline → T2 DSP offload → R1 lazy rendering on RPi | E2E avg **2.05 ms**, 0 deadline miss ✅ |
-| [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) E2-7 | FG thread scheduling latency on RPi | fg_wait avg **60.1 ms**, 84% > deadline 🔴 |
 
 ---
 
