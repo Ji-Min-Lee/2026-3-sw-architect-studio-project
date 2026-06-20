@@ -11,18 +11,9 @@
 |----|----|------------|:----:|------------|:------:|
 | EXP-01 | QAS-1 | WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000 | 0 | — | ⏸ Planned (W5 S1 6/29) |
 | EXP-02 | QAS-2 | RPi Real-Time Performance — Dropped Block Measurement | 9 | Dropped Block = **0** across all sps × all scheduling policies — **QAS-2 Pass** | ✅ Done |
-| EXP-03 | QAS-3 | End-to-End Latency — 3-Segment Timestamp Measurement | 7 | DSP E2E avg **2.2 ms** / max **4.8 ms** achieved. FG scheduling latency avg 60 ms revealed as next bottleneck | ✅ Done |
+| EXP-03 | QAS-3 | End-to-End Latency — 2-Segment Timestamp Measurement | 7 | DSP E2E avg **2.2 ms** / max **4.8 ms** achieved. FG scheduling latency avg 60 ms revealed as next bottleneck | ✅ Done |
 | EXP-04 | QAS-4 | Observer Pattern Compliance — Tab Extension Cost Measurement | — | ≤ 3 files per new tab · 0 Signal Processing references · 14 tabs all pass · DSM no violations | ✅ Done |
 | EXP-05 | QAS-5 | Detector Parameter Optimization Under Noise | 274 | `onset=0.08` most robust: rate ≈ +4.0 s/d stable across 0–50 dB. **Recommended: onset=0.08, min_peak=0.10** | ✅ Done |
-
-### Experiment Dependency Chain
-
-```
-EXP-02 (QAS-2: target sps)
-EXP-03 (QAS-3: pipeline latency)   ──┐
-EXP-05 (QAS-5: detector params)   ──► EXP-01 (QAS-1: WeiShi accuracy)
-EXP-04 (QAS-4: extensibility — independent)
-```
 
 ---
 
@@ -86,7 +77,7 @@ EXP-04 (QAS-4: extensibility — independent)
 
 ---
 
-## EXP-03: End-to-End Latency — 3-Segment Timestamp Measurement
+## EXP-03: End-to-End Latency — 2-Segment Timestamp Measurement
 
 **QA**: QAS-3 | **Date**: 2026-06-11 ~ 2026-06-16 | **Status**: ✅ Done
 
@@ -108,18 +99,6 @@ EXP-04 (QAS-4: extensibility — independent)
 | E3-06 | 2026-06-15 | E3-05 + R1 (Lazy Rendering) | 2.1 / 5.7 | ✅ Same perf + tighter max | [csv](../../src/logs/EXP-02/log_20260615_165612.csv) · [plot](../../src/logs/EXP-02/log_20260615_165612.png) |
 | E3-07 | 2026-06-16 | E3-06 + FG wait measurement | 2.2 / 4.8 | ✅ DSP healthy; **FG scheduling lag 60 ms revealed** | [csv](../../src/logs/EXP-02/log_20260616_140850.csv) · [plot](../../src/logs/EXP-02/log_20260616_140850.png) · [timeline](../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png) |
 
-### Optimization Progression (E3-03 → E3-07)
-
-> E3-01 (Windows reference) and E3-02 (RPi unoptimized — thermal throttling) are baselines, not part of the RPi optimization chain.
-
-| Step | E2E avg | Change | Root Cause |
-|------|:-------:|--------|------------|
-| E3-03 (baseline) | 57 ms | — | `plot` rendering on the DSP exec path |
-| E3-04 (multi-tab) | 80 ms | worse | `plot` removed but no FG-BG sync → queue builds |
-| **E3-05 (+T2)** | **2.1 ms** | **−97 %** | DSP offload thread — FG-BG 1:1 sync, zero backlog |
-| E3-06 (+R1) | 2.05 ms | max 11→5.7 ms | Lazy Rendering trims worst-case tail |
-| E3-07 (measure) | 2.2 ms | — | FG Qt event-loop pickup lag avg 60 ms newly revealed |
-
 ### Conclusion
 
 - **Key fix**: T2 (DSP offload thread) — E2E 80 ms → 2.1 ms (−97 %)
@@ -136,7 +115,7 @@ EXP-04 (QAS-4: extensibility — independent)
 
 **Answer**: Yes. All 14 tabs were implemented under this constraint. Verified by unit tests and DSM showing zero layer violations.
 
-### Run History
+### Verification Record
 
 | Run | Date | Scope | Result | Data |
 |:---:|------|-------|:------:|:----:|
@@ -198,7 +177,7 @@ Rate (s/d) averaged across all reps. Values for `min_peak=0.10` (best within eac
 
 Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 
-| Noise | Rep 1 | Rep 2 | Rep 3 |
+| Noise | Sample 1 | Sample 2 | Sample 3 |
 |:-----:|-------|-------|-------|
 | 00 dB | [csv](../../src/logs/EXP-03/log_20260617_111942_onset008_minpk010_noise00db_r2.csv) | [csv](../../src/logs/EXP-03/log_20260617_112029_onset008_minpk010_noise00db_r3.csv) | [csv](../../src/logs/EXP-03/log_20260617_112116_onset008_minpk010_noise00db_r4.csv) |
 | 30 dB | [csv](../../src/logs/EXP-03/log_20260617_113041_onset008_minpk010_noise30db_r1.csv) | [csv](../../src/logs/EXP-03/log_20260617_113128_onset008_minpk010_noise30db_r2.csv) | [csv](../../src/logs/EXP-03/log_20260617_131415_onset008_minpk010_noise30db_r3.csv) |
@@ -222,4 +201,6 @@ Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 | SCHED_RR on audio thread | QAS-2 | EXP-02 | **Not applied** — no improvement in drop count; exec marginally worse | 2026-06-15 |
 | DSP offload thread (T2) | QAS-2 | EXP-03 | **Applied** — eliminated 43 % deadline miss; E2E 80 ms → 2.1 ms | 2026-06-15 |
 | Lazy Rendering (R1) | QAS-3 | EXP-03 | **Applied** — max tail latency 11.1 → 5.7 ms | 2026-06-15 |
+| Observer pattern (BaseGraphTab + Qt Signal-Slot) | QAS-4 | EXP-04 | **Applied** — `MeasurementEngine` has zero tab knowledge; ≤ 3 files per new tab | 2026-06-21 |
+| IAudioSource dependency inversion | QAS-4 | EXP-04 | **Applied** — 3 audio sources unified under single interface; 1 connect() site | 2026-06-21 |
 | Detector parameters | QAS-5 | EXP-05 | **onset=0.08, min_peak=0.10** — only setting tracking through 60 dB SNR | 2026-06-17 |
