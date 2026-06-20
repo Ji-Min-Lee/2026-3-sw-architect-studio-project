@@ -10,19 +10,7 @@
 
 `onset=0.08` is the only setting that maintains tracking at 60 dB SNR. `onset=0.02` and `0.05` fail catastrophically at high noise. `min_peak` has negligible effect within the `onset=0.08` group.
 
-## Results Table
-
-Rate (s/d) for `min_peak=0.10` (best within each onset group):
-
-| Noise | onset=0.02 | onset=0.05 | onset=0.08 ✅ |
-|:-----:|:----------:|:----------:|:-------------:|
-| 00 dB | +12.11 | +4.24 | +4.06 |
-| 10 dB | +8.07 | +4.18 | +4.02 |
-| 30 dB | +8.11 | +4.15 | +4.02 |
-| 50 dB | +14.65 | +4.02 | +3.86 |
-| **60 dB** | **−4,264** ❌ | **−393** ❌ | **+7.51** ✅ |
-
-## Runs
+## Run History
 
 WAV source: 28,800 BPH real recording + pink noise (96 kHz, float32). Platform: RPi 5 (host=lg1, device=rpi1).
 
@@ -35,6 +23,9 @@ WAV source: 28,800 BPH real recording + pink noise (96 kHz, float32). Platform: 
 ## Architecture Decision
 
 `Detector.cpp` default parameters updated to `onset=0.08`, `min_peak=0.10`.
+
+- **`onset_fraction`**: fraction of peak amplitude used as the beat detection threshold. `0.08` is the only value that maintains stable Rate across 0–60 dB SNR; `0.02` and `0.05` fail at 60 dB (Rate −4,264 / −393 s/d).
+- **`min_peak_fraction`**: minimum amplitude to qualify as a valid peak. Negligible effect within the `onset=0.08` group — `0.10` selected for lowest Beat Error.
 
 ## Links
 
