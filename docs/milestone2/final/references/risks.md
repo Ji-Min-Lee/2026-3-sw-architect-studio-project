@@ -27,7 +27,7 @@
 |----|-------------|:----:|:------:|------------|:------:|
 | NTR-04 | English communication overhead slows documentation velocity | M | L | All deliverables in English. Internal discussion Korean; design summaries bilingual | ✅ Convention held |
 | NTR-05 | Single RPi device creates experiment bottleneck | H | M | EXP-02 validated on each dev machine first; RPi-independent work ran in parallel; RPi slot reserved for target-hardware confirmation | ✅ Mitigated |
-| NTR-07 | Equation-level derivations difficult (Rate / Beat Error / Amplitude formulas) | M | H | AI-assisted equation interpretation; 119 tests across 5 binaries verify correctness independently of individual formula fluency | ✅ Mitigated — test suite is safety net |
+| NTR-07 | Equation-level derivations difficult (Rate / Beat Error / Amplitude formulas) | M | H | AI-assisted equation interpretation; [119 tests across 5 binaries](unit-test-results.md) verify correctness independently of individual formula fluency | ✅ Mitigated — test suite is safety net |
 
 ---
 
