@@ -24,39 +24,39 @@
 
 | | Risk | Description | Experiment | Result | Architecture Decision |
 |--|------|-------------|-----------|--------|-----------------------|
-| | [TR-05](references/risks.md) | LP/HP filter defaults block beat signal or pass ambient noise at edge BPH values | [EXP-03](references/experiments/exp-03-filter-tuning-noise-accuracy.md) | ⏳ 06/25 | — (ADR pending EXP-03 results) |
-| ★ | [NTR-07](references/risks.md) | Team lacks domain knowledge of watch measurement formulas (Rate / Amplitude / Beat Error) | — | AI-generated unit tests for structural verification (119 tests / 5 binaries) | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) Observer — consistent Measurement delivery to all tabs |
+| | [TR-05](references/risks.md) | Filter configuration may degrade beat detection accuracy at edge BPH values | [EXP-03](references/experiments/exp-03-filter-tuning-noise-accuracy.md) | ⏳ 06/25 | — (ADR pending EXP-03 results) |
+| ★ | [NTR-07](references/risks.md) | Domain knowledge gap prevents structural verification of measurement tab correctness | — | AI-generated unit tests for structural verification (119 tests / 5 binaries) | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) Observer — consistent Measurement delivery to all tabs |
 
 ### QAS-2 — Real-Time Performance
 
 | | Risk | Description | Experiment | Result | Architecture Decision |
 |--|------|-------------|-----------|--------|-----------------------|
-| ★ | [TR-02](references/risks.md) | Single-threaded pipeline saturates cpu2 (91%); 43% deadline miss on RPi | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) | wait_ms 420ms → **0.013ms** (×32,000) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
-| ★ | [TR-03](references/risks.md) | Qt QueuedConnection accumulates 420ms backlog; frame queue grows unbounded | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) | Backlog 0% (macOS + RPi E2-5/6) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
-| | [TR-04](references/risks.md) | `replot()` consumes 79% of exec budget (16ms / 21ms); scales with number of tabs | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) / [EXP-05](references/experiments/exp-05-rendering-realtime-impact.md) | replot/beat 8.22 → **1.20** (↓85%) macOS | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ · [ADR-004](references/adr/ADR-004-r2-timer-decoupled-rendering.md) R2 conditional ⏳ |
-| ★ | [TR-10](references/risks.md) 🔴 | Qt FG event loop picks up frameLogged signal avg 60.1ms late (84% > 21ms deadline) | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) E2-7 | 🔴 Unresolved | E2-8: SCHED_RR / QTimer polling — scheduled 06/22 |
+| ★ | [TR-02](references/risks.md) | Single-threaded design misses real-time beat processing deadline on RPi | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) | wait_ms 420ms → **0.013ms** (×32,000) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
+| ★ | [TR-03](references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) | Backlog 0% (macOS + RPi E2-5/6) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
+| | [TR-04](references/risks.md) | Rendering cost per beat consumes most of the real-time budget | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) / [EXP-05](references/experiments/exp-05-rendering-realtime-impact.md) | replot/beat 8.22 → **1.20** (↓85%) macOS | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ · [ADR-004](references/adr/ADR-004-r2-timer-decoupled-rendering.md) R2 conditional ⏳ |
+| ★ | [TR-10](references/risks.md) 🔴 | UI event loop picks up beat signals too late to meet the real-time deadline | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) E2-7 | 🔴 Unresolved | E2-8: SCHED_RR / QTimer polling — scheduled 06/22 |
 
 ### QAS-3 — Low Latency
 
 | | Risk | Description | Experiment | Result | Architecture Decision |
 |--|------|-------------|-----------|--------|-----------------------|
-| | [TR-01](references/risks.md) | RPi 5 cannot sustain 96kHz audio capture without block drops while Qt GUI runs | [EXP-01](references/experiments/exp-01-high-res-sampling-beat-error.md) | Dropped=0 at 48k/96k/192k · SCHED_RR not required | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
+| | [TR-01](references/risks.md) | RPi may not sustain high-resolution audio capture alongside Qt GUI | [EXP-01](references/experiments/exp-01-high-res-sampling-beat-error.md) | Dropped=0 at 48k/96k/192k · SCHED_RR not required | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
 | ★ | TR-02/03 | *(shared with QAS-2)* Single-threaded capture-to-process latency | [EXP-02](references/experiments/exp-02-realtime-deadline-compliance.md) | E2E avg **2.05ms** on RPi | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
 
 ### QAS-4 — Extensibility / Modifiability
 
 | | Risk | Description | Experiment | Result | Architecture Decision |
 |--|------|-------------|-----------|--------|-----------------------|
-| ★ | [TR-06](references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | — | 116 unit tests (7 binaries) all passing ✅ | 4-Layer Allowed-to-Use structure enforced |
-| ★ | [TR-07](references/risks.md) | Residual cross-layer coupling survives refactoring | — | Compiler catches upward dependency ✅ | Allowed-to-use rule + per-layer include restriction |
-| ★ | [TR-08](references/risks.md) | New graph tab requires data not in current `MeasurementEngine` output | — | All 11-tab data requirements covered by current Domain output ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
-| ★ | — | `MainWindow` directly coupled to concrete audio workers; adding a source requires 3+ file changes | — | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
+| ★ | [TR-06](references/risks.md) | Layer refactoring may introduce regression in existing DSP behavior | — | 116 unit tests (7 binaries) all passing ✅ | 4-Layer Allowed-to-Use structure enforced |
+| ★ | [TR-07](references/risks.md) | Residual coupling may survive refactoring and reintroduce layer violations | — | Compiler catches upward dependency ✅ | Allowed-to-use rule + per-layer include restriction |
+| ★ | [TR-08](references/risks.md) | New tabs may require measurement data not available in current domain output | — | All 11-tab data requirements covered by current Domain output ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
+| ★ | — | Audio source extension requires changes across multiple unrelated components | — | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
 
 ### QAS-5 — Correctness
 
 | | Risk | Description | Experiment | Result | Architecture Decision |
 |--|------|-------------|-----------|--------|-----------------------|
-| ★ | [NTR-07](references/risks.md) | Formula knowledge gap makes structural correctness of tab implementations hard to verify | — | AI-generated unit tests — structural verification without domain expertise | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) — all tabs receive identical `Measurement` |
+| ★ | [NTR-07](references/risks.md) | Domain knowledge gap makes correctness of tab implementations hard to verify | — | AI-generated unit tests — structural verification without domain expertise | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) — all tabs receive identical `Measurement` |
 
 ---
 
