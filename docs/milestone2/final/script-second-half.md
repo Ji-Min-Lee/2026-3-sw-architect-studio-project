@@ -35,7 +35,9 @@
 
 ### Layer — 4-Layer Architecture
 
-"First, layers. We have four layers: Acquisition, Signal Processing, Domain, and Presentation. The design rule is: dependencies only go **downward**."
+"First, layers. The diagram shows five horizontal bands. At the bottom — **Acquisition**: microphone input, file playback, simulation, all behind a single interface. Above that — **Signal Processing**: the DSP worker and beat detector, running on a dedicated T2 thread. Then **Domain**: watch physics math and AI diagnosis. At the top — **Presentation**: the 14 display tabs. There's also a thin **UI Coordinator** band — `MainWindow` and `SessionController` — that wires the layers together at startup but owns no business logic."
+
+"The rule is: dependencies only go **downward**. That's what the dashed arrows in the diagram show — every arrow points down, never up."
 
 "Adding a new tab means touching **only** the Presentation layer. Three components or less. Nothing below changes. We added tabs in three rounds — first 11, then 2 more, then 1 bonus. Each time, the Domain layer stayed untouched."
 
@@ -43,9 +45,7 @@
 
 ### Interface — IAudioSource
 
-"Second, the audio source. We have three sources — microphone, file playback, and simulation. Before `IAudioSource`, each one had its own `connect()` block scattered across multiple files."
-
-"After — we introduced `IAudioSource` as a common interface. All three sources plug into one single `connect()` block in `SessionController`. No duplication."
+"Second, the audio source. The diagram shows two sides — AS-IS on the left, TO-BE on the right. On the left, three separate `connect()` blocks, one per concrete worker, scattered across the code. On the right, one `SessionController` calling one interface: `IAudioSource`. All three sources plug into that single block."
 
 "If we need to change how audio wiring works, we touch **one place**. That's the real benefit — not adding new sources, but making the existing code easier to read and modify."
 
@@ -53,13 +53,11 @@
 
 ### Entity / Value Object
 
-"Third, the `Measurement` struct. This is what `MeasurementEngine` emits via `measurementReady` signal after each DSP cycle."
+"Third, the `Measurement` struct. The diagram shows `Measurement` at the center — solid border, meaning it's a concrete struct. Composed of three Value Objects with dashed borders: `WatchMetrics` holds the computed watch numbers — rate, amplitude, beat error, BPH. `SignalFrame` holds the raw PCM samples and timestamp. `AcousticEvent` holds the individual tick event timestamps."
 
-"It's made of three Value Objects — `WatchMetrics`, `SignalFrame`, and `AcousticEvent`. All immutable after creation."
+"All three are immutable after creation. Tabs receive `Measurement` as read-only — they **cannot** modify measurement results. Correctness is guaranteed by structure."
 
-"Tabs receive it as read-only. They **cannot** modify measurement results. So correctness is guaranteed by structure, not by trust."
-
-"And because these VOs live in the Domain layer, replacing or adding any Presentation component has zero impact on the domain logic."
+"And because these VOs live in the Domain layer — same green color as the Domain band in the layer diagram — replacing or adding any Presentation component has zero impact on the domain logic."
 
 ---
 

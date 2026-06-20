@@ -39,7 +39,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 **Decision**: Qt Signal-Slot as Observer — `MeasurementEngine` publishes a `Measurement` struct; all tabs subscribe via `BaseGraphTab::onMeasurement()`
 
-**Module structure** (static relationships):
+**Module structure** (static relationships) — what the diagram shows: `MeasurementEngine` (Subject) at top, `BaseGraphTab` abstract class in the middle, and 14 concrete tab subclasses below. `Measurement` VO composition is shown on the right. `SessionController` is intentionally omitted — it is a runtime connector, not a structural dependency.
 
 ```mermaid
 classDiagram
@@ -110,6 +110,15 @@ Three design decisions together enforce extensibility.
 
 ![4-Layer Allowed-to-Use View](assets/view1-layered-module.png)
 
+> **What the diagram shows**: Five horizontal bands (colored by layer), each containing its key modules. Dashed arrows indicate allowed-to-use direction — downward only. UI Coordinator (`MainWindow`, `SessionController`) sits above Presentation as a wiring layer; it is not counted as a domain layer.
+
+| Layer | Responsibility | Key Modules |
+|-------|---------------|-------------|
+| **Presentation** | Render measurement data in graphs and charts | `BaseGraphTab`, 14 concrete tabs (`TraceTab`, `VarioTab`, `BeatErrorTab`, …) |
+| **Signal Processing** | DSP computation and beat detection on T2 thread | `DSPWorker`, `MeasurementEngine`, `FilterChain`, `BeatDetector` |
+| **Domain** | Watch physics math and AI diagnosis | `WatchMath`, `WatchDiagnostics`, `WatchExplainer`, `Measurement` VOs |
+| **Acquisition** | Audio input abstraction and ring buffer | `IAudioSource`, `AudioWorker`, `PlaybackWorker`, `SimWorker`, `AudioRingBuffer` |
+
 Acquisition → Signal Processing → Domain → Presentation. Dependencies flow downward only.  
 Adding a new tab = ≤ 3 files in Presentation. Zero changes to Domain or below.
 
@@ -148,6 +157,8 @@ Row = **used module** (depended upon) · Column = **using module** (depends on) 
 
 ![IAudioSource Dependency Inversion](assets/view5-iaudiosource.png)
 
+> **What the diagram shows**: AS-IS (left) — 3 separate `connect()` blocks, one per concrete worker. TO-BE (right) — a single `connect()` block in `SessionController` through the `IAudioSource` interface. Arrows show the direction of dependency inversion.
+
 3 concrete sources exist: `AudioWorker` (mic) · `PlaybackWorker` (file) · `SimWorker` (simulation)
 
 | | AS-IS | TO-BE |
@@ -163,6 +174,8 @@ Row = **used module** (depended upon) · Column = **using module** (depends on) 
 The `Measurement` struct published by `MeasurementEngine` is composed of three VOs:
 
 ![Domain Entity / Value Object Module View](assets/view6-domain-entity-vo.png)
+
+> **What the diagram shows**: `Measurement` as a composition root (solid border) with three immutable Value Objects (dashed borders). Color coding matches the Domain layer in view1. No arrows point upward — the domain has zero dependency on Presentation or Signal Processing.
 
 | Value Object | Contents | Immutability |
 |---|---|---|
