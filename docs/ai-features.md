@@ -10,6 +10,39 @@ DiagnosisResult` contract so each can be swapped independently.
 | 2 | `WatchExplainer` | On-device LLM → plain-English explanation on click |
 | 3 | `RagRetriever` | Witschi docs context injection into LLM prompt |
 
+```mermaid
+flowchart TD
+    HW["🕰 Watch\n(timegrapher mic)"]
+    ME["MeasurementEngine\nrate · amplitude · beat error"]
+    HW --> ME
+
+    subgraph Step1["Step 1 — always running"]
+        WD["WatchDiagnostics\nthreshold classifier"]
+        LBL["DiagnosisLabel\nExcellent / Good / Needs Service"]
+        WD --> LBL
+    end
+    ME --> WD
+
+    subgraph Step2["Step 2 — on click"]
+        DLG["DiagnosisDialog"]
+        WE["WatchExplainer\nOllama /api/chat"]
+        LBL -->|"click"| DLG
+        DLG --> WE
+    end
+
+    subgraph Step3["Step 3 — RAG context"]
+        RAG["RagRetriever\ncosine search"]
+        VDB[("vector.db\n161 chunks")]
+        EMB["nomic-embed-text\n/api/embeddings"]
+        VDB --> RAG
+        WE -->|"query"| EMB
+        EMB --> RAG
+        RAG -->|"top-3 chunks"| WE
+    end
+
+    WE -->|"streamed tokens"| DLG
+```
+
 ---
 
 ## Step 1 — Rule-Based Diagnosis
