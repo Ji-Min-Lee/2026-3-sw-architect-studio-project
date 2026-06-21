@@ -1,8 +1,8 @@
 # AI Features
 
-Two-step AI feature track built on top of the existing real-time
-measurement pipeline. Both steps share the same `DiagnosisInput /
-DiagnosisResult` contract so either can be swapped independently.
+Three-step AI feature track built on top of the existing real-time
+measurement pipeline. All steps share the same `DiagnosisInput /
+DiagnosisResult` contract so each can be swapped independently.
 
 | Step | Module | What it does |
 |------|--------|--------------|
