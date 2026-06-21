@@ -8,6 +8,7 @@ DiagnosisResult` contract so either can be swapped independently.
 |------|--------|--------------|
 | 1 | `WatchDiagnostics` | Rule-based classifier → live diagnosis label |
 | 2 | `WatchExplainer` | On-device LLM → plain-English explanation on click |
+| 3 | `RagRetriever` | Witschi docs context injection into LLM prompt |
 
 ---
 
@@ -326,10 +327,6 @@ cp src/rag/vector.db <build_dir>/rag/
 ```
 
 `nomic-embed-text` is used only for the brief query embedding at click time (~0.5 s on RPi5) and does not stay loaded between requests.
-
-### Known limitation
-
-`qwen2.5:0.5b` (500M parameters) tends to ignore injected context and hallucinate values. `phi3:mini` produces significantly better RAG utilization at the cost of slower inference (~5× slower on RPi5). Select via the **AI Model** dropdown.
 
 ---
 
