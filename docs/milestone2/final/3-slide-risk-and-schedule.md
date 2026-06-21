@@ -31,19 +31,6 @@
 
 **Critical path**: filter tuning → WeiShi accuracy validation → demo
 
----
-
-## 3-B'. Risk Mitigation: AI-Assisted Unit Test
-
-> Risk: Domain knowledge gap — developers may implement wrong logic without knowing it
-
-| Category | Documents |
-|----------|-----------|
-| Quality Goal | [Correctness — non-beat noise rejected, false trigger rate < 1%, beat detection rate > 99%](references/qa/qas-5-correctness.md) |
-| Risk | [Risk Register — AI-generated tests may share the same blind spots as the developer (coverage bias)](references/risks.md) |
-| Experiment | [Accuracy baseline — TimeGrapher output compared against WeiShi No.1000 reference device](references/experiments/exp-01-accuracy-weishi-comparison.md) |
-| View | [Graph Tab Decomposition — Observer contract and tab extension structure](references/views/view-decomposition-graph-tab.md) |
-| Test Results | [Unit Test Results — 142 tests across 10 binaries, all passing](references/unit-test-results.md) |
 
 ---
 

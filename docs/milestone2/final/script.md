@@ -49,7 +49,9 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/views/view-decomposition-graph-tab.md` | scroll to `## Behavior` | show Observer contract validation table]**
 
-"One more thing on correctness. Watch domain knowledge takes time to build. We used AI to close that gap — generating unit tests to verify Observer contract compliance. 37 test cases, all passing. This was only possible because our architecture was testable by design — clean boundaries meant each tab could be tested in isolation. We'll come back to this in the risk section."
+"One more thing on correctness. Watch domain knowledge takes time to build — and when developers don't fully understand the domain, they may implement wrong logic without knowing it. That was our biggest non-technical risk."
+
+"We addressed it with AI-generated unit tests: 37 test cases verifying Observer contract compliance — every tab receives the same `Measurement`, doesn't mutate it, and honors the interface. This was only possible because our architecture was testable by design. Clean boundaries meant each tab could be verified in isolation. The architecture reduced the risk."
 
 ---
 
@@ -155,26 +157,6 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 "The critical one: we haven't compared our measurement output against a reference device yet. That validation — against the WeiShi watch — is planned for Week 5 Sprint 1."
 
 "On the medium side: filter cutoff values haven't been tuned on a real watch signal yet. Ambient noise in the lab can trigger false beats, and we need to confirm the right thresholds on actual hardware — that experiment is scheduled for this week."
-
----
-
-## 3-B'. Risk Mitigation: AI-Assisted Unit Test
-
-**[SCREEN → scroll to `## 3-B'. Risk Mitigation: AI-Assisted Unit Test`]**
-
-"Back to the domain knowledge gap — our biggest non-technical risk. AI helped interpret equations during implementation, and generated tests to verify structural correctness. What made this viable was the architecture — clean boundaries meant each component could be tested in isolation. Without that, 142 tests in this timeframe wouldn't have been possible."
-
-"The domain physics validation against WeiShi is the next step, planned for Week 5."
-
----
-
-> **📌 QnA only — not covered in presentation**
->
-> **Q. What exactly do the AI-generated tests verify?**  
-> Each test constructs a mock `Measurement`, calls `on Measurement`, and checks: the tab does not throw, does not mutate the struct, and the call completes. Interface compliance — Observer contract, not domain logic.
->
-> **Q. Isn't AI-generated test coverage biased? What if the AI makes the same mistake as the developer?**  
-> The structural tests are low-risk: they verify interface contract, not domain logic. The AI-generated portion is isolated to tab-level Observer compliance. The domain math tests — `Watch Math`, `Measurement Engine` — were written manually against the Equations document worked examples.
 
 ---
 
