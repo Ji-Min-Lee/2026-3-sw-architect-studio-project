@@ -1,6 +1,6 @@
 # Section 1 — Milestone 1 Wrap-up & Intro
 
-← [Presentation Index](README.md) | Next: [Architecture Views →](slide-architecture-view.md)
+← [Presentation Index](README.md) | Next: [Architecture Views →](2-slide-architecture-view.md)
 
 > **Time**: ~3 min | Goal: Confirm M1 feedback addressed → set presentation goals → transition to ARS framing
 
