@@ -12,7 +12,7 @@
 |---|---------|----------|------|
 | 1 | Milestone 1 Wrap-up & Intro | [1-slide-m1-wrapup-intro.md](1-slide-m1-wrapup-intro.md) | ~3 min |
 | 2 | Architecture Views | [2-slide-architecture-view.md](2-slide-architecture-view.md) | ~12 min |
-| 3 | Remaining Schedule | [3-slide-schedule.md](3-slide-schedule.md) | ~5 min |
+| 3 | Remaining Schedule | [3-slide-risk-and-schedule.md](3-slide-risk-and-schedule.md) | ~5 min |
 
 ---
 
@@ -77,7 +77,7 @@ docs/milestone2/final/
 ├── README.md                         ← this file — full traceability map
 ├── 1-slide-m1-wrapup-intro.md             ← Section 1: M1 feedback + ARS overview
 ├── 2-slide-architecture-view.md        ← Section 2: Latency / Correctness / Extensibility / Risk
-├── 3-slide-schedule.md                 ← Section 3: sprint recap + M2→Final schedule
+├── 3-slide-risk-and-schedule.md                 ← Section 3: sprint recap + M2→Final schedule
 ├── assets/                           ← view diagrams (.drawio + .png)
 └── references/
     ├── qa/                           ← QA scenario files (qas-1 ~ qas-5)

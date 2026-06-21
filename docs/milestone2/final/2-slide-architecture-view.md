@@ -1,6 +1,6 @@
 # Section 2 — Architecture Views
 
-← [Wrap-up & Intro](1-slide-m1-wrapup-intro.md) | [Presentation Index](README.md) | Next: [Schedule →](3-slide-schedule.md)
+← [Wrap-up & Intro](1-slide-m1-wrapup-intro.md) | [Presentation Index](README.md) | Next: [Schedule →](3-slide-risk-and-schedule.md)
 
 > **Time**: ~9 min | Goal: Latency → Correctness → Extensibility — each decision driven by experiment evidence
 
