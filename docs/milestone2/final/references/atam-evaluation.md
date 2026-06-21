@@ -1,113 +1,126 @@
 # Architecture Evaluation — ATAM (Lightweight)
 
-**Method**: Architecture Tradeoff Analysis Method (ATAM) — simplified for M2 scope  
+**Method**: Architecture Tradeoff Analysis Method (ATAM) — lightweight version  
 **Date**: 2026-06-22  
-**Evaluator**: TimeGrapher Team (Blue Sky, Team 3)  
-**Architecture under review**: TimeGrapher M2 — DSP Pipeline, Layered Structure, Observer Pattern
+**Team**: Blue Sky (Team 3) — TimeGrapher  
+**Scope**: M2 architecture decisions (ADR-001 ~ ADR-006)
 
 ---
 
-## 1. Utility Tree
+## 1. Business Drivers
 
-Quality attributes prioritized by (Importance / Difficulty to achieve):
+Why this system exists and what constraints we're working under.
 
-| Priority | QA | Scenario | Importance | Difficulty |
-|:---:|---|---|:---:|:---:|
-| 1 | **Measurement Accuracy** | Rate, Amplitude, Beat Error match WeiShi No.1000 within tolerance | High | High |
-| 2 | **Real-Time Performance** | 0 dropped blocks over 10-minute session at 96kHz on RPi | High | High |
-| 3 | **Low Latency** | E2E latency < 100ms (beat at microphone → GUI update) | High | Medium |
-| 4 | **Extensibility** | New graph tab in ≤ 3 files, 0 layer violations | Medium | Medium |
-| 5 | **Correctness** | False trigger rate < 1%; true beat detection rate > 99% | High | Medium |
-
----
-
-## 2. Architecture Approaches
-
-Key architectural decisions evaluated:
-
-| ID | Decision | Primary QA |
-|----|----------|-----------|
-| ADR-001 | DSP Thread separation (Audio Source Thread + DSP Thread + Qt Main Thread) | QAS-2, QAS-3 |
-| ADR-002 | Lazy Rendering — `isVisible()` guard skips `replot()` for non-visible tabs | QAS-2 |
-| ADR-003 | 96kHz sample rate selection on RPi | QAS-1, QAS-2 |
-| ADR-004 | Timer-decoupled rendering (R2) — 20 FPS timer if 14 tabs all visible (conditional) | QAS-2 |
-| ADR-005 | IAudioSource dependency inversion | QAS-4 |
-| ADR-006 | BaseGraphTab Observer pattern — single `measurementReady` signal to all tabs | QAS-4, QAS-5 |
+| Item | Description |
+|------|-------------|
+| **Goal** | Measure mechanical watch rate, amplitude, and beat error accurately on Raspberry Pi 5 |
+| **Primary constraint** | 5-week project timeline; RPi 5 is the target hardware |
+| **Framework** | Qt (C++) — fixed; no alternative considered |
+| **Key stakeholder concern** | Measurement values must match a WeiShi No.1000 reference device |
 
 ---
 
-## 3. Sensitivity Points
+## 2. Utility Tree
 
-Decisions that have a strong and direct effect on a single QA:
+Priority is written as **(Business Importance, Technical Difficulty)** — H = High, M = Medium, L = Low.
 
-| Sensitivity Point | Decision | QA Affected | Effect |
-|-------------------|----------|-------------|--------|
-| SP-1 | ADR-001: DSP Thread isolation | QAS-2, QAS-3 | Primary driver — removing GUI coupling eliminates queue wait entirely |
-| SP-2 | ADR-003: Sample rate (96kHz) | QAS-1 | Beat Error resolution = 1/96000s ≈ 0.01ms; halving rate doubles minimum error |
-| SP-3 | ADR-006: Observer + immutable `Measurement` | QAS-5 | Structural guarantee — all 14 tabs receive identical struct; deviation is impossible |
-
----
-
-## 4. Tradeoff Points
-
-Decisions that improve one QA but create tension with another:
-
-| Tradeoff Point | Decision | QA Gained | QA at Risk | Resolution |
-|----------------|----------|-----------|-----------|------------|
-| TP-1 | ADR-003: 96kHz vs 48kHz | QAS-1 ↑ (finer Beat Error) | QAS-2 ↓ (higher CPU load) | EXP-02: 0 dropped blocks at 96kHz — CPU headroom confirmed sufficient |
-| TP-2 | ADR-001: Ring buffer between threads | QAS-2, QAS-3 ↑ | Complexity ↑ (synchronization point added) | Mutex covers index sync only; data copy is lock-free. Verified by EXP-03. |
-| TP-3 | ADR-002: Lazy Rendering | QAS-2 ↑ (85% replot reduction) | Non-visible tabs not updated in real time | Acceptable — user cannot observe non-visible tabs. `showEvent` triggers catch-up render. |
-| TP-4 | ADR-006: Shared `Measurement` struct | QAS-5 ↑ (tab consistency) | QAS-4 ↓ (changing struct affects all tabs) | Struct decomposed into immutable Value Objects (DSP math / audio capture / beat detection) — each tab depends only on what it needs. |
-
----
-
-## 5. Risks
-
-Architectural decisions where QA achievement is not yet confirmed:
-
-| ID | Risk | QA | Status |
-|----|------|----|--------|
-| R-1 | **QAS-1 unvalidated against reference hardware** — WeiShi No.1000 accuracy comparison (EXP-01) is scheduled for Week 5 (06/29). Architecture is correct by design but the governing goal remains unconfirmed. | QAS-1 | ⏳ Open |
-| R-2 | **ADR-004 (R2 timer rendering) not yet activated** — Conditional on EXP-05 showing deadline miss under full 14-tab load. Rendering behavior under maximum tab load is untested. | QAS-2 | ⏳ Conditional |
-| R-3 | **BPH range coverage is partial** — Filter parameters confirmed at 28,800 BPH (EXP-05). Coverage of full range (18,000–36,000 BPH) not yet validated. | QAS-5 | ⏳ Stretch goal |
+```
+Utility
+│
+├── Measurement Accuracy
+│   └── Rate, Amplitude, Beat Error match WeiShi No.1000 within tolerance          (H, H)
+│
+├── Real-Time Performance
+│   └── 0 dropped audio blocks over a 10-minute session at 96kHz on RPi            (H, H)
+│
+├── Low Latency
+│   └── From beat at microphone to GUI update: E2E latency < 100ms                 (H, M)
+│
+├── Extensibility
+│   └── Add a new graph tab in ≤ 3 files with 0 layer violations                   (M, M)
+│
+└── Correctness
+    └── False trigger rate < 1%; true beat detection rate > 99%                    (H, M)
+```
 
 ---
 
-## 6. Non-Risks
+## 3. Architecture Approaches
 
-Decisions confirmed safe by experiment evidence:
+Key decisions that address the scenarios above.
 
-| ID | Non-Risk | Evidence |
-|----|----------|---------|
-| NR-1 | DSP Thread isolation eliminates queue wait | EXP-03 RPi: wait_ms 77.4ms → 0.03ms (×2,600), 0 deadline miss |
-| NR-2 | 96kHz is sustainable on RPi without SCHED_RR | EXP-02: 0 dropped blocks at 48/96/192kHz |
-| NR-3 | Lazy Rendering reduces render cost significantly | EXP-03: replot/beat 8.22 → 1.20 (↓85%) |
-| NR-4 | Observer pattern scales to 14 tabs within 3-file constraint | EXP-04: 14 tabs, ≤3 files each, 0 layer violations confirmed |
-| NR-5 | IAudioSource inversion reduces source addition to ≤ 2 files | EXP-04: NetworkWorker prototype — 0 changes above `SessionController` |
+| Decision | What it does | QA it targets |
+|----------|-------------|---------------|
+| ADR-001: DSP Thread | Moves DSP off the Qt Main Thread onto its own thread | QAS-2, QAS-3 |
+| ADR-002: Lazy Rendering | Skips `replot()` for tabs the user is not looking at | QAS-2 |
+| ADR-003: 96kHz sample rate | Sets the audio sample rate on RPi | QAS-1, QAS-2 |
+| ADR-004: Timer rendering (conditional) | Switches to 20 FPS fixed timer if all 14 tabs are visible | QAS-2 |
+| ADR-005: IAudioSource interface | One interface for all audio sources; no concrete dependencies above | QAS-4 |
+| ADR-006: Observer pattern | One `measurementReady` signal delivers the same struct to all 14 tabs | QAS-4, QAS-5 |
+
+---
+
+## 4. Sensitivity Points
+
+A sensitivity point is a specific property that, if changed, strongly changes a QA outcome.
+
+| ID | Component / Property | If this changes... | QA affected |
+|----|---------------------|--------------------|-------------|
+| SP-1 | **Which thread runs DSP** — currently its own dedicated thread | If DSP moves back to Qt Main Thread, wait_ms goes from 0.03ms back to 77ms | QAS-2, QAS-3 |
+| SP-2 | **Sample rate** — currently 96kHz | Dropping to 48kHz doubles the minimum Beat Error resolution (0.01ms → 0.02ms) | QAS-1 |
+| SP-3 | **Measurement struct is immutable** — tabs receive it read-only | If tabs could modify the struct, two tabs showing the same metric could show different values | QAS-5 |
+
+---
+
+## 5. Tradeoff Points
+
+A tradeoff is a decision that helps one QA but puts pressure on another.
+
+| ID | Decision | QA gained | QA under pressure | How we resolved it |
+|----|----------|-----------|-------------------|--------------------|
+| TP-1 | **96kHz sample rate** | Better Beat Error resolution → QAS-1 ↑ | Higher CPU load → QAS-2 at risk | EXP-02 confirmed 0 dropped blocks at 96kHz on RPi — headroom is sufficient |
+| TP-2 | **Ring buffer between threads** | Decouples capture from DSP → QAS-2, QAS-3 ↑ | Adds a synchronization point (complexity ↑) | Mutex covers index only; data copy is lock-free. EXP-03 confirmed no latency impact |
+| TP-3 | **Lazy Rendering (ADR-002)** | 85% fewer replot calls → QAS-2 ↑ | Non-visible tabs don't update in real time | Acceptable — user cannot see non-visible tabs. Tab catches up when it becomes visible |
+| TP-4 | **Shared Measurement struct (ADR-006)** | All tabs get identical data → QAS-5 ↑ | Changing the struct affects all 14 tabs at once | Struct is split into three immutable Value Objects — each tab only depends on what it needs |
+
+---
+
+## 6. Risks
+
+Decisions where a QA goal is not yet confirmed by evidence.
+
+| ID | What the risk is | Which QA | Status |
+|----|-----------------|----------|--------|
+| R-1 | **WeiShi accuracy comparison not done yet** — QAS-1 (the governing goal) has no reference hardware validation. Architecture is correct by design, but unconfirmed. | QAS-1 | ⏳ EXP-01 scheduled 06/29 |
+| R-2 | **Timer rendering (ADR-004) not activated** — If all 14 tabs are visible at once, rendering behavior under full load is untested. ADR-004 only turns on if EXP-05 shows deadline miss. | QAS-2 | ⏳ Conditional |
+| R-3 | **BPH range only partially tested** — Filter parameters confirmed at 28,800 BPH. Full range (18,000–36,000 BPH) not yet validated. | QAS-5 | ⏳ Stretch goal |
+
+---
+
+## 7. Non-Risks
+
+Decisions confirmed safe by experiment results.
+
+| ID | What was confirmed | Evidence |
+|----|--------------------|---------|
+| NR-1 | DSP Thread removes queue wait completely | EXP-03 RPi: wait_ms 77.4ms → 0.03ms, 0 deadline miss |
+| NR-2 | 96kHz is sustainable on RPi | EXP-02: 0 dropped blocks at 48 / 96 / 192kHz |
+| NR-3 | Lazy Rendering cuts render calls by 85% | EXP-03: replot/beat 8.22 → 1.20 |
+| NR-4 | 14 tabs each fit within the 3-file constraint | EXP-04: 14 tabs verified, 0 layer violations |
+| NR-5 | Adding a new audio source requires ≤ 2 files | EXP-04: NetworkWorker prototype — 0 changes above SessionController |
 | NR-6 | Architecture is testable in isolation | 142 unit tests across 10 binaries, all passing |
 
 ---
 
-## 7. Risk Themes
+## 8. Risk Themes
 
-| Theme | Risks Covered | Mitigation |
-|-------|---------------|------------|
-| **Reference hardware validation gap** | R-1 | EXP-01 scheduled 06/29 (Week 5 Sprint 1). Critical path for final demo. |
-| **Conditional architecture not exercised** | R-2 | ADR-004 activates only if EXP-05 shows deadline miss. Currently inactive — normal 14-tab load is within budget. |
-| **Partial stimulus coverage** | R-3 | 28,800 BPH confirmed. Broader BPH range is a stretch goal for post-M3. |
+Patterns found across the individual risks.
 
----
-
-## 8. Summary
-
-| Category | Count |
-|----------|:-----:|
-| Sensitivity Points | 3 |
-| Tradeoff Points | 4 |
-| Risks (open) | 3 |
-| Non-Risks (confirmed) | 6 |
-
-**Overall assessment**: The core architecture (DSP Thread + Observer + Layered structure) is confirmed by experiment evidence across QAS-2, QAS-3, QAS-4, and QAS-5. The primary open risk is QAS-1 (Measurement Accuracy against reference hardware), which is the governing goal and is scheduled for validation in Week 5.
+| Theme | Risks | What to do |
+|-------|-------|-----------|
+| **Reference hardware not yet validated** | R-1 | EXP-01 (WeiShi comparison) is the critical path — must complete before the final demo on 07/01 |
+| **Conditional architecture not exercised** | R-2 | ADR-004 is idle — normal load stays within budget. Only activates if EXP-05 shows a problem |
+| **Stimulus coverage is partial** | R-3 | 28,800 BPH is confirmed. Wider BPH range is a post-M3 stretch goal |
 
 ---
 
