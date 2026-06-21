@@ -20,9 +20,9 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `## 2-B. Correctness: Observer Pattern` | show `view2b-observer-module.png`]**
 
-"Our main quality goal is measurement accuracy. If two tabs both display Rate — they must show the same number, every single beat."
+"Our governing quality goal is measurement accuracy — the computed Rate and Beat Error must match the reference device. But accuracy at the computation level is not enough. If two tabs both display Rate and show different numbers for the same beat, the system is inaccurate from the user's perspective — even if the math is correct."
 
-"The risk is at the delivery point. If `Measurement Engine` called each tab directly, even a tiny sequencing difference could make two tabs show different values for the same beat. With 14 tabs, that risk compounds."
+"That's what correctness means here: structural consistency in data delivery. The risk is at the delivery point. If `Measurement Engine` called each tab directly, even a tiny sequencing difference could cause two tabs to show different values for the same beat. With 14 tabs, that risk compounds."
 
 "So we applied the Observer pattern. `Measurement Engine` emits one signal — `measurement Ready` — carrying a single `Measurement` struct. All 14 tabs receive that same struct through `Base Graph Tab :: on Measurement`. One broadcast — identical data to everyone."
 
