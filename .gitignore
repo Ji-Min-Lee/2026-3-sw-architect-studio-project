@@ -3,6 +3,14 @@ build/
 build-log/
 build-rpi/
 build-macos/
+src/build-mac/
+src/build-mac-log/
+
+# IDE
+.vscode/
+
+# Test output
+src/Testing/
 
 # Qt Creator 자동 생성 파일
 *.user
