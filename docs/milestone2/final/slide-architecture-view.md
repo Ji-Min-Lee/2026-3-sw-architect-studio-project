@@ -178,10 +178,3 @@ classDiagram
 | View | [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) |
 | Related References | [unit-test-results.md](references/unit-test-results.md) |
 
----
-
-*Reference only — not presented:*
-
-- [Deployment: Build-Deploy Pipeline](references/views/view-deployment-build-pipeline.md) — RPi deploy workflow (Deployability)
-- [ADR-002: R1 Lazy Rendering](references/adr/ADR-002-r1-lazy-rendering.md) — isVisible() guard, replot/beat 8.22 → 1.20 (↓85%)
-- [Decomposition: Graph Tab](references/views/view-decomposition-graph-tab.md) — ≤3-file extension recipe in detail
