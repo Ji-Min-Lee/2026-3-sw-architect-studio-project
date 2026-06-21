@@ -28,26 +28,27 @@ bool RagRetriever::load(const QString &dbPath)
     m_texts.clear();
     m_loaded = false;
 
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "rag");
-    db.setDatabaseName(dbPath);
-    if (!db.open()) {
-        qWarning() << "[RagRetriever] Cannot open db:" << db.lastError().text();
-        return false;
-    }
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "rag");
+        db.setDatabaseName(dbPath);
+        if (!db.open()) {
+            qWarning() << "[RagRetriever] Cannot open db:" << db.lastError().text();
+            QSqlDatabase::removeDatabase("rag");
+            return false;
+        }
 
-    QSqlQuery q(db);
-    q.exec("SELECT text, embedding FROM chunks ORDER BY id");
-    while (q.next()) {
-        m_texts << q.value(0).toString();
+        QSqlQuery q(db);
+        q.exec("SELECT text, embedding FROM chunks ORDER BY id");
+        while (q.next()) {
+            m_texts << q.value(0).toString();
 
-        const QByteArray blob = q.value(1).toByteArray();
-        const int n = blob.size() / sizeof(float);
-        QVector<float> vec(n);
-        memcpy(vec.data(), blob.constData(), blob.size());
-        m_embeddings << vec;
-    }
-
-    db.close();
+            const QByteArray blob = q.value(1).toByteArray();
+            const int n = blob.size() / sizeof(float);
+            QVector<float> vec(n);
+            memcpy(vec.data(), blob.constData(), blob.size());
+            m_embeddings << vec;
+        }
+    } // q and db destroyed here before removeDatabase
     QSqlDatabase::removeDatabase("rag");
 
     m_loaded = !m_texts.isEmpty();
