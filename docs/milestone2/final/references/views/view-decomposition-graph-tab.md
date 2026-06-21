@@ -142,7 +142,7 @@ User switches to tab T
 |---|:---:|:---:|
 | Files changed per new tab | ≤ 3 | ✅ 2–3 |
 | SP / Acquisition refs from Presentation | 0 | ✅ 0 |
-| Observer contract compliance | 100% | ✅ TestAddedTabs 20/20 · TestGraphTabs 17/17 |
+| Observer contract compliance | 100% | ✅ 2 test suites (TestAddedTabs 20/20 · TestGraphTabs 17/17) · 37 test cases |
 
 Evidence: [unit-test-results.md](../unit-test-results.md) · Risk: [NTR-07](../risks.md)
 
