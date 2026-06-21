@@ -62,6 +62,13 @@ void WatchExplainer::loadRag(const QString &dbPath)
 
 void WatchExplainer::explain(const ExplainRequest &req)
 {
+    if (m_pendingReply) {
+        m_pendingReply->abort();
+        m_pendingReply = nullptr;
+    }
+    m_timeout->stop();
+    m_accumulated.clear();
+
     if (m_rag.isLoaded()) {
         // retrieve relevant context first, then fire LLM in onRagRetrieved()
         m_pendingReq = req;
@@ -228,27 +235,45 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
     const DiagnosisInput  &in  = req.input;
     const DiagnosisResult &res = req.result;
 
-    QString levelStr;
-    switch (res.level) {
-        case DiagnosisLevel::Excellent:    levelStr = "Excellent";     break;
-        case DiagnosisLevel::Good:         levelStr = "Good";          break;
-        case DiagnosisLevel::NeedsService: levelStr = "Needs Service"; break;
-        default:                           levelStr = "Unknown";       break;
-    }
-
     QString watchType = (in.watch_type == WatchType::Women) ? "ladies'" : "men's";
 
     QString contextBlock;
     if (!context.isEmpty()) {
         contextBlock = "\nBackground from watchmaking manual:\n";
         for (const QString &chunk : context) {
-            // keep only printable ASCII to avoid confusing small models
             QString clean;
             for (QChar c : chunk.left(200))
                 if (c.isPrint() && c.unicode() < 128) clean += c;
             if (!clean.trimmed().isEmpty())
                 contextBlock += clean.trimmed() + "\n";
         }
+    }
+
+    // Partial-unknown: one or more metrics not yet measurable — ask AI to interpret
+    if (res.level == DiagnosisLevel::Unknown) {
+        QString rateStr  = in.rate_valid       ? QString("%1 s/d").arg(in.rate_spd, 0, 'f', 1)
+                                               : QString("not measurable");
+        QString ampStr   = in.amplitude_valid  ? QString("%1 deg").arg(in.amplitude_deg, 0, 'f', 0)
+                                               : QString("not measurable");
+        QString beatStr  = in.beat_error_valid ? QString("%1 ms").arg(in.beat_error_ms, 0, 'f', 2)
+                                               : QString("not measurable");
+        return QString(
+            "You are a watchmaker. A %1 watch timegrapher reading:\n"
+            "Rate %2, Amplitude %3, Beat Error %4.\n"
+            "One or more values cannot be measured yet. In 2 sentences: "
+            "what mechanical condition could cause this, and what to check.%5"
+        )
+        .arg(watchType)
+        .arg(rateStr).arg(ampStr).arg(beatStr)
+        .arg(contextBlock);
+    }
+
+    QString levelStr;
+    switch (res.level) {
+        case DiagnosisLevel::Excellent:    levelStr = "Excellent";     break;
+        case DiagnosisLevel::Good:         levelStr = "Good";          break;
+        case DiagnosisLevel::NeedsService: levelStr = "Needs Service"; break;
+        default:                           levelStr = "Unknown";       break;
     }
 
     return QString(

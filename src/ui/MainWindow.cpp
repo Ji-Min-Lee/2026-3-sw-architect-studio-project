@@ -320,6 +320,7 @@ void MainWindow::DisplayResults(const Measurement &m)
     diagInput.beat_error_valid = m.beatErrorValid;
     diagInput.beat_error_ms    = m.beatErrorMs;
     diagInput.watch_type       = mWatchType;
+    diagInput.noSignal         = m.noSignal;
     DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
 
     // Keep latest input/result for the LLM dialog (AI step 2)
@@ -402,11 +403,16 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == ui->DiagnosisLabel && event->type() == QEvent::MouseButtonPress) {
-        if (mLastExplainRequest.result.level != DiagnosisLevel::Unknown) {
-            auto *dlg = new DiagnosisDialog(mLastExplainRequest, &mWatchExplainer, this);
-            dlg->setAttribute(Qt::WA_DeleteOnClose);
-            dlg->show();
+        if (mDiagnosisDialog) {
+            mDiagnosisDialog->raise();
+            mDiagnosisDialog->activateWindow();
+            return true;
         }
+        mDiagnosisDialog = new DiagnosisDialog(mLastExplainRequest, &mWatchExplainer, this);
+        mDiagnosisDialog->setAttribute(Qt::WA_DeleteOnClose);
+        connect(mDiagnosisDialog, &QObject::destroyed,
+                this, [this]() { mDiagnosisDialog = nullptr; });
+        mDiagnosisDialog->show();
         return true;
     }
     return QMainWindow::eventFilter(obj, event);

@@ -204,6 +204,7 @@ private:
     // AI step 2: LLM explanation on diagnosis click
     WatchExplainer             mWatchExplainer;
     ExplainRequest             mLastExplainRequest;  // kept for re-open
+    DiagnosisDialog           *mDiagnosisDialog = nullptr;
 
 };
 #endif

@@ -40,6 +40,7 @@ struct DiagnosisInput {
     double    beat_error_ms;
     bool      beat_error_valid;
     WatchType watch_type = WatchType::Men;
+    bool      noSignal   = false;
 };
 
 struct DiagnosisResult {
