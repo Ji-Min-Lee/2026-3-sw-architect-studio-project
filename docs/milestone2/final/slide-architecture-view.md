@@ -2,7 +2,7 @@
 
 ← [Wrap-up & Intro](slide-m1-wrapup-intro.md) | [Presentation Index](README.md) | Next: [Schedule →](slide-schedule.md)
 
-> **Time**: ~12 min | Goal: Latency → Correctness → Extensibility — each decision driven by experiment evidence
+> **Time**: ~9 min | Goal: Latency → Correctness → Extensibility — each decision driven by experiment evidence
 
 All views follow the **Merson 7-section template**. Each view is written for a specific reader and a specific QA.  
 → Full view documents: [references/views/](references/views/)
@@ -90,14 +90,3 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | ADR | [ADR-003 — Audio sample rate selection for RPi 5](references/adr/ADR-003-sample-rate-selection.md) |
 | View | [Module View: Domain Entity / Value Object](references/views/view-domain-entity-vo.md) |
 
----
-
-## 2-D. Risk: AI-Assisted Unit Test
-
-| Category | Documents |
-|----------|-----------|
-| QA | [QAS-5 — Non-beat acoustic noise is rejected by the filter chain, keeping false trigger rate < 1% and T1 detection rate > 99%](references/qa/qas-5-correctness.md) |
-| Risk | [Risk Register — NTR-07: Coverage bias risk from AI-generated test cases](references/risks.md) |
-| Experiment | [EXP-01 — TimeChecker measurement accuracy compared against WeiShi No.1000](references/experiments/exp-01-accuracy-weishi-comparison.md) |
-| View | [Decomposition View: Graph Tab](references/views/view-decomposition-graph-tab.md) |
-| Related References | [Unit Test Results — Unit test execution results based on AI-generated test cases](references/unit-test-results.md) |

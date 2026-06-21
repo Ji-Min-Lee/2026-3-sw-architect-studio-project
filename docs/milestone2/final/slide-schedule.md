@@ -1,4 +1,4 @@
-# Section 3 — Schedule & Remaining Risks
+# Section 3 — Schedule, Risks & Mitigations
 
 ← [Architecture Views](slide-architecture-view.md) | [Presentation Index](README.md)
 
@@ -31,6 +31,18 @@
 | End-to-end accuracy not yet validated | TR-05 | 🔴 Critical | Full accuracy validation with real watch (W5 S1) |
 
 **Critical path**: filter & rendering experiments → WeiShi accuracy → demo
+
+---
+
+## 3-B'. Risk Mitigation: AI-Assisted Unit Test
+
+| Category | Documents |
+|----------|-----------|
+| QA | [QAS-5 — Non-beat acoustic noise is rejected by the filter chain, keeping false trigger rate < 1% and T1 detection rate > 99%](references/qa/qas-5-correctness.md) |
+| Risk | [Risk Register — NTR-07: Coverage bias risk from AI-generated test cases](references/risks.md) |
+| Experiment | [EXP-01 — TimeChecker measurement accuracy compared against WeiShi No.1000](references/experiments/exp-01-accuracy-weishi-comparison.md) |
+| View | [Decomposition View: Graph Tab](references/views/view-decomposition-graph-tab.md) |
+| Related References | [Unit Test Results — Unit test execution results based on AI-generated test cases](references/unit-test-results.md) |
 
 ---
 
