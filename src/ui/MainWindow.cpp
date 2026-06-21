@@ -327,9 +327,9 @@ void MainWindow::DisplayResults(const Measurement &m)
     if (diagResult.level != mLastDiagnosisLevel)
     {
         qInfo() << "[WatchDiagnostics]" << diagResult.label
-                 << "rate="      << m.metrics.rate.value_or(0.0)
-                 << "amplitude=" << m.metrics.amplitude.value_or(0.0)
-                 << "beatError=" << m.metrics.beatError.value_or(0.0);
+                 << "rate="      << (m.metrics.rate      ? QString::number(*m.metrics.rate,      'f', 1) : "NULL")
+                 << "amplitude=" << (m.metrics.amplitude ? QString::number(*m.metrics.amplitude, 'f', 0) : "NULL")
+                 << "beatError=" << (m.metrics.beatError ? QString::number(*m.metrics.beatError, 'f', 2) : "NULL");
         mLastDiagnosisLevel = diagResult.level;
     }
 }

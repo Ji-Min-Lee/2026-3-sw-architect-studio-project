@@ -78,6 +78,7 @@ void MeasurementEngine::reset()
     mAmp.roll->Reset();
 
     mNoSignalTimerStarted = false;
+    mLastKnownMetrics     = {};
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -177,6 +178,13 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     if (mBeat.roll->CurrentSize() > 0)
         measurement.metrics.beatError = mBeat.roll->GetAverage();
     measurement.noSignal = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
+
+    // Retain last valid values — metrics are freshly built each frame so
+    // amplitude (set only on C-event frames) would otherwise flicker to nullopt.
+    if (!measurement.metrics.rate)      measurement.metrics.rate      = mLastKnownMetrics.rate;
+    if (!measurement.metrics.amplitude) measurement.metrics.amplitude = mLastKnownMetrics.amplitude;
+    if (!measurement.metrics.beatError) measurement.metrics.beatError = mLastKnownMetrics.beatError;
+    mLastKnownMetrics = measurement.metrics;
 
     emit measurementReady(measurement);
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <QVector>
+#include <QMetaType>
 #include <optional>
 #include <cstdint>
 
@@ -63,3 +64,4 @@ struct Measurement {
     // QAS-4: true when no A-event received for >= 3 s (set by MeasurementEngine)
     bool    noSignal = false;
 };
+Q_DECLARE_METATYPE(Measurement)
