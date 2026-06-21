@@ -98,7 +98,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Interface` | show `view5-iaudiosource.png`]**
 
-"Same principle, applied to audio input. Before the refactor, `Session Controller` held three concrete pointers — live microphone, file playback, and simulation — with a duplicated connect block for each. To understand how audio sources worked, a developer had to read three separate branches of nearly identical code. And adding a fourth source meant touching `Main Window` in three unrelated places."
+"Same principle, applied to audio input. Before the refactor, `Session Controller` held three concrete pointers — live microphone, file playback, and simulation — each with duplicated wiring code. Adding a new source meant reading through nearly identical branches and touching `Main Window` in multiple places."
 
 "After introducing `I Audio Source`: one pointer, one connect block. The intent is immediately readable — there is one audio source, and it connects the same way regardless of type. Adding a new source means implementing the interface and adding one factory method. Zero changes to `Main Window`, `DSP Worker`, or `Measurement Engine`. Less code to read, less code to change — that directly improves developer productivity."
 
@@ -126,7 +126,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "Originally, `Measurement` was a single flat struct — a god object. Every tab had to reach into the same bag of fields and pick out what it needed. That made the struct hard to reason about, and tab code hard to read."
 
-"We decomposed it into three Value Objects, each grouped by its domain and producer: `Watch Metrics` from the DSP math — Rate, Amplitude, Beat Error. `Signal Frame` from audio capture — the raw PCM block and timestamp. `Acoustic Event` from the beat detector — the tick and tock timestamps. Each tab now depends only on the Value Object relevant to what it displays. The intent of each tab becomes self-documenting."
+"We decomposed it into three Value Objects, each grouped by domain and producer — DSP math, audio capture, and beat detection. Each tab now depends only on the Value Object relevant to what it displays. The intent of each tab becomes self-documenting."
 
 "And all three are immutable once produced. Tabs receive `Measurement` read-only — they cannot change it. This closes the loop on correctness: two tabs reading the same field are reading the same value, always."
 
@@ -156,7 +156,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → scroll to `## 3-B. Remaining Risks & Open Items` | show risk table]**
 
-"One critical and two medium risks going into the final week."
+"One critical and one medium risk going into the final week."
 
 "The critical one: we haven't compared our measurement output against a reference device yet. That validation — against the WeiShi watch — is planned for Week 5 Sprint 1."
 
