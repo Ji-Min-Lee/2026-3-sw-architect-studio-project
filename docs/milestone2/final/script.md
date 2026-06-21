@@ -10,7 +10,7 @@
 
 *[앞 발표자로부터 받기 — 화면은 2-slide-architecture-view.md에 그대로 있음]*
 
-"Thank you. — Thread separation solved the latency problem. Now let's look at what that separation enables: making sure all 14 tabs show exactly the same data."
+Now let's look at what that separation enables: making sure all 14 tabs show exactly the same data."
 
 ---
 
@@ -30,7 +30,11 @@
 
 "In `ADR-006` — the key point is that `Measurement Engine` has zero compile-time knowledge of any tab. `Session Controller` wires the signal-slot connections at session start. After that, `Measurement Engine` just emits."
 
-"Trade-off: all 14 `on Measurement` slots fire on the Qt main thread per beat. When all tabs are visible at high beats-per-hour, the lazy rendering guard gives no benefit — that's why we have a contingency plan in `ADR-004`."
+"Trade-off: all 14 `on Measurement` slots fire on the Qt main thread per beat. When all tabs are visible at high beats-per-hour, the lazy rendering guard gives no benefit — every tab still redraws on every beat."
+
+"That's where our contingency plan comes in. Instead of redrawing on every beat, we can switch to a fixed-rate timer — 20 frames per second — that drives rendering independently of the DSP pipeline. Beat events only update the data model; the timer handles the screen refresh. We activate this only if this week's 14-tab benchmark on Raspberry Pi shows we need it."
+
+**[SCREEN → `references/adr/ADR-004-r2-timer-decoupled-rendering.md` | scroll to `## Decision`]**
 
 ---
 
