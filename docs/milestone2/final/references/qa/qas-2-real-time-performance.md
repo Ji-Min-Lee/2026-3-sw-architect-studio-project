@@ -15,11 +15,11 @@
 
 | SPS | Block Period | Beat Error Resolution | Target |
 |:---:|:-----------:|:--------------------:|:------:|
-| 48,000 | ~20 ms | 20.8 µs/sample | Fallback |
-| **96,000** | **~10 ms** | **10.4 µs/sample** | **Primary** |
-| 192,000 | ~5 ms | 5.2 µs/sample | Stretch |
+| 48,000 | ~43 ms | 20.8 µs/sample | Fallback |
+| **96,000** | **~21 ms** | **10.4 µs/sample** | **Primary** |
+| 192,000 | ~11 ms | 5.2 µs/sample | Stretch |
 
-The block period sets the real-time deadline: every audio block must complete DSP processing before the next block arrives. At 96kHz (primary target), this deadline is ~10ms.
+The block period sets the real-time deadline: every audio block must complete DSP processing before the next block arrives. At 96kHz (primary target), this deadline is ~21ms.
 
 ## Related
 
