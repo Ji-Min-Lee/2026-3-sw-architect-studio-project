@@ -64,9 +64,6 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-4 Extensibility/Modifiability](references/qa/qas-4-extensibility-modifiability.md) |
-| Risk | — |
-| Experiment | — |
-| ADR | — |
 | View | [view-layered-4layer.md](references/views/view-layered-4layer.md) |
 | Related References | [Decomposition: Graph Tab](references/views/view-decomposition-graph-tab.md) — ≤3-file extension recipe in detail |
 
@@ -77,8 +74,6 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-4 Extensibility/Modifiability](references/qa/qas-4-extensibility-modifiability.md) |
-| Risk | — |
-| Experiment | — |
 | ADR | [ADR-005 IAudioSource DI](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) |
 | View | [view-iaudiosource.md](references/views/view-iaudiosource.md) |
 | Related References | [ADR-002 R1 Lazy Rendering](references/adr/ADR-002-r1-lazy-rendering.md) — isVisible() guard, replot/beat 8.22 → 1.20 (↓85%) |
@@ -90,7 +85,6 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-1 Accuracy](references/qa/qas-1-measurement-accuracy-error-detection-handling.md) · [QAS-5 Correctness](references/qa/qas-5-correctness.md) |
-| Risk | — |
 | Experiment | [EXP-05 Detector Optimization](references/experiments/exp-05-correctness-detector-optimization.md) |
 | ADR | [ADR-003 Sample Rate Selection](references/adr/ADR-003-sample-rate-selection.md) |
 | View | [view-domain-entity-vo.md](references/views/view-domain-entity-vo.md) |
@@ -104,7 +98,6 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | QA | [QAS-5 Correctness](references/qa/qas-5-correctness.md) |
 | Risk | [risks.md — NTR-07](references/risks.md) |
 | Experiment | [EXP-01 Accuracy Weishi Comparison](references/experiments/exp-01-accuracy-weishi-comparison.md) |
-| ADR | — |
 | View | [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) |
 | Related References | [unit-test-results.md](references/unit-test-results.md) |
 
