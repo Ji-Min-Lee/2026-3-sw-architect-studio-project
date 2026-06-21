@@ -6,25 +6,26 @@
 #include <QElapsedTimer>
 #include <cstdint>
 #include "SharedAudio.h"
+#include "AudioRingBuffer.h"
+#include "IAudioSource.h"
 #include "Logger.h"   // TG_NOW()
 
-class TPlaybackWorker : public QObject
+class TPlaybackWorker : public IAudioSource
 {
     Q_OBJECT
 
 public:
-    TPlaybackWorker(TMasterAudioDataRaw *RawAudio,int SamplesPerSecond,QObject *parent = nullptr);
-     ~TPlaybackWorker();
-    TMasterAudioDataRaw *mRawAudio;
+    TPlaybackWorker(AudioRingBuffer *ring, int SamplesPerSecond, QObject *parent = nullptr);
+    ~TPlaybackWorker();
+
+private:
+    AudioRingBuffer *mRawAudio;
 public slots:
     void StartPlayback(const QString &FileName);
 
-
+// IAudioSource signals: dataReady(int64_t), finished(), sourceComplete()
+// TPlaybackWorker emits sourceComplete() at EOF (was PlaybackDoneReadingFile).
 signals:
-    // Signal to send captured audio data to the main thread (e.g., for processing/visualization)
-    void PlaybackDataReady(int64_t emitTimestampUs);
-    void PlaybackDoneReadingFile();
-    void finished();
     void cancelled();
 
 private:

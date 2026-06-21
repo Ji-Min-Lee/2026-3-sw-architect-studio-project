@@ -1,0 +1,80 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="AS-IS" id="asis-i1">
+    <mxGraphModel dx="900" dy="560" grid="0" gridSize="10" pageWidth="700" pageHeight="420">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="TTL" value="AS-IS: Module Uses View — I-1 SessionController" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="8" width="700" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- MainWindow: god class owning acquisition + domain + presentation -->
+        <mxCell id="MW" value="&lt;b&gt;MainWindow&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;'&gt;949 lines — UI + session + tabs + diagnosis&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="230" y="50" width="240" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Acquisition layer — all owned directly by MainWindow -->
+        <mxCell id="AW" value="TAudioWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="30" y="180" width="140" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="PW" value="TPlaybackWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="200" y="180" width="140" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="SW" value="TSimWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="370" y="180" width="140" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="DSP" value="DSPWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="200" y="310" width="140" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="RA" value="TMasterAudioDataRaw" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="370" y="310" width="160" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="LOG" value="Logger" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="550" y="180" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Note -->
+        <mxCell id="NOTE" value="Problem: MainWindow directly owns&#xa;6 acquisition-layer elements.&#xa;Adding a new source requires&#xa;editing MainWindow." style="shape=note;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;size=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="30" y="310" width="155" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- «use» edges from MainWindow to all workers -->
+        <mxCell id="E1" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="AW" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E2" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="PW" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E3" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="SW" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E4" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E5" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="RA" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E6" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="LOG" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Workers «use» DSPWorker via dataReady signal -->
+        <mxCell id="E7" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#888888;fontSize=10;" edge="1" source="AW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E8" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#888888;fontSize=10;" edge="1" source="PW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E9" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#888888;fontSize=10;" edge="1" source="SW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

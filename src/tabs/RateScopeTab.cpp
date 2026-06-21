@@ -183,14 +183,14 @@ void RateScopeTab::onMeasurement(const Measurement &m)
 {
     if (mPaused || !isVisible()) return;
 
-    for (int i = 0; i < m.pcm.size(); i++) {
-        uint64_t tick = m.graphTickStart + i;
-        mScopePlot->graph(0)->addData((double)tick, m.pcm[i]);
-        mScopePlot->graph(1)->addData((double)tick, m.threshold[i]);
+    for (int i = 0; i < m.signal.pcm.size(); i++) {
+        uint64_t tick = m.signal.tickStart + i;
+        mScopePlot->graph(0)->addData((double)tick, m.signal.pcm[i]);
+        mScopePlot->graph(1)->addData((double)tick, m.signal.threshold[i]);
     }
 
     bool rateUpdated = false;
-    double markerLen = inwardMarkerLen(m.samplesPerSecond);
+    double markerLen = inwardMarkerLen(m.signal.samplesPerSecond);
     for (const AcousticEvent &ev : m.events) {
         if (ev.isA) {
             addVerticalMarker(ev.samplePos, ev.peakValue, Qt::green);
@@ -198,7 +198,7 @@ void RateScopeTab::onMeasurement(const Measurement &m)
                 double delta = ev.samplePos - mLastA;
                 addHorizontalMarkerOutward(mLastA, ev.samplePos, ev.peakValue / 2.0, Qt::black);
                 addText(mLastA + delta / 2.0, ev.peakValue / 2.0,
-                        QString(" %1 ms ").arg(delta * 1000.0 / m.samplesPerSecond, 0, 'f', 2),
+                        QString(" %1 ms ").arg(delta * 1000.0 / m.signal.samplesPerSecond, 0, 'f', 2),
                         Qt::black, Qt::AlignHCenter | Qt::AlignTop);
             }
             mLastA = ev.samplePos; mHaveLastA = true;
@@ -231,12 +231,12 @@ void RateScopeTab::onMeasurement(const Measurement &m)
         } else {
             double delta = ev.samplePos - mLastA;
             QString txt;
-            if (m.synced && m.amplitudeValid && qRound(m.amplitudeDeg) < 360)
+            if (m.synced && m.metrics.amplitude && qRound(*m.metrics.amplitude) < 360)
                 txt = QString(" %1 ms\n%2°")
-                      .arg(delta * 1000.0 / m.samplesPerSecond, 0, 'f', 1)
-                      .arg(qRound(m.amplitudeDeg));
+                      .arg(delta * 1000.0 / m.signal.samplesPerSecond, 0, 'f', 1)
+                      .arg(qRound(*m.metrics.amplitude));
             else
-                txt = QString(" %1 ms ").arg(delta * 1000.0 / m.samplesPerSecond, 0, 'f', 1);
+                txt = QString(" %1 ms ").arg(delta * 1000.0 / m.signal.samplesPerSecond, 0, 'f', 1);
             addVerticalMarker(ev.samplePos, ev.peakValue, Qt::red);
             addHorizontalMarkerInward(mLastA, ev.samplePos, markerLen, ev.peakValue, Qt::black);
             addText(ev.samplePos + markerLen, ev.peakValue, txt, Qt::black, Qt::AlignLeft | Qt::AlignTop);
@@ -250,14 +250,14 @@ void RateScopeTab::onMeasurement(const Measurement &m)
         mRatePlot->replot(QCustomPlot::rpQueuedReplot);
     }
 
-    purgeScopeHistory(m.samplesPerSecond);
+    purgeScopeHistory(m.signal.samplesPerSecond);
     double divisor = (mScopeScale > 0) ? mScopeScale : 4;
-    if (m.samplesPerSecond != mSamplesPerSecond) {
-        mSamplesPerSecond = m.samplesPerSecond;
-        mScopeTicker->setSampleRate(m.samplesPerSecond);
+    if (m.signal.samplesPerSecond != mSamplesPerSecond) {
+        mSamplesPerSecond = m.signal.samplesPerSecond;
+        mScopeTicker->setSampleRate(m.signal.samplesPerSecond);
     }
-    mLastTickEnd = (double)m.graphTickEnd;
-    mScopePlot->xAxis->setRange(mLastTickEnd, m.samplesPerSecond / divisor, Qt::AlignRight);
+    mLastTickEnd = (double)m.signal.tickEnd;
+    mScopePlot->xAxis->setRange(mLastTickEnd, m.signal.samplesPerSecond / divisor, Qt::AlignRight);
     mScopePlot->yAxis->rescale();
     g_replotCount++;
     mScopePlot->replot(QCustomPlot::rpQueuedReplot);

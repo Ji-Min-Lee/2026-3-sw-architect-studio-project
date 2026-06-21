@@ -1,0 +1,58 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="AS-IS" id="asis">
+    <mxGraphModel dx="1000" dy="620" grid="0" gridSize="10" pageWidth="820" pageHeight="400">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="TTL" value="AS-IS: DiagnosisInput duplicates WatchMetrics fields" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="8" width="820" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- WatchMetrics -->
+        <mxCell id="WM" value="«struct»&lt;br/&gt;&lt;b&gt;WatchMetrics&lt;/b&gt;&lt;hr/&gt;optional&amp;lt;double&amp;gt; rate&lt;br/&gt;optional&amp;lt;double&amp;gt; amplitude&lt;br/&gt;optional&amp;lt;double&amp;gt; beatError" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="80" y="100" width="210" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- DiagnosisInput (anti-pattern) -->
+        <mxCell id="DI" value="«struct»&lt;br/&gt;&lt;b&gt;DiagnosisInput&lt;/b&gt;&lt;hr/&gt;&lt;font color='#cc0000'&gt;double  rate_spd&lt;br/&gt;bool    rate_valid&lt;br/&gt;double  amplitude_deg&lt;br/&gt;bool    amplitude_valid&lt;br/&gt;double  beat_error_ms&lt;br/&gt;bool    beat_error_valid&lt;/font&gt;&lt;br/&gt;WatchType watch_type" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#cc0000;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="390" y="70" width="210" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- MainWindow -->
+        <mxCell id="MW" value="MainWindow&lt;br/&gt;::DisplayResults()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="210" y="280" width="200" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- WatchDiagnostics -->
+        <mxCell id="WD" value="WatchDiagnostics&lt;br/&gt;::Evaluate()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="530" y="280" width="180" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- MW uses WM -->
+        <mxCell id="E1" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" source="MW" target="WM" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- MW uses DI (creates + fills) -->
+        <mxCell id="E2" value="«use»&lt;br/&gt;creates + manually unpacks" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#cc0000;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=1;" edge="1" source="MW" target="DI" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- MW uses WD -->
+        <mxCell id="E3" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="WD" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- WD uses DI -->
+        <mxCell id="E4" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" source="WD" target="DI" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Note: no relationship between WM and DI -->
+        <mxCell id="NOTE" value="WatchMetrics and DiagnosisInput&lt;br/&gt;have no structural relationship.&lt;br/&gt;MainWindow must know both types&lt;br/&gt;and translate between them." style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;size=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="620" y="100" width="180" height="80" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

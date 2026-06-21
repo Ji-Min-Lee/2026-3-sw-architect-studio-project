@@ -2,26 +2,19 @@
 # ──────────────────────────────────────────────────────────────
 # run_experiment3.sh — EXP-03: Detector Robustness Under Noise
 #
-# Automates TimeGrapher in PLAYBACK mode via xdotool (no C++ changes).
-# Runs 3235_Starbucks noise WAVs at 3 rates × 7 SNR levels × 10 reps = 210 runs × 60s.
+# Sweeps onset_fraction × min_peak_fraction × noise level using
+# the --onset / --min-peak / --file CLI args added to TimeGrapher.
+# No xdotool or GUI automation needed.
 #
-# Strategy:
-#   1. Pre-extend NH35 noise WAVs to WAV_PAD_SEC using sox (once)
-#   2. For each run: launch app, xdotool → PLAYBACK mode → Start →
-#      file dialog → type path → Enter → sleep DURATION → kill (SIGTERM)
-#   3. SIGTERM triggers handleSignal() → QCoreApplication::quit() →
-#      Logger::~Logger() → writeCsv()
-#
-# Requirements:
-#   - xdotool  : sudo apt install xdotool
-#   - sox      : sudo apt install sox
-#   - Run on RPi with DISPLAY=:0
-#   - Existing binary: src/build-log/TimeGrapher  (./run_timegrapher.sh build --log)
+# Phase 1 defaults (넓게 훑기): 3 onset × 3 min_peak × 3 noise = 27 runs
 #
 # Usage:
-#   ./run_experiment3.sh                   # 70 runs, 60s each
-#   ./run_experiment3.sh --duration 30     # quick test, 30s each
-#   ./run_experiment3.sh --reps 2          # 2 reps per SNR (14 runs)
+#   ./run_experiment3.sh                        # 27 runs × 60s
+#   ./run_experiment3.sh --duration 30          # 30s per run
+#   ./run_experiment3.sh --reps 5              # 5 reps per combo
+#   ./run_experiment3.sh --noise 00,30,60      # custom noise levels
+#   ./run_experiment3.sh --onset 0.02,0.05     # custom onset values
+#   ./run_experiment3.sh --min-peak 0.10,0.20  # custom min_peak values
 # ──────────────────────────────────────────────────────────────
 set -e
 
@@ -35,30 +28,20 @@ RAW_LOG_DIR="$SRC_DIR/logs"
 LOG_DIR="$SRC_DIR/logs/EXP-03"
 
 # ── Experiment parameters ──────────────────────────────────────
-RATES=(48000 96000 192000)
-DURATION=60          # seconds of actual measurement per run
-WAV_PAD_SEC=75       # extended WAV length — must be > DURATION
-REPS=10
-SNR_LEVELS=(00 10 20 30 40 50 60)
-
-# ── UI coordinates (from MainWindow.ui, window fixed at 1280×750) ──
-# All coordinates are OFFSETS from the window's outer top-left corner.
-# TITLE_BAR_H accounts for the WM title bar (Openbox default ~22px).
-# If clicks miss, adjust TITLE_BAR_H (try 22, 26, 30) or run with --calibrate.
-TITLE_BAR_H=22
-MODE_COMBO_X=165   # ModeComboBox center X  (pos x=100 + w=131/2)
-MODE_COMBO_Y=161   # ModeComboBox center Y  (pos y=150 + h=22/2)
-START_BTN_X=40     # StartPushButton center X  (pos x=10 + w=61/2)
-START_BTN_Y=220    # StartPushButton center Y  (pos y=210 + h=21/2)
-# File dialog: filename field is ~100px above dialog bottom edge
-FILE_FIELD_FROM_BOTTOM=100
+NOISE_LEVELS=(00 10 20 30 40 50 60) # 00=clean, 60=max noise
+ONSET_LEVELS=(0.02 0.05 0.08)       # onset_fraction values to sweep
+MIN_PEAK_LEVELS=(0.10 0.20 0.30)    # min_peak_fraction values to sweep
+DURATION=45                          # seconds per run (= original WAV length)
+REPS=5                               # reps per parameter combination
 
 # ── Parse args ────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --duration) DURATION="$2"; WAV_PAD_SEC=$(( DURATION + 15 )); shift 2 ;;
-        --reps)     REPS="$2"; shift 2 ;;
-        --rates)    IFS=',' read -ra RATES <<< "$2"; shift 2 ;;
+        --duration)  DURATION="$2"; shift 2 ;;
+        --reps)      REPS="$2"; shift 2 ;;
+        --noise)     IFS=',' read -ra NOISE_LEVELS <<< "$2"; shift 2 ;;
+        --onset)     IFS=',' read -ra ONSET_LEVELS <<< "$2"; shift 2 ;;
+        --min-peak)  IFS=',' read -ra MIN_PEAK_LEVELS <<< "$2"; shift 2 ;;
         *) echo "[warn] Unknown arg: $1"; shift ;;
     esac
 done
@@ -69,17 +52,13 @@ if [ ! -x "$BIN" ]; then
     echo "        Build first: ./src/tools/run_timegrapher.sh build --log"
     exit 1
 fi
-if ! command -v xdotool &>/dev/null; then
-    echo "[error] xdotool not found — sudo apt install xdotool"
-    exit 1
-fi
 if ! command -v sox &>/dev/null; then
     echo "[error] sox not found — sudo apt install sox"
     exit 1
 fi
 
-for SNR in "${SNR_LEVELS[@]}"; do
-    WAV="$NOISE_DIR/28800BPH_3235_Starbucks_snr${SNR}db.wav"
+for NOISE in "${NOISE_LEVELS[@]}"; do
+    WAV="$NOISE_DIR/28800BPH_3235_Starbucks_noise${NOISE}db.wav"
     if [ ! -f "$WAV" ]; then
         echo "[error] Missing: $WAV"
         echo "        Generate noise WAVs first: python3 $SCRIPT_DIR/add_pink_noise.py"
@@ -87,7 +66,7 @@ for SNR in "${SNR_LEVELS[@]}"; do
     fi
 done
 
-mkdir -p "$RAW_LOG_DIR" "$LOG_DIR" "$EXTENDED_DIR"
+mkdir -p "$RAW_LOG_DIR" "$LOG_DIR"
 
 # ── X11 environment ───────────────────────────────────────────
 export DISPLAY=:0
@@ -95,182 +74,73 @@ export XAUTHORITY=/home/lg/.Xauthority
 export XDG_RUNTIME_DIR=/run/user/1000
 export QT_QPA_PLATFORM=xcb
 
-# ── Step 1: Pre-extend WAVs to WAV_PAD_SEC ────────────────────
+# ── Step 1: Run experiments ───────────────────────────────────
+TOTAL_RUNS=$(( ${#ONSET_LEVELS[@]} * ${#MIN_PEAK_LEVELS[@]} * ${#NOISE_LEVELS[@]} * REPS ))
 echo "============================================================"
-echo " Preparing extended WAVs (${WAV_PAD_SEC}s) in $EXTENDED_DIR"
-echo "============================================================"
-
-for SNR in "${SNR_LEVELS[@]}"; do
-    IN="$NOISE_DIR/28800BPH_3235_Starbucks_snr${SNR}db.wav"
-    OUT="$EXTENDED_DIR/28800BPH_3235_Starbucks_snr${SNR}db_ext.wav"
-
-    if [ -f "$OUT" ]; then
-        echo "  [skip] snr${SNR}db_ext.wav already exists"
-        continue
-    fi
-
-    # Get source duration (seconds, float)
-    SRC_DUR=$(sox --info -D "$IN" 2>/dev/null || soxi -D "$IN")
-    SRC_DUR_INT=${SRC_DUR%.*}   # integer part for comparison
-
-    if [ "${SRC_DUR_INT}" -ge "${WAV_PAD_SEC}" ]; then
-        # Already long enough — just trim
-        sox "$IN" "$OUT" trim 0 ${WAV_PAD_SEC}
-    else
-        # Repeat until longer than target, then trim
-        REPEATS=$(python3 -c "import math; print(max(1, math.ceil($WAV_PAD_SEC / max(1,$SRC_DUR_INT)) - 1))")
-        sox "$IN" "$OUT" repeat "$REPEATS" trim 0 ${WAV_PAD_SEC}
-    fi
-    echo "  [ok]   snr${SNR}db: ${SRC_DUR}s -> ${WAV_PAD_SEC}s"
-done
-echo ""
-
-# ── Helper: wait for a window to appear ───────────────────────
-wait_for_window() {
-    local name="$1" timeout="${2:-10}" found=""
-    for ((i=0; i<timeout*2; i++)); do
-        # try with and without --onlyvisible (dialog may not be mapped yet)
-        found=$(xdotool search --name "$name" 2>/dev/null | tail -1)
-        [ -n "$found" ] && echo "$found" && return 0
-        sleep 0.5
-    done
-    return 1
-}
-
-# ── Step 2: Run experiments ───────────────────────────────────
-TOTAL_RUNS=$(( ${#RATES[@]} * ${#SNR_LEVELS[@]} * REPS ))
-echo "============================================================"
-echo " EXP-03: Noise Robustness Test"
-echo " Rates   : ${RATES[*]} Hz"
-echo " Duration: ${DURATION}s per run"
-echo " SNR     : ${SNR_LEVELS[*]} dB  (${#SNR_LEVELS[@]} levels)"
-echo " Reps    : ${REPS}"
-echo " Total   : ${TOTAL_RUNS} runs (~$(( (TOTAL_RUNS * (DURATION + 12)) / 60 )) min)"
+echo " EXP-03: Detector Robustness — Parameter Sweep"
+echo " onset    : ${ONSET_LEVELS[*]}"
+echo " min_peak : ${MIN_PEAK_LEVELS[*]}"
+echo " noise    : ${NOISE_LEVELS[*]} dB"
+echo " Duration : ${DURATION}s per run"
+echo " Reps     : ${REPS}"
+echo " Total    : ${TOTAL_RUNS} runs (~$(( (TOTAL_RUNS * (DURATION + 12)) / 60 )) min)"
 echo "============================================================"
 echo ""
 
 RUN=0
-for RATE in "${RATES[@]}"; do
-  for SNR in "${SNR_LEVELS[@]}"; do
-    WAV_EXT="$EXTENDED_DIR/28800BPH_3235_Starbucks_snr${SNR}db_ext.wav"
+for ONSET in "${ONSET_LEVELS[@]}"; do
+  ONSET_TAG=$(echo "$ONSET" | tr -d '.')        # 0.02 → 002
+  for MINPEAK in "${MIN_PEAK_LEVELS[@]}"; do
+    MINPEAK_TAG=$(echo "$MINPEAK" | tr -d '.')  # 0.10 → 010
+    for NOISE in "${NOISE_LEVELS[@]}"; do
+      WAV_EXT="$NOISE_DIR/28800BPH_3235_Starbucks_noise${NOISE}db.wav"
+      for REP in $(seq 1 "$REPS"); do
+          RUN=$((RUN + 1))
+          LABEL="onset${ONSET_TAG}_minpk${MINPEAK_TAG}_noise${NOISE}db_r${REP}"
+          echo "── Run $RUN/$TOTAL_RUNS: onset=${ONSET}  min_peak=${MINPEAK}  noise=${NOISE}dB  rep=${REP}/${REPS} ──"
 
-    for REP in $(seq 1 "$REPS"); do
-        RUN=$((RUN + 1))
-        LABEL="snr${SNR}db_${RATE}hz_r${REP}"
-        echo "── Run $RUN/$TOTAL_RUNS: rate=${RATE}Hz  SNR=${SNR}dB  rep=${REP}/${REPS} ──"
+          # Skip if already done (resume support)
+          if ls "$LOG_DIR"/*_${LABEL}.csv &>/dev/null; then
+              echo "  [skip] already exists"
+              echo ""
+              continue
+          fi
 
-        # Kill any stale instance
-        pkill -x TimeGrapher 2>/dev/null || true
-        sleep 1
+          pkill -x TimeGrapher 2>/dev/null || true
+          sleep 1
 
-        # Launch — no --autostart; xdotool will drive the GUI
-        # --no-record answers "No" to the record-session dialog automatically
-        sudo DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY \
-            "$BIN" --rate "$RATE" --no-record &
-        APP_PID=$!
-        echo "  [pid=$APP_PID] launched, waiting for splash..."
+          DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY \
+              "$BIN" --no-record \
+                     --file "$WAV_EXT" \
+                     --duration "$DURATION" \
+                     --onset "$ONSET" \
+                     --min-peak "$MINPEAK" &
+          APP_PID=$!
+          echo "  [pid=$APP_PID] onset=${ONSET} min_peak=${MINPEAK}"
 
-        # Wait for splash (main.cpp: QThread::sleep(4)) + window to appear
-        sleep 6
-        WIN_ID=$(wait_for_window "MainWindow" 8) || \
-            WIN_ID=$(wait_for_window "TimeGrapher" 5) || true
+          echo "  [playing] ${WAV_EXT##*/}  (${DURATION}s)"
+          sleep "$DURATION"
 
-        if [ -z "$WIN_ID" ]; then
-            echo "  [error] Window not found — skipping run $RUN"
-            kill "$APP_PID" 2>/dev/null || true
-            sleep 1
-            continue
-        fi
-        echo "  [win=$WIN_ID] window ready"
+          kill "$APP_PID" 2>/dev/null || true
+          wait "$APP_PID" 2>/dev/null || true
+          sleep 1
 
-        # ── Get window screen position ────────────────────────
-        eval $(xdotool getwindowgeometry --shell "$WIN_ID")
-        WIN_X=$X; WIN_Y=$Y
-        # Absolute coords = window outer top-left + title bar + widget offset
-        ABS() { echo $(( WIN_X + $1 )); }
-        ABSY() { echo $(( WIN_Y + TITLE_BAR_H + $1 )); }
-
-        # ── Select PLAYBACK mode ───────────────────────────────
-        xdotool windowraise "$WIN_ID"
-        sleep 0.2
-        xdotool windowactivate --sync "$WIN_ID"
-        sleep 0.2
-        xdotool mousemove $(ABS $MODE_COMBO_X) $(ABSY $MODE_COMBO_Y)
-        xdotool click 1
-        sleep 0.3
-        # Navigate dropdown: Home = first item (Live), Down = Playback, Enter = select
-        xdotool key Home Down Return
-        sleep 0.3
-
-        # ── Click Start ───────────────────────────────────────
-        xdotool mousemove $(ABS $START_BTN_X) $(ABSY $START_BTN_Y)
-        xdotool click 1
-        sleep 2.5   # give Qt time to open the dialog
-
-        # ── Handle file dialog ────────────────────────────────
-        # When PlaybackStart() opens QFileDialog, it steals focus from the main window.
-        # Poll getactivewindow until it differs from WIN_ID (= dialog appeared).
-        DIALOG_ID=""
-        for ((d=0; d<20; d++)); do
-            AW=$(xdotool getactivewindow 2>/dev/null)
-            if [ -n "$AW" ] && [ "$AW" != "$WIN_ID" ]; then
-                DIALOG_ID="$AW"
-                break
-            fi
-            sleep 0.5
-        done
-
-        if [ -z "$DIALOG_ID" ]; then
-            echo "  [error] File dialog not found — skipping run $RUN"
-            kill "$APP_PID" 2>/dev/null || true
-            sleep 1
-            continue
-        fi
-        echo "  [dialog=$DIALOG_ID]"
-
-        xdotool windowactivate --sync "$DIALOG_ID"
-        sleep 0.3
-
-        # Click the filename field (fixed distance from dialog bottom)
-        eval $(xdotool getwindowgeometry --shell "$DIALOG_ID")
-        FNAME_X=$(( WIDTH / 2 ))
-        FNAME_Y=$(( HEIGHT - FILE_FIELD_FROM_BOTTOM ))
-        xdotool mousemove --window "$DIALOG_ID" $FNAME_X $FNAME_Y
-        xdotool click 1
-        sleep 0.2
-
-        # Clear existing text and type the full WAV path
-        xdotool key ctrl+a
-        xdotool type --delay 15 "$WAV_EXT"
-        xdotool key Return
-        sleep 0.5
-
-        # ── Measure for DURATION seconds ──────────────────────
-        echo "  [playing] ${WAV_EXT##*/}  (${DURATION}s)"
-        sleep "$DURATION"
-
-        # SIGTERM → handleSignal() → QCoreApplication::quit()
-        #        → Logger::~Logger() → writeCsv()
-        kill "$APP_PID" 2>/dev/null || true
-        wait "$APP_PID" 2>/dev/null || true
-        sleep 1   # allow Logger destructor to flush
-
-        # ── Collect log file ──────────────────────────────────
-        NEWEST=$(ls -t "$RAW_LOG_DIR"/log_*.csv 2>/dev/null \
-                 | grep -v '_sys\.csv' \
-                 | grep -v '/EXP-' \
-                 | head -1)
-        if [ -n "$NEWEST" ]; then
-            BASENAME=$(basename "${NEWEST%.csv}")
-            DEST="$LOG_DIR/${BASENAME}_${LABEL}.csv"
-            mv "$NEWEST" "$DEST"
-            SYS="${NEWEST%.csv}_sys.csv"
-            [ -f "$SYS" ] && mv "$SYS" "$LOG_DIR/${BASENAME}_${LABEL}_sys.csv"
-            echo "  -> $DEST"
-        else
-            echo "  [warn] No log file found for run $RUN (${LABEL})"
-        fi
-        echo ""
+          NEWEST=$(ls -t "$RAW_LOG_DIR"/log_*.csv 2>/dev/null \
+                   | grep -v '_sys\.csv' \
+                   | grep -v '/EXP-' \
+                   | head -1)
+          if [ -n "$NEWEST" ]; then
+              BASENAME=$(basename "${NEWEST%.csv}")
+              DEST="$LOG_DIR/${BASENAME}_${LABEL}.csv"
+              mv "$NEWEST" "$DEST"
+              SYS="${NEWEST%.csv}_sys.csv"
+              [ -f "$SYS" ] && mv "$SYS" "$LOG_DIR/${BASENAME}_${LABEL}_sys.csv"
+              echo "  -> $DEST"
+          else
+              echo "  [warn] No log file found for run $RUN (${LABEL})"
+          fi
+          echo ""
+      done
     done
   done
 done
@@ -281,81 +151,134 @@ echo "============================================================"
 echo ""
 
 # ── Step 3: Summary ───────────────────────────────────────────
-echo " Generating summary (by rate × SNR)..."
+echo " Generating summary (onset × min_peak × noise)..."
 echo ""
 
-python3 - "$LOG_DIR" "${RATES[@]}" "---" "${SNR_LEVELS[@]}" "$REPS" <<'PYEOF'
-import sys, os, csv, glob
+python3 - "$LOG_DIR" "${ONSET_LEVELS[@]}" "---" "${MIN_PEAK_LEVELS[@]}" "===" "${NOISE_LEVELS[@]}" "$REPS" <<'PYEOF'
+import sys, os, csv, glob, math
 
-args       = sys.argv[1:]
-log_dir    = args[0]
-sep        = args.index("---")
-rates      = args[1:sep]
-snr_levels = args[sep+1:-1]
-reps       = int(args[-1])
+args          = sys.argv[1:]
+log_dir       = args[0]
+sep1          = args.index("---")
+sep2          = args.index("===")
+onset_levels  = args[1:sep1]
+minpk_levels  = args[sep1+1:sep2]
+noise_levels  = args[sep2+1:-1]
+reps          = int(args[-1])
 
-def read_mean(f):
-    rows = []
+def onset_tag(v):  return v.replace(".", "")
+def minpk_tag(v):  return v.replace(".", "")
+
+def read_file(f):
+    """Return list of row dicts, skipping # comment lines."""
     try:
         with open(f, newline="") as fh:
-            for row in csv.DictReader(fh):
-                try:
-                    if float(row.get("fg_fps", 0)) >= 5:
-                        rows.append(row)
-                except (ValueError, KeyError):
-                    pass
+            lines = [l for l in fh if not l.startswith("#")]
+        return list(csv.DictReader(lines))
     except Exception as e:
         print(f"  [warn] {os.path.basename(f)}: {e}")
-        return None
+        return []
+
+def stats(rows):
+    """Compute detection accuracy stats from a list of frame rows.
+    lock% counts frames where sync_locked=1.
+    rate/beat/amp are averaged over frames where the value is non-empty
+    (naturally excludes pre-lock and frames where RLS hasn't converged).
+    std = sample standard deviation."""
     if not rows:
         return None
-    def mean(col):
+    total = len(rows)
+    locked = sum(1 for r in rows if r.get("sync_locked") == "1")
+
+    def mean_std(col):
         vals = [float(r[col]) for r in rows if r.get(col) not in (None, "")]
-        return sum(vals) / len(vals) if vals else 0.0
-    return len(rows), mean("block_drops"), mean("buffer_pct"), mean("fg_fps")
+        if not vals:
+            return None, None, 0
+        m = sum(vals) / len(vals)
+        s = math.sqrt(sum((v - m)**2 for v in vals) / len(vals)) if len(vals) > 1 else 0.0
+        return m, s, len(vals)
 
-for rate in rates:
-    print(f"{'='*70}")
-    print(f" Rate: {rate} Hz")
-    print(f"{'='*70}")
-    print(f"{'SNR':>6}  {'Rep':>4}  {'Frames':>7}  {'drops_mean':>11}  {'buf_pct':>9}  {'fps':>7}")
-    print("-" * 55)
+    rate_m, rate_s, rn = mean_std("rate_spd")
+    beat_m, beat_s, bn = mean_std("beat_error_ms")
+    amp_m,  amp_s,  an = mean_std("amplitude_deg")
+    lock_pct = 100.0 * locked / total
+    return total, lock_pct, rate_m, rate_s, beat_m, beat_s, amp_m, amp_s
 
-    rate_summary = {}
-    for snr in snr_levels:
-        rate_summary[snr] = []
-        pattern = os.path.join(log_dir, f"*_snr{snr}db_{rate}hz_r*.csv")
-        files = sorted(f for f in glob.glob(pattern) if "_sys.csv" not in f)
+# ── Per-combination detail ─────────────────────────────────────
+for onset in onset_levels:
+  for minpk in minpk_levels:
+    print(f"{'='*78}")
+    print(f" onset={onset}  min_peak={minpk}")
+    print(f"{'='*78}")
+    print(f"{'noise':>6}  {'rep':>3}  {'lock%':>5}  "
+          f"{'rate_spd':>9} {'±':>1}{'std':>6}  "
+          f"{'beat_ms':>7} {'±':>1}{'std':>5}  "
+          f"{'amp_deg':>7} {'±':>1}{'std':>5}")
+    print("-" * 78)
+
+    combo = {}
+    for noise in noise_levels:
+        combo[noise] = []
+        pat = os.path.join(log_dir,
+              f"*_onset{onset_tag(onset)}_minpk{minpk_tag(minpk)}_noise{noise}db_r*.csv")
+        files = sorted(f for f in glob.glob(pat) if "_sys.csv" not in f)
 
         for f in files[:reps]:
-            rep_tag = os.path.basename(f).split("_r")[-1].replace(".csv", "")
-            result = read_mean(f)
-            if result is None:
+            rep_tag = os.path.basename(f).split("_r")[-1].replace(".csv","")
+            rows = read_file(f)
+            s = stats(rows)
+            if s is None:
                 continue
-            nf, dm, bm, fm = result
-            rate_summary[snr].append((dm, bm, fm))
-            print(f"{snr:>6}  {rep_tag:>4}  {nf:>7}  {dm:>11.4f}  {bm:>9.4f}  {fm:>7.2f}")
+            total, lk, rm, rs, bm, bs, am, as_ = s
+            combo[noise].append((lk, rm, bm, am))
+            r_str = f"{rm:+.2f}" if rm is not None else "  N/A "
+            rs_str= f"{rs:.2f}"  if rs is not None else "  N/A"
+            b_str = f"{bm:.3f}"  if bm is not None else " N/A "
+            bs_str= f"{bs:.3f}"  if bs is not None else " N/A"
+            a_str = f"{am:.1f}"  if am is not None else " N/A"
+            as_str= f"{as_:.1f}" if as_ is not None else " N/A"
+            print(f"{noise+'dB':>6}  {rep_tag:>3}  {lk:>5.1f}%  "
+                  f"{r_str:>9} {rs_str:>6}  "
+                  f"{b_str:>7} {bs_str:>5}  "
+                  f"{a_str:>7} {as_str:>5}")
 
-        if rate_summary[snr]:
-            n = len(rate_summary[snr])
-            print(f"{'':>6}  {'AVG':>4}  {'':>7}  "
-                  f"{sum(r[0] for r in rate_summary[snr])/n:>11.4f}  "
-                  f"{sum(r[1] for r in rate_summary[snr])/n:>9.4f}  "
-                  f"{sum(r[2] for r in rate_summary[snr])/n:>7.2f}")
+        if combo[noise]:
+            n = len(combo[noise])
+            def cavg(i): return sum(r[i] for r in combo[noise] if r[i] is not None) / n
+            print(f"{'':>6}  {'AVG':>3}  {cavg(0):>5.1f}%  "
+                  f"{cavg(1):>+9.2f} {'':>6}  "
+                  f"{cavg(2):>7.3f} {'':>5}  "
+                  f"{cavg(3):>7.1f} {'':>5}")
         print()
 
-    print(f" Average by SNR ({rate} Hz):")
-    print(f"{'SNR':>6}  {'N':>3}  {'drops_mean':>11}  {'buf_pct':>9}  {'fps':>7}")
-    print("-" * 40)
-    for snr in snr_levels:
-        rows = rate_summary[snr]
-        if not rows:
-            print(f"{snr:>6}  {'0':>3}  {'N/A':>11}  {'N/A':>9}  {'N/A':>7}")
+# ── Ranking: best combinations by noise robustness ────────────
+print(f"{'='*78}")
+print(" Ranking — avg |rate_spd| across all noise levels (lower = more robust)")
+print(f"{'='*78}")
+print(f"{'onset':>6}  {'minpk':>6}  {'noise':>6}  "
+      f"{'rate_spd':>9}  {'beat_ms':>7}  {'amp_deg':>7}  {'lock%':>5}")
+print("-" * 65)
+
+ranking = []
+for onset in onset_levels:
+  for minpk in minpk_levels:
+    for noise in noise_levels:
+        pat = os.path.join(log_dir,
+              f"*_onset{onset_tag(onset)}_minpk{minpk_tag(minpk)}_noise{noise}db_r*.csv")
+        files = sorted(f for f in glob.glob(pat) if "_sys.csv" not in f)
+        all_rows = []
+        for f in files[:reps]:
+            all_rows.extend(read_file(f))
+        s = stats(all_rows)
+        if s is None or s[2] is None:
             continue
-        n = len(rows)
-        print(f"{snr:>6}  {n:>3}  "
-              f"{sum(r[0] for r in rows)/n:>11.4f}  "
-              f"{sum(r[1] for r in rows)/n:>9.4f}  "
-              f"{sum(r[2] for r in rows)/n:>7.2f}")
-    print()
+        total, lk, rm, rs, bm, bs, am, as_ = s
+        ranking.append((abs(rm), onset, minpk, noise, rm, bm, am, lk))
+
+ranking.sort()
+for absrate, onset, minpk, noise, rm, bm, am, lk in ranking:
+    b_str = f"{bm:.3f}" if bm is not None else " N/A "
+    a_str = f"{am:.1f}" if am is not None else " N/A"
+    print(f"{onset:>6}  {minpk:>6}  {noise+'dB':>6}  "
+          f"{rm:>+9.2f}  {b_str:>7}  {a_str:>7}  {lk:>5.1f}%")
 PYEOF

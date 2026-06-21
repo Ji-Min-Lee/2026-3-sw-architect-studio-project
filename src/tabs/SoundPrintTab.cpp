@@ -72,7 +72,7 @@ void SoundPrintTab::onMeasurement(const Measurement &m)
         mRenderer.setBph(m.detectedBph);
 
     // ① 원본 PCM → 비트맵 업데이트
-    mRenderer.processSamples(m.rawPcm.data(), m.rawPcm.size());
+    mRenderer.processSamples(m.signal.rawPcm.data(), m.signal.rawPcm.size());
 
     // ② A/C event markers with confidence color (SP-2)
     for (const AcousticEvent &ev : m.events) {

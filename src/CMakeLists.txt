@@ -38,6 +38,8 @@ set(PROJECT_SOURCES
     ui/MainWindow.cpp
     ui/MainWindow.h
     ui/MainWindow.ui
+    ui/SessionController.cpp
+    ui/SessionController.h
     ui/SettingsManager.h
     ui/SettingsManager.cpp
     ui/DiagnosisDialog.h
@@ -49,6 +51,10 @@ set(PROJECT_SOURCES
 )
 
 set(AUDIO_SOURCES
+    audio/IAudioSource.h
+    audio/IAudioSource.cpp
+    audio/AudioRingBuffer.h
+    audio/AudioRingBuffer.cpp
     audio/AudioWorker.h
     audio/AudioWorker.cpp
     audio/PlaybackWorker.h
@@ -56,8 +62,6 @@ set(AUDIO_SOURCES
     audio/SimWorker.h
     audio/SimWorker.cpp
     audio/SharedAudio.h
-    audio/AudioManager.h
-    audio/AudioManager.cpp
     audio/DSPWorker.h
     audio/DSPWorker.cpp
 )

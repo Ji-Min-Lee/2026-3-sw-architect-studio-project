@@ -15,17 +15,21 @@
 #include <QElapsedTimer>
 #include <cstdint>
 #include "SharedAudio.h"
+#include "AudioRingBuffer.h"
+#include "IAudioSource.h"
 #include "Logger.h"   // TG_NOW()
 
 
-class TAudioWorker : public QObject
+class TAudioWorker : public IAudioSource
 {
     Q_OBJECT
 
 public:
-    TAudioWorker(TMasterAudioDataRaw *RawAudio,QObject *parent = nullptr);
-     ~TAudioWorker();
-    TMasterAudioDataRaw *mRawAudio;
+    TAudioWorker(AudioRingBuffer *ring, QObject *parent = nullptr);
+    ~TAudioWorker();
+
+private:
+    AudioRingBuffer *mRawAudio;
 public slots:
     void StartAudioRecording(QAudioDevice InputDevice,int SampleRate,float Volume);
     void SetAudioInputVolume(float Volume);
@@ -35,10 +39,8 @@ private slots:
     void stateChangeAudioInput(QAudio::State s);
     void ProcessAudioInput();
 
-signals:
-    // TS1: emit time passed to HandleInputData for wait_us measurement.
-    void AudioDataReady(int64_t emitTimestampUs);
-    void finished();
+// IAudioSource signals: dataReady(int64_t), finished(), sourceComplete()
+// TAudioWorker never emits sourceComplete() — live mic has no EOF.
 
 private:
     QAudioSource *mAudioInput = nullptr;

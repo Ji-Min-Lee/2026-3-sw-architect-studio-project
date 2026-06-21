@@ -74,9 +74,9 @@ void WatchExplainer::explain(const ExplainRequest &req)
         m_pendingReq = req;
         const QString query = QString("watch diagnosis %1 rate %2 amplitude %3 beat error %4")
             .arg(req.result.label)
-            .arg(req.input.rate_spd, 0, 'f', 1)
-            .arg(req.input.amplitude_deg, 0, 'f', 0)
-            .arg(req.input.beat_error_ms, 0, 'f', 2);
+            .arg(req.input.metrics.rate.value_or(0.0),      0, 'f', 1)
+            .arg(req.input.metrics.amplitude.value_or(0.0), 0, 'f', 0)
+            .arg(req.input.metrics.beatError.value_or(0.0), 0, 'f', 2);
         m_rag.retrieve(query, "nomic-embed-text");
         m_timeout->start(kTimeoutMs);
         return;
@@ -251,12 +251,12 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
 
     // Partial-unknown: one or more metrics not yet measurable — ask AI to interpret
     if (res.level == DiagnosisLevel::Unknown) {
-        QString rateStr  = in.rate_valid       ? QString("%1 s/d").arg(in.rate_spd, 0, 'f', 1)
-                                               : QString("not measurable");
-        QString ampStr   = in.amplitude_valid  ? QString("%1 deg").arg(in.amplitude_deg, 0, 'f', 0)
-                                               : QString("not measurable");
-        QString beatStr  = in.beat_error_valid ? QString("%1 ms").arg(in.beat_error_ms, 0, 'f', 2)
-                                               : QString("not measurable");
+        QString rateStr = in.metrics.rate
+            ? QString("%1 s/d").arg(*in.metrics.rate, 0, 'f', 1) : "not measurable";
+        QString ampStr  = in.metrics.amplitude
+            ? QString("%1 deg").arg(*in.metrics.amplitude, 0, 'f', 0) : "not measurable";
+        QString beatStr = in.metrics.beatError
+            ? QString("%1 ms").arg(*in.metrics.beatError, 0, 'f', 2) : "not measurable";
         return QString(
             "You are a watchmaker. A %1 watch timegrapher reading:\n"
             "Rate %2, Amplitude %3, Beat Error %4.\n"
@@ -282,9 +282,9 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
         "In 3 sentences: why this diagnosis, likely mechanical cause, what to service.%6"
     )
     .arg(watchType)
-    .arg(in.rate_spd,        0, 'f', 1)
-    .arg(in.amplitude_deg,   0, 'f', 0)
-    .arg(in.beat_error_ms,   0, 'f', 2)
+    .arg(in.metrics.rate.value_or(0.0),       0, 'f', 1)
+    .arg(in.metrics.amplitude.value_or(0.0),  0, 'f', 0)
+    .arg(in.metrics.beatError.value_or(0.0),  0, 'f', 2)
     .arg(levelStr)
     .arg(contextBlock);
 }

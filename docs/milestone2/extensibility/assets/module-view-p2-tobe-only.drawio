@@ -1,0 +1,80 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="TO-BE" id="tobe">
+    <mxGraphModel dx="1000" dy="620" grid="0" gridSize="10" pageWidth="900" pageHeight="500">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="TTL" value="TO-BE: MovementSpec + AcquisitionConfig Value Objects" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="8" width="900" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- MovementSpec VO -->
+        <mxCell id="MS" value="&lt;b&gt;«VO» MovementSpec&lt;/b&gt;&lt;hr/&gt;bph: int&lt;br/&gt;liftAngle: double" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#6e40c9;strokeWidth=1.5;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="190" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="BC1" value="Watch Analysis Context" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=2;fontColor=#6e40c9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="165" width="190" height="18" as="geometry"/>
+        </mxCell>
+
+        <!-- AcquisitionConfig VO -->
+        <mxCell id="AC" value="&lt;b&gt;«VO» AcquisitionConfig&lt;/b&gt;&lt;hr/&gt;sampleRate: int&lt;br/&gt;hpfCutoff: double&lt;br/&gt;averagingPeriod: int" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#1a6b3c;strokeWidth=1.5;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="640" y="80" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="BC2" value="Signal Processing Context" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=2;fontColor=#1a6b3c;" vertex="1" parent="1">
+          <mxGeometry x="640" y="175" width="220" height="18" as="geometry"/>
+        </mxCell>
+
+        <!-- MainWindow -->
+        <mxCell id="MW" value="MainWindow" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="355" y="80" width="190" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- DSPWorker -->
+        <mxCell id="DSP" value="DSPWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="355" y="250" width="190" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- MeasurementEngine -->
+        <mxCell id="ENG" value="MeasurementEngine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="335" y="380" width="230" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges: MW constructs VOs -->
+        <mxCell id="E1" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#6e40c9;fontSize=10;" edge="1" source="MW" target="MS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E2" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#1a6b3c;fontSize=10;" edge="1" source="MW" target="AC" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- MW → DSP -->
+        <mxCell id="E3" value="new DSPWorker(raw, movement, config, useOnset)" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="MW" target="DSP" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- DSP uses VOs -->
+        <mxCell id="E4" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#6e40c9;fontSize=10;" edge="1" source="DSP" target="MS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E5" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#1a6b3c;fontSize=10;" edge="1" source="DSP" target="AC" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- DSP → Engine -->
+        <mxCell id="E6" value="init(movement, config)" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#000000;fontSize=10;" edge="1" source="DSP" target="ENG" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Engine uses VOs -->
+        <mxCell id="E7" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#6e40c9;fontSize=10;" edge="1" source="ENG" target="MS" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E8" value="«use»" style="html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#1a6b3c;fontSize=10;" edge="1" source="ENG" target="AC" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

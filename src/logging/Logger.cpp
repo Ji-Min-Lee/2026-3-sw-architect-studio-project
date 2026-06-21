@@ -39,7 +39,8 @@ void Logger::writeHeader()
     mOut << "frame,samples,block_drops,buffer_pct,total_ms,wait_ms,exec_ms,"
          << "copy_ms,sound_ms,tg_ms,ui_ms,plot_ms,"
          << "bg_fps,bg_sps,bg_spf,fg_fps,fg_sps,fg_spf,"
-         << "replot_count,fg_wait_ms\n";
+         << "replot_count,fg_wait_ms,"
+         << "noise_floor,ref_peak,noise_ratio,sync_lost,beat_missed\n";
     mOut.flush();
 }
 
@@ -79,7 +80,12 @@ void Logger::flushBatch()
              << QString::number(frame.fg_sps, 'f', 1) << ','
              << QString::number(frame.fg_spf, 'f', 1) << ','
              << frame.replot_count << ','
-             << QString::number(frame.fg_wait_us / 1000.0, 'f', 3) << '\n';
+             << QString::number(frame.fg_wait_us / 1000.0, 'f', 3) << ','
+             << QString::number(frame.noise_floor,  'f', 6) << ','
+             << QString::number(frame.ref_peak,     'f', 6) << ','
+             << QString::number(frame.ref_peak > 0 ? frame.noise_floor / frame.ref_peak : 0.0f, 'f', 6) << ','
+             << frame.sync_lost   << ','
+             << frame.beat_missed << '\n';
     }
     mOut.flush();
     mBatch.clear();
