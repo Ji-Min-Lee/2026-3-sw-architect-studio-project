@@ -30,8 +30,6 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "In `ADR-006` — the key point is that `Measurement Engine` has zero compile-time knowledge of any tab. `Session Controller` wires the signal-slot connections at session start. After that, `Measurement Engine` just emits."
 
-"One trade-off: if all 14 tabs are visible at the same time, the lazy rendering guard stops helping — every tab redraws on every beat. We had a contingency ADR ready — switch rendering to a fixed timer instead of beat events. We ran the 14-tab benchmark on Raspberry Pi — no deadline miss, so the contingency is not needed."
-
 ---
 
 > **📌 QnA only — not covered in presentation**
@@ -51,7 +49,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/views/view-decomposition-graph-tab.md` | scroll to `## Behavior` | show Observer contract validation table]**
 
-"One more thing on correctness. Watch domain knowledge takes time to build. We used AI to close that gap — interpreting equations during implementation, and generating unit tests to verify structural correctness. 142 tests, all passing. This was only possible because our architecture was testable by design — each component isolated enough to test independently. We'll come back to this in the risk section."
+"One more thing on correctness. Watch domain knowledge takes time to build. We used AI to close that gap — interpreting equations during implementation, and generating unit tests to verify structural correctness. 142 tests, all passing. This was only possible because our architecture was testable by our architecture — each component isolated enough to test independently. We'll come back to this in the risk section."
 
 ---
 
@@ -69,9 +67,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → show `view1-layered-module.png`]**
 
-"Quality scenario: add a new graph tab with 3 file changes or fewer, zero references to Signal Processing or Acquisition layers."
-
-"The 4-layer structure is what makes this possible. Acquisition at the bottom, Signal Processing, Domain, Presentation at the top. Dependencies flow downward only. The benefit: a developer adding a new tab only needs to know the Domain layer — what `Measurement` contains. No knowledge of DSP, audio capture, or any lower layer required. The Presentation layer grows freely without touching anything below."
+"Our target: add a new graph tab in 3 files or fewer, with zero knowledge of DSP or audio capture required. The 4-layer structure enforces this — Acquisition, Signal Processing, Domain, Presentation. Dependencies flow downward only. A developer adding a new tab only needs to know what `Measurement` contains. The Presentation layer grows freely without touching anything below."
 
 **[SCREEN → `references/views/view-layered-4layer.md` | scroll to `## Behavior` | show "Tab addition history" table, then "Dependency Structure Matrix"]**
 
@@ -100,7 +96,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "Same principle, applied to audio input. Before the refactor, `Session Controller` held three concrete pointers — live microphone, file playback, and simulation — each with duplicated wiring code. Adding a new source meant reading through nearly identical branches and touching `Main Window` in multiple places."
 
-"After introducing `I Audio Source`: one pointer, one connect block. The intent is immediately readable — there is one audio source, and it connects the same way regardless of type. Adding a new source means implementing the interface and adding one factory method. Zero changes to `Main Window`, `DSP Worker`, or `Measurement Engine`. Less code to read, less code to change — that directly improves developer productivity."
+"After introducing `I Audio Source`: one pointer, one connect block. Adding a new source means implementing the interface and one factory method — zero changes above. Less code to read, less code to change."
 
 **[SCREEN → `references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md` | scroll to `## Consequences`]**
 
@@ -124,9 +120,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Entity / Value Object` | show `view6-domain-entity-vo.png`]**
 
-"Originally, `Measurement` was a single flat struct — a god object. Every tab had to reach into the same bag of fields and pick out what it needed. That made the struct hard to reason about, and tab code hard to read."
-
-"We decomposed it into three Value Objects, each grouped by domain and producer — DSP math, audio capture, and beat detection. Each tab now depends only on the Value Object relevant to what it displays. The intent of each tab becomes self-documenting."
+"Originally, `Measurement` was a god object — one flat struct that every tab dug through. We decomposed it into three Value Objects grouped by domain: DSP math, audio capture, and beat detection. Each tab now depends only on what it actually needs. The intent becomes self-documenting."
 
 "And all three are immutable once produced. Tabs receive `Measurement` read-only — they cannot change it. This closes the loop on correctness: two tabs reading the same field are reading the same value, always."
 
