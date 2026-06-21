@@ -8,7 +8,7 @@
                     <mxGeometry x="60" y="12" width="820" height="28" as="geometry"/>
                 </mxCell>
                 <mxCell id="SC_BOX" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" parent="1" vertex="1">
-                    <mxGeometry x="20" y="50" width="110" height="490" as="geometry"/>
+                    <mxGeometry x="20" y="50" width="110" height="700" as="geometry"/>
                 </mxCell>
                 <mxCell id="SC_LBL" value="SessionController" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#444444;rotation=-90;align=center;" parent="1" vertex="1">
                     <mxGeometry x="-14" y="270" width="180" height="22" as="geometry"/>
@@ -57,14 +57,14 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="T1_RB" value="write PCM block&#xa;(every ~10ms at 96kHz, non-blocking)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;endArrow=block;endFill=1;strokeColor=#b85450;strokeWidth=2;fontColor=#b85450;fontSize=9;align=center;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" parent="1" source="IA" target="RB" edge="1">
+                <mxCell id="T1_RB" value="write PCM block&#xa;(every ~21ms at 96kHz, non-blocking)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;endArrow=block;endFill=1;strokeColor=#b85450;strokeWidth=2;fontColor=#b85450;fontSize=9;align=center;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" parent="1" source="IA" target="RB" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="RB" value="AudioRingBuffer&#xa;«lock-free SPSC ring buffer»&#xa;decouples T1 from T2 — no mutex" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=2;fontSize=11;" parent="1" vertex="1">
                     <mxGeometry x="240" y="216" width="380" height="56" as="geometry"/>
                 </mxCell>
                 <mxCell id="T2_BG" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;strokeWidth=2;opacity=60;" parent="1" vertex="1">
-                    <mxGeometry x="150" y="304" width="720" height="160" as="geometry"/>
+                    <mxGeometry x="150" y="304" width="720" height="230" as="geometry"/>
                 </mxCell>
                 <mxCell id="T2_LBL" value="T2: DSP Thread  [ADR-001 — dedicated core, separate from T1]" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#996600;align=left;" parent="1" vertex="1">
                     <mxGeometry x="158" y="310" width="540" height="20" as="geometry"/>
@@ -87,38 +87,29 @@
                 <mxCell id="FC_BD" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;endArrow=block;endFill=1;strokeColor=#d6b656;" parent="1" source="FC" target="BD" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="BE_LBL" value="emits BeatEvent{T1_ts, T3_ts}" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=3;fontColor=#996600;align=center;" parent="1" vertex="1">
-                    <mxGeometry x="200" y="395" width="240" height="16" as="geometry"/>
+                <mxCell id="BE_LBL" value="→ MeasurementEngine → emit measurementReady" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=3;fontColor=#996600;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="395" width="290" height="16" as="geometry"/>
                 </mxCell>
-                <mxCell id="T2_QC" value="Qt QueuedConnection&#xa;(cross-thread, thread-safe)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;endArrow=block;endFill=1;strokeColor=#d6b656;strokeWidth=2.5;fontColor=#996600;fontSize=9;fontStyle=1;align=center;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="BD" target="ME" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="580" y="424"/>
-                            <mxPoint x="580" y="510"/>
-                            <mxPoint x="350" y="510"/>
-                        </Array>
-                    </mxGeometry>
+                <mxCell id="T2_QC" value="Qt QueuedConnection&#xa;(cross-thread, thread-safe)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;endArrow=block;endFill=1;strokeColor=#d6b656;strokeWidth=2.5;fontColor=#996600;fontSize=9;fontStyle=1;align=center;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="ME" target="GTM" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="QT_BG" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;opacity=60;" parent="1" vertex="1">
-                    <mxGeometry x="150" y="494" width="720" height="218" as="geometry"/>
+                    <mxGeometry x="150" y="544" width="720" height="196" as="geometry"/>
                 </mxCell>
                 <mxCell id="QT_LBL" value="Qt Main Thread  (event loop)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#6c8ebf;align=left;" parent="1" vertex="1">
-                    <mxGeometry x="158" y="500" width="340" height="20" as="geometry"/>
+                    <mxGeometry x="158" y="550" width="340" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="ME" value="MeasurementEngine&#xa;Rate (s/d) · Amplitude (°) · Beat Error (ms)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="168" y="528" width="320" height="52" as="geometry"/>
+                <mxCell id="ME" value="MeasurementEngine&#xa;Rate (s/d) · Amplitude (°) · Beat Error (ms)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="168" y="460" width="320" height="52" as="geometry"/>
                 </mxCell>
                 <mxCell id="GTM" value="GraphTabManager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" parent="1" vertex="1">
                     <mxGeometry x="168" y="620" width="200" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="BG" value="BaseGraphTab (active tab)&#xa;updateData(Measurement)&#xa;isVisible() guard [ADR-002]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80bfff;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="1" vertex="1">
+                <mxCell id="BG" value="BaseGraphTab (active tab)&#xa;onMeasurement(Measurement)&#xa;isVisible() guard [ADR-002]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80bfff;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="1" vertex="1">
                     <mxGeometry x="430" y="610" width="240" height="62" as="geometry"/>
                 </mxCell>
                 <mxCell id="INACT" value="inactive tabs: updateData() called&#xa;but isVisible()=false → replot() skipped" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;fontStyle=2;" parent="1" vertex="1">
                     <mxGeometry x="700" y="620" width="158" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="ME_GTM" value="Qt Signal: measurement(Measurement)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;endArrow=block;endFill=1;strokeColor=#6c8ebf;strokeWidth=1.5;fontColor=#6c8ebf;fontSize=9;" parent="1" source="ME" target="GTM" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="GTM_BG" value="dispatch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;endArrow=block;endFill=1;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=9;" parent="1" source="GTM" target="BG" edge="1">
                     <mxGeometry relative="1" as="geometry"/>

@@ -17,12 +17,12 @@ This view shows the runtime component-and-connector structure of the audio proce
 
 #### T2 — DSP Thread [ADR-001]
 - Dedicated Qt thread introduced to offload signal processing from the Qt main thread.
-- Reads PCM from `AudioRingBuffer`; runs `FilterChain` → `BeatDetector`; emits `BeatEvent`.
-- Delivers `BeatEvent` to the main thread via Qt `QueuedConnection` (T2 → main thread boundary).
+- Reads PCM from `AudioRingBuffer`; runs `FilterChain` → `BeatDetector` → `MeasurementEngine`; emits `measurementReady`.
+- Delivers measurement result to Qt Main via `Qt::QueuedConnection` (T2 → main thread boundary).
 - Result: wait_ms 420ms → 0.013ms; deadline miss 43% → 0%.
 
 #### Qt Main Thread
-- Receives `BeatEvent` via `QueuedConnection`; computes measurements; renders graph tabs.
+- Receives measurement result via `QueuedConnection`; renders graph tabs.
 - No further thread crossings downstream.
 
 ## Behavior
