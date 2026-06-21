@@ -28,7 +28,6 @@
 |:--------:|------|-----------------|
 | 🔴 Critical | Measurement accuracy not yet validated against a reference device | Full accuracy validation with real WeiShi watch — W5 S1 (06/29) |
 | 🟡 Medium | Filter cutoff values not tuned on a real watch signal — ambient noise may cause false beats | Filter tuning experiment on actual hardware — target 06/25 |
-| ✅ Resolved | Rendering cost under all 14 tabs simultaneously on Raspberry Pi | 14-tab benchmark completed — no deadline miss; ADR-004 contingency not needed |
 
 **Critical path**: filter tuning → WeiShi accuracy validation → demo
 
