@@ -2,8 +2,6 @@
 
 ← [Wrap-up & Intro](slide-m1-wrapup-intro.md) | [Presentation Index](README.md) | Next: [Schedule →](slide-schedule.md)
 
-> **Time**: ~12 min | Goal: Latency → Correctness → Extensibility — each decision driven by experiment evidence
-
 All views follow the **Merson 7-section template**. Each view is written for a specific reader and a specific QA.  
 → Full view documents: [references/views/](references/views/)
 
@@ -11,7 +9,6 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 ## 2-A. Latency: Thread Separation
 
-> 📢 **PRESENT** (~4 min)
 
 **Problem**: GUI replot blocks DSP processing on a single thread → 43% deadline miss on RPi
 
@@ -40,62 +37,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 ## 2-B. Correctness: Observer Pattern
 
-```mermaid
-classDiagram
-    class MeasurementEngine {
-        <<Subject>>
-        +measurementReady(m Measurement)
-    }
-    class BaseGraphTab {
-        <<abstract, Observer>>
-        +onMeasurement(m Measurement)*
-        +replotAll()*
-        #mPaused bool
-    }
-    class TraceTab
-    class VarioTab
-    class BeatErrorTab
-    class OtherTabs["... + 11 more tabs"]
-    class Measurement {
-        <<Value Object>>
-    }
-    class WatchMetrics {
-        rate_spd, amplitude_deg
-        beatError_ms, bph
-    }
-    class SignalFrame {
-        samples: PCMBlock
-        timestamp: uint64
-    }
-    class AcousticEvent {
-        t1, t3: uint64
-    }
-    class MainWindow {
-        +mAllTabs List~BaseGraphTab~
-        +registerTab(tab, label)
-        +onMeasurementReady(m Measurement)
-        -mSession SessionController
-    }
-    class SessionController {
-        <<wiring coordinator>>
-        +connectObservers(tabs, receiver, slot)
-        -mObserverTabs List~BaseGraphTab~
-    }
-
-    MeasurementEngine ..> Measurement : «creates»
-    Measurement *-- WatchMetrics
-    Measurement *-- SignalFrame
-    Measurement *-- AcousticEvent
-    BaseGraphTab <|-- TraceTab
-    BaseGraphTab <|-- VarioTab
-    BaseGraphTab <|-- BeatErrorTab
-    BaseGraphTab <|-- OtherTabs
-    MainWindow o-- BaseGraphTab : mAllTabs[*]
-    MainWindow *-- SessionController : mSession
-    MainWindow ..> SessionController : connectObservers(mAllTabs)
-    SessionController ..> BaseGraphTab : «uses» mObserverTabs
-    SessionController ..> MeasurementEngine : «uses» at connect
-```
+![Observer Module View](assets/view2b-observer-module.png)
 
 | Category | Documents |
 |----------|-----------|
