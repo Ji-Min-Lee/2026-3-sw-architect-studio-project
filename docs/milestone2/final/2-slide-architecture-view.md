@@ -17,7 +17,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 ![E2E Latency Comparison](assets/thread-latency-chart.png)
 
-**Decision**: Separate into three threads — T1 (audio capture) · T2 (DSP) · Qt main (rendering), connected by a lock-free ring buffer
+**Decision**: Separate into three threads — T1 (audio capture) · T2 (DSP) · Qt main (rendering), connected by a ring buffer
 
 | Metric | Before (single thread) | After (T2 offload) |
 |--------|:----------------------:|:------------------:|
