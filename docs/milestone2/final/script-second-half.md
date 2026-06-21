@@ -15,7 +15,7 @@
 
 "Instead, we used Qt Signal-Slot as an Observer pattern. The engine emits one signal — `measurementReady`. Every tab subscribes. The engine doesn't know who's listening."
 
-"One more thing — DSP runs on a separate thread, T2, but tabs render on the Qt main thread. Qt's `QueuedConnection` takes care of the cross-thread handoff automatically. No manual locking."
+"One more thing — the Digital Signal Processing (DSP) pipeline runs on a separate background worker thread, but tabs render on the Qt main thread. Qt's `QueuedConnection` takes care of the cross-thread handoff automatically. No manual locking."
 
 > **📋 Diagram — Graph Tab Observer Module View**
 >
@@ -72,7 +72,7 @@
 > **📌 Q&A**
 >
 > **Q. Why is `MeasurementEngine` in Signal Processing, not Domain?**
-> It's owned and driven by `DSPWorker` inside the T2 thread pipeline. It calls `processBlock()` as part of the DSP loop — it's not a stand-alone domain service. Pure domain objects like `WatchMath` and `WatchDiagnostics` have no dependency on the DSP loop, so they stay in Domain.
+> It's owned and driven by `DSPWorker` inside the background DSP worker thread pipeline. It calls `processBlock()` as part of the DSP loop — it's not a stand-alone domain service. Pure domain objects like `WatchMath` and `WatchDiagnostics` have no dependency on the DSP loop, so they stay in Domain.
 >
 > **Q. What does "3 files or less" actually mean?**
 > It means the new tab's `.h` and `.cpp` (counted as 1 pair), plus one change to `MainWindow` to register it. That's the maximum for a standard tab. `RadarChartTab` needed 3 because it reads per-position data from `SequenceTab` rather than through `measurementReady` — that's the one exception.
@@ -137,52 +137,49 @@
 > We used Claude to generate the tests. They test that `onMeasurement()` is called with a valid `Measurement`, that the tab doesn't throw, and that the measurement data isn't mutated after the call. It's interface compliance testing, not domain logic testing.
 >
 > **Q. How many tests were generated?**
-> 14 tabs, each with a set of structural tests. The same test template was applied across all tabs — baseline 11 in W2 S1, then the 3 additional tabs in W2 S2 and W3 S1.
+> 14 tabs, each with a set of structural tests. The same test template was applied across all tabs — baseline 11 in Week 2 Sprint 1, then the 3 additional tabs in Week 2 Sprint 2 and Week 3 Sprint 1.
 >
 > **Q. What's the plan for real domain logic tests?**
-> That's part of the ongoing work. As the team builds domain knowledge — especially through accuracy validation in W4 S4 — we'll add tests for the actual watch metrics computation in `WatchMath` and `WatchDiagnostics`.
+> That's part of the ongoing work. As the team builds domain knowledge — especially through accuracy validation in Week 4 Sprint 4 — we'll add tests for the actual watch metrics computation in `WatchMath` and `WatchDiagnostics`.
 
 ---
 
 ## Wrap-up
 
-"Quick summary before we move to the schedule. Latency — solved with thread separation. Correctness — Observer pattern. Extensibility — layers, interface, and immutable value objects. And the domain knowledge gap — covered with AI-generated tests."
+"Quick summary before we move to the schedule. Latency — solved with DSP thread separation. Correctness — Observer pattern. Extensibility — layers, interface, and immutable Value Objects. And the domain knowledge gap — covered with AI-generated tests."
 
 ---
 
 ## 3-A. What We Did in M2
 
-"M2 had a clear arc. We built, we measured, we found a problem, and we responded."
+"Milestone 2 had a clear arc. We built, we measured, we found a problem, and we responded."
 
-"We started with the 4-layer structure and 11 baseline tabs. Then ran experiments — EXP-01 confirmed our filter approach, EXP-02 confirmed T2 works on RPi. But EXP-02 also revealed something unexpected: FG scheduling latency is still over budget. That became our biggest open risk."
+"We started with the 4-layer structure and 11 baseline tabs. Then ran experiments — Experiment 1 confirmed our filter approach, Experiment 2 confirmed the background DSP worker thread works on Raspberry Pi."
 
-"In parallel, we shipped AI Step 1 — rule-based diagnosis — and AI Step 2 — an LLM explainer running locally on RPi. And completed the full architecture refactor."
+"In parallel, we shipped AI Step 1 — rule-based diagnosis — and AI Step 2 — a Large Language Model (LLM) explainer running locally on Raspberry Pi. And completed the full architecture refactor."
 
 ---
 
 ## 3-B. Remaining Risks
 
-"Going into the final sprint, we have four open risks."
+"Going into the final sprint, we have three open risks."
 
-"Two critical. TR-10 — FG scheduling latency, we're applying priority scheduling in W4 Sprint 1. TR-05 — end-to-end accuracy hasn't been validated with a real watch yet, that's W4 Sprint 4."
+"One critical. Technical Risk 5 — end-to-end accuracy hasn't been validated with a real watch yet, that's Week 4 Sprint 4."
 
 "Two medium. Filter tuning and rendering performance under 14 tabs — both targeted this week."
 
-"The critical path: fix FG first, then experiments, then accuracy validation, then demo."
+"The critical path: filter and rendering experiments, then accuracy validation, then demo."
 
 > **📌 Q&A**
 >
-> **Q. What exactly is FG scheduling latency?**
-> FG stands for foreground — it's the latency between when the DSP thread finishes processing and when the Qt main thread actually starts rendering. We measured `fg_wait` avg at 60.1 ms, with 84% of frames exceeding the real-time deadline. The T2 offload fixed the DSP side, but the rendering side is still the bottleneck.
->
-> **Q. What happens if accuracy validation fails in W4 S4?**
-> That would be a critical issue for the demo. The buffer week (6/29–6/30) is there partly for this — if W4 S4 reveals accuracy problems, we'd use the buffer to investigate and decide whether it's a filter tuning issue or a deeper calibration problem.
+> **Q. What happens if accuracy validation fails in Week 4 Sprint 4?**
+> That would be a critical issue for the demo. The buffer week (6/29–6/30) is there partly for this — if Week 4 Sprint 4 reveals accuracy problems, we'd use the buffer to investigate and decide whether it's a filter tuning issue or a deeper calibration problem.
 
 ---
 
 ## 3-C. M3 Schedule
 
-"Four sprints left. Sprint 1 — FG fix. Sprint 2 — filter tuning. Sprint 3 — rendering benchmark. Sprint 4 — accuracy validation and full RPi run. Then a buffer week, and demo on July 1st."
+"Four sprints left. Sprint 1 — microphone auto-recovery. Sprint 2 — filter tuning. Sprint 3 — rendering benchmark. Sprint 4 — accuracy validation and full Raspberry Pi run. Then a buffer week, and demo on July 1st."
 
 ---
 

@@ -34,8 +34,6 @@
 | ★ | [TR-02](references/risks.md) | Single-threaded design misses real-time beat processing deadline on RPi | [EXP-02](references/experiments/exp-03-latency-e2e.md) | wait_ms 420ms → **0.013ms** (×32,000) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
 | ★ | [TR-03](references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-02](references/experiments/exp-03-latency-e2e.md) | Backlog 0% (macOS + RPi E2-5/6) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
 | | [TR-04](references/risks.md) | Rendering cost per beat consumes most of the real-time budget | [EXP-02](references/experiments/exp-03-latency-e2e.md) / [EXP-05](references/experiments/exp-03-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%) macOS | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ · [ADR-004](references/adr/ADR-004-r2-timer-decoupled-rendering.md) R2 conditional ⏳ |
-| ★ | [TR-10](references/risks.md) 🔴 | UI event loop picks up beat signals too late to meet the real-time deadline | [EXP-02](references/experiments/exp-03-latency-e2e.md) E2-7 | 🔴 Unresolved | E2-8: SCHED_RR / QTimer polling — scheduled 06/22 |
-
 ### QAS-3 — Low Latency
 
 | | Risk | Description | Experiment | Result | Architecture Decision |

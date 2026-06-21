@@ -24,10 +24,8 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Metric | Before (single thread) | After (T2 offload) |
 |--------|:----------------------:|:------------------:|
 | wait_ms avg | 420 ms | **0.013 ms** (×32,000) |
-| Deadline miss | 43% | **0%** (macOS) · RPi: E2-8 scheduled |
+| Deadline miss | 43% | **0%** (macOS + RPi) |
 | Backlog | Present | **None** |
-
-> 🔴 **Unresolved**: FG scheduling — fg_wait avg 60.1ms, 84% > deadline → E2-8 (6/22)
 
 → Full view: [view-cc-dsp-pipeline.md](references/views/view-cc-dsp-pipeline.md) · ADR: [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md)
 

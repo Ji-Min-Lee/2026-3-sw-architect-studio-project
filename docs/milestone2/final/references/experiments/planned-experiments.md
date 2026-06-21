@@ -124,8 +124,6 @@ Measure end-to-end latency from audio block ready to beat result delivered, iden
 | +R1 Lazy Rendering | 2.1 / 5.7 ms | tighter max |
 | Final (E3-07) | **2.2 / 4.8 ms** | ✅ QAS-3 Pass |
 
-**FG Qt event-loop** avg 60.1 ms (84% > deadline) — unresolved; root cause is Qt scheduling priority on RPi, not CPU load.
-
 ### Architecture Decisions
 
 - [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — wait_ms 420ms → 0.013ms (×32,000)
