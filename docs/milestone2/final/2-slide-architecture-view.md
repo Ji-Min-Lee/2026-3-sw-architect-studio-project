@@ -48,6 +48,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | ADR | [ADR-006 — BaseGraphTab Observer pattern and tab registration structure](references/adr/ADR-006-basegraphtab-observer-pattern.md) |
 | ADR (contingency) | [ADR-004 — Timer-decoupled rendering: if all 14 tabs are visible simultaneously, rendering is driven by a fixed 20 FPS timer instead of each beat event — activated only if EXP-05 (06/26) shows deadline miss under full tab load](references/adr/ADR-004-r2-timer-decoupled-rendering.md) |
 | View | [Decomposition View: Graph Tab — ≤3-file extension recipe](references/views/view-decomposition-graph-tab.md) |
+| Test Results | [Unit Test Results — 142 tests across 10 binaries, all passing — domain math, engine integration, and Observer contract](references/unit-test-results.md) |
 
 ---
 
