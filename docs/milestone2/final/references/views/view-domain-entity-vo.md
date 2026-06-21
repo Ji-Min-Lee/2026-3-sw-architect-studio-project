@@ -24,7 +24,7 @@ This view shows the module structure of the Domain layer's `Measurement` aggrega
 - Per-event data for one A(T1) or C(T3) acoustic event: `samplePos`, `isA`, rate-scatter point (`wrappedRateError`, `isTic`), escapement interval (`escapementMs`), and per-beat amplitude split.
 - Consumed per-beat by scatter/diagnostic tabs (RateScopeTab, BeatErrorTab). Immutable once detected.
 
-## Relations
+#### Relations
 
 | Relation | From | To | Meaning |
 |---|---|---|---|
@@ -32,11 +32,13 @@ This view shows the module structure of the Domain layer's `Measurement` aggrega
 | composed-of | `Measurement` | `SignalFrame`, `WatchMetrics`, `AcousticEvent[]` | Aggregate ownership by value |
 | uses (read-only) | Presentation tabs | `Measurement` | Received as `const &`; cannot mutate |
 
-## Rationale
+- **Immutability → correctness**: Tabs receive `Measurement` as `const &` and cannot mutate results — a display bug in one tab can never corrupt data another tab sees.
+- **Domain isolation → modifiability**: VOs live entirely in the Domain layer. Adding or replacing a Presentation tab requires zero changes to `Measurement`, `SignalFrame`, `WatchMetrics`, or `AcousticEvent`.
+- **Value semantics → safe cross-thread delivery**: Immutable value types allow the `QueuedConnection` from T2 to Qt main thread to copy a self-contained snapshot — no shared mutable state across threads.
 
-- **Immutability → correctness**: Tabs receive `Measurement` as `const &` and cannot mutate measurement results, so a display bug in one tab can never corrupt the data another tab sees (AP-4).
-- **Domain isolation → modifiability**: The VOs live entirely in the Domain layer. Adding or replacing a Presentation tab requires zero changes to `Measurement`, `SignalFrame`, `WatchMetrics`, or `AcousticEvent` — satisfying [QAS-4 Extensibility/Modifiability](../qa/qas-4-extensibility-modifiability.md).
-- **Value semantics → safe cross-thread delivery**: Because the VOs are immutable value types, the `QueuedConnection` from the DSP thread (T2) to the Qt main thread copies a self-contained snapshot — no shared mutable state across threads.
+## Related ADRs
+
+- [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) — Observer that delivers `Measurement` to all 14 tabs
 
 ## Related Views
 

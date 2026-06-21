@@ -19,6 +19,7 @@ This view shows the four-layer module structure of the TimeGrapher system and th
 - `DSPWorker` runs on a dedicated thread (T2); reads PCM blocks from `AudioRingBuffer` via lock-free read.
 - `DSPWorker` directly owns `MeasurementEngine` as a member (`DSPWorker.h:37`) and calls `mEngine->processBlock()` within the T2 DSP loop — they form a single T2 pipeline unit.
 - `MeasurementEngine` emits a `Measurement` struct via Qt Signal-Slot to Presentation (cross-thread, `QueuedConnection`).
+- **Layer boundary note**: `MeasurementEngine` is classified here (not Domain) because it is owned and driven by `DSPWorker` within the T2 DSP loop — it is not a stand-alone domain service. Pure domain objects (`Measurement` VO, `WatchMath`, `WatchDiagnostics`) remain in the Domain layer and have no upward dependencies.
 
 #### Domain Layer
 - Contains pure computation and value objects only: `WatchMath`, `WatchDiagnostics` (rule-based diagnosis), `WatchExplainer` (Ollama LLM, on-device), and VOs `Measurement`, `SignalFrame`, `WatchMetrics`, `AcousticEvent`, `MovementSpec`.
@@ -55,6 +56,32 @@ Presentation       →  Domain (receives Measurement struct)
 | **Total** | | **≤ 3** |
 
 Zero changes to Domain, Signal Processing, or Acquisition layers required.
+
+**Tab addition history** (observed across three sprint rounds):
+
+| Batch | Tabs | Trigger | Files changed (excl. build/test) |
+|---|---|---|---|
+| W2 S1 | 11 (baseline) | Core requirements | NewTab + MainWindow = **2** |
+| W2 S2 | +2 → 13 | Project-plan screen requirements (Fig 7-19) | FilterScopeTab + SweepScopeTab + MainWindow = **2 each** |
+| W3 S1 | +1 → **14** | Radar/Polar chart (bonus) | RadarChartTab + SequenceTab + MainWindow = **3** ¹ |
+
+¹ RadarChartTab reads per-position data from SequenceTab directly (not via `measurementReady`) → SequenceTab modified to expose `capturedReadings()` + `sequenceUpdated()`.
+
+✅ All 14 added within ≤ 3-component rule — Domain layer untouched each time.
+
+**Dependency Structure Matrix** (actual `#include` trace):
+
+Row = used module · Column = using module · `1` = depends · `-` = self
+
+| used ↓ \ using → | Presentation | UI Coord | Sig.Proc | Domain | Acquisition |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Presentation** (`*Tab`, `BaseGraphTab`) | - | 0 | 0 | 0 | 0 |
+| **UI Coord** (`MainWindow`, `SessionCtrl`) | 0 | - | 0 | 0 | 0 |
+| **Sig.Proc** (`DSPWorker`, `MeasurementEngine`) | 1 | 1 | - | 0 | 0 |
+| **Domain** (`Measurement`, `WatchMath`, `WatchDiagnostics`) | 1 | 1 | 1 | - | 0 |
+| **Acquisition** (`IAudioSource`, `AudioWorker`, `AudioRingBuffer`) | 0 | 1 | 1 | 0 | - |
+
+All 1s are in the lower triangle → no layer violations ✅. Domain column is all `0` → no upward dependency ✅.
 
 ## Related ADRs
 

@@ -2,12 +2,6 @@
 
 This view decomposes the Presentation layer into its internal components, focusing on the `BaseGraphTab` interface and the `MainWindow` tab registry. It answers: "What must a developer implement to add a new graph tab?"
 
-![Graph Tab Decomposition View](../../assets/view2-decomposition.png)
-
-## Static Module Structure
-
-**Observer pattern — static structure** (Subject, Observer, wiring coordinator; compile-time contracts):
-
 ```mermaid
 classDiagram
     class MeasurementEngine {
@@ -65,32 +59,11 @@ classDiagram
     SessionController ..> MeasurementEngine : «uses» at connect
 ```
 
-> No compile-time link `MeasurementEngine → BaseGraphTab`. `SessionController` is the wiring coordinator — it stores `mObserverTabs` and applies `connect()` at session start (sequence below). Per-beat delivery remains Qt signal-slot only.
-
-## Runtime Wiring
-
-**Runtime wiring** — [TimeGrapher Observer Runtime Sequence](../../assets/view2b-observer-runtime.puml):
-
-![TimeGrapher Observer Runtime Sequence](../../assets/view2b-observer-runtime.png)
-
-Three phases (autonumbered UML sequence; lifelines left → right: **User** · Qt Main Thread · **MeasurementEngine** · **Mic**):
-
-1. **Register observers (once)** — `MainWindow` → `SessionController.connectObservers()`; stores `mObserverTabs` only (no `connect` yet)
-2. **Wire signal-slot (per session)** — **User** `Start()` → each session start registers Qt `connect()`: `MeasurementEngine::measurementReady` → `BaseGraphTab::onMeasurement` (×14) and → `MainWindow::onMeasurementReady()`; `QueuedConnection` (DSP Thread → Main Thread)
-3. **Deliver measurement (per DSP block)** — **Mic** `PCM samples` → DSP Thread `processBlock()` → Main Thread `onMeasurement()` ×14 + `onMeasurementReady()` (`{duration}` `tg_us`, `wait_ms` — EXP-02)
-
-> Source: [`../../assets/view2b-observer-runtime.puml`](../../assets/view2b-observer-runtime.puml) · Cross-thread via `QueuedConnection` (see [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md))
-
-## Effects
-
-- `MeasurementEngine` has **zero compile-time knowledge of tabs** — emits signal only; `SessionController` wires the abstract `onMeasurement` slot → Subject and Observer decoupled at build time
-- All 14 tabs inherit `BaseGraphTab` → same `onMeasurement()` contract, same `isVisible()` lazy-render guard, same `showEvent()` catch-up frame
-- Adding a new tab = 1 new subclass + 3 lines in `MainWindow` → zero changes to `MeasurementEngine` or any other tab (ADR-006)
-- `Measurement` is composed of immutable VOs — tabs receive a read-only snapshot → correctness guaranteed
+> No compile-time link `MeasurementEngine → BaseGraphTab`. `SessionController` is the wiring coordinator — it stores `mObserverTabs` and applies `connect()` at session start. Per-beat delivery remains Qt signal-slot only.
 
 ## Element Catalog
 
-#### BaseGraphTab (abstract class / interface)
+#### BaseGraphTab (abstract class / Observer)
 - Abstract C++ base class that every graph tab must implement.
 - Key slot: `onMeasurement(const Measurement& m)` — wired from `MeasurementEngine::measurementReady` via `SessionController`.
 - `isVisible()` guard inside `onMeasurement()` skips `replot()` for non-visible tabs (ADR-002 R1), reducing replot/beat from 8.22 to 1.20 (↓85%).
@@ -98,13 +71,14 @@ Three phases (autonumbered UML sequence; lifelines left → right: **User** · Q
 - No direct reference to Signal Processing or Acquisition layers.
 
 #### MainWindow (tab registry + results observer)
-- Owns `mAllTabs` and `registerTab()` — single point of tab registration (replaces legacy `GraphTabManager`).
+- Owns `mAllTabs` and `registerTab()` — single point of tab registration.
 - Calls `SessionController::connectObservers(mAllTabs, this, onMeasurementReady)` at startup.
 - `onMeasurementReady(m)` updates the Results label (second Observer on the same signal).
 
 #### SessionController (wiring coordinator)
 - Stores observer list from `connectObservers()`; applies `connect()` in `startSourceThread()`.
 - Not in the per-beat data path after wiring completes.
+- `MeasurementEngine` has zero compile-time knowledge of tabs — emits signal only; `SessionController` wires the abstract `onMeasurement` slot → Subject and Observer decoupled at build time.
 
 #### Concrete Tab Implementations (14 tabs)
 Each extends `BaseGraphTab`:
@@ -126,11 +100,23 @@ Each extends `BaseGraphTab`:
 | | `WaveformCompTab` | Waveform comparison |
 | | `RadarChartTab` | Multi-metric radar |
 
-All 14 tabs implemented by 2026-06-22.
+Adding a new tab = 1 new subclass + 3 lines in `MainWindow` → zero changes to `MeasurementEngine` or any other tab (ADR-006).
+
+Observer contract compliance validated by AI-generated unit tests (see Behavior section).
 
 ## Behavior
 
-**Normal data flow per DSP block** (phase 3 in runtime sequence):
+**Runtime wiring** — [TimeGrapher Observer Runtime Sequence](../../assets/view2b-observer-runtime.puml):
+
+![TimeGrapher Observer Runtime Sequence](../../assets/view2b-observer-runtime.png)
+
+Three phases (autonumbered UML sequence; lifelines left → right: **User** · Qt Main Thread · **MeasurementEngine** · **Mic**):
+
+1. **Register observers (once)** — `MainWindow` → `SessionController.connectObservers()`; stores `mObserverTabs` only (no `connect` yet)
+2. **Wire signal-slot (per session)** — **User** `Start()` → each session start registers Qt `connect()`: `MeasurementEngine::measurementReady` → `BaseGraphTab::onMeasurement` (×14) and → `MainWindow::onMeasurementReady()`; `QueuedConnection` (DSP Thread → Main Thread)
+3. **Deliver measurement (per DSP block)** — **Mic** `PCM samples` → DSP Thread `processBlock()` → Main Thread `onMeasurement()` ×14 + `onMeasurementReady()`
+
+**Normal data flow per DSP block** (phase 3):
 
 ```
 Mic                                      [Acquisition]
@@ -149,6 +135,16 @@ User switches to tab T
     → T::showEvent()
     → T::replotAll()           ← catch-up frame when tab becomes visible
 ```
+
+**Observer contract validation (NTR-07 risk mitigation)**: AI-generated unit tests verify structural correctness — every tab receives the same `Measurement`, does not mutate it, and honors the `BaseGraphTab` interface contract.
+
+| Measure | Target | Result |
+|---|:---:|:---:|
+| Files changed per new tab | ≤ 3 | ✅ 2–3 |
+| SP / Acquisition refs from Presentation | 0 | ✅ 0 |
+| Observer contract compliance | 100% | ✅ TestAddedTabs 20/20 · TestGraphTabs 17/17 |
+
+Evidence: [unit-test-results.md](../unit-test-results.md) · Risk: [NTR-07](../risks.md)
 
 ## Related ADRs
 
