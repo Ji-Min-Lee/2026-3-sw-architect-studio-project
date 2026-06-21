@@ -24,25 +24,27 @@
 
 > 📢 **PRESENT** (~1 min)
 
-| Risk | ID | Severity | Mitigation Plan |
-|------|----|:--------:|-----------------|
-| Filter tuning not validated on real signal | TR-08 | 🟡 Medium | Filter tuning experiment — target 06/25 |
-| Rendering impact under full tab load unknown | TR-09 | 🟡 Medium | Rendering performance benchmark on RPi — target 06/26 |
-| End-to-end accuracy not yet validated | TR-05 | 🔴 Critical | Full accuracy validation with real watch (W5 S1) |
+| Severity | Risk | Mitigation Plan |
+|:--------:|------|-----------------|
+| 🔴 Critical | Measurement accuracy not yet validated against a reference device | Full accuracy validation with real WeiShi watch — W5 S1 (06/29) |
+| 🟡 Medium | Filter cutoff values not tuned on a real watch signal — ambient noise may cause false beats | Filter tuning experiment on actual hardware — target 06/25 |
+| 🟡 Medium | Rendering cost under all 14 tabs simultaneously on Raspberry Pi is unknown | 14-tab rendering benchmark on Raspberry Pi — target 06/26 |
 
-**Critical path**: filter & rendering experiments → WeiShi accuracy → demo
+**Critical path**: filter tuning → rendering benchmark → WeiShi accuracy validation → demo
 
 ---
 
 ## 3-B'. Risk Mitigation: AI-Assisted Unit Test
 
+> Risk: Domain knowledge gap — developers may implement wrong logic without knowing it
+
 | Category | Documents |
 |----------|-----------|
-| QA | [QAS-5 — Non-beat acoustic noise is rejected by the filter chain, keeping false trigger rate < 1% and T1 detection rate > 99%](references/qa/qas-5-correctness.md) |
-| Risk | [Risk Register — NTR-07: Coverage bias risk from AI-generated test cases](references/risks.md) |
-| Experiment | [EXP-01 — TimeChecker measurement accuracy compared against WeiShi No.1000](references/experiments/exp-01-accuracy-weishi-comparison.md) |
-| View | [Decomposition View: Graph Tab](references/views/view-decomposition-graph-tab.md) |
-| Related References | [Unit Test Results — Unit test execution results based on AI-generated test cases](references/unit-test-results.md) |
+| Quality Goal | [Correctness — non-beat noise rejected, false trigger rate < 1%, beat detection rate > 99%](references/qa/qas-5-correctness.md) |
+| Risk | [Risk Register — AI-generated tests may share the same blind spots as the developer (coverage bias)](references/risks.md) |
+| Experiment | [Accuracy baseline — TimeGrapher output compared against WeiShi No.1000 reference device](references/experiments/exp-01-accuracy-weishi-comparison.md) |
+| View | [Graph Tab Decomposition — Observer contract and tab extension structure](references/views/view-decomposition-graph-tab.md) |
+| Test Results | [Unit Test Results — 142 tests across 10 binaries, all passing](references/unit-test-results.md) |
 
 ---
 
