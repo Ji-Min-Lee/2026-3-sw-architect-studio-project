@@ -51,9 +51,9 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/views/view-decomposition-graph-tab.md` | scroll to `## Behavior` | show Observer contract validation table]**
 
-"One more thing on correctness. We have a domain knowledge gap — most of us don't have deep watch-measurement expertise. When developers don't fully understand the domain, they may implement the wrong logic and not know it."
+"One more thing on correctness. Watch measurement domain knowledge — Rate, Amplitude, Beat Error — takes time to fully internalize. We used AI to close that gap: AI helped interpret the equations during implementation, and generated unit tests to verify structural correctness independently of individual formula fluency."
 
-"We used AI-generated unit tests to verify structural correctness: every tab receives the same `Measurement`, does not mutate it, and honors the `Base Graph Tab` interface. 142 tests across 10 test binaries — all passing. We'll come back to this in the risk section."
+"142 tests across 10 test binaries, all passing. But this was only possible because our architecture was structured to be testable — immutable Value Objects, a clean Observer contract, and a strict layer boundary meant each component could be tested in isolation. The architecture enabled the test strategy. We'll come back to this in the risk section."
 
 ---
 
@@ -73,7 +73,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "Quality scenario: add a new graph tab with 3 file changes or fewer, zero references to Signal Processing or Acquisition layers."
 
-"The 4-layer structure enforces this. Acquisition at the bottom, Signal Processing, Domain, Presentation at the top. Dependencies flow downward only. The Presentation layer is free to grow without touching anything below."
+"The 4-layer structure is what makes this possible. Acquisition at the bottom, Signal Processing, Domain, Presentation at the top. Dependencies flow downward only. The benefit: a developer adding a new tab only needs to know the Domain layer — what `Measurement` contains. No knowledge of DSP, audio capture, or any lower layer required. The Presentation layer grows freely without touching anything below."
 
 **[SCREEN → `references/views/view-layered-4layer.md` | scroll to `## Behavior` | show "Tab addition history" table, then "Dependency Structure Matrix"]**
 
@@ -100,9 +100,9 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Interface` | show `view5-iaudiosource.png`]**
 
-"Same principle, applied to audio input. Before the refactor, `Session Controller` held three concrete pointers — live microphone, file playback, and simulation — with a duplicated connect block for each. Adding a fourth source meant touching `Main Window` in three unrelated places."
+"Same principle, applied to audio input. Before the refactor, `Session Controller` held three concrete pointers — live microphone, file playback, and simulation — with a duplicated connect block for each. To understand how audio sources worked, a developer had to read three separate branches of nearly identical code. And adding a fourth source meant touching `Main Window` in three unrelated places."
 
-"After introducing `I Audio Source`: one pointer, one connect block. Adding a new source means implementing the interface and adding one factory method in `Session Controller`. Zero changes to `Main Window`, `DSP Worker`, or `Measurement Engine`."
+"After introducing `I Audio Source`: one pointer, one connect block. The intent is immediately readable — there is one audio source, and it connects the same way regardless of type. Adding a new source means implementing the interface and adding one factory method. Zero changes to `Main Window`, `DSP Worker`, or `Measurement Engine`. Less code to read, less code to change — that directly improves developer productivity."
 
 **[SCREEN → `references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md` | scroll to `## Consequences`]**
 
@@ -126,9 +126,11 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Entity / Value Object` | show `view6-domain-entity-vo.png`]**
 
-"`Measurement` is composed of three Value Objects — `Watch Metrics`, `Signal Frame`, `Acoustic Event`. All immutable once produced. Tabs receive it read-only — they cannot change it."
+"Originally, `Measurement` was a single flat struct — a god object. Every tab had to reach into the same bag of fields and pick out what it needed. That made the struct hard to reason about, and tab code hard to read."
 
-"This closes the loop on measurement accuracy. Two tabs showing the same metric are reading from the same immutable snapshot. Structural deviation across tabs is impossible. And because `Measurement` lives entirely in the Domain layer, adding or replacing a Presentation tab has no impact on it."
+"We decomposed it into three Value Objects, each grouped by its domain and producer: `Watch Metrics` from the DSP math — Rate, Amplitude, Beat Error. `Signal Frame` from audio capture — the raw PCM block and timestamp. `Acoustic Event` from the beat detector — the tick and tock timestamps. Each tab now depends only on the Value Object relevant to what it displays. The intent of each tab becomes self-documenting."
+
+"And all three are immutable once produced. Tabs receive `Measurement` read-only — they cannot change it. This closes the loop on correctness: two tabs reading the same field are reading the same value, always."
 
 ---
 
@@ -170,11 +172,11 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → scroll to `## 3-B'. Risk Mitigation: AI-Assisted Unit Test`]**
 
-"Back to the domain knowledge gap. We addressed it on two axes."
+"Back to the domain knowledge gap — this was our biggest non-technical risk. Watch measurement expertise takes time to build, and we had weeks, not months."
 
-"First — AI during implementation, to interpret equations and clarify what Rate or Beat Error means in code. Second — AI-generated tests for structural verification: 142 tests across 10 test binaries, all passing. AI prevents mistakes during development; tests catch what slips through."
+"We addressed it on two axes: AI during implementation to interpret equations, and AI-generated tests to verify structural correctness independently of that expertise. But what made this viable was the architecture itself — immutable Value Objects, a clean Observer interface, strict layer boundaries. Each component was independently testable. Without that structure, unit testing at this scale in this timeframe wouldn't have been possible."
 
-"The domain physics tests — actual accuracy of `Watch Math` and `Watch Diagnostics` — are planned for the WeiShi accuracy validation in Week 5."
+"The domain physics validation — comparing `Watch Math` output against the WeiShi reference device — is the next step, planned for Week 5."
 
 ---
 
@@ -192,9 +194,11 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → scroll to `## 3-C. M3 Schedule` | show sprint table + GitHub board links]**
 
-"Filter tuning experiment on real hardware this week, then accuracy validation with WeiShi in Week 5 Sprint 1, full Raspberry Pi run, buffer week, and demo on July 1st."
+"The critical path is clear — filter tuning this week, then WeiShi accuracy validation in Week 5, full Raspberry Pi run, buffer week, and demo on July 1st. Every remaining task has an owner, a date, and is tracked as a GitHub issue on our project board."
 
-"All tasks and issues are tracked on the GitHub project board."
+**[SCREEN → show GitHub Project Board link in `## 3-C. M3 Schedule`]**
+
+"Each sprint is scoped so that nothing depends on a task that hasn't landed yet. We're on track to hit all demo criteria by July 1st."
 
 ---
 
