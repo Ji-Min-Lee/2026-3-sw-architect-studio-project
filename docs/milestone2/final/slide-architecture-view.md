@@ -29,6 +29,14 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 → Full view: [view-cc-dsp-pipeline.md](references/views/view-cc-dsp-pipeline.md) · ADR: [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md)
 
+| Category | Documents |
+|----------|-----------|
+| QA | [QAS-2 Real-time Performance](references/qa/qas-2-real-time-performance.md) · [QAS-3 Low Latency](references/qa/qas-3-low-latency-and-low-number-of-missed-beats.md) |
+| Risk | [risks.md — TR-09](references/risks.md) |
+| Experiment | [EXP-02 Dropped Block](references/experiments/exp-02-realtime-dropped-block.md) · [EXP-03 E2E Latency](references/experiments/exp-03-latency-e2e.md) |
+| ADR | [ADR-001 T2 DSP Offload](references/adr/ADR-001-t2-dsp-offload-thread.md) · [ADR-002 R1 Lazy Rendering](references/adr/ADR-002-r1-lazy-rendering.md) · [ADR-004 R2 Timer Rendering](references/adr/ADR-004-r2-timer-decoupled-rendering.md) |
+| View | [view-cc-dsp-pipeline.md](references/views/view-cc-dsp-pipeline.md) |
+
 ---
 
 ## 2-B. Correctness: Observer Pattern
@@ -92,6 +100,14 @@ classDiagram
 
 → [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) · [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md)
 
+| Category | Documents |
+|----------|-----------|
+| QA | [QAS-5 Correctness](references/qa/qas-5-correctness.md) |
+| Risk | [risks.md — NTR-07](references/risks.md) |
+| Experiment | [EXP-04 Extensibility/Observer](references/experiments/exp-04-extensibility-observer-pattern.md) |
+| ADR | [ADR-006 BaseGraphTab Observer](references/adr/ADR-006-basegraphtab-observer-pattern.md) |
+| View | [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) |
+
 ---
 
 ## 2-C. Extensibility: Layer + Interface + Entity/VO
@@ -108,11 +124,27 @@ classDiagram
 
 → [view-layered-4layer.md](references/views/view-layered-4layer.md)
 
+| Category | Documents |
+|----------|-----------|
+| QA | [QAS-4 Extensibility/Modifiability](references/qa/qas-4-extensibility-modifiability.md) |
+| Risk | — |
+| Experiment | — |
+| ADR | — |
+| View | [view-layered-4layer.md](references/views/view-layered-4layer.md) |
+
 ### Interface — IAudioSource Dependency Inversion
 
 ![IAudioSource Dependency Inversion](assets/view5-iaudiosource.png)
 
 → [view-iaudiosource.md](references/views/view-iaudiosource.md) · [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md)
+
+| Category | Documents |
+|----------|-----------|
+| QA | [QAS-4 Extensibility/Modifiability](references/qa/qas-4-extensibility-modifiability.md) |
+| Risk | — |
+| Experiment | — |
+| ADR | [ADR-005 IAudioSource DI](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) |
+| View | [view-iaudiosource.md](references/views/view-iaudiosource.md) |
 
 ### Entity / Value Object — Domain Layer
 
@@ -120,11 +152,27 @@ classDiagram
 
 → [view-domain-entity-vo.md](references/views/view-domain-entity-vo.md)
 
+| Category | Documents |
+|----------|-----------|
+| QA | [QAS-1 Accuracy](references/qa/qas-1-measurement-accuracy-error-detection-handling.md) · [QAS-5 Correctness](references/qa/qas-5-correctness.md) |
+| Risk | — |
+| Experiment | [EXP-05 Detector Optimization](references/experiments/exp-05-correctness-detector-optimization.md) |
+| ADR | [ADR-003 Sample Rate Selection](references/adr/ADR-003-sample-rate-selection.md) |
+| View | [view-domain-entity-vo.md](references/views/view-domain-entity-vo.md) |
+
 ---
 
 ## 2-D. Risk: AI-Assisted Unit Test
 
 → [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) · [risks.md — NTR-07](references/risks.md)
+
+| Category | Documents |
+|----------|-----------|
+| QA | [QAS-5 Correctness](references/qa/qas-5-correctness.md) |
+| Risk | [risks.md — NTR-07](references/risks.md) |
+| Experiment | [EXP-01 Accuracy Weishi Comparison](references/experiments/exp-01-accuracy-weishi-comparison.md) |
+| ADR | — |
+| View | [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) |
 
 ---
 
