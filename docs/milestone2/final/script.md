@@ -47,11 +47,11 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 ## AI-Assisted Tests — Correctness Side
 
-**[SCREEN → `references/views/view-decomposition-graph-tab.md` | scroll to `## Behavior` | show Observer contract validation table]**
+**[SCREEN → `references/unit-test-results.md` | show summary table]**
 
 "One more thing on correctness. Watch domain knowledge takes time to build — and when developers don't fully understand the domain, they may implement wrong logic without knowing it. That was our biggest non-technical risk."
 
-"We addressed it with AI-generated unit tests: 37 test cases verifying Observer contract compliance — every tab receives the same `Measurement`, doesn't mutate it, and honors the interface. This was only possible because our architecture was testable by design. Clean boundaries meant each tab could be verified in isolation. The architecture reduced the risk."
+"We addressed it with AI-generated unit tests: 142 test cases across 10 binaries, all passing — covering domain math, engine integration, and Observer contract compliance. This was only possible because our architecture was testable by design. Clean boundaries meant each component could be verified in isolation. The architecture reduced the risk."
 
 ---
 
