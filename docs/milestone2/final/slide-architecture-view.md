@@ -11,7 +11,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 ## 2-A. Latency: Thread Separation
 
-> 📢 **PRESENT** (~4 min) · Evidence: [EXP-02](references/experiments/exp-03-latency-e2e.md) · Decision: [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md)
+> 📢 **PRESENT** (~4 min)
 
 **Problem**: GUI replot blocks DSP processing on a single thread → 43% deadline miss on RPi
 
@@ -26,8 +26,6 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | wait_ms avg | 420 ms | **0.013 ms** (×32,000) |
 | Deadline miss | 43% | **0%** (macOS + RPi) |
 | Backlog | Present | **None** |
-
-→ Full view: [view-cc-dsp-pipeline.md](references/views/view-cc-dsp-pipeline.md) · ADR: [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md)
 
 | Category | Documents |
 |----------|-----------|
@@ -99,8 +97,6 @@ classDiagram
     SessionController ..> MeasurementEngine : «uses» at connect
 ```
 
-→ [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) · [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md)
-
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-5 Correctness](references/qa/qas-5-correctness.md) |
@@ -123,8 +119,6 @@ classDiagram
 | W2 S2 | +2 → 13 | Project-plan screens added (Fig 7-19): FilterScope + SweepScope |
 | W3 S1 | +1 → **14** | Bonus: Radar/Polar chart for multi-position comparison |
 
-→ [view-layered-4layer.md](references/views/view-layered-4layer.md)
-
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-4 Extensibility/Modifiability](references/qa/qas-4-extensibility-modifiability.md) |
@@ -137,8 +131,6 @@ classDiagram
 ### Interface — IAudioSource Dependency Inversion
 
 ![IAudioSource Dependency Inversion](assets/view5-iaudiosource.png)
-
-→ [view-iaudiosource.md](references/views/view-iaudiosource.md) · [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md)
 
 | Category | Documents |
 |----------|-----------|
@@ -153,8 +145,6 @@ classDiagram
 
 ![Domain Entity / Value Object Module View](assets/view6-domain-entity-vo.png)
 
-→ [view-domain-entity-vo.md](references/views/view-domain-entity-vo.md)
-
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-1 Accuracy](references/qa/qas-1-measurement-accuracy-error-detection-handling.md) · [QAS-5 Correctness](references/qa/qas-5-correctness.md) |
@@ -166,8 +156,6 @@ classDiagram
 ---
 
 ## 2-D. Risk: AI-Assisted Unit Test
-
-→ [view-decomposition-graph-tab.md](references/views/view-decomposition-graph-tab.md) · [risks.md — NTR-07](references/risks.md)
 
 | Category | Documents |
 |----------|-----------|
