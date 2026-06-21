@@ -1,6 +1,6 @@
 # Section 3 — Schedule, Risks & Mitigations
 
-← [Architecture Views](slide-architecture-view.md) | [Presentation Index](README.md)
+← [Architecture Views](2-slide-architecture-view.md) | [Presentation Index](README.md)
 
 > **Time**: ~5 min | Goal: M2 sprint recap → open risks → M3 schedule
 
