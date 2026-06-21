@@ -30,7 +30,7 @@ It finds: which decisions could cause trouble, and where decisions force a trade
 
 | Section | Output |
 |---------|--------|
-| Section 2 | Business goals and constraints |
+| Section 1 | Business goals and constraints |
 | Section 3 | Utility Tree — QA priorities |
 | Section 4 | Architectural approaches considered |
 | Section 5 | Risks, Non-Risks, Sensitivity Points, Tradeoffs |
@@ -121,7 +121,7 @@ Utility
 
 | Option | Idea | Chosen? |
 |--------|------|:-------:|
-| T1 — SCHED_RR | Give audio thread higher OS priority | ✅ Applied |
+| T1 — SCHED_RR | Give audio thread higher OS priority | ❌ Not needed (EXP-02: no improvement in dropped blocks) |
 | T2 — DSP Offload Thread | Move DSP to its own thread, pass data via buffer | ✅ M2 (ADR-001) |
 | T3 — Full Pipeline Split | One thread per pipeline stage | ❌ Too complex for timeline |
 
@@ -131,7 +131,7 @@ Utility
 |--------|------|:--------:|
 | Observer (Qt signals) | MeasurementEngine sends one signal to all tabs | ✅ ADR-006 |
 | IAudioSource interface | One interface for all audio sources | ✅ ADR-005 |
-| Ring Buffer | Lock-free PCM handoff between threads | ✅ ADR-001 |
+| Ring Buffer | PCM handoff between threads (mutex for index sync only) | ✅ ADR-001 |
 
 ---
 
