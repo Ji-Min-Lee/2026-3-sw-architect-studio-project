@@ -328,12 +328,3 @@ cp src/rag/vector.db <build_dir>/rag/
 
 `nomic-embed-text` is used only for the brief query embedding at click time (~0.5 s on RPi5) and does not stay loaded between requests.
 
----
-
-## Roadmap
-
-| Step | Status | Description |
-|------|--------|-------------|
-| 1 | Done | Rule-based diagnosis (`WatchDiagnostics`) |
-| 2 | Done | On-device LLM explanation (`WatchExplainer` + `DiagnosisDialog`) |
-| 3 | Done | RAG context injection from Witschi docs (`RagRetriever` + `vector.db`) |
