@@ -24,22 +24,22 @@
 
 | | Risk | Description | Experiment | Result | Architecture Decision |
 |--|------|-------------|-----------|--------|-----------------------|
-| | [TR-05](references/risks.md) | Filter configuration may degrade beat detection accuracy at edge BPH values | [EXP-03](references/experiments/exp-05-correctness-detector-optimization.md) | ⏳ 06/25 | — (ADR pending EXP-03 results) |
+| | [TR-05](references/risks.md) | Filter configuration may degrade beat detection accuracy at edge BPH values | [EXP-05](references/experiments/exp-05-correctness-detector-optimization.md) | ⏳ 06/25 | — (ADR pending EXP-05 results) |
 | ★ | [NTR-07](references/risks.md) | Domain knowledge gap prevents structural verification of measurement tab correctness | — | AI-generated unit tests for structural verification (119 tests / 5 binaries) | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) Observer — consistent Measurement delivery to all tabs |
 
 ### QAS-2 — Real-Time Performance
 
 | | Risk | Description | Experiment | Result | Architecture Decision |
 |--|------|-------------|-----------|--------|-----------------------|
-| ★ | [TR-02](references/risks.md) | Single-threaded design misses real-time beat processing deadline on RPi | [EXP-02](references/experiments/exp-03-latency-e2e.md) | wait_ms 420ms → **0.013ms** (×32,000) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
-| ★ | [TR-03](references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-02](references/experiments/exp-03-latency-e2e.md) | Backlog 0% (macOS + RPi E2-5/6) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
-| | [TR-04](references/risks.md) | Rendering cost per beat consumes most of the real-time budget | [EXP-02](references/experiments/exp-03-latency-e2e.md) / [EXP-05](references/experiments/exp-03-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%) macOS | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ · [ADR-004](references/adr/ADR-004-r2-timer-decoupled-rendering.md) R2 conditional ⏳ |
+| ★ | [TR-02](references/risks.md) | Single-threaded design misses real-time beat processing deadline on RPi | [EXP-03](references/experiments/exp-03-latency-e2e.md) | wait_ms 420ms → **0.013ms** (×32,000) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
+| ★ | [TR-03](references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-03](references/experiments/exp-03-latency-e2e.md) | Backlog 0% (macOS + RPi E2-5/6) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
+| | [TR-04](references/risks.md) | Rendering cost per beat consumes most of the real-time budget | [EXP-03](references/experiments/exp-03-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%) macOS | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ · [ADR-004](references/adr/ADR-004-r2-timer-decoupled-rendering.md) R2 conditional ⏳ |
 ### QAS-3 — Low Latency
 
 | | Risk | Description | Experiment | Result | Architecture Decision |
 |--|------|-------------|-----------|--------|-----------------------|
-| | [TR-01](references/risks.md) | RPi may not sustain high-resolution audio capture alongside Qt GUI | [EXP-01](references/experiments/exp-02-realtime-dropped-block.md) | Dropped=0 at 48k/96k/192k · SCHED_RR not required | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
-| ★ | TR-02/03 | *(shared with QAS-2)* Single-threaded capture-to-process latency | [EXP-02](references/experiments/exp-03-latency-e2e.md) | E2E avg **2.05ms** on RPi | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
+| | [TR-01](references/risks.md) | RPi may not sustain high-resolution audio capture alongside Qt GUI | [EXP-02](references/experiments/exp-02-realtime-dropped-block.md) | Dropped=0 at 48k/96k/192k · SCHED_RR not required | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
+| ★ | TR-02/03 | *(shared with QAS-2)* Single-threaded capture-to-process latency | [EXP-03](references/experiments/exp-03-latency-e2e.md) | E2E avg **2.05ms** on RPi | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
 
 ### QAS-4 — Extensibility / Modifiability
 
