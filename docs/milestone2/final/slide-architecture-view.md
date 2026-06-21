@@ -28,7 +28,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 | Category | Documents |
 |----------|-----------|
-| QA | [QAS-2 — 96kHz에서 10분간 오디오 블록을 처리할 때 dropped block = 0](references/qa/qas-2-real-time-performance.md) · [QAS-3 — beat 이벤트 발생 후 GUI 업데이트까지 E2E < 100ms](references/qa/qas-3-low-latency-and-low-number-of-missed-beats.md) |
+| QA | [QAS-2 — Every audio block at 96kHz is processed without a single dropped block over a 10-minute session](references/qa/qas-2-real-time-performance.md) · [QAS-3 — From beat event at microphone to GUI update, end-to-end latency < 100ms](references/qa/qas-3-low-latency-and-low-number-of-missed-beats.md) |
 | Risk | [Risk Register — TR-09: 단일 스레드 DSP 블로킹 위험](references/risks.md) |
 | Experiment | [EXP-02 — RPi에서 dropped block 측정](references/experiments/exp-02-realtime-dropped-block.md) · [EXP-03 — 2-구간 타임스탬프 기반 E2E 레이턴시 측정](references/experiments/exp-03-latency-e2e.md) |
 | ADR | [ADR-001 — DSP 전용 오프로드 스레드(T2) 도입 결정](references/adr/ADR-001-t2-dsp-offload-thread.md) · [ADR-002 — 비가시 탭 replot 스킵(Lazy Rendering)](references/adr/ADR-002-r1-lazy-rendering.md) · [ADR-004 — 타이머 기반 렌더링 분리(R2)](references/adr/ADR-004-r2-timer-decoupled-rendering.md) |
@@ -43,7 +43,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 | Category | Documents |
 |----------|-----------|
-| QA | [QAS-5 — 노이즈 환경에서 비beat 신호를 필터링하여 false trigger rate < 1%, T1 검출률 > 99%](references/qa/qas-5-correctness.md) |
+| QA | [QAS-5 — Non-beat acoustic noise is rejected by the filter chain, keeping false trigger rate < 1% and T1 detection rate > 99%](references/qa/qas-5-correctness.md) |
 | Risk | [Risk Register — NTR-07: 탭 확장 시 Observer 누락 위험](references/risks.md) |
 | Experiment | [EXP-04 — Observer 패턴 준수: 탭 추가 비용(파일 수) 측정](references/experiments/exp-04-extensibility-observer-pattern.md) |
 | ADR | [ADR-006 — BaseGraphTab Observer 패턴 및 탭 등록 구조 결정](references/adr/ADR-006-basegraphtab-observer-pattern.md) |
@@ -65,7 +65,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 | Category | Documents |
 |----------|-----------|
-| QA | [QAS-4 — 신규 그래프 탭 추가 시 변경 파일 ≤ 3, 하위 레이어 참조 = 0](references/qa/qas-4-extensibility-modifiability.md) |
+| QA | [QAS-4 — Adding a new graph tab requires ≤ 3 files changed and zero references to layers below Presentation](references/qa/qas-4-extensibility-modifiability.md) |
 | View | [Layered View: 4-Layer Allowed-to-Use](references/views/view-layered-4layer.md) |
 | Related References | [Decomposition View: Graph Tab — ≤3-file 확장 레시피 상세](references/views/view-decomposition-graph-tab.md) |
 
@@ -75,7 +75,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 | Category | Documents |
 |----------|-----------|
-| QA | [QAS-4 — 신규 그래프 탭 추가 시 변경 파일 ≤ 3, 하위 레이어 참조 = 0](references/qa/qas-4-extensibility-modifiability.md) |
+| QA | [QAS-4 — Adding a new graph tab requires ≤ 3 files changed and zero references to layers below Presentation](references/qa/qas-4-extensibility-modifiability.md) |
 | ADR | [ADR-005 — IAudioSource 의존성 역전(P1 리팩토링) 결정](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) |
 | View | [Module View: IAudioSource Dependency Inversion](references/views/view-iaudiosource.md) |
 | Related References | [ADR-002 — 비가시 탭 Lazy Rendering: isVisible() guard, replot ↓85%](references/adr/ADR-002-r1-lazy-rendering.md) |
@@ -86,7 +86,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 | Category | Documents |
 |----------|-----------|
-| QA | [QAS-1 — 28,800 BPH 시계 측정 시 Rate/Amplitude/Beat Error가 WeiShi 기준 오차 이내](references/qa/qas-1-measurement-accuracy-error-detection-handling.md) · [QAS-5 — 노이즈 환경에서 비beat 신호를 필터링하여 false trigger rate < 1%, T1 검출률 > 99%](references/qa/qas-5-correctness.md) |
+| QA | [QAS-1 — Rate, Amplitude, and Beat Error computed from a 28,800 BPH watch match WeiShi No.1000 reference within tolerance](references/qa/qas-1-measurement-accuracy-error-detection-handling.md) · [QAS-5 — Non-beat acoustic noise is rejected by the filter chain, keeping false trigger rate < 1% and T1 detection rate > 99%](references/qa/qas-5-correctness.md) |
 | Experiment | [EXP-05 — 노이즈 환경에서의 Detector 파라미터 최적화 실험](references/experiments/exp-05-correctness-detector-optimization.md) |
 | ADR | [ADR-003 — RPi 5 오디오 샘플레이트 선택 결정](references/adr/ADR-003-sample-rate-selection.md) |
 | View | [Module View: Domain Entity / Value Object](references/views/view-domain-entity-vo.md) |
@@ -97,7 +97,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 | Category | Documents |
 |----------|-----------|
-| QA | [QAS-5 — 노이즈 환경에서 비beat 신호를 필터링하여 false trigger rate < 1%, T1 검출률 > 99%](references/qa/qas-5-correctness.md) |
+| QA | [QAS-5 — Non-beat acoustic noise is rejected by the filter chain, keeping false trigger rate < 1% and T1 detection rate > 99%](references/qa/qas-5-correctness.md) |
 | Risk | [Risk Register — NTR-07: AI 생성 TC의 커버리지 편향 위험](references/risks.md) |
 | Experiment | [EXP-01 — WeiShi No.1000 대비 TimeChecker 측정 정확도 비교](references/experiments/exp-01-accuracy-weishi-comparison.md) |
 | View | [Decomposition View: Graph Tab](references/views/view-decomposition-graph-tab.md) |
