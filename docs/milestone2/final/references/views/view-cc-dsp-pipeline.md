@@ -8,7 +8,7 @@ This view shows the runtime component-and-connector structure of the audio proce
 
 #### T1 — Audio Source Thread
 - Dedicated Qt thread running `AudioWorker` (or `PlaybackWorker` / `SimWorker`).
-- Produces one PCM block (~10ms at 96kHz) per callback and writes it to `AudioRingBuffer`.
+- Produces one PCM block (~21ms at 96kHz) per callback and writes it to `AudioRingBuffer`.
 - Real-time constraint: must complete the write within the callback period or the block is dropped.
 
 #### AudioRingBuffer (T1 → T2 boundary)
@@ -40,7 +40,7 @@ DSPWorker (T2, separate core) [ADR-001]
     │  tg_process() → FilterChain → BeatDetector → BeatEvent{T1_ts, T3_ts}
     │  Qt QueuedConnection (cross-thread)
     ▼
-MeasurementEngine (Qt main thread)
+MeasurementEngine (T2 thread)
     │  compute Rate / Amplitude / Beat Error
     │  Qt Signal: measurement(Measurement)
     ▼
@@ -63,7 +63,7 @@ RPi confirmation: EXP-02 R5 scheduled 2026-06-23.
 
 - [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — introduces `DSPWorker` thread and `SignalBuffer` ring buffer
 - [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md) — `isVisible()` guard removing `replot()` from exec path
-- [ADR-003: Audio Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — determines block period (96kHz → ~10ms) and Beat Error resolution
+- [ADR-003: Audio Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — determines block period (96kHz → ~21ms) and Beat Error resolution
 
 ## Related views
 
