@@ -28,9 +28,9 @@
 |:--------:|------|-----------------|
 | 🔴 Critical | Measurement accuracy not yet validated against a reference device | Full accuracy validation with real WeiShi watch — W5 S1 (06/29) |
 | 🟡 Medium | Filter cutoff values not tuned on a real watch signal — ambient noise may cause false beats | Filter tuning experiment on actual hardware — target 06/25 |
-| 🟡 Medium | Rendering cost under all 14 tabs simultaneously on Raspberry Pi is unknown | 14-tab rendering benchmark on Raspberry Pi — target 06/26 |
+| ✅ Resolved | Rendering cost under all 14 tabs simultaneously on Raspberry Pi | 14-tab benchmark completed — no deadline miss; ADR-004 contingency not needed |
 
-**Critical path**: filter tuning → rendering benchmark → WeiShi accuracy validation → demo
+**Critical path**: filter tuning → WeiShi accuracy validation → demo
 
 ---
 
@@ -56,7 +56,7 @@ GitHub Project Board: [Board](https://github.com/users/Ji-Min-Lee/projects/3/vie
 
 | Sprint | Date | Tasks | Grading Area |
 |--------|------|-------|--------------|
-| W4 S1 | 6/22–6/23 | Microphone auto-recovery | Area 4, Area 6 |
+| W4 S1 | 6/22–6/23 | ✅ Microphone unplug/replug detection | Area 6 |
 | W4 S2 | 6/24–6/25 | Filter tuning experiment · ADR finalized | Area 6, Area 4 |
 | W4 S3 | 6/25–6/26 | EXP-05: 14-tab FPS on RPi · UI layout review (dropdown for less-used controls) | Area 4, Area 6 |
 | W4 S4 | 6/26–6/28 | Slides: QA tradeoff · Extensibility · AI-in-development · Bonus polish · WeiShi accuracy validation · Full RPi run | Area 3, 5, 7, Bonus, Area 4 |

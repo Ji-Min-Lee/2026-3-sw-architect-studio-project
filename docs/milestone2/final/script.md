@@ -30,11 +30,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "In `ADR-006` — the key point is that `Measurement Engine` has zero compile-time knowledge of any tab. `Session Controller` wires the signal-slot connections at session start. After that, `Measurement Engine` just emits."
 
-"Trade-off: all 14 `on Measurement` slots fire on the Qt main thread per beat. When all tabs are visible at high beats-per-hour, the lazy rendering guard gives no benefit — every tab still redraws on every beat."
-
-"That's where our contingency plan comes in. Instead of redrawing on every beat, we can switch to a fixed-rate timer — 20 frames per second — that drives rendering independently of the DSP pipeline. Beat events only update the data model; the timer handles the screen refresh. We activate this only if this week's 14-tab benchmark on Raspberry Pi shows we need it."
-
-**[SCREEN → `references/adr/ADR-004-r2-timer-decoupled-rendering.md` | scroll to `## Decision`]**
+"One trade-off: if all 14 tabs are visible at the same time, the lazy rendering guard stops helping — every tab redraws on every beat. We had a contingency ADR ready — switch rendering to a fixed timer instead of beat events. We ran the 14-tab benchmark on Raspberry Pi — no deadline miss, so the contingency is not needed."
 
 ---
 
@@ -164,7 +160,9 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "The critical one: we haven't compared our measurement output against a reference device yet. That validation — against the WeiShi watch — is planned for Week 5 Sprint 1."
 
-"On the medium side: filter cutoff values haven't been tuned on a real watch signal. Ambient noise in the lab can trigger false beats, and we need to confirm the right thresholds on actual hardware. And we don't yet know the rendering cost when all 14 tabs are running simultaneously on Raspberry Pi. Both are scheduled experiments for this week."
+"On the medium side: filter cutoff values haven't been tuned on a real watch signal yet. Ambient noise in the lab can trigger false beats, and we need to confirm the right thresholds on actual hardware — that experiment is scheduled for this week."
+
+"The rendering benchmark — all 14 tabs running simultaneously on Raspberry Pi — is already done. No deadline miss. The contingency rendering plan is not needed."
 
 ---
 
@@ -194,7 +192,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → scroll to `## 3-C. M3 Schedule` | show sprint table + GitHub board links]**
 
-"Four sprints remaining. Microphone auto-recovery first, then filter tuning experiment, then rendering benchmark on Raspberry Pi. Accuracy validation with WeiShi in Week 5 Sprint 1, then full Raspberry Pi run, buffer week, and demo on July 1st."
+"Filter tuning experiment on real hardware this week, then accuracy validation with WeiShi in Week 5 Sprint 1, full Raspberry Pi run, buffer week, and demo on July 1st."
 
 "All tasks and issues are tracked on the GitHub project board."
 
