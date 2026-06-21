@@ -36,6 +36,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Experiment | [EXP-02 Dropped Block](references/experiments/exp-02-realtime-dropped-block.md) · [EXP-03 E2E Latency](references/experiments/exp-03-latency-e2e.md) |
 | ADR | [ADR-001 T2 DSP Offload](references/adr/ADR-001-t2-dsp-offload-thread.md) · [ADR-002 R1 Lazy Rendering](references/adr/ADR-002-r1-lazy-rendering.md) · [ADR-004 R2 Timer Rendering](references/adr/ADR-004-r2-timer-decoupled-rendering.md) |
 | View | [view-cc-dsp-pipeline.md](references/views/view-cc-dsp-pipeline.md) |
+| Related References | [Deployment: Build-Deploy Pipeline](references/views/view-deployment-build-pipeline.md) — RPi deploy workflow (Deployability) |
 
 ---
 
@@ -131,6 +132,7 @@ classDiagram
 | Experiment | — |
 | ADR | — |
 | View | [view-layered-4layer.md](references/views/view-layered-4layer.md) |
+| Related References | [Decomposition: Graph Tab](references/views/view-decomposition-graph-tab.md) — ≤3-file extension recipe in detail |
 
 ### Interface — IAudioSource Dependency Inversion
 
@@ -145,6 +147,7 @@ classDiagram
 | Experiment | — |
 | ADR | [ADR-005 IAudioSource DI](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) |
 | View | [view-iaudiosource.md](references/views/view-iaudiosource.md) |
+| Related References | [ADR-002 R1 Lazy Rendering](references/adr/ADR-002-r1-lazy-rendering.md) — isVisible() guard, replot/beat 8.22 → 1.20 (↓85%) |
 
 ### Entity / Value Object — Domain Layer
 
