@@ -21,8 +21,8 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 
 | Metric | Before (single thread) | After (T2 offload) |
 |--------|:----------------------:|:------------------:|
-| wait_ms avg | 420 ms | **0.013 ms** (×32,000) |
-| Deadline miss | 43% | **0%** (macOS + RPi) |
+| wait_ms avg | 77.4 ms | **0.03 ms** (×2,600) |
+| Deadline miss | 43% | **0%** |
 | Backlog | Present | **None** |
 
 | Category | Documents |
