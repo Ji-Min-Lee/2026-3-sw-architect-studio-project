@@ -6,20 +6,20 @@ This view shows the runtime component-and-connector structure of the audio proce
 
 ## Element Catalog
 
-#### T1 — Audio Source Thread
+#### Audio Source Thread
 - Dedicated Qt thread running `AudioWorker` (or `PlaybackWorker` / `SimWorker`).
-- Produces one PCM block (~21ms at 96kHz) per callback and writes it to `AudioRingBuffer`.
+- Produces one PCM block (~21ms at 96kHz) per callback and writes it to the Audio Buffer.
 - Real-time constraint: must complete the write within the callback period or the block is dropped.
 
-#### AudioRingBuffer (T1 → T2 boundary)
-- SPSC ring buffer; the only data path between T1 and T2.
+#### Audio Buffer (Audio Source Thread → DSP Thread boundary)
+- SPSC ring buffer; the only data path between Audio Source Thread and DSP Thread.
 - Uses a mutex for index sync only — data copy is always lock-free.
 
-#### T2 — DSP Thread [ADR-001]
+#### DSP Thread [ADR-001]
 - Dedicated Qt thread introduced to offload signal processing from the Qt main thread.
-- Reads PCM from `AudioRingBuffer`; runs `FilterChain` → `BeatDetector` → `MeasurementEngine`; emits `measurementReady`.
-- Delivers measurement result to Qt Main via `Qt::QueuedConnection` (T2 → main thread boundary).
-- Result: wait_ms 420ms → 0.013ms; deadline miss 43% → 0%.
+- Reads PCM from the Audio Buffer; runs `FilterChain` → `BeatDetector` → `MeasurementEngine`; emits `measurementReady`.
+- Delivers measurement result to Qt Main Thread via `Qt::QueuedConnection`.
+- Result: wait_ms 77.4ms → 0.03ms (×2,600); deadline miss 43% → 0%.
 
 #### Qt Main Thread
 - Receives measurement result via `QueuedConnection`; renders graph tabs.
@@ -30,19 +30,19 @@ This view shows the runtime component-and-connector structure of the audio proce
 **Normal beat processing path:**
 
 ```
-IAudioSource / AudioWorker (T1, ~21ms period)
+IAudioSource / AudioWorker (Audio Source Thread, ~21ms period)
     │  write PCM block
     ▼
-AudioRingBuffer (SPSC ring buffer)
+Audio Buffer (SPSC ring buffer)
     │  read PCM block
     ▼
-DSPWorker (T2, separate core) [ADR-001]
+DSPWorker (DSP Thread, separate core) [ADR-001]
     │  tg_process() → FilterChain → BeatDetector → MeasurementEngine
     │  Qt::QueuedConnection (cross-thread)
     ▼
-MeasurementEngine (T2 thread) → emit measurementReady(Measurement)
+MeasurementEngine (DSP Thread) → emit measurementReady(Measurement)
     │
-    ▼  [Qt Main thread]
+    ▼  [Qt Main Thread]
 GraphTabManager → BaseGraphTab::onMeasurement(m)
     │  isVisible() guard (R1) [ADR-002]
     └─▶ update() → paintEvent() → replot()
@@ -50,15 +50,15 @@ GraphTabManager → BaseGraphTab::onMeasurement(m)
 
 **Key timing metrics (EXP-03 RPi results):**
 
-| Metric | Before ADR-001 (R1 baseline) | After ADR-001 (T2) | Change |
-|--------|:----------------------------:|:------------------:|:------:|
-| wait_ms avg | 420 ms | 0.013 ms | ×32,000 |
-| deadline miss | 43% | 0% (macOS) | eliminated |
+| Metric | Before ADR-001 | After ADR-001 (DSP Thread) | Change |
+|--------|:--------------:|:---------------------------:|:------:|
+| wait_ms avg | 77.4 ms | 0.03 ms | ×2,600 |
+| deadline miss | 43% | 0% | eliminated |
 | replot/beat (R1 guard) | 8.22 | 1.20 | ↓85% |
 
 ## Related ADRs
 
-- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — introduces `DSPWorker` thread and `AudioRingBuffer` ring buffer
+- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — introduces `DSPWorker` thread and Audio Buffer ring buffer
 - [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md) — `isVisible()` guard removing `replot()` from exec path
 - [ADR-003: Audio Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — determines block period (96kHz → ~21ms) and Beat Error resolution
 
