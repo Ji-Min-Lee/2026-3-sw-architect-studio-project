@@ -1,0 +1,158 @@
+<mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="460" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ── Titles ── -->
+    <mxCell id="t1" value="BEFORE" style="text;html=1;fontStyle=1;fontSize=13;fontColor=#c0392b;" vertex="1" parent="1">
+      <mxGeometry x="10" y="8" width="120" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="t2" value="AFTER  (ADR-001 + ADR-002)" style="text;html=1;fontStyle=1;fontSize=13;fontColor=#27ae60;" vertex="1" parent="1">
+      <mxGeometry x="415" y="8" width="380" height="20" as="geometry" />
+    </mxCell>
+
+    <!-- ── Divider ── -->
+    <mxCell id="div" style="line;strokeColor=#cccccc;dashed=1;dashPattern=5 4;fillColor=none;" vertex="1" parent="1">
+      <mxGeometry x="398" y="5" width="1" height="380" as="geometry" />
+    </mxCell>
+
+    <!-- ════════════════════════════════
+         BEFORE — One Thread
+         ════════════════════════════════ -->
+    <mxCell id="b_thread" value="One Thread  (cpu2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;fontColor=#e65100;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
+      <mxGeometry x="10" y="30" width="375" height="300" as="geometry" />
+    </mxCell>
+
+    <mxCell id="b1" value="AudioCapture" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="25" y="75" width="345" height="32" as="geometry" />
+    </mxCell>
+    <mxCell id="b2" value="FilterChain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="25" y="122" width="345" height="32" as="geometry" />
+    </mxCell>
+    <mxCell id="b3" value="BeatDetector" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="25" y="169" width="345" height="32" as="geometry" />
+    </mxCell>
+    <mxCell id="b4" value="MeasurementEngine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="25" y="216" width="345" height="32" as="geometry" />
+    </mxCell>
+    <mxCell id="b5" value="renderAllTabs()   ⚠ bottleneck" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c0392b;strokeColor=#922b21;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="25" y="265" width="345" height="32" as="geometry" />
+    </mxCell>
+
+    <!-- Before arrows (dark) -->
+    <mxCell id="ba1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;endArrow=block;endFill=1;" edge="1" source="b1" target="b2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="ba2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;endArrow=block;endFill=1;" edge="1" source="b2" target="b3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="ba3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;endArrow=block;endFill=1;" edge="1" source="b3" target="b4" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="ba4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#c0392b;strokeWidth=2;endArrow=block;endFill=1;" edge="1" source="b4" target="b5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Before result -->
+    <mxCell id="b_res" value="❌  43% deadline miss  |  wait_ms avg 77.4ms" style="text;html=1;fontSize=10;fontColor=#c0392b;fontStyle=1;align=left;" vertex="1" parent="1">
+      <mxGeometry x="10" y="342" width="375" height="20" as="geometry" />
+    </mxCell>
+
+    <!-- ════════════════════════════════
+         AFTER — Three Threads
+         ════════════════════════════════ -->
+
+    <!-- Audio Source Thread -->
+    <mxCell id="a_ast" value="Audio Source Thread  (BG)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
+      <mxGeometry x="415" y="30" width="760" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="a_cap" value="AudioCapture" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="430" y="56" width="210" height="32" as="geometry" />
+    </mxCell>
+    <mxCell id="a_buf" value="Audio Buffer" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#e8f5ee;strokeColor=#2a7a6a;fontColor=#1a5a48;fontStyle=2;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="700" y="56" width="160" height="32" as="geometry" />
+    </mxCell>
+
+    <!-- DSP Thread -->
+    <mxCell id="a_dsp" value="DSP Thread  (BG)  [ADR-001]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0ff;strokeColor=#7a5abf;fontColor=#5a3a9f;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
+      <mxGeometry x="415" y="130" width="760" height="120" as="geometry" />
+    </mxCell>
+    <mxCell id="a_fc" value="FilterChain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="430" y="168" width="148" height="32" as="geometry" />
+    </mxCell>
+    <mxCell id="a_bd" value="BeatDetector" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="596" y="168" width="148" height="32" as="geometry" />
+    </mxCell>
+    <mxCell id="a_me" value="MeasurementEngine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;strokeColor=#1a2a40;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="762" y="168" width="160" height="32" as="geometry" />
+    </mxCell>
+
+    <!-- Qt Main Thread -->
+    <mxCell id="a_qt" value="Qt Main Thread  (FG)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fd;strokeColor=#4a7abf;fontColor=#2a5090;fontStyle=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
+      <mxGeometry x="415" y="270" width="760" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="a_ren" value="Render visible tab only  [ADR-002]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27ae60;strokeColor=#1e8449;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="430" y="297" width="720" height="32" as="geometry" />
+    </mxCell>
+
+    <!-- After arrows -->
+    <!-- AudioCapture → write → Audio Buffer -->
+    <mxCell id="aa1" value="write" style="edgeStyle=none;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;endArrow=block;endFill=1;" edge="1" source="a_cap" target="a_buf" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <!-- Audio Buffer → read → FilterChain (cross-thread) -->
+    <mxCell id="aa2" value="read" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#2a7a6a;fillColor=#2a7a6a;fontSize=9;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="a_buf" target="a_fc" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <!-- FilterChain → BeatDetector -->
+    <mxCell id="aa3" style="edgeStyle=none;html=1;strokeColor=#ffffff;fillColor=#ffffff;endArrow=block;endFill=1;" edge="1" source="a_fc" target="a_bd" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <!-- BeatDetector → MeasurementEngine -->
+    <mxCell id="aa4" style="edgeStyle=none;html=1;strokeColor=#ffffff;fillColor=#ffffff;endArrow=block;endFill=1;" edge="1" source="a_bd" target="a_me" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <!-- MeasurementEngine → notify → Render (dashed gold) -->
+    <mxCell id="aa5" value="notify  (Qt::QueuedConnection)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;fontSize=9;endArrow=block;endFill=1;" edge="1" source="a_me" target="a_ren" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- After result -->
+    <mxCell id="a_res" value="✅  0% deadline miss  |  wait_ms 77.4ms → 0.03ms  (×2,600)" style="text;html=1;fontSize=10;fontColor=#27ae60;fontStyle=1;align=left;" vertex="1" parent="1">
+      <mxGeometry x="415" y="360" width="760" height="20" as="geometry" />
+    </mxCell>
+
+    <!-- ── Legend ── -->
+    <mxCell id="leg_t" value="Legend" style="text;html=1;fontStyle=1;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="10" y="390" width="60" height="16" as="geometry" />
+    </mxCell>
+    <mxCell id="leg1" value="" style="rounded=1;fillColor=#f5f0ff;strokeColor=#7a5abf;" vertex="1" parent="1">
+      <mxGeometry x="10" y="410" width="16" height="16" as="geometry" />
+    </mxCell>
+    <mxCell id="leg1t" value="Background Thread" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="32" y="410" width="140" height="16" as="geometry" />
+    </mxCell>
+    <mxCell id="leg2" value="" style="rounded=1;fillColor=#eef4fd;strokeColor=#4a7abf;" vertex="1" parent="1">
+      <mxGeometry x="180" y="410" width="16" height="16" as="geometry" />
+    </mxCell>
+    <mxCell id="leg2t" value="Foreground Thread" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="202" y="410" width="140" height="16" as="geometry" />
+    </mxCell>
+    <mxCell id="leg3" value="" style="rounded=1;arcSize=50;fillColor=#e8f5ee;strokeColor=#2a7a6a;" vertex="1" parent="1">
+      <mxGeometry x="350" y="410" width="16" height="16" as="geometry" />
+    </mxCell>
+    <mxCell id="leg3t" value="Shared Buffer" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="372" y="410" width="120" height="16" as="geometry" />
+    </mxCell>
+    <mxCell id="leg4e" style="edgeStyle=none;html=1;strokeColor=#c89000;fillColor=#c89000;dashed=1;dashPattern=8 4;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="500" y="418" as="sourcePoint" />
+        <mxPoint x="530" y="418" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg4t" value="Qt::QueuedConnection (cross-thread)" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="536" y="410" width="230" height="16" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

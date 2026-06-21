@@ -1,0 +1,129 @@
+<mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="600" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- Title -->
+    <mxCell id="title" value="Utility Tree — TimeGrapher M2" style="text;html=1;fontStyle=1;fontSize=15;align=left;" vertex="1" parent="1">
+      <mxGeometry x="10" y="10" width="400" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- Root: Utility -->
+    <mxCell id="root" value="Utility" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#23395B;fontColor=#ffffff;strokeColor=#1a2a40;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="10" y="210" width="120" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- ── Row 1: Measurement Accuracy ── -->
+    <mxCell id="qa1" value="Measurement Accuracy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;fontColor=#ffffff;strokeColor=#1a2a40;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="175" y="85" width="185" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="sc1" value="Rate, Amplitude, Beat Error match WeiShi No.1000 within tolerance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fb;fontColor=#333333;strokeColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="390" y="85" width="440" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="p1" value="(H, H)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c0392b;fontColor=#ffffff;strokeColor=#922b21;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="848" y="95" width="70" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ── Row 2: Real-Time Performance ── -->
+    <mxCell id="qa2" value="Real-Time Performance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;fontColor=#ffffff;strokeColor=#1a2a40;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="175" y="150" width="185" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="sc2" value="0 dropped audio blocks over a 10-minute session at 96kHz on RPi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fb;fontColor=#333333;strokeColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="390" y="150" width="440" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="p2" value="(H, H)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c0392b;fontColor=#ffffff;strokeColor=#922b21;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="848" y="160" width="70" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ── Row 3: Low Latency ── -->
+    <mxCell id="qa3" value="Low Latency" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;fontColor=#ffffff;strokeColor=#1a2a40;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="175" y="215" width="185" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="sc3" value="From beat at microphone to GUI update: E2E latency &lt; 100ms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fb;fontColor=#333333;strokeColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="390" y="215" width="440" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="p3" value="(H, M)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e67e22;fontColor=#ffffff;strokeColor=#ca6f1e;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="848" y="225" width="70" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ── Row 4: Extensibility ── -->
+    <mxCell id="qa4" value="Extensibility" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;fontColor=#ffffff;strokeColor=#1a2a40;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="175" y="280" width="185" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="sc4" value="Add a new graph tab in &le; 3 files with 0 layer violations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fb;fontColor=#333333;strokeColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="390" y="280" width="440" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="p4" value="(M, M)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27ae60;fontColor=#ffffff;strokeColor=#1e8449;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="848" y="290" width="70" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ── Row 5: Correctness ── -->
+    <mxCell id="qa5" value="Correctness" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;fontColor=#ffffff;strokeColor=#1a2a40;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="175" y="345" width="185" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="sc5" value="False trigger rate &lt; 1%;  true beat detection rate &gt; 99%" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fb;fontColor=#333333;strokeColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="390" y="345" width="440" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="p5" value="(H, M)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e67e22;fontColor=#ffffff;strokeColor=#ca6f1e;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="848" y="355" width="70" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ── Edges: Root → QA ── -->
+    <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;endArrow=none;" edge="1" source="root" target="qa1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;endArrow=none;" edge="1" source="root" target="qa2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;endArrow=none;" edge="1" source="root" target="qa3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;endArrow=none;" edge="1" source="root" target="qa4" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;endArrow=none;" edge="1" source="root" target="qa5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ── Edges: QA → Scenario ── -->
+    <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#aaaaaa;endArrow=none;" edge="1" source="qa1" target="sc1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e20" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#aaaaaa;endArrow=none;" edge="1" source="qa2" target="sc2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e30" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#aaaaaa;endArrow=none;" edge="1" source="qa3" target="sc3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e40" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#aaaaaa;endArrow=none;" edge="1" source="qa4" target="sc4" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e50" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#aaaaaa;endArrow=none;" edge="1" source="qa5" target="sc5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ── Legend ── -->
+    <mxCell id="leg_title" value="Legend  (Technical Risk, Business Importance)" style="text;html=1;fontStyle=1;fontSize=9;align=left;" vertex="1" parent="1">
+      <mxGeometry x="175" y="420" width="320" height="18" as="geometry" />
+    </mxCell>
+    <mxCell id="leg1" value="(H, H)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c0392b;fontColor=#ffffff;strokeColor=#922b21;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="175" y="442" width="50" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="leg1t" value="High technical risk · High business importance" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="232" y="442" width="240" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="leg2" value="(H, M)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e67e22;fontColor=#ffffff;strokeColor=#ca6f1e;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="175" y="466" width="50" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="leg2t" value="High technical risk · Medium business importance" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="232" y="466" width="240" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="leg3" value="(M, M)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27ae60;fontColor=#ffffff;strokeColor=#1e8449;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="175" y="490" width="50" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="leg3t" value="Medium technical risk · Medium business importance" style="text;html=1;fontSize=9;align=left;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="232" y="490" width="260" height="20" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
