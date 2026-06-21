@@ -34,11 +34,11 @@
 
 ---
 
-## 3-C. M3 Schedule
+## 3-C. Milestone3(Final) Schedule
 
 > 📢 **PRESENT** (~2 min)
 
-GitHub Project Board: [Board](https://github.com/users/Ji-Min-Lee/projects/3/views/2?filterQuery=milestone%3A%22Mileston3+-+Demo%22) · [Table](https://github.com/users/Ji-Min-Lee/projects/3/views/3?filterQuery=milestone%3A%22Mileston3+-+Demo%22) · [Roadmap](https://github.com/users/Ji-Min-Lee/projects/3/views/5?filterQuery=milestone%3A%22Mileston3+-+Demo%22)
+GitHub Project Board: [Board](https://github.com/users/Ji-Min-Lee/projects/3/views/2?filterQuery=milestone%3A%22Mileston3+-+Demo%22) · [Roadmap](https://github.com/users/Ji-Min-Lee/projects/3/views/3?filterQuery=milestone%3A%22Mileston3+-+Demo%22) · [Table](https://github.com/users/Ji-Min-Lee/projects/3/views/5?filterQuery=milestone%3A%22Mileston3+-+Demo%22)
 
 | Sprint | Date | Tasks | Grading Area |
 |--------|------|-------|--------------|

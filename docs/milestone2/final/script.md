@@ -100,9 +100,9 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "After introducing `I Audio Source`: one pointer, one connect block. Adding a new source means implementing the interface and one factory method — zero changes above. Less code to read, less code to change."
 
-**[SCREEN → `references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md` | scroll to `## Consequences`]**
 
-"Trade-off: Any future implementer must follow this contract — the interface cannot enforce it at compile time."
+
+"Trade-off: Any future implementer must follow this contract"
 
 ---
 
@@ -122,7 +122,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Entity / Value Object` | show `view6-domain-entity-vo.png`]**
 
-"Originally, `Measurement` was a god object — one flat struct that every tab dug through. We decomposed it into three Value Objects grouped by domain: DSP math, audio capture, and beat detection. Each tab now depends only on what it actually needs. The intent becomes self-documenting."
+"Originally, `Measurement` was a god object — one flat struct that every tab dug through. We decomposed it into three Value Objects grouped by domain: DSP math, audio capture, and beat detection. Each tab now depends only on what it actually needs. 
 
 "And all three are immutable once produced. Tabs receive `Measurement` read-only — they cannot change it. This closes the loop on correctness: two tabs reading the same field are reading the same value, always."
 
