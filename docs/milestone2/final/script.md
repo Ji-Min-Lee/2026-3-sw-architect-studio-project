@@ -49,7 +49,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/views/view-decomposition-graph-tab.md` | scroll to `## Behavior` | show Observer contract validation table]**
 
-"One more thing on correctness. Watch domain knowledge takes time to build. We used AI to close that gap — interpreting equations during implementation, and generating unit tests to verify structural correctness. 142 tests, all passing. This was only possible because our architecture was testable by our architecture — each component isolated enough to test independently. We'll come back to this in the risk section."
+"One more thing on correctness. Watch domain knowledge takes time to build. We used AI to close that gap — generating unit tests to verify Observer contract compliance. 37 test cases, all passing. This was only possible because our architecture was testable by design — clean boundaries meant each tab could be tested in isolation. We'll come back to this in the risk section."
 
 ---
 
