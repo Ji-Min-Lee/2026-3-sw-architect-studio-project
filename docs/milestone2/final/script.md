@@ -51,9 +51,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/views/view-decomposition-graph-tab.md` | scroll to `## Behavior` | show Observer contract validation table]**
 
-"One more thing on correctness. Watch measurement domain knowledge — Rate, Amplitude, Beat Error — takes time to fully internalize. We used AI to close that gap: AI helped interpret the equations during implementation, and generated unit tests to verify structural correctness independently of individual formula fluency."
-
-"142 tests across 10 test binaries, all passing. But this was only possible because our architecture was structured to be testable — immutable Value Objects, a clean Observer contract, and a strict layer boundary meant each component could be tested in isolation. The architecture enabled the test strategy. We'll come back to this in the risk section."
+"One more thing on correctness. Watch domain knowledge takes time to build. We used AI to close that gap — interpreting equations during implementation, and generating unit tests to verify structural correctness. 142 tests, all passing. This was only possible because our architecture was testable by design — each component isolated enough to test independently. We'll come back to this in the risk section."
 
 ---
 
@@ -106,7 +104,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md` | scroll to `## Consequences`]**
 
-"Trade-off: `source Complete` has different semantics per type. A live microphone never emits end-of-file. Any future implementer must follow this contract — the interface cannot enforce it at compile time."
+"Trade-off: Any future implementer must follow this contract — the interface cannot enforce it at compile time."
 
 ---
 
@@ -164,19 +162,15 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "On the medium side: filter cutoff values haven't been tuned on a real watch signal yet. Ambient noise in the lab can trigger false beats, and we need to confirm the right thresholds on actual hardware — that experiment is scheduled for this week."
 
-"The rendering benchmark — all 14 tabs running simultaneously on Raspberry Pi — is already done. No deadline miss. The contingency rendering plan is not needed."
-
 ---
 
 ## 3-B'. Risk Mitigation: AI-Assisted Unit Test
 
 **[SCREEN → scroll to `## 3-B'. Risk Mitigation: AI-Assisted Unit Test`]**
 
-"Back to the domain knowledge gap — this was our biggest non-technical risk. Watch measurement expertise takes time to build, and we had weeks, not months."
+"Back to the domain knowledge gap — our biggest non-technical risk. AI helped interpret equations during implementation, and generated tests to verify structural correctness. What made this viable was the architecture — clean boundaries meant each component could be tested in isolation. Without that, 142 tests in this timeframe wouldn't have been possible."
 
-"We addressed it on two axes: AI during implementation to interpret equations, and AI-generated tests to verify structural correctness independently of that expertise. But what made this viable was the architecture itself — immutable Value Objects, a clean Observer interface, strict layer boundaries. Each component was independently testable. Without that structure, unit testing at this scale in this timeframe wouldn't have been possible."
-
-"The domain physics validation — comparing `Watch Math` output against the WeiShi reference device — is the next step, planned for Week 5."
+"The domain physics validation against WeiShi is the next step, planned for Week 5."
 
 ---
 
