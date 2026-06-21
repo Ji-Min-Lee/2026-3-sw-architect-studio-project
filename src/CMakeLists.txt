@@ -24,6 +24,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS PrintSupport REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Multimedia Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Sql)
 
 set(LOGGING_SOURCES
     logging/Logger.h
@@ -45,6 +46,8 @@ set(PROJECT_SOURCES
     ui/DiagnosisDialog.cpp
     engine/WatchExplainer.h
     engine/WatchExplainer.cpp
+    rag/RagRetriever.h
+    rag/RagRetriever.cpp
 )
 
 set(AUDIO_SOURCES
@@ -180,6 +183,7 @@ target_include_directories(TimeGrapher PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tabs
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
     ${CMAKE_CURRENT_SOURCE_DIR}/logging
+    ${CMAKE_CURRENT_SOURCE_DIR}/rag
 )
 
 target_link_libraries(TimeGrapher PRIVATE kissfft)
@@ -187,6 +191,7 @@ target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::PrintSupport)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
 target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Network)
+target_link_libraries(TimeGrapher PRIVATE Qt${QT_VERSION_MAJOR}::Sql)
 IF(WIN32)
     target_link_libraries(TimeGrapher PRIVATE winmm Ole32 Uuid Propsys)
 ELSEIF(LINUX)

@@ -18,6 +18,7 @@
 #include <QTimer>
 
 #include "WatchDiagnostics.h"
+#include "RagRetriever.h"
 
 struct ExplainRequest {
     DiagnosisInput  input;
@@ -33,6 +34,7 @@ public:
 
     void explain(const ExplainRequest &req);
     void warmup(const QString &modelName = "qwen2.5:0.5b"); // preload model into RAM
+    void loadRag(const QString &dbPath);   // optional: load vector.db for context
 
     bool isOllamaAvailable() const { return m_available; }
     void checkAvailability();            // async ping to /api/tags
@@ -43,20 +45,28 @@ signals:
     void errorOccurred(const QString &errorMsg);
     void availabilityChanged(bool available);
     void modelsAvailable(const QStringList &models);
+    void ragStatusChanged(bool active, int chunkCount);
 
 private slots:
     void onReadyRead();
     void onReplyFinished(QNetworkReply *reply);
     void onTagsReplyFinished(QNetworkReply *reply);
+    void onRagRetrieved(const QStringList &chunks);
+    void onRagError(const QString &msg);
 
 private:
-    QString buildPrompt(const ExplainRequest &req) const;
+    QString buildPrompt(const ExplainRequest &req,
+                        const QStringList   &context) const;
+    void    explainWithContext(const ExplainRequest &req,
+                               const QStringList   &context);
 
     QNetworkAccessManager *m_nam;
     QNetworkReply         *m_pendingReply = nullptr;
     QTimer                *m_timeout;
-    QString                m_accumulated;  // full streamed text
+    QString                m_accumulated;
     bool                   m_available = false;
+    RagRetriever           m_rag;
+    ExplainRequest         m_pendingReq;   // held while waiting for RAG
 
     static constexpr const char *kOllamaBase    = "http://127.0.0.1:11434";
     static constexpr int         kTimeoutMs      = 120000;  // 2 min — RPi5 first-load is slow

@@ -1,6 +1,8 @@
 #include "MainWindow.h"
+#include "Measurement.h"
 
 #include <QApplication>
+#include <QMetaType>
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <processthreadsapi.h>
@@ -26,6 +28,7 @@ int main(int argc, char *argv[])
 #endif
 
  QApplication app(argc, argv);
+ qRegisterMetaType<Measurement>("Measurement");
 
 #ifndef Q_OS_WIN
  // Ensure Ctrl+C / SIGTERM trigger a clean Qt shutdown so Logger destructor

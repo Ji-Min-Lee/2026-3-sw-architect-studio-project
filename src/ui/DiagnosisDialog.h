@@ -31,6 +31,7 @@ private:
 
     QLabel       *m_titleLabel;
     QLabel       *m_statusLabel;
+    QLabel       *m_ragLabel;
     QTextEdit    *m_explanationEdit;
     QProgressBar *m_progressBar;
     QPushButton  *m_closeButton;

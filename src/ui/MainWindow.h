@@ -174,14 +174,15 @@ private:
     double mDspLastSPF        = 0.0;
     double mDspLastSPS        = 0.0;
 
-    // AI step 1: rule-based watch condition diagnosis
+    // AI modules
     WatchDiagnostics mWatchDiagnostics;
     DiagnosisLevel   mLastDiagnosisLevel = DiagnosisLevel::Unknown;
     WatchType        mWatchType          = WatchType::Men;
-
-    // AI step 2: LLM explanation on diagnosis click
     WatchExplainer   mWatchExplainer;
-    ExplainRequest   mLastExplainRequest;  // kept for re-open
+    ExplainRequest   mLastExplainRequest;
+    DiagnosisDialog *mDiagnosisDialog    = nullptr;
+
+    Logger          *mLogger = nullptr;
 
 };
 #endif

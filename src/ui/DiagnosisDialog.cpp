@@ -21,13 +21,19 @@ DiagnosisDialog::DiagnosisDialog(const ExplainRequest &req,
             this, [this](const QString &token) {
                 m_explanationEdit->moveCursor(QTextCursor::End);
                 m_explanationEdit->insertPlainText(token);
-            }, Qt::UniqueConnection);
+            });
     connect(m_explainer, &WatchExplainer::explanationReady,
-            this,        &DiagnosisDialog::onExplanationReady,
-            Qt::UniqueConnection);
+            this,        &DiagnosisDialog::onExplanationReady);
     connect(m_explainer, &WatchExplainer::errorOccurred,
-            this,        &DiagnosisDialog::onErrorOccurred,
-            Qt::UniqueConnection);
+            this,        &DiagnosisDialog::onErrorOccurred);
+    connect(m_explainer, &WatchExplainer::ragStatusChanged,
+            this, [this](bool active, int chunks) {
+                if (active)
+                    m_ragLabel->setText(tr("📚 RAG: %1 chunks from Witschi docs").arg(chunks));
+                else
+                    m_ragLabel->setText(tr("RAG: no context (vector.db not found)"));
+                m_ragLabel->setVisible(true);
+            });
 
     setLoading(true);
     m_explainer->explain(req);
@@ -70,6 +76,12 @@ void DiagnosisDialog::setupUi(const DiagnosisResult &result)
         QString("color: white; background: %1; padding: 6px 10px; border-radius: 4px;")
             .arg(bg.name()));
     layout->addWidget(m_titleLabel);
+
+    // RAG status label (hidden until ragStatusChanged fires)
+    m_ragLabel = new QLabel(this);
+    m_ragLabel->setStyleSheet("color: gray; font-size: 10px;");
+    m_ragLabel->setVisible(false);
+    layout->addWidget(m_ragLabel);
 
     // Status / loading label
     m_statusLabel = new QLabel(tr("Asking AI watchmaker…"), this);

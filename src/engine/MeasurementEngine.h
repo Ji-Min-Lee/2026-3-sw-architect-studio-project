@@ -89,8 +89,9 @@ private:
         RollingAverage *roll = nullptr;
     } mAmp;
 
-    double mLastA     = 0.0;
-    bool   mHaveLastA = false;
+    double       mLastA     = 0.0;
+    bool         mHaveLastA = false;
+    WatchMetrics mLastKnownMetrics;   // sticky: retains last valid values across frames
 
     // QAS-4: no-signal detection (owned by Model, not Controller)
     QElapsedTimer mNoSignalTimer;

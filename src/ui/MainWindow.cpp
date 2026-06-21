@@ -141,6 +141,10 @@ MainWindow::MainWindow(QWidget *parent)
             });
     mWatchExplainer.checkAvailability();   // async: populates combobox, then warms up
 
+    // RAG: load pre-computed embeddings from vector.db if present
+    const QString ragDb = QCoreApplication::applicationDirPath() + "/rag/vector.db";
+    mWatchExplainer.loadRag(ragDb);
+
     // clicking the diagnosis label opens the LLM explanation dialog
     ui->DiagnosisLabel->setCursor(Qt::PointingHandCursor);
     ui->DiagnosisLabel->setToolTip(tr("Click for AI explanation"));
@@ -307,7 +311,7 @@ void MainWindow::DisplayResults(const Measurement &m)
                          "  ▏  ERR " + beatStr + " ms" +
                          "  ▏  BPH " + bphStr);
 
-    DiagnosisInput  diagInput { m.metrics, mWatchType };
+    DiagnosisInput diagInput { m.metrics, mWatchType, m.noSignal };
     DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
 
     // Keep latest input/result for the LLM dialog (AI step 2)
@@ -323,9 +327,9 @@ void MainWindow::DisplayResults(const Measurement &m)
     if (diagResult.level != mLastDiagnosisLevel)
     {
         qInfo() << "[WatchDiagnostics]" << diagResult.label
-                 << "rate="      << m.metrics.rate.value_or(0.0)
-                 << "amplitude=" << m.metrics.amplitude.value_or(0.0)
-                 << "beatError=" << m.metrics.beatError.value_or(0.0);
+                 << "rate="      << (m.metrics.rate      ? QString::number(*m.metrics.rate,      'f', 1) : "NULL")
+                 << "amplitude=" << (m.metrics.amplitude ? QString::number(*m.metrics.amplitude, 'f', 0) : "NULL")
+                 << "beatError=" << (m.metrics.beatError ? QString::number(*m.metrics.beatError, 'f', 2) : "NULL");
         mLastDiagnosisLevel = diagResult.level;
     }
 }
@@ -379,11 +383,16 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == ui->DiagnosisLabel && event->type() == QEvent::MouseButtonPress) {
-        if (mLastExplainRequest.result.level != DiagnosisLevel::Unknown) {
-            auto *dlg = new DiagnosisDialog(mLastExplainRequest, &mWatchExplainer, this);
-            dlg->setAttribute(Qt::WA_DeleteOnClose);
-            dlg->show();
+        if (mDiagnosisDialog) {
+            mDiagnosisDialog->raise();
+            mDiagnosisDialog->activateWindow();
+            return true;
         }
+        mDiagnosisDialog = new DiagnosisDialog(mLastExplainRequest, &mWatchExplainer, this);
+        mDiagnosisDialog->setAttribute(Qt::WA_DeleteOnClose);
+        connect(mDiagnosisDialog, &QObject::destroyed,
+                this, [this]() { mDiagnosisDialog = nullptr; });
+        mDiagnosisDialog->show();
         return true;
     }
     return QMainWindow::eventFilter(obj, event);

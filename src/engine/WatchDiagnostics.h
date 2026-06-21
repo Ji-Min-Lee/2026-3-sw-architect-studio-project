@@ -36,6 +36,7 @@ QColor DiagnosisColor(DiagnosisLevel level);
 struct DiagnosisInput {
     WatchMetrics metrics;
     WatchType    watch_type = WatchType::Men;
+    bool         noSignal   = false;
 };
 
 struct DiagnosisResult {
