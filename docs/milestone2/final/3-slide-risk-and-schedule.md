@@ -17,6 +17,7 @@
 | W3 S1 | 6/15–6/16 | Experiments & AI Step 1 | EXP-01 ✅ ADR-003 accepted; EXP-02 T2+R1 confirmed on RPi; AI Step 1 (rule-based diagnosis) |
 | W3 S2 | 6/17–6/18 | Enhancements & AI Step 2 | AI Step 2 (LLM explainer on RPi); 4-layer refactor complete (IAudioSource, SessionController) |
 
+![TimeGrapher M2 Demo Run](assets/demo-run.gif)
 
 ---
 
