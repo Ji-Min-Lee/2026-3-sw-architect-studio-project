@@ -11,15 +11,9 @@
 | **Response** | Every audio block is captured, processed, and a beat measurement emitted without skipping any block |
 | **Measure** | Deadline miss = 0%; dropped blocks = 0 over a 10-minute session at 96kHz |
 
-## SPS ↔ Block Period Relationship
+## Real-Time Deadline
 
-| SPS | Block Period | Beat Error Resolution | Target |
-|:---:|:-----------:|:--------------------:|:------:|
-| 48,000 | ~21 ms | 20.8 µs/sample | Fallback |
-| **96,000** | **~21 ms** | **10.4 µs/sample** | **Primary** |
-| 192,000 | ~21 ms | 5.2 µs/sample | Stretch |
-
-The block period sets the real-time deadline: every audio block must complete DSP processing before the next block arrives. ALSA on RPi delivers a fixed ~21ms period regardless of sample rate — the sample count per block scales with SPS (1024 at 48kHz, 2048 at 96kHz, 4096 at 192kHz). This deadline is ~21ms at all supported rates.
+The real-time deadline is set by ALSA: ~21ms per block on RPi. Every audio block must complete DSP processing before the next block arrives. The sample rate choice affects Beat Error resolution, not the deadline itself.
 
 ## Related
 
