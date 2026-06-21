@@ -2,7 +2,7 @@
 
 This view shows the runtime component-and-connector structure of the audio processing pipeline. It captures which components exist at runtime, which threads they run on, and how data flows between them via connectors (ring buffer, Qt QueuedConnection). It is the primary view for reasoning about real-time performance and latency.
 
-![DSP Pipeline Thread Model](../../assets/view3-thread-model.png)
+![DSP Pipeline Thread Model](../../assets/view3-thread-model-simple.png)
 
 ## Element Catalog
 
