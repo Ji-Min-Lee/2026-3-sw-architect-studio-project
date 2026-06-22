@@ -10,7 +10,7 @@
 
 *[앞 발표자로부터 받기 — 화면은 2-slide-architecture-view.md에 그대로 있음]*
 
-Now let's look at what that separation enables: making sure all 14 tabs show exactly the same data."
+Now let's look at what we get from that separation — making sure all 14 tabs show exactly the same data."
 
 ---
 
@@ -124,7 +124,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Entity / Value Object` | show `view6-domain-entity-vo.png`]**
 
-"Originally, `Measurement` was a god object — one flat struct that every tab dug through. We decomposed it into three Value Objects grouped by domain: DSP math, audio capture, and beat detection. Each tab now only depends on what it actually needs."
+"Originally, `Measurement` was a god object — one flat struct that every tab dug through. We decomposed it into three Value Objects: `Watch Metrics` — rate, amplitude, and beat error as rolling averages; `Signal Frame` — the raw audio block snapshot from capture; and `Acoustic Event` — per-beat data from the detector. Each tab now only depends on what it actually needs."
 
 "And all three are immutable once produced. Tabs receive `Measurement` read-only — they can't change it. This closes the loop on correctness: two tabs reading the same field are always reading the same value."
 
@@ -162,7 +162,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 "The critical one: we haven't validated our measurement output against a reference device yet. That validation — against the WeiShi watch — is scheduled for Week 5 Sprint 1."
 
-"On the medium side: filter cutoff values haven't been tuned on a real watch signal yet. Ambient noise in the lab can trigger false beats, and we need to confirm the right thresholds on actual hardware. That experiment is happening this week."
+"On the medium side: filter cutoff values haven't been tuned on a real watch signal yet. Ambient noise in real environments — labs, classrooms, any noisy space — can trigger false beats, and we need to confirm the right thresholds on actual hardware. That experiment is happening this week."
 
 ---
 
