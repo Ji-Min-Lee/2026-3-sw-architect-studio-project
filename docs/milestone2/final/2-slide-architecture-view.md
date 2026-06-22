@@ -67,6 +67,9 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-4 — Adding a new graph tab requires ≤ 3 files changed and zero references to layers below Presentation](references/qa/qas-4-extensibility-modifiability.md) |
+| Risk | N/A |
+| Experiment | N/A |
+| ADR | N/A |
 | View | [Layered View: 4-Layer Allowed-to-Use](references/views/view-layered-4layer.md) |
 | Related References | [Decomposition View: Graph Tab — ≤3-file extension recipe in detail](references/views/view-decomposition-graph-tab.md) |
 
@@ -77,6 +80,8 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-4 — Adding a new graph tab requires ≤ 3 files changed and zero references to layers below Presentation](references/qa/qas-4-extensibility-modifiability.md) |
+| Risk | N/A |
+| Experiment | N/A |
 | ADR | [ADR-005 — IAudioSource dependency inversion (P1 refactor)](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) |
 | View | [Module View: IAudioSource Dependency Inversion](references/views/view-iaudiosource.md) |
 | Related References | [ADR-002 — Lazy Rendering: isVisible() guard reduces replot cost by 85%](references/adr/ADR-002-r1-lazy-rendering.md) |
@@ -88,6 +93,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-1 — Rate, Amplitude, and Beat Error computed from a 28,800 BPH watch match WeiShi No.1000 reference within tolerance](references/qa/qas-1-measurement-accuracy-error-detection-handling.md) · [QAS-5 — Non-beat acoustic noise is rejected by the filter chain, keeping false trigger rate < 1% and T1 detection rate > 99%](references/qa/qas-5-correctness.md) |
+| Risk | N/A |
 | Experiment | [EXP-05 — Detector parameter optimization under noise conditions](references/experiments/exp-05-correctness-detector-optimization.md) |
 | ADR | [ADR-003 — Audio sample rate selection for RPi 5](references/adr/ADR-003-sample-rate-selection.md) |
 | View | [Module View: Domain Entity / Value Object](references/views/view-domain-entity-vo.md) |
