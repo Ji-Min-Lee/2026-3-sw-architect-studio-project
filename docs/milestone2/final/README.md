@@ -70,6 +70,12 @@
 
 ---
 
+## Architecture Evaluation
+
+The M2 architecture was evaluated with **ATAM** (Architecture Tradeoff Analysis Method) — see [atam-evaluation-v3.md](references/atam-evaluation-v3.md).
+
+---
+
 ## Document Structure
 
 ```
