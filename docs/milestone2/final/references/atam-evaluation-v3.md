@@ -200,8 +200,6 @@ A tradeoff is: this decision helps one QA goal but puts pressure on another.
 
 ## Related Documents
 
-- [v1 — Our original evaluation](atam-evaluation.md)
-- [v2 — Full evaluation by jimin318.lee](atam-evaluation-full.md)
 - [QA Scenarios](qa/README.md)
 - [ADR-001](adr/ADR-001-t2-dsp-offload-thread.md) · [ADR-002](adr/ADR-002-r1-lazy-rendering.md) · [ADR-003](adr/ADR-003-sample-rate-selection.md) · [ADR-004](adr/ADR-004-r2-timer-decoupled-rendering.md) · [ADR-005](adr/ADR-005-p1-iaudiosource-dependency-inversion.md) · [ADR-006](adr/ADR-006-basegraphtab-observer-pattern.md)
 - [Experiment Results](experiments/)
