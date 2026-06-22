@@ -64,33 +64,11 @@ ATAM Step 2 asks us to separate two things: the one goal the system exists for, 
 
 ## 2. Architecture — Before and After
 
-### Before (single thread)
+![Architecture before and after (ADR-001 + ADR-002)](../assets/atam-before-after.png)
 
-```
-One thread (cpu2):
-  AudioCapture → FilterChain → BeatDetector → MeasurementEngine
-              → renderAllTabs()    ← bottleneck
-```
+**Before** — one thread ran capture, DSP, and rendering together. GUI rendering consumed 79% of the 21ms budget, causing a **43% deadline miss** on RPi 5.
 
-**Problem**: GUI rendering consumed 79% of the 21ms exec budget.
-Result: 43% deadline miss on RPi 5.
-
-### After (three threads — ADR-001 + ADR-002)
-
-```
-Audio Source Thread:
-  AudioCapture → [write] Audio Buffer
-
-DSP Thread (ADR-001):
-  [read] Audio Buffer → FilterChain → BeatDetector → MeasurementEngine
-                                                    → measurementReady signal
-
-Qt Main Thread:
-  [receive signal] → render visible tab only (ADR-002)
-```
-
-**Result**: Rendering is fully removed from the audio path.
-Queue wait: 77.4ms → 0.03ms. Deadline miss: 43% → 0%.
+**After** — DSP moved to its own thread (ADR-001) and rendering became lazy (ADR-002), removing rendering from the audio path entirely. Queue wait dropped **77.4ms → 0.03ms**; deadline miss **43% → 0%**.
 
 ---
 
@@ -98,25 +76,7 @@ Queue wait: 77.4ms → 0.03ms. Deadline miss: 43% → 0%.
 
 Priority notation: **(Technical Risk, Business Importance)** — H = High, M = Medium, L = Low
 
-```
-Utility
-│
-├── Measurement Accuracy
-│   └── Rate/Amplitude/Beat Error match WeiShi No.1000 at 28,800 BPH;
-│       0 deviation across all tabs (numeric tolerance set by EXP-01)        (H, H)
-│
-├── Real-Time Performance
-│   └── 0 dropped audio blocks in a 10-minute session at 96kHz on RPi        (H, H)
-│
-├── Low Latency
-│   └── From beat at microphone to GUI update: E2E latency < 100ms            (H, M)
-│
-├── Extensibility
-│   └── Add a new graph tab in ≤ 3 files with 0 layer violations              (M, M)
-│
-└── Correctness
-    └── False trigger rate < 1%;  true beat detection rate > 99%              (M, H)
-```
+![Utility Tree](../assets/atam-utility-tree.png)
 
 ---
 
