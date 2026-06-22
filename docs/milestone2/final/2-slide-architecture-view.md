@@ -28,7 +28,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-2 — Every audio block at 96kHz is processed without a single dropped block over a 10-minute session](references/qa/qas-2-real-time-performance.md) · [QAS-3 — From beat event at microphone to GUI update, end-to-end latency < 100ms](references/qa/qas-3-low-latency-and-low-number-of-missed-beats.md) |
-| Risk | [Risk Register — TR-09: DSP blocking risk on a single thread](references/risks.md) |
+| Risk | [TR-02 — Single-threaded pipeline: 43% deadline miss on RPi](references/risks.md) |
 | Experiment | [EXP-02 — Dropped block measurement on RPi at 96kHz](references/experiments/exp-02-realtime-dropped-block.md) · [EXP-03 — E2E latency measurement using 2-segment timestamps](references/experiments/exp-03-latency-e2e.md) |
 | ADR | [ADR-001 — Introduce a dedicated DSP offload thread (T2)](references/adr/ADR-001-t2-dsp-offload-thread.md) · [ADR-002 — Skip replot() for non-visible tabs (Lazy Rendering)](references/adr/ADR-002-r1-lazy-rendering.md) · [ADR-004 — Timer-decoupled rendering (R2)](references/adr/ADR-004-r2-timer-decoupled-rendering.md) |
 | View | [C&C View: DSP Pipeline Thread Model](references/views/view-cc-dsp-pipeline.md) |
