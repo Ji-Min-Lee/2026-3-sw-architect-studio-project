@@ -8,16 +8,17 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
+struct RagCitation {
+    QString source;       // db label, e.g. witschi-training
+    QString displayName;  // human-readable title
+    QString snippet;      // short excerpt shown in the UI
+    QString text;         // full chunk text (prompt injection)
+};
+
 // Loads pre-computed embeddings from vector.db (generated offline by
 // embed_docs.py) and retrieves the top-k most relevant text chunks for
 // a given query by calling Ollama /api/embeddings and computing cosine
 // similarity in-process.
-//
-// Usage:
-//   RagRetriever rag;
-//   rag.load("path/to/vector.db");          // once at startup
-//   rag.retrieve("query text", model, 3);   // async
-//   connect(&rag, &RagRetriever::retrieved, this, [](QStringList chunks){ ... });
 
 class RagRetriever : public QObject
 {
@@ -34,8 +35,11 @@ public:
                   const QString &modelName,
                   int            topK = 3);
 
+    static QString displayNameForSource(const QString &sourceLabel);
+    static QString makeSnippet(const QString &text, int maxChars = 120);
+
 signals:
-    void retrieved(const QStringList &chunks);  // topK most relevant chunks
+    void retrieved(const QVector<RagCitation> &citations);
     void errorOccurred(const QString &msg);
 
 private slots:
@@ -45,8 +49,9 @@ private:
     static float cosine(const QVector<float> &a, const QVector<float> &b);
 
     QNetworkAccessManager       *m_nam;
-    QVector<QVector<float>>      m_embeddings;  // all chunk embeddings (in RAM)
-    QStringList                  m_texts;        // parallel chunk texts
+    QVector<QVector<float>>      m_embeddings;
+    QStringList                  m_texts;
+    QStringList                  m_sources;
     bool                         m_loaded = false;
     int                          m_topK   = 3;
 

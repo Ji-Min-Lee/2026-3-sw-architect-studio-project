@@ -9,6 +9,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QVariant>
+#include <QMap>
 #include <cmath>
 #include <algorithm>
 
@@ -20,12 +21,34 @@ RagRetriever::RagRetriever(QObject *parent)
             this,  &RagRetriever::onEmbedReplyFinished);
 }
 
-// ── Public ────────────────────────────────────────────────────────────────────
+QString RagRetriever::displayNameForSource(const QString &sourceLabel)
+{
+    static const QMap<QString, QString> names = {
+        { QStringLiteral("witschi-training"),   QStringLiteral("Witschi Training Course") },
+        { QStringLiteral("witschi-manual"),     QStringLiteral("Witschi Chronoscope X1 Manual") },
+        { QStringLiteral("tg-equations"),       QStringLiteral("TimeGrapher Equations") },
+        { QStringLiteral("project-ai-features"), QStringLiteral("AI Features (project docs)") },
+        { QStringLiteral("project-metrics"),    QStringLiteral("Metrics Explained") },
+        { QStringLiteral("project-domain"),     QStringLiteral("Domain Knowledge") },
+    };
+    return names.value(sourceLabel, sourceLabel);
+}
+
+QString RagRetriever::makeSnippet(const QString &text, int maxChars)
+{
+    QString clean = text;
+    clean.replace(QChar('\n'), QChar(' '));
+    clean = clean.simplified();
+    if (clean.size() <= maxChars)
+        return clean;
+    return clean.left(maxChars).trimmed() + QStringLiteral("…");
+}
 
 bool RagRetriever::load(const QString &dbPath)
 {
     m_embeddings.clear();
     m_texts.clear();
+    m_sources.clear();
     m_loaded = false;
 
     {
@@ -38,17 +61,18 @@ bool RagRetriever::load(const QString &dbPath)
         }
 
         QSqlQuery q(db);
-        q.exec("SELECT text, embedding FROM chunks ORDER BY id");
+        q.exec("SELECT source, text, embedding FROM chunks ORDER BY id");
         while (q.next()) {
-            m_texts << q.value(0).toString();
+            m_sources << q.value(0).toString();
+            m_texts   << q.value(1).toString();
 
-            const QByteArray blob = q.value(1).toByteArray();
+            const QByteArray blob = q.value(2).toByteArray();
             const int n = blob.size() / sizeof(float);
             QVector<float> vec(n);
             memcpy(vec.data(), blob.constData(), blob.size());
             m_embeddings << vec;
         }
-    } // q and db destroyed here before removeDatabase
+    }
     QSqlDatabase::removeDatabase("rag");
 
     m_loaded = !m_texts.isEmpty();
@@ -68,7 +92,7 @@ void RagRetriever::retrieve(const QString &query,
 
     QNetworkRequest req(QUrl(QString("%1/api/embeddings").arg(kOllamaBase)));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    req.setAttribute(QNetworkRequest::User, QVariant(query));  // carry query for debug
+    req.setAttribute(QNetworkRequest::User, QVariant(query));
 
     QJsonObject body;
     body["model"]  = modelName;
@@ -76,8 +100,6 @@ void RagRetriever::retrieve(const QString &query,
 
     m_nam->post(req, QJsonDocument(body).toJson());
 }
-
-// ── Slots ─────────────────────────────────────────────────────────────────────
 
 void RagRetriever::onEmbedReplyFinished(QNetworkReply *reply)
 {
@@ -100,7 +122,6 @@ void RagRetriever::onEmbedReplyFinished(QNetworkReply *reply)
     for (int i = 0; i < arr.size(); ++i)
         queryVec[i] = static_cast<float>(arr[i].toDouble());
 
-    // score all chunks
     QVector<std::pair<float, int>> scores;
     scores.reserve(m_embeddings.size());
     for (int i = 0; i < m_embeddings.size(); ++i)
@@ -111,14 +132,19 @@ void RagRetriever::onEmbedReplyFinished(QNetworkReply *reply)
                       scores.end(),
                       [](const auto &a, const auto &b){ return a.first > b.first; });
 
-    QStringList result;
-    for (int i = 0; i < std::min(m_topK, (int)scores.size()); ++i)
-        result << m_texts[scores[i].second];
+    QVector<RagCitation> result;
+    for (int i = 0; i < std::min(m_topK, (int)scores.size()); ++i) {
+        const int idx = scores[i].second;
+        RagCitation cite;
+        cite.source      = m_sources.value(idx);
+        cite.displayName = displayNameForSource(cite.source);
+        cite.text        = m_texts.value(idx);
+        cite.snippet     = makeSnippet(cite.text);
+        result.append(cite);
+    }
 
     emit retrieved(result);
 }
-
-// ── Private ───────────────────────────────────────────────────────────────────
 
 float RagRetriever::cosine(const QVector<float> &a, const QVector<float> &b)
 {

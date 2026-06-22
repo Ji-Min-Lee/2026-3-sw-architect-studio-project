@@ -35,18 +35,19 @@ CHUNK_SIZE    = 400   # tokens (approx chars / 4)
 CHUNK_OVERLAP = 80
 DB_PATH       = os.path.join(os.path.dirname(__file__), "..", "rag", "vector.db")
 
-SCRIPT_DIR     = os.path.dirname(os.path.abspath(__file__))
-AI_FEATURE_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, "..", ".."))        # D:\sw_architect\ai-feature
-SW_ARCH_ROOT    = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "..", ".."))  # D:\sw_architect
+SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT  = os.path.normpath(os.path.join(SCRIPT_DIR, "..", ".."))
+SKILL_ASSETS  = os.path.join(PROJECT_ROOT, ".agents", "skills", "time-grapher", "assets")
+DOCS_ROOT     = os.path.join(PROJECT_ROOT, "docs")
 
 SOURCES = [
     # (path, label)
-    (os.path.join(SW_ARCH_ROOT,    "project", "time-grapher", "assets", "Witschi-Training-Course.pdf"),           "witschi-training"),
-    (os.path.join(SW_ARCH_ROOT,    "project", "time-grapher", "assets", "Witschi Chronoscope X1 G3 Instruction Manual.pdf"), "witschi-manual"),
-    (os.path.join(SW_ARCH_ROOT,    "project", "time-grapher", "assets", "TimeGrapher Equations_v0.docx.pdf"),     "tg-equations"),
-    (os.path.join(AI_FEATURE_ROOT, "docs", "ai-features.md"),                                                     "project-ai-features"),
-    (os.path.join(AI_FEATURE_ROOT, "docs", "metrics-explained.md"),                                               "project-metrics"),
-    (os.path.join(AI_FEATURE_ROOT, "docs", "week1", "kickoff-workshop", "domain-knowledge.md"),                   "project-domain"),
+    (os.path.join(SKILL_ASSETS, "Witschi-Training-Course.pdf"), "witschi-training"),
+    (os.path.join(SKILL_ASSETS, "Witschi Chronoscope X1 G3 Instruction Manual.pdf"), "witschi-manual"),
+    (os.path.join(SKILL_ASSETS, "TimeGrapher Equations_v0.docx.pdf"), "tg-equations"),
+    (os.path.join(DOCS_ROOT, "ai-features.md"), "project-ai-features"),
+    (os.path.join(DOCS_ROOT, "metrics-explained.md"), "project-metrics"),
+    (os.path.join(DOCS_ROOT, "week1", "kickoff-workshop", "domain-knowledge.md"), "project-domain"),
 ]
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

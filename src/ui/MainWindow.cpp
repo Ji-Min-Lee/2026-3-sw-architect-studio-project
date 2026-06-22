@@ -19,6 +19,24 @@
 #include "WindowsAudio.h"
 #endif
 
+namespace {
+
+QString resolveRagDatabasePath()
+{
+    const QStringList candidates = {
+        QCoreApplication::applicationDirPath() + QStringLiteral("/rag/vector.db"),
+        QCoreApplication::applicationDirPath() + QStringLiteral("/../rag/vector.db"),
+    };
+    for (const QString &candidate : candidates) {
+        const QString resolved = QFileInfo(candidate).canonicalFilePath();
+        if (!resolved.isEmpty() && QFile::exists(resolved))
+            return resolved;
+    }
+    return candidates.first();
+}
+
+} // namespace
+
 #include <QFileDialog>
 #include <QFile>
 #include <QDataStream>
@@ -28,6 +46,7 @@
 #include <QtMath>
 #include <QRandomGenerator>
 #include <QMessageBox>
+#include <QFileInfo>
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -142,12 +161,13 @@ MainWindow::MainWindow(QWidget *parent)
     mWatchExplainer.checkAvailability();   // async: populates combobox, then warms up
 
     // RAG: load pre-computed embeddings from vector.db if present
-    const QString ragDb = QCoreApplication::applicationDirPath() + "/rag/vector.db";
+    const QString ragDb = resolveRagDatabasePath();
+    qInfo() << "[MainWindow] RAG database path:" << ragDb;
     mWatchExplainer.loadRag(ragDb);
 
     // clicking the diagnosis label opens the LLM explanation dialog
     ui->DiagnosisLabel->setCursor(Qt::PointingHandCursor);
-    ui->DiagnosisLabel->setToolTip(tr("Click for AI explanation"));
+    ui->DiagnosisLabel->setToolTip(tr("Hover for per-axis breakdown. Click for AI explanation."));
     ui->DiagnosisLabel->installEventFilter(this);
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
@@ -320,6 +340,7 @@ void MainWindow::DisplayResults(const Measurement &m)
 
 
     ui->DiagnosisLabel->setText(diagResult.label);
+    ui->DiagnosisLabel->setToolTip(formatDiagnosisTooltip(diagResult, diagInput));
     QColor diagColor = DiagnosisColor(diagResult.level);
     ui->DiagnosisLabel->setStyleSheet(
         QString("background-color: %1; color: white; border-radius: 4px;")

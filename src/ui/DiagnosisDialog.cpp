@@ -1,12 +1,17 @@
 #include "DiagnosisDialog.h"
 #include <QHBoxLayout>
+#include <QToolButton>
 #include <QFont>
 #include <QTextCursor>
 #include <QTextDocument>
+#include <QScrollBar>
+#include <QSizePolicy>
+#include <QResizeEvent>
+#include <QTimer>
+#include <cmath>
 
 namespace {
-// QTextEdit renders HTML but not Markdown live, so convert the model's
-// markdown to an HTML fragment (inner <body>) we can place in a chat layout.
+
 QString markdownToHtmlBody(const QString &md)
 {
     QTextDocument doc;
@@ -19,12 +24,100 @@ QString markdownToHtmlBody(const QString &md)
     return html.mid(s, e - s);
 }
 
-// AI turn block: label + rendered response (no trailing separator).
 QString aiBlock(const QString &md)
 {
     return QStringLiteral("<p><b>🧠 Diagnostic AI</b></p>") + markdownToHtmlBody(md);
 }
+
+QString formatRagCollapsedTitles(const QVector<RagCitation> &citations)
+{
+    QStringList names;
+    for (const RagCitation &cite : citations)
+        names << cite.displayName;
+    return names.join(QStringLiteral(" · "));
 }
+
+QString formatRagCitationsHtml(const QVector<RagCitation> &citations)
+{
+    QString html = QStringLiteral(
+        "<html><body style='color:#222;font-size:10px;'>"
+        "<ol style='margin:0;padding-left:18px;'>");
+
+    for (const RagCitation &cite : citations) {
+        html += QStringLiteral(
+            "<li style='margin-bottom:6px;'>"
+            "<b>%1</b><br/>"
+            "<span style='color:#666;'>\"%2\"</span>"
+            "</li>")
+                    .arg(cite.displayName.toHtmlEscaped(),
+                         cite.snippet.toHtmlEscaped());
+    }
+    html += QStringLiteral("</ol></body></html>");
+    return html;
+}
+
+QString watchTypeLabel(const DiagnosisInput &input)
+{
+    return (input.watch_type == WatchType::Women)
+               ? QStringLiteral("Women")
+               : QStringLiteral("Men");
+}
+
+QString unifiedScrollBarStyle()
+{
+    return QStringLiteral(
+        "QScrollBar:vertical {"
+        "  background: #f0f0f0;"
+        "  width: 10px;"
+        "  margin: 0;"
+        "  border: none;"
+        "  border-radius: 5px;"
+        "}"
+        "QScrollBar::handle:vertical {"
+        "  background: #b0b0b0;"
+        "  min-height: 24px;"
+        "  border-radius: 5px;"
+        "}"
+        "QScrollBar::handle:vertical:hover {"
+        "  background: #909090;"
+        "}"
+        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
+        "  height: 0;"
+        "  background: none;"
+        "}"
+        "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+        "  background: none;"
+        "}");
+}
+
+QFrame *makeSection(QWidget *parent, const char *objectName)
+{
+    auto *frame = new QFrame(parent);
+    frame->setObjectName(objectName);
+    frame->setFrameShape(QFrame::NoFrame);
+    return frame;
+}
+
+QString sectionStyle()
+{
+    return QStringLiteral(
+        "QFrame#breakdownSection, QFrame#sourcesSection, QFrame#aiSection {"
+        "  background: #f8f9fb;"
+        "  border: 1px solid #dde1e6;"
+        "  border-radius: 6px;"
+        "}"
+        "QToolButton {"
+        "  border: none;"
+        "  color: #333;"
+        "  font-size: 11px;"
+        "  font-weight: bold;"
+        "  text-align: left;"
+        "  padding: 2px 0;"
+        "}"
+        "QToolButton:hover { color: #1565c0; }");
+}
+
+} // namespace
 
 DiagnosisDialog::DiagnosisDialog(const ExplainRequest &req,
                                  WatchExplainer       *explainer,
@@ -33,13 +126,11 @@ DiagnosisDialog::DiagnosisDialog(const ExplainRequest &req,
     , m_explainer(explainer)
 {
     setWindowTitle(tr("AI Diagnosis Explanation"));
-    setMinimumWidth(480);
-    setMinimumHeight(280);
+    setMinimumSize(540, 520);
+    resize(560, 620);
 
-    setupUi(req.result);
+    setupUi(req);
 
-    // Forward signals from shared explainer to this dialog's slots.
-    // Use direct connection so the dialog cleans up properly on close.
     connect(m_explainer, &WatchExplainer::tokenReceived,
             this, [this](const QString &token) {
                 m_streamBuf += token;
@@ -49,24 +140,99 @@ DiagnosisDialog::DiagnosisDialog(const ExplainRequest &req,
             this,        &DiagnosisDialog::onExplanationReady);
     connect(m_explainer, &WatchExplainer::errorOccurred,
             this,        &DiagnosisDialog::onErrorOccurred);
-    connect(m_explainer, &WatchExplainer::ragStatusChanged,
-            this, [this](bool active, int chunks) {
-                if (active)
-                    m_ragLabel->setText(tr("📚 RAG: %1 chunks from Witschi docs").arg(chunks));
-                else
-                    m_ragLabel->setText(tr("RAG: no context (vector.db not found)"));
-                m_ragLabel->setVisible(true);
-            });
+    connect(m_explainer, &WatchExplainer::ragCitationsReady,
+            this,        &DiagnosisDialog::onRagCitationsReady);
 
     setLoading(true);
     m_explainer->explain(req);
 }
 
-// ── Private slots ─────────────────────────────────────────────────────────────
+void DiagnosisDialog::refreshBreakdownLabelHeight()
+{
+    if (!m_breakdownLabel->isVisible())
+        return;
+
+    const int framePad = 24;  // left indent + horizontal padding
+    const int w = qMax(200, (m_breakdownLabel->width() > 0
+                                 ? m_breakdownLabel->width()
+                                 : m_breakdownSection->width()) - framePad);
+
+    QTextDocument doc;
+    doc.setHtml(m_breakdownHtml);
+    doc.setTextWidth(w);
+
+    const int contentH = static_cast<int>(std::ceil(doc.size().height()));
+    const int verticalPad = 28;  // stylesheet padding + small buffer for last row
+    m_breakdownLabel->setMinimumHeight(contentH + verticalPad);
+    m_breakdownLabel->updateGeometry();
+}
+
+void DiagnosisDialog::onBreakdownClicked()
+{
+    setBreakdownExpanded(!m_breakdownExpanded);
+}
+
+void DiagnosisDialog::setBreakdownExpanded(bool expanded)
+{
+    m_breakdownExpanded = expanded;
+    m_breakdownToggle->setArrowType(expanded ? Qt::DownArrow : Qt::RightArrow);
+
+    if (expanded) {
+        m_breakdownSummaryLabel->setVisible(false);
+        m_breakdownLabel->setText(m_breakdownHtml);
+        m_breakdownLabel->setVisible(true);
+        refreshBreakdownLabelHeight();
+        QTimer::singleShot(0, this, [this]() { refreshBreakdownLabelHeight(); });
+    } else {
+        m_breakdownLabel->setVisible(false);
+        m_breakdownSummaryLabel->setText(m_breakdownSummary);
+        m_breakdownSummaryLabel->setVisible(true);
+    }
+}
+
+void DiagnosisDialog::onRagCitationsReady(const QVector<RagCitation> &citations)
+{
+    if (citations.isEmpty()) {
+        m_hasSources = false;
+        m_citations.clear();
+        m_sourcesSection->setVisible(false);
+        return;
+    }
+
+    m_hasSources = true;
+    m_citations = citations;
+    m_sourcesHtml = formatRagCitationsHtml(citations);
+    m_sourcesToggle->setText(
+        tr("📚 RAG Sources (%1)").arg(citations.size()));
+    m_sourcesSection->setVisible(true);
+    setSourcesExpanded(false);
+}
+
+void DiagnosisDialog::onSourcesClicked()
+{
+    if (!m_hasSources)
+        return;
+    setSourcesExpanded(!m_sourcesExpanded);
+}
+
+void DiagnosisDialog::setSourcesExpanded(bool expanded)
+{
+    m_sourcesExpanded = expanded;
+    m_sourcesToggle->setArrowType(expanded ? Qt::DownArrow : Qt::RightArrow);
+
+    if (expanded) {
+        m_sourcesSummaryLabel->setVisible(false);
+        m_sourcesLabel->setText(m_sourcesHtml);
+        m_sourcesScroll->setVisible(true);
+    } else {
+        m_sourcesScroll->setVisible(false);
+        m_sourcesSummaryLabel->setText(formatRagCollapsedTitles(m_citations));
+        m_sourcesSummaryLabel->setVisible(true);
+    }
+}
 
 void DiagnosisDialog::onExplanationReady(const QString &)
 {
-    // Commit the streamed response as a finished turn.
     m_conversationHtml += aiBlock(m_streamBuf.trimmed()) + "<hr/>";
     m_streamBuf.clear();
     renderConversation();
@@ -110,63 +276,143 @@ void DiagnosisDialog::onErrorOccurred(const QString &error)
 
 void DiagnosisDialog::renderConversation()
 {
-    // While a response is streaming, show it under the same label it will be
-    // committed with, so the live text reads identically to the final turn.
     const QString live = m_streamBuf.isEmpty() ? QString() : aiBlock(m_streamBuf);
     m_explanationEdit->setHtml(m_conversationHtml + live);
-    // keep view pinned to the newest text while streaming
     QTextCursor c = m_explanationEdit->textCursor();
     c.movePosition(QTextCursor::End);
     m_explanationEdit->setTextCursor(c);
     m_explanationEdit->ensureCursorVisible();
 }
 
-// ── Private helpers ───────────────────────────────────────────────────────────
-
-void DiagnosisDialog::setupUi(const DiagnosisResult &result)
+void DiagnosisDialog::setupUi(const ExplainRequest &req)
 {
+    setStyleSheet(sectionStyle() + unifiedScrollBarStyle());
+
     auto *layout = new QVBoxLayout(this);
     layout->setSpacing(10);
     layout->setContentsMargins(16, 16, 16, 12);
 
-    // Coloured diagnosis banner
-    m_titleLabel = new QLabel(result.label, this);
+    m_titleLabel = new QLabel(req.result.label, this);
     QFont titleFont = m_titleLabel->font();
     titleFont.setPointSize(11);
     titleFont.setBold(true);
     m_titleLabel->setFont(titleFont);
-    QColor bg = DiagnosisColor(result.level);
+    QColor bg = DiagnosisColor(req.result.level);
     m_titleLabel->setStyleSheet(
-        QString("color: white; background: %1; padding: 6px 10px; border-radius: 4px;")
+        QString("color: white; background: %1; padding: 8px 12px; border-radius: 4px;")
             .arg(bg.name()));
     layout->addWidget(m_titleLabel);
 
-    // RAG status label (hidden until ragStatusChanged fires)
-    m_ragLabel = new QLabel(this);
-    m_ragLabel->setStyleSheet("color: gray; font-size: 10px;");
-    m_ragLabel->setVisible(false);
-    layout->addWidget(m_ragLabel);
+    m_breakdownHtml = formatBreakdownTableHtml(req.result, req.input);
+    m_breakdownSummary = formatBreakdownCollapsedSummary(req.result, req.input);
 
-    // Status / loading label
-    m_statusLabel = new QLabel(tr("Asking AI watchmaker…"), this);
+    m_breakdownSection = makeSection(this, "breakdownSection");
+    auto *breakdownLayout = new QVBoxLayout(m_breakdownSection);
+    breakdownLayout->setContentsMargins(12, 10, 12, 12);
+    breakdownLayout->setSpacing(8);
+
+    m_breakdownToggle = new QToolButton(m_breakdownSection);
+    m_breakdownToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_breakdownToggle->setArrowType(Qt::RightArrow);
+    m_breakdownToggle->setText(
+        tr("📊 Measurement vs thresholds (%1 watch)")
+            .arg(watchTypeLabel(req.input)));
+    m_breakdownToggle->setCheckable(false);
+    m_breakdownToggle->setCursor(Qt::PointingHandCursor);
+    connect(m_breakdownToggle, &QToolButton::clicked,
+            this, &DiagnosisDialog::onBreakdownClicked);
+    breakdownLayout->addWidget(m_breakdownToggle);
+
+    m_breakdownSummaryLabel = new QLabel(m_breakdownSection);
+    m_breakdownSummaryLabel->setWordWrap(true);
+    m_breakdownSummaryLabel->setStyleSheet(
+        "QLabel { color: #444; font-size: 10px; font-family: monospace; padding-left: 18px; }");
+    breakdownLayout->addWidget(m_breakdownSummaryLabel);
+
+    m_breakdownLabel = new QLabel(m_breakdownSection);
+    m_breakdownLabel->setTextFormat(Qt::RichText);
+    m_breakdownLabel->setWordWrap(false);
+    m_breakdownLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_breakdownLabel->setVisible(false);
+    m_breakdownLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    m_breakdownLabel->setStyleSheet(
+        "QLabel { background: #ffffff; border: 1px solid #e8eaed; border-radius: 4px;"
+        "padding: 12px 12px 16px 30px; }");
+    breakdownLayout->addWidget(m_breakdownLabel);
+
+    layout->addWidget(m_breakdownSection);
+    setBreakdownExpanded(false);
+
+    m_sourcesSection = makeSection(this, "sourcesSection");
+    auto *sourcesLayout = new QVBoxLayout(m_sourcesSection);
+    sourcesLayout->setContentsMargins(12, 10, 12, 10);
+    sourcesLayout->setSpacing(6);
+
+    m_sourcesToggle = new QToolButton(m_sourcesSection);
+    m_sourcesToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_sourcesToggle->setArrowType(Qt::RightArrow);
+    m_sourcesToggle->setText(tr("📚 RAG Sources"));
+    m_sourcesToggle->setCheckable(false);
+    m_sourcesToggle->setCursor(Qt::PointingHandCursor);
+    connect(m_sourcesToggle, &QToolButton::clicked,
+            this, &DiagnosisDialog::onSourcesClicked);
+    sourcesLayout->addWidget(m_sourcesToggle);
+
+    m_sourcesSummaryLabel = new QLabel(m_sourcesSection);
+    m_sourcesSummaryLabel->setWordWrap(true);
+    m_sourcesSummaryLabel->setVisible(false);
+    m_sourcesSummaryLabel->setStyleSheet(
+        "QLabel { color: #666; font-size: 10px; padding-left: 18px; }");
+    sourcesLayout->addWidget(m_sourcesSummaryLabel);
+
+    m_sourcesLabel = new QLabel;
+    m_sourcesLabel->setTextFormat(Qt::RichText);
+    m_sourcesLabel->setWordWrap(true);
+    m_sourcesLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_sourcesLabel->setStyleSheet(
+        "QLabel { background: #ffffff; border: none; padding: 4px; }");
+
+    m_sourcesScroll = new QScrollArea(m_sourcesSection);
+    m_sourcesScroll->setWidget(m_sourcesLabel);
+    m_sourcesScroll->setWidgetResizable(true);
+    m_sourcesScroll->setFrameShape(QFrame::NoFrame);
+    m_sourcesScroll->setMaximumHeight(150);
+    m_sourcesScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_sourcesScroll->setVisible(false);
+    m_sourcesScroll->setStyleSheet(
+        "QScrollArea { background: #ffffff; border: 1px solid #e8eaed;"
+        "border-radius: 4px; margin-left: 18px; }");
+    sourcesLayout->addWidget(m_sourcesScroll);
+
+    m_sourcesSection->setVisible(false);
+    layout->addWidget(m_sourcesSection);
+
+    m_aiSection = makeSection(this, "aiSection");
+    auto *aiLayout = new QVBoxLayout(m_aiSection);
+    aiLayout->setContentsMargins(12, 10, 12, 10);
+    aiLayout->setSpacing(6);
+
+    m_statusLabel = new QLabel(tr("Asking AI watchmaker…"), m_aiSection);
     m_statusLabel->setStyleSheet("color: gray; font-style: italic;");
-    layout->addWidget(m_statusLabel);
+    aiLayout->addWidget(m_statusLabel);
 
-    // Progress bar (indeterminate while waiting)
-    m_progressBar = new QProgressBar(this);
-    m_progressBar->setRange(0, 0);   // indeterminate
+    m_progressBar = new QProgressBar(m_aiSection);
+    m_progressBar->setRange(0, 0);
     m_progressBar->setFixedHeight(4);
     m_progressBar->setTextVisible(false);
-    layout->addWidget(m_progressBar);
+    aiLayout->addWidget(m_progressBar);
 
-    // Explanation text
-    m_explanationEdit = new QTextEdit(this);
+    m_explanationEdit = new QTextEdit(m_aiSection);
     m_explanationEdit->setReadOnly(true);
-    m_explanationEdit->setFrameStyle(QFrame::NoFrame);
-    m_explanationEdit->setStyleSheet("background: transparent;");
-    layout->addWidget(m_explanationEdit, 1);
+    m_explanationEdit->setFrameShape(QFrame::NoFrame);
+    m_explanationEdit->setMinimumHeight(180);
+    m_explanationEdit->setStyleSheet(
+        "QTextEdit { background: #ffffff; border: 1px solid #e8eaed;"
+        "border-radius: 4px; padding: 8px; }");
+    aiLayout->addWidget(m_explanationEdit, 1);
 
-    // Follow-up input row
+    layout->addWidget(m_aiSection, 1);
+
     auto *inputRow = new QHBoxLayout();
     m_inputEdit = new QLineEdit(this);
     m_inputEdit->setPlaceholderText(tr("Ask a follow-up question…"));
@@ -181,7 +427,6 @@ void DiagnosisDialog::setupUi(const DiagnosisResult &result)
     inputRow->addWidget(m_sendButton);
     layout->addLayout(inputRow);
 
-    // Close button
     auto *btnRow = new QHBoxLayout();
     btnRow->addStretch();
     m_closeButton = new QPushButton(tr("Close"), this);
@@ -196,4 +441,10 @@ void DiagnosisDialog::setLoading(bool loading)
 {
     m_progressBar->setVisible(loading);
     m_statusLabel->setVisible(loading);
+}
+
+void DiagnosisDialog::resizeEvent(QResizeEvent *event)
+{
+    QDialog::resizeEvent(event);
+    refreshBreakdownLabelHeight();
 }
