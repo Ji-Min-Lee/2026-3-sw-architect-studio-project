@@ -26,15 +26,17 @@ ATAM is a method for finding risks in an architecture before they become real pr
 It does **not** measure the system precisely.
 It finds: which decisions could cause trouble, and where decisions force a tradeoff between two goals.
 
-**Output of this evaluation:**
+**How this document is organized:**
 
-| Section | Output |
-|---------|--------|
-| Section 1 | Business goals and constraints |
+| Section | Contents |
+|---------|----------|
+| Section 1 | Business goals, constraints, architectural drivers |
+| Section 2 | The architecture we evaluated (before / after) |
 | Section 3 | Utility Tree — QA priorities |
 | Section 4 | Architectural approaches considered |
-| Section 5 | Risks, Non-Risks, Sensitivity Points, Tradeoffs |
+| Section 5 | Sensitivity Points, Tradeoffs, Risks, Non-Risks |
 | Section 6 | Risk Themes |
+| Section 7 | Suggested next steps |
 
 ---
 
