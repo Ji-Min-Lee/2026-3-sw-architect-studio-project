@@ -381,6 +381,7 @@ target_include_directories(TestMeasurementEngine PRIVATE
 target_link_libraries(TestMeasurementEngine PRIVATE
     Qt${QT_VERSION_MAJOR}::Test
     Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Multimedia
     kissfft
 )
 add_test(NAME MeasurementEngine COMMAND TestMeasurementEngine)
@@ -432,5 +433,6 @@ target_include_directories(EngineFileCheck PRIVATE
 target_link_libraries(EngineFileCheck PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Multimedia
     kissfft
 )
