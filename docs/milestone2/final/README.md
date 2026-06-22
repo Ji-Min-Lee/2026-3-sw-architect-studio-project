@@ -88,6 +88,7 @@ docs/milestone2/final/
 └── references/
     ├── qa/                           ← QA scenario files (qas-1 ~ qas-5)
     ├── risks.md                      ← full risk register
+    ├── atam-evaluation-v3.md         ← ATAM architecture evaluation
     ├── views/                        ← Merson 7-section template view files
     ├── experiments/                  ← experiment files (EXP-01 ~ EXP-05)
     └── adr/                          ← ADR files (ADR-001 ~ ADR-006)
