@@ -20,15 +20,15 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `## 2-B. Correctness: Observer Pattern` | show `view2b-observer-module.png`]**
 
-"Our governing quality goal is measurement accuracy — the computed Rate and Beat Error must match the reference device. But accuracy at the computation level is not enough. If two tabs both display Rate and show different numbers for the same beat, the system is inaccurate from the user's perspective — even if the math is correct."
+"Our key quality goal is measurement accuracy — the computed Rate and Beat Error need to match the reference device. But being accurate at the computation level isn't enough on its own. If two tabs both show Rate for the same beat but display different numbers, the system is inaccurate from the user's perspective — even if the math is correct."
 
-"That's what correctness means here: structural consistency in data delivery. The risk is at the delivery point. If `Measurement Engine` called each tab directly, even a tiny sequencing difference could cause two tabs to show different values for the same beat. With 14 tabs, that risk compounds."
+"So when we say correctness here, we mean structural consistency in how data gets delivered. The risk point is delivery. If `Measurement Engine` called each tab directly, even a tiny sequencing difference could cause two tabs to show different values for the same beat. With 14 tabs, that risk only gets worse."
 
 "So we applied the Observer pattern. `Measurement Engine` emits one signal — `measurement Ready` — carrying a single `Measurement` struct. All 14 tabs receive that same struct through `Base Graph Tab :: on Measurement`. One broadcast — identical data to everyone."
 
 **[SCREEN → `references/adr/ADR-006-basegraphtab-observer-pattern.md` | scroll to `## Decision`]**
 
-"In `ADR-006` — the key point is that `Measurement Engine` has zero compile-time knowledge of any tab. `Session Controller` wires the signal-slot connections at session start. After that, `Measurement Engine` just emits."
+"In `ADR-006` — the key point is that `Measurement Engine` has zero compile-time knowledge of any tab. `Session Controller` wires up all the signal-slot connections at session start, and after that, `Measurement Engine` just emits."
 
 ---
 
@@ -49,9 +49,9 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/unit-test-results.md` | show summary table]**
 
-"One more thing on correctness. Watch domain knowledge takes time to build — and when developers don't fully understand the domain, they may implement wrong logic without knowing it. That was our biggest non-technical risk."
+"One more thing on correctness. Watch domain knowledge takes time to build up — and when developers don't fully have that domain understanding yet, they can implement wrong logic without even realizing it. That was our biggest non-technical risk going in."
 
-"We addressed it with AI-generated unit tests: 142 test cases across 10 binaries, all passing — covering domain math, engine integration, and Observer contract compliance. This was only possible because our architecture was testable by design. Clean boundaries meant each component could be verified in isolation. The architecture reduced the risk."
+"We tackled it with AI-generated unit tests: 142 test cases across 10 binaries, all passing — covering domain math, engine integration, and Observer contract compliance. This was only possible because our architecture was testable by design. Clean boundaries meant we could verify each component in isolation. The architecture itself reduced the risk."
 
 ---
 
@@ -59,7 +59,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `## 2-C. Extensibility`]**
 
-"Observer solves correctness — consistent delivery to all tabs. The same decision also makes the system easier to extend. Three design decisions: layering, dependency inversion, and immutable Value Objects."
+"Observer handles correctness — consistent delivery to all tabs. But that same decision also makes the system easier to extend. We've got three design decisions to walk through: layering, dependency inversion, and immutable Value Objects."
 
 ---
 
@@ -69,11 +69,11 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → show `view1-layered-module.png`]**
 
-"Our target: add a new graph tab in 3 files or fewer, with zero knowledge of DSP or audio capture required. The 4-layer structure enforces this — Acquisition, Signal Processing, Domain, Presentation. Dependencies flow downward only. A developer adding a new tab only needs to know what `Measurement` contains. The Presentation layer grows freely without touching anything below."
+"Our target was: add a new graph tab in 3 files or fewer, with no knowledge of DSP or audio capture needed. The 4-layer structure enforces this — Acquisition, Signal Processing, Domain, Presentation. Dependencies only flow downward. So a developer adding a new tab just needs to know what `Measurement` contains. The Presentation layer can grow freely without touching anything below."
 
 **[SCREEN → `references/views/view-layered-4layer.md` | scroll to `## Behavior` | show "Tab addition history" table, then "Dependency Structure Matrix"]**
 
-"We ran this three times — 11 tabs in Sprint 1, plus 2 in Sprint 2, plus 1 bonus tab. Every time, 3 files or fewer, Domain layer untouched. The Dependency Structure Matrix is the actual include trace from the code. Every dependency is in the lower triangle. No violations."
+"We did this across three rounds of tab additions — 11 tabs in Sprint 1, 2 more in Sprint 2, and 1 bonus tab. Every single time, 3 files or fewer, Domain layer untouched. The Dependency Structure Matrix here is the actual include trace from the code. Every dependency is in the lower triangle. No violations."
 
 ---
 
@@ -96,13 +96,11 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Interface` | show `view5-iaudiosource.png`]**
 
-"Same principle, applied to audio input. Before the refactor, `Session Controller` held three concrete pointers — live microphone, file playback, and simulation — each with duplicated wiring code. Adding a new source meant reading through nearly identical branches and touching `Main Window` in multiple places."
+"Same principle, but applied to audio input. Before the refactor, `Session Controller` held three concrete pointers — live microphone, file playback, and simulation — each with duplicated wiring code. Adding a new source meant reading through nearly identical branches and touching `Main Window` in multiple places."
 
-"After introducing `I Audio Source`: one pointer, one connect block. Adding a new source means implementing the interface and one factory method — zero changes above. Less code to read, less code to change."
+"After we introduced `I Audio Source`: one pointer, one connect block. Adding a new source means implementing the interface and one factory method — nothing changes above it. Less code to read, less code to change."
 
-
-
-"Trade-off: Any future implementer must follow this contract"
+"The trade-off is that any future implementer has to follow this contract."
 
 ---
 
@@ -122,9 +120,9 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Entity / Value Object` | show `view6-domain-entity-vo.png`]**
 
-"Originally, `Measurement` was a god object — one flat struct that every tab dug through. We decomposed it into three Value Objects grouped by domain: DSP math, audio capture, and beat detection. Each tab now depends only on what it actually needs. 
+"Originally, `Measurement` was a god object — one flat struct that every tab dug through. We decomposed it into three Value Objects grouped by domain: DSP math, audio capture, and beat detection. Each tab now only depends on what it actually needs."
 
-"And all three are immutable once produced. Tabs receive `Measurement` read-only — they cannot change it. This closes the loop on correctness: two tabs reading the same field are reading the same value, always."
+"And all three are immutable once produced. Tabs receive `Measurement` read-only — they can't change it. This closes the loop on correctness: two tabs reading the same field are always reading the same value."
 
 ---
 
@@ -144,7 +142,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `3-slide-risk-and-schedule.md` | scroll to `## 3-A`]**
 
-"Four sprints in Milestone 2 — architecture established, all 14 tabs implemented, all scheduled experiments completed, full refactor done."
+"Four sprints in Milestone 2 — we got the architecture established, all 14 tabs implemented, every scheduled experiment completed, and the full refactor done."
 
 ---
 
@@ -152,11 +150,11 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → scroll to `## 3-B. Remaining Risks & Open Items` | show risk table]**
 
-"One critical and one medium risk going into the final week."
+"We've got one critical risk and one medium risk heading into the final week."
 
-"The critical one: we haven't compared our measurement output against a reference device yet. That validation — against the WeiShi watch — is planned for Week 5 Sprint 1."
+"The critical one: we haven't validated our measurement output against a reference device yet. That validation — against the WeiShi watch — is scheduled for Week 5 Sprint 1."
 
-"On the medium side: filter cutoff values haven't been tuned on a real watch signal yet. Ambient noise in the lab can trigger false beats, and we need to confirm the right thresholds on actual hardware — that experiment is scheduled for this week."
+"On the medium side: filter cutoff values haven't been tuned on a real watch signal yet. Ambient noise in the lab can trigger false beats, and we need to confirm the right thresholds on actual hardware. That experiment is happening this week."
 
 ---
 
@@ -164,11 +162,11 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → scroll to `## 3-C. M3 Schedule` | show sprint table + GitHub board links]**
 
-"The critical path is clear — filter tuning this week, then WeiShi accuracy validation in Week 5, full Raspberry Pi run, buffer week, and demo on July 1st. Every remaining task has an owner, a date, and is tracked as a GitHub issue on our project board."
+"The critical path is clear — filter tuning this week, WeiShi accuracy validation in Week 5, full Raspberry Pi run, then a buffer week before the demo on July 1st. Every remaining task has an owner, a date, and it's all tracked as GitHub issues on our project board."
 
 **[SCREEN → show GitHub Project Board link in `## 3-C. M3 Schedule`]**
 
-"Each sprint is scoped so that nothing depends on a task that hasn't landed yet. We're on track to hit all demo criteria by July 1st."
+"Each sprint builds on work that's already done — no blockers, no dependencies waiting to land. We're on track to hit all demo criteria by July 1st."
 
 ---
 
