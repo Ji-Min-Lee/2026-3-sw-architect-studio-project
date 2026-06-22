@@ -59,7 +59,7 @@ Now let's look at what we get from that separation — making sure all 14 tabs s
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `## 2-C. Extensibility`]**
 
-"Observer handles correctness — consistent delivery to all tabs. But that same decision also makes the system easier to extend. We've got three design decisions to walk through: layering, dependency inversion, and immutable Value Objects."
+"Observer handles correctness — consistent delivery to all tabs. But that same decision also makes the system easier to extend. We've got three design decisions to walk through: layering, interface-based dependency inversion, and immutable Value Objects."
 
 ---
 
