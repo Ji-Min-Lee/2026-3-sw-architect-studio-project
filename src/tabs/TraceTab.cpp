@@ -4,8 +4,9 @@
 #include <QHBoxLayout>
 
 namespace {
-constexpr double kAmpBandLo  = 270.0;  // normal amplitude range (project plan)
-constexpr double kAmpBandHi  = 300.0;
+constexpr double kAmpBandLo  = 270.0;  // strong zone — WatchDiagnostics Excellent threshold
+constexpr double kAmpBandHi  = 310.0;  // strong zone upper bound
+constexpr double kAmpWarnLo  = 220.0;  // acceptable zone — WatchDiagnostics Good threshold
 constexpr double kLateThresh = -3.0;   // engine-smoothed s/d below this → "running late"
 constexpr double kRateSpanLo = -20.0;  // minimum visible rate range
 constexpr double kRateSpanHi = +20.0;
@@ -34,13 +35,6 @@ TraceTab::TraceTab(QWidget *parent)
 
     layout->addWidget(mPlot, 1);
 
-    mSummaryLabel = new QLabel(this);
-    mSummaryLabel->setAlignment(Qt::AlignHCenter);
-    mSummaryLabel->setWordWrap(true);
-    mSummaryLabel->setToolTip("How to read: slope of the rate trace = gain/loss per day; "
-                              "amplitude inside the green band 270–300° is healthy. "
-                              "Smoothing of the s/d trace follows the Averaging Period setting.");
-    layout->addWidget(mSummaryLabel);
 
     // Top rect (default axes): rate — graph(0).
     // The value is the engine's Averaging-Period rolling average, i.e. the
@@ -58,7 +52,7 @@ TraceTab::TraceTab(QWidget *parent)
 
     // Bottom rect: amplitude with normal band
     mAmpRect = new QCPAxisRect(mPlot);
-    mPlot->plotLayout()->addElement(1, 0, mAmpRect);
+    mPlot->plotLayout()->addElement(2, 0, mAmpRect);
     mAmpGraph = mPlot->addGraph(mAmpRect->axis(QCPAxis::atBottom),
                                 mAmpRect->axis(QCPAxis::atLeft));
     mAmpGraph->setPen(QPen(QColor(20, 130, 60), 2));
@@ -67,16 +61,68 @@ TraceTab::TraceTab(QWidget *parent)
     mAmpRect->axis(QCPAxis::atLeft)->setLabel("Amplitude (°)");
     mAmpRect->axis(QCPAxis::atLeft)->setRange(kAmpSpanLo, kAmpSpanHi);
 
-    auto *band = new QCPItemRect(mPlot);
-    band->setClipAxisRect(mAmpRect);
-    band->topLeft->setAxes(mAmpRect->axis(QCPAxis::atBottom), mAmpRect->axis(QCPAxis::atLeft));
-    band->bottomRight->setAxes(mAmpRect->axis(QCPAxis::atBottom), mAmpRect->axis(QCPAxis::atLeft));
-    band->topLeft->setTypeX(QCPItemPosition::ptAxisRectRatio);
-    band->bottomRight->setTypeX(QCPItemPosition::ptAxisRectRatio);
-    band->topLeft->setCoords(0.0, kAmpBandHi);
-    band->bottomRight->setCoords(1.0, kAmpBandLo);
-    band->setBrush(QBrush(QColor(120, 220, 120, 80)));
-    band->setPen(Qt::NoPen);
+    // Three amplitude zone bands — rendered on "grid" layer so they sit behind
+    // the data line.  Labels float at the left edge of each band.
+    auto addAmpBand = [&](double yLo, double yHi, QColor color) {
+        auto *b = new QCPItemRect(mPlot);
+        b->setLayer("grid");
+        b->setClipAxisRect(mAmpRect);
+        b->topLeft->setAxes(mAmpRect->axis(QCPAxis::atBottom), mAmpRect->axis(QCPAxis::atLeft));
+        b->bottomRight->setAxes(mAmpRect->axis(QCPAxis::atBottom), mAmpRect->axis(QCPAxis::atLeft));
+        b->topLeft->setTypeX(QCPItemPosition::ptAxisRectRatio);
+        b->bottomRight->setTypeX(QCPItemPosition::ptAxisRectRatio);
+        b->topLeft->setCoords(0.0, yHi);
+        b->bottomRight->setCoords(1.0, yLo);
+        b->setBrush(QBrush(color));
+        b->setPen(Qt::NoPen);
+    };
+    // red: 180–220° (needs service)
+    addAmpBand(kAmpSpanLo, kAmpWarnLo, QColor(210,  70,  70,  55));
+    // amber: 220–270° (acceptable, may suggest wear)
+    addAmpBand(kAmpWarnLo, kAmpBandLo, QColor(225, 160,   0,  60));
+    // green: 270–310° (strong)
+    addAmpBand(kAmpBandLo, kAmpBandHi, QColor(120, 215, 120,  80));
+
+    // Inset legend — zone color swatches replace the floating text labels
+    auto *ampLegend = new QCPLegend;
+    mAmpRect->insetLayout()->addElement(ampLegend, Qt::AlignRight | Qt::AlignTop);
+    ampLegend->setLayer("axes");
+    { QFont lf; lf.setPointSize(8); ampLegend->setFont(lf); }
+    ampLegend->setBorderPen(QPen(QColor(180, 180, 180)));
+    ampLegend->setBrush(QBrush(QColor(255, 255, 255, 210)));
+    ampLegend->setIconSize(QSize(14, 10));
+    ampLegend->setIconTextPadding(4);
+    ampLegend->setMargins(QMargins(4, 3, 4, 3));
+    auto addZoneLegendItem = [&](const QString &name, QColor fill, QColor outline) {
+        auto *g = mPlot->addGraph(mAmpRect->axis(QCPAxis::atBottom),
+                                  mAmpRect->axis(QCPAxis::atLeft));
+        g->setName(name);
+        g->setPen(QPen(outline, 1));
+        g->setBrush(QBrush(fill));
+        ampLegend->addItem(new QCPPlottableLegendItem(ampLegend, g));
+    };
+    addZoneLegendItem("270–310°  Strong",       QColor(120, 215, 120, 180), QColor( 20, 110,  20));
+    addZoneLegendItem("220–270°  Acceptable",   QColor(225, 160,   0, 180), QColor(140, 100,   0));
+    addZoneLegendItem("< 220°  Needs service",  QColor(210,  70,  70, 180), QColor(160,  40,  40));
+
+    // Summary text elements inside the plot, right below each respective graph
+    mRateSummary = new QCPTextElement(mPlot);
+    { QFont f; f.setPointSize(8); mRateSummary->setFont(f); }
+    mRateSummary->setMargins(QMargins(4, 1, 4, 2));
+    mRateSummary->setTextFlags(Qt::AlignHCenter | Qt::AlignVCenter);
+    mPlot->plotLayout()->addElement(1, 0, mRateSummary);
+
+    mAmpSummary = new QCPTextElement(mPlot);
+    { QFont f; f.setPointSize(8); mAmpSummary->setFont(f); }
+    mAmpSummary->setMargins(QMargins(4, 1, 4, 2));
+    mAmpSummary->setTextFlags(Qt::AlignHCenter | Qt::AlignVCenter);
+    mPlot->plotLayout()->addElement(3, 0, mAmpSummary);
+
+    // Row 0=rate graph, 1=rate note, 2=amp graph, 3=amp note
+    mPlot->plotLayout()->setRowStretchFactor(0, 4);
+    mPlot->plotLayout()->setRowStretchFactor(1, 0);
+    mPlot->plotLayout()->setRowStretchFactor(2, 3);
+    mPlot->plotLayout()->setRowStretchFactor(3, 0);
 
     connect(mZoomCombo, qOverload<int>(&QComboBox::currentIndexChanged),
             this, [this](int) { if (!mPaused) { updateRanges(); { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }; } });
@@ -122,25 +168,32 @@ void TraceTab::updateAlerts()
     if (mHaveRate && mLastRate < kLateThresh)
         alerts << QString("<span style='color:#c01e1e'>⚠ Watch is running late "
                           "(%1 s/d)</span>").arg(mLastRate, 0, 'f', 1);
-    if (mHaveAmp && (mLastAmp < kAmpBandLo || mLastAmp > kAmpBandHi))
-        alerts << QString("<span style='color:#c01e1e'>⚠ Amplitude %1° outside "
-                          "normal range %2–%3°</span>")
-                      .arg(mLastAmp, 0, 'f', 0).arg(kAmpBandLo).arg(kAmpBandHi);
+    if (mHaveAmp && mLastAmp < kAmpWarnLo)
+        alerts << QString("<span style='color:#c01e1e'>⚠ Amplitude %1° — likely "
+                          "needs service (below %2°)</span>")
+                      .arg(mLastAmp, 0, 'f', 0).arg(kAmpWarnLo);
+    else if (mHaveAmp && mLastAmp < kAmpBandLo)
+        alerts << QString("<span style='color:#a07000'>⚠ Amplitude %1° — acceptable "
+                          "but may suggest wear (%2°–%3°)</span>")
+                      .arg(mLastAmp, 0, 'f', 0).arg(kAmpWarnLo).arg(kAmpBandLo);
+    // amplitude > kAmpBandHi (310°) is not flagged — high is generally fine
+
     if (alerts.isEmpty())
         mAlertLabel->setText("Rate & amplitude within normal limits");
     else
         mAlertLabel->setText(alerts.join("   "));
 
-    if (mRateN > 0 || mAmpN > 0)
-        mSummaryLabel->setText(QString("Session avg %1 s/d · %2°    |    "
-                                       "60 s avg %3 s/d · %4°")
-                                   .arg(mRateN ? mRateSum / mRateN : 0.0, 0, 'f', 1)
-                                   .arg(mAmpN ? mAmpSum / mAmpN : 0.0, 0, 'f', 0)
-                                   .arg(rollingAvg(mRateRecent), 0, 'f', 1)
-                                   .arg(rollingAvg(mAmpRecent), 0, 'f', 0));
-    else
-        mSummaryLabel->setText("Slope = daily gain/loss · green band = healthy amplitude "
-                               "(270–300°) · smoothing = Averaging Period");
+    if (mRateN > 0 || mAmpN > 0) {
+        mRateSummary->setText(QString("Session avg %1 s/d  ·  60 s avg %2 s/d")
+                                  .arg(mRateN ? mRateSum / mRateN : 0.0, 0, 'f', 1)
+                                  .arg(rollingAvg(mRateRecent), 0, 'f', 1));
+        mAmpSummary->setText(QString("Session avg %1°  ·  60 s avg %2°")
+                                 .arg(mAmpN ? mAmpSum / mAmpN : 0.0, 0, 'f', 0)
+                                 .arg(rollingAvg(mAmpRecent), 0, 'f', 0));
+    } else {
+        mRateSummary->setText("slope = daily gain/loss  ·  smoothing = Averaging Period");
+        mAmpSummary->setText("");
+    }
 }
 
 void TraceTab::updateRanges()

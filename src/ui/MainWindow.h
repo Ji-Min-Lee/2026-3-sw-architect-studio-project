@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include <QElapsedTimer>
 #include <QMessageBox>
+#include <QTimer>
 #include <QToolButton>
 #include "SessionController.h"
 #include "WavStreamWriter.h"
@@ -37,6 +38,8 @@ QT_END_NAMESPACE
 
 #define AUDIO_OUTPUT 0
 #define DEBUG_OUTPUT 0
+
+enum class SessionState { Idle, Warming, Running, Paused };
 
 // MVC: Controller.
 // Reads UI state, builds domain VOs, and delegates session lifecycle to
@@ -121,6 +124,12 @@ private:
     // Results display
     void   DisplayResults(const Measurement &m);
 
+    // Run-status line below Start/Pause/Stop (independent of DiagnosisLabel)
+    void   updateRunStatusLine();
+    void   startSessionClock();
+    void   stopSessionClock();
+    qint64 sessionElapsedMs() const;
+
     // Live-mode watch-detached alarm (QAS-4)
     void   checkWatchDetached(const Measurement &m);
     void   raiseWatchDetachedAlarm(void);
@@ -181,6 +190,12 @@ private:
     int           mCmdRate        = 0;
     int           mCmdDurationSec = 0;
     QElapsedTimer mCmdDurationTimer;
+
+    SessionState  mSessionState   = SessionState::Idle;
+    int           mSyncedCount    = 0;
+    QElapsedTimer mSessionTimer;
+    qint64        mSessionActiveMs = 0;
+    QTimer        mRunStatusTimer;
 
     // FPS stats (updated from SessionController::frameLogged)
     double mBackgroundLastFPS = 0.0;

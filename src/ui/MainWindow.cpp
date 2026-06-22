@@ -171,6 +171,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->DiagnosisLabel->setCursor(Qt::PointingHandCursor);
     ui->DiagnosisLabel->setToolTip(tr("Hover for per-axis breakdown. Click for AI explanation."));
     ui->DiagnosisLabel->installEventFilter(this);
+    ui->RunStatusLabel->setTextFormat(Qt::RichText);
+    ui->RunStatusLabel->setStyleSheet(
+        "QLabel { background-color: #f8f9fa; color: #374151;"
+        " padding: 3px 8px; border: 1px solid #e5e7eb; border-radius: 3px; }");
+    mRunStatusTimer.setInterval(250);
+    connect(&mRunStatusTimer, &QTimer::timeout, this, &MainWindow::updateRunStatusLine);
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
 
@@ -222,6 +228,7 @@ MainWindow::MainWindow(QWidget *parent)
     LoadAudioDevices();
     LoadAverageingPeriod();
     DisplayResults(Measurement{}); // show blank results
+    updateRunStatusLine();         // ● Ready · 00:00
 
     // Parse CLI args for automated experiment runs:
     //   --rate N       : set sample rate (48000 / 96000 / 192000)
@@ -373,6 +380,7 @@ void MainWindow::onMeasurementReady(const Measurement &m)
 {
     mLastReplotCount = g_replotCount.exchange(0);
     mLastPlotUs      = g_plotUs.exchange(0);
+    if (m.synced) ++mSyncedCount;
     checkWatchDetached(m);  // update detached state before formatting the label
     DisplayResults(m);
 }
@@ -459,6 +467,12 @@ void MainWindow::DisplayResults(const Measurement &m)
     ui->DiagnosisLabel->setStyleSheet(
         QString("background-color: %1; color: white; border-radius: 4px;")
             .arg(diagColor.name()));
+
+    if (mSessionState == SessionState::Warming &&
+        diagResult.level != DiagnosisLevel::Unknown)
+        mSessionState = SessionState::Running;
+    updateRunStatusLine();
+
     if (diagResult.level != mLastDiagnosisLevel)
     {
         qInfo() << "[WatchDiagnostics]" << diagResult.label
@@ -551,8 +565,119 @@ void MainWindow::resetTabs(void)
     qInfo() << "RESET";
     for (BaseGraphTab *tab : mAllTabs)
         if (tab != mSequenceTab) tab->reset();
+    mSyncedCount = 0;
     DisplayResults(Measurement{});
     mBackgroundLastFPS = 0.0;
+}
+
+namespace {
+
+struct RunStatusPresentation {
+    QString stateText;
+    QColor  accent;
+    QString tooltip;
+};
+
+RunStatusPresentation computeRunStatusPresentation(SessionState state,
+                                                   int syncedCount,
+                                                   int averagingPeriod,
+                                                   const DiagnosisResult &diag)
+{
+    RunStatusPresentation p;
+    const int prog = qMin(syncedCount, averagingPeriod);
+    const QString acquiring = QObject::tr("Acquiring %1/%2").arg(prog).arg(averagingPeriod);
+
+    switch (state) {
+    case SessionState::Idle:
+        p.stateText = QObject::tr("Ready");
+        p.accent    = QColor("#6b7280");
+        p.tooltip   = QObject::tr("Press Start to begin measuring.");
+        break;
+
+    case SessionState::Warming:
+        p.stateText = acquiring;
+        p.accent    = QColor("#1a6bbf");
+        p.tooltip   = QObject::tr(
+            "Collecting synced beats — watch diagnosis appears after %1 beats.")
+                          .arg(averagingPeriod);
+        break;
+
+    case SessionState::Running:
+        if (diag.level != DiagnosisLevel::Unknown) {
+            p.stateText = QObject::tr("Running");
+            p.accent    = QColor("#15803d");
+            p.tooltip   = QString();
+        } else {
+            p.stateText = acquiring;
+            p.accent    = QColor("#1a6bbf");
+            p.tooltip   = QObject::tr("Still collecting data for a diagnosis.");
+        }
+        break;
+
+    case SessionState::Paused:
+        p.stateText = QObject::tr("Paused");
+        p.accent    = QColor("#b45309");
+        p.tooltip   = QObject::tr("Graphs frozen for diagnostic review — click Resume to continue.");
+        break;
+    }
+    return p;
+}
+
+} // namespace
+
+static QString formatSessionClock(qint64 ms)
+{
+    const int totalSec = static_cast<int>(ms / 1000);
+    const int h = totalSec / 3600;
+    const int m = (totalSec % 3600) / 60;
+    const int s = totalSec % 60;
+    if (h > 0)
+        return QString("%1:%2:%3").arg(h).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0'));
+    return QString("%1:%2").arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0'));
+}
+
+qint64 MainWindow::sessionElapsedMs() const
+{
+    qint64 ms = mSessionActiveMs;
+    if (mSessionTimer.isValid())
+        ms += mSessionTimer.elapsed();
+    return ms;
+}
+
+void MainWindow::updateRunStatusLine()
+{
+    const RunStatusPresentation p = computeRunStatusPresentation(
+        mSessionState, mSyncedCount, mAveragingPeriod, mLastExplainRequest.result);
+
+    const QString clock = formatSessionClock(sessionElapsedMs());
+    const QString hex   = p.accent.name();
+    ui->RunStatusLabel->setText(
+        QString("<span style='color:%1; font-weight:600'>●</span>"
+                "&nbsp;<span style='color:%1'>%2</span>"
+                "<span style='color:#d1d5db'>&nbsp;·&nbsp;</span>"
+                "<span style='font-family:Consolas,monospace; color:#4b5563'>%3</span>")
+            .arg(hex, p.stateText.toHtmlEscaped(), clock.toHtmlEscaped()));
+
+    if (p.tooltip.isEmpty())
+        ui->RunStatusLabel->setToolTip(ui->DiagnosisLabel->toolTip());
+    else
+        ui->RunStatusLabel->setToolTip(p.tooltip);
+}
+
+void MainWindow::startSessionClock()
+{
+    mSessionActiveMs = 0;
+    mSessionTimer.start();
+    mRunStatusTimer.start();
+    updateRunStatusLine();
+}
+
+void MainWindow::stopSessionClock()
+{
+    mSessionActiveMs = 0;
+    mSessionTimer.invalidate();
+    mRunStatusTimer.stop();
+    updateRunStatusLine();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -560,6 +685,8 @@ void MainWindow::resetTabs(void)
 // ─────────────────────────────────────────────────────────────────────────────
 void MainWindow::onSessionStopped()
 {
+    mSessionState = SessionState::Idle;
+    stopSessionClock();
     SetGuiStopMode();
     int mode = ui->ModeComboBox->currentIndex();
     if (mode == PLAYBACK || mode == SIM) {
@@ -767,6 +894,18 @@ void MainWindow::setDisplayPaused(bool on)
     for (BaseGraphTab *tab : mAllTabs)
         tab->setPaused(on);
     ui->PausePushButton->setText(on ? "Resume" : "Pause");
+    if (on) {
+        if (mSessionTimer.isValid()) {
+            mSessionActiveMs += mSessionTimer.elapsed();
+            mSessionTimer.invalidate();
+        }
+        mSessionState = SessionState::Paused;
+    } else if (mSessionState == SessionState::Paused) {
+        mSessionState = (mLastExplainRequest.result.level != DiagnosisLevel::Unknown)
+                            ? SessionState::Running : SessionState::Warming;
+        mSessionTimer.start();
+    }
+    updateRunStatusLine();
     statusBar()->showMessage(on ? "Paused — graphs frozen for diagnostic"
                                 : "Running");
 }
@@ -830,6 +969,8 @@ void MainWindow::LiveStart(void)
     QAudioDevice device = ui->InputDeviceComboBox->currentData().value<QAudioDevice>();
     float volume = ui->MicrophoneHorizontalSlider->sliderPosition() / 1000.0f;
     mSession->startLive(movement, config, ui->UseConsetCheckBox->isChecked(), device, volume);
+    mSessionState = SessionState::Warming;
+    startSessionClock();
     SetGuiRunMode();
     statusBar()->showMessage("Running");
 }
@@ -850,6 +991,8 @@ void MainWindow::PlaybackStart(void)
                                 mAveragingPeriod };
     mSession->startPlayback(movement, config, ui->UseConsetCheckBox->isChecked(),
                             dlg.selectedFiles().constFirst());
+    mSessionState = SessionState::Warming;
+    startSessionClock();
     SetGuiRunMode();
     statusBar()->showMessage("Running");
 }
@@ -879,6 +1022,8 @@ void MainWindow::SimStart(void)
                                 ui->HighLineEdit->text().toDouble(),
                                 mAveragingPeriod };
     mSession->startSim(movement, config, ui->UseConsetCheckBox->isChecked(), cfg);
+    mSessionState = SessionState::Warming;
+    startSessionClock();
     SetGuiRunMode();
     statusBar()->showMessage("Running");
 }
@@ -935,6 +1080,8 @@ void MainWindow::on_PausePushButton_toggled(bool checked)
 }
 void MainWindow::on_StopPushButton_clicked()
 {
+    mSessionState = SessionState::Idle;
+    stopSessionClock();
     SetGuiStopMode();
     int mode = ui->ModeComboBox->currentIndex();
     if (mode == LIVE) {

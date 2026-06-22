@@ -11,7 +11,9 @@
 //   top    — rate deviation (s/d); the plotted value is already smoothed by
 //            the engine's Averaging Period rolling window (spec's required
 //            smoothing function — user-adjustable via the control panel)
-//   bottom — amplitude (°) with the normal operating band 270–300° marked
+//   bottom — amplitude (°) with three colour zones:
+//            green 270–310° (strong), amber 220–270° (acceptable/wear),
+//            red <220° (needs service)
 //
 // Time always advances with the audio stream, so signal dropouts appear as
 // visible gaps in the trace. All data is retained: with Pause the user can
@@ -35,8 +37,9 @@ private:
     double windowSec() const;        // visible rolling window (zoom-dependent)
     double rollingAvg(const QVector<QPair<double, double>> &buf) const;
 
-    QLabel      *mAlertLabel;
-    QLabel      *mSummaryLabel;
+    QLabel          *mAlertLabel;
+    QCPTextElement  *mRateSummary = nullptr;  // note below rate graph
+    QCPTextElement  *mAmpSummary  = nullptr;  // note below amplitude graph
     QComboBox   *mZoomCombo;
     QCustomPlot *mPlot;
     QCPGraph    *mAmpGraph = nullptr;   // amplitude (bottom rect)
