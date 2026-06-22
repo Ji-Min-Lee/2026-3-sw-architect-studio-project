@@ -28,7 +28,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/adr/ADR-006-basegraphtab-observer-pattern.md` | scroll to `## Decision`]**
 
-"In `ADR-006` — the key point is that `Measurement Engine` has zero compile-time knowledge of any tab. `Session Controller` wires up all the signal-slot connections at session start, and after that, `Measurement Engine` just emits."
+"In `ADR-006` — the key point is that `Measurement Engine` has no reference to any tab in its source code — no includes, no direct calls. `Session Controller` wires up all the signal-slot connections at session start, and after that, `Measurement Engine` just emits."
 
 ---
 
