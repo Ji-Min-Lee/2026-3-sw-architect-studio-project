@@ -243,6 +243,17 @@ if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(TimeGrapher)
 endif()
 
+# Copy RAG database next to the executable (runtime loads applicationDir/rag/vector.db).
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/rag/vector.db")
+    add_custom_command(TARGET TimeGrapher POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:TimeGrapher>/rag
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_CURRENT_SOURCE_DIR}/rag/vector.db
+            $<TARGET_FILE_DIR:TimeGrapher>/rag/vector.db
+        COMMENT "Copying rag/vector.db to output directory"
+    )
+endif()
+
 # ── Unit Tests ────────────────────────────────────────────────────────────────
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test REQUIRED)
 enable_testing()

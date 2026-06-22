@@ -48,12 +48,13 @@ signals:
     void availabilityChanged(bool available);
     void modelsAvailable(const QStringList &models);
     void ragStatusChanged(bool active, int chunkCount);
+    void ragCitationsReady(const QVector<RagCitation> &citations);
 
 private slots:
     void onReadyRead();
     void onReplyFinished(QNetworkReply *reply);
     void onTagsReplyFinished(QNetworkReply *reply);
-    void onRagRetrieved(const QStringList &chunks);
+    void onRagRetrieved(const QVector<RagCitation> &citations);
     void onRagError(const QString &msg);
 
 private:

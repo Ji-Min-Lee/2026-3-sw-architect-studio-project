@@ -29,6 +29,13 @@ enum class WatchType {
     Women
 };
 
+enum class AxisStatus {
+    Unknown,
+    PassExcellent,
+    PassGood,
+    Fail
+};
+
 /* Traffic-light color for a diagnosis level, for UI display
  * (e.g. QLabel background). Gray for Unknown (not enough data yet). */
 QColor DiagnosisColor(DiagnosisLevel level);
@@ -39,9 +46,16 @@ struct DiagnosisInput {
     bool         noSignal   = false;
 };
 
+struct AxisBreakdown {
+    AxisStatus rate      = AxisStatus::Unknown;
+    AxisStatus amplitude = AxisStatus::Unknown;
+    AxisStatus beatError = AxisStatus::Unknown;
+};
+
 struct DiagnosisResult {
     DiagnosisLevel level = DiagnosisLevel::Unknown;
     QString        label;
+    AxisBreakdown  breakdown;
 };
 
 class WatchDiagnostics
@@ -49,5 +63,13 @@ class WatchDiagnostics
 public:
     DiagnosisResult Evaluate(const DiagnosisInput &input) const;
 };
+
+QString formatAxisStatus(AxisStatus status);
+QString formatDiagnosisTooltip(const DiagnosisResult &result,
+                               const DiagnosisInput  &input);
+QString formatBreakdownTableHtml(const DiagnosisResult &result,
+                                 const DiagnosisInput  &input);
+QString formatBreakdownCollapsedSummary(const DiagnosisResult &result,
+                                        const DiagnosisInput  &input);
 
 #endif /* WATCHDIAGNOSTICS_H */

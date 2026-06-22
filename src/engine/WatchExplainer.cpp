@@ -55,9 +55,10 @@ void WatchExplainer::warmup(const QString &modelName)
 void WatchExplainer::loadRag(const QString &dbPath)
 {
     if (m_rag.load(dbPath))
-        qInfo() << "[WatchExplainer] RAG ready:" << m_rag.chunkCount() << "chunks";
+        qInfo() << "[WatchExplainer] RAG ready:" << m_rag.chunkCount() << "chunks from" << dbPath;
     else
-        qWarning() << "[WatchExplainer] RAG load failed, will explain without context";
+        qWarning() << "[WatchExplainer] RAG load failed for" << dbPath
+                   << "— will explain without context";
 }
 
 void WatchExplainer::explain(const ExplainRequest &req)
@@ -84,6 +85,7 @@ void WatchExplainer::explain(const ExplainRequest &req)
         return;
     }
     explainWithContext(req, {});
+    emit ragCitationsReady({});
 }
 
 void WatchExplainer::chat(const QString &userMessage)
@@ -123,9 +125,14 @@ void WatchExplainer::chat(const QString &userMessage)
             this,           &WatchExplainer::onReadyRead);
 }
 
-void WatchExplainer::onRagRetrieved(const QStringList &chunks)
+void WatchExplainer::onRagRetrieved(const QVector<RagCitation> &citations)
 {
     m_timeout->stop();
+    QStringList chunks;
+    chunks.reserve(citations.size());
+    for (const RagCitation &cite : citations)
+        chunks << cite.text;
+    emit ragCitationsReady(citations);
     explainWithContext(m_pendingReq, chunks);
 }
 
@@ -134,6 +141,7 @@ void WatchExplainer::onRagError(const QString &msg)
     m_timeout->stop();
     qWarning() << "[WatchExplainer] RAG retrieval failed:" << msg << "— proceeding without context";
     explainWithContext(m_pendingReq, {});
+    emit ragCitationsReady({});
 }
 
 void WatchExplainer::explainWithContext(const ExplainRequest &req, const QStringList &context)

@@ -2,15 +2,20 @@
 #define DIAGNOSISDIALOG_H
 
 #include <QDialog>
+#include <QResizeEvent>
 #include <QTextEdit>
 #include <QLineEdit>
 #include <QLabel>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QToolButton>
+#include <QScrollArea>
+#include <QFrame>
 #include <QVBoxLayout>
 
 #include "../engine/WatchDiagnostics.h"
 #include "../engine/WatchExplainer.h"
+#include "../rag/RagRetriever.h"
 
 class DiagnosisDialog : public QDialog
 {
@@ -20,26 +25,51 @@ public:
                              WatchExplainer       *explainer,
                              QWidget              *parent = nullptr);
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
 private slots:
     void onExplanationReady(const QString &text);
     void onErrorOccurred(const QString &error);
     void onSendClicked();
+    void onRagCitationsReady(const QVector<RagCitation> &citations);
+    void onSourcesClicked();
+    void onBreakdownClicked();
 
 private:
-    void setupUi(const DiagnosisResult &result);
+    void setupUi(const ExplainRequest &req);
     void setLoading(bool loading);
-    void renderConversation();   // re-render m_conversationMd + m_streamBuf as markdown
+    void renderConversation();
+    void setSourcesExpanded(bool expanded);
+    void setBreakdownExpanded(bool expanded);
+    void refreshBreakdownLabelHeight();
 
     WatchExplainer *m_explainer;
 
-    QString m_conversationHtml;  // finalized turns, rendered HTML
-    QString m_streamBuf;         // markdown tokens of the response currently streaming
+    QString m_conversationHtml;
+    QString m_streamBuf;
+    QString m_sourcesHtml;
+    QString m_breakdownHtml;
+    QString m_breakdownSummary;
+    QVector<RagCitation> m_citations;
+    bool    m_sourcesExpanded   = false;
+    bool    m_breakdownExpanded = false;
+    bool    m_hasSources        = false;
 
     QLabel       *m_titleLabel;
+    QFrame       *m_breakdownSection;
+    QToolButton  *m_breakdownToggle;
+    QLabel       *m_breakdownSummaryLabel;
+    QLabel       *m_breakdownLabel;
+    QFrame       *m_sourcesSection;
+    QToolButton  *m_sourcesToggle;
+    QLabel       *m_sourcesSummaryLabel;
+    QScrollArea  *m_sourcesScroll;
+    QLabel       *m_sourcesLabel;
+    QFrame       *m_aiSection;
     QLabel       *m_statusLabel;
-    QLabel       *m_ragLabel;
-    QTextEdit    *m_explanationEdit;
     QProgressBar *m_progressBar;
+    QTextEdit    *m_explanationEdit;
     QLineEdit    *m_inputEdit;
     QPushButton  *m_sendButton;
     QPushButton  *m_closeButton;

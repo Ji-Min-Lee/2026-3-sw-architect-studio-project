@@ -70,6 +70,18 @@ function Do-Build {
 
     Write-Host "[build] compiling (-j$Jobs)..."
     cmake --build $BuildDir -j $Jobs
+
+    # RAG: copy vector.db beside the executable (same path the app loads at runtime)
+    $RagSrc = Join-Path $SrcDir "rag\vector.db"
+    $RagDstDir = Join-Path $BuildDir "rag"
+    if (Test-Path $RagSrc) {
+        if (-not (Test-Path $RagDstDir)) { New-Item -ItemType Directory -Force -Path $RagDstDir | Out-Null }
+        Copy-Item $RagSrc (Join-Path $RagDstDir "vector.db") -Force
+        Write-Host "[build] copied rag/vector.db -> $RagDstDir"
+    } else {
+        Write-Host "[build] warn: rag/vector.db not found — run: python src/tools/embed_docs.py"
+    }
+
     Write-Host "[build] done -> $Bin"
 }
 
