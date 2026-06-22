@@ -171,7 +171,7 @@ void DiagnosisDialog::refreshBreakdownLabelHeight()
     doc.setTextWidth(w);
 
     const int contentH = static_cast<int>(std::ceil(doc.size().height()));
-    const int verticalPad = 28;  // stylesheet padding + small buffer for last row
+    const int verticalPad = 16;  // matches tightened stylesheet padding (8 top + 8 bottom)
     m_breakdownLabel->setMinimumHeight(contentH + verticalPad);
     m_breakdownLabel->updateGeometry();
 }
@@ -191,18 +191,11 @@ void DiagnosisDialog::setBreakdownExpanded(bool expanded)
         m_breakdownLabel->setText(m_breakdownHtml);
         m_breakdownLabel->setVisible(true);
         refreshBreakdownLabelHeight();
-        QTimer::singleShot(0, this, [this]() {
-            refreshBreakdownLabelHeight();
-            // Grow the dialog to fit the expanded content; the fixed height
-            // would otherwise squeeze the section and let the inner box spill
-            // past its rounded frame (Qt doesn't clip children to parents).
-            adjustSize();
-        });
+        QTimer::singleShot(0, this, [this]() { refreshBreakdownLabelHeight(); });
     } else {
         m_breakdownLabel->setVisible(false);
         m_breakdownSummaryLabel->setText(m_breakdownSummary);
         m_breakdownSummaryLabel->setVisible(true);
-        QTimer::singleShot(0, this, [this]() { adjustSize(); });
     }
 }
 
@@ -245,7 +238,6 @@ void DiagnosisDialog::setSourcesExpanded(bool expanded)
         m_sourcesSummaryLabel->setText(formatRagCollapsedTitles(m_citations));
         m_sourcesSummaryLabel->setVisible(true);
     }
-    QTimer::singleShot(0, this, [this]() { adjustSize(); });
 }
 
 void DiagnosisDialog::onExplanationReady(const QString &)
@@ -354,7 +346,7 @@ void DiagnosisDialog::setupUi(const ExplainRequest &req)
     m_breakdownLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     m_breakdownLabel->setStyleSheet(
         "QLabel { background: #ffffff; border: 1px solid #e8eaed; border-radius: 4px;"
-        "padding: 12px 12px 16px 30px; }");
+        "padding: 8px 12px 8px 30px; }");
     breakdownLayout->addWidget(m_breakdownLabel);
 
     layout->addWidget(m_breakdownSection);
