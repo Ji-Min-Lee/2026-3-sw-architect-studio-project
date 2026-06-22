@@ -49,7 +49,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/unit-test-results.md` | show summary table]**
 
-"Before we move on — one more thing on correctness. Watch domain knowledge takes time to build up — and when developers don't fully have that domain understanding yet, they can implement wrong logic without even realizing it. That was our biggest non-technical risk going in — NTR-07: equation-level derivations for Rate, Beat Error, and Amplitude are difficult to verify by intuition alone."
+"Before we move on — one more thing on correctness. Watch domain knowledge takes time to build up — and when we don't fully have that domain understanding yet, we can implement wrong logic without even realizing it. That was our biggest non-technical risk going in — NTR-07: equation-level derivations for Rate, Beat Error, and Amplitude are difficult to verify by intuition alone."
 
 "We tackled it with AI-generated unit tests: 142 test cases across 10 binaries, all passing — covering domain math, engine integration, and Observer contract compliance. This was only possible because our architecture was testable by design. Clean boundaries meant we could verify each component in isolation. The architecture itself reduced the risk."
 
