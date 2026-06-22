@@ -8,6 +8,7 @@
 #include <QSizePolicy>
 #include <QResizeEvent>
 #include <QTimer>
+#include <QRegularExpression>
 #include <cmath>
 
 namespace {
@@ -16,12 +17,20 @@ QString markdownToHtmlBody(const QString &md)
 {
     QTextDocument doc;
     doc.setMarkdown(md);
-    const QString html = doc.toHtml();
+    QString html = doc.toHtml();
     int s = html.indexOf("<body");
     if (s < 0) return md.toHtmlEscaped();
     s = html.indexOf('>', s) + 1;
     const int e = html.lastIndexOf("</body>");
-    return html.mid(s, e - s);
+    QString body = html.mid(s, e - s);
+    // toHtml() bakes the palette default foreground into the markup; under an
+    // OS dark theme that is white, which then disappears on this dialog's fixed
+    // white background. Strip those colour declarations so the text inherits
+    // the explicit dark colour set on the QTextEdit instead.
+    body.remove(QRegularExpression(
+        QStringLiteral("color\\s*:\\s*(#[0-9a-fA-F]{3,6}|black|white)\\s*;?"),
+        QRegularExpression::CaseInsensitiveOption));
+    return body;
 }
 
 QString aiBlock(const QString &md)
@@ -182,11 +191,18 @@ void DiagnosisDialog::setBreakdownExpanded(bool expanded)
         m_breakdownLabel->setText(m_breakdownHtml);
         m_breakdownLabel->setVisible(true);
         refreshBreakdownLabelHeight();
-        QTimer::singleShot(0, this, [this]() { refreshBreakdownLabelHeight(); });
+        QTimer::singleShot(0, this, [this]() {
+            refreshBreakdownLabelHeight();
+            // Grow the dialog to fit the expanded content; the fixed height
+            // would otherwise squeeze the section and let the inner box spill
+            // past its rounded frame (Qt doesn't clip children to parents).
+            adjustSize();
+        });
     } else {
         m_breakdownLabel->setVisible(false);
         m_breakdownSummaryLabel->setText(m_breakdownSummary);
         m_breakdownSummaryLabel->setVisible(true);
+        QTimer::singleShot(0, this, [this]() { adjustSize(); });
     }
 }
 
@@ -229,6 +245,7 @@ void DiagnosisDialog::setSourcesExpanded(bool expanded)
         m_sourcesSummaryLabel->setText(formatRagCollapsedTitles(m_citations));
         m_sourcesSummaryLabel->setVisible(true);
     }
+    QTimer::singleShot(0, this, [this]() { adjustSize(); });
 }
 
 void DiagnosisDialog::onExplanationReady(const QString &)
@@ -407,7 +424,7 @@ void DiagnosisDialog::setupUi(const ExplainRequest &req)
     m_explanationEdit->setFrameShape(QFrame::NoFrame);
     m_explanationEdit->setMinimumHeight(180);
     m_explanationEdit->setStyleSheet(
-        "QTextEdit { background: #ffffff; border: 1px solid #e8eaed;"
+        "QTextEdit { background: #ffffff; color: #1a1a1a; border: 1px solid #e8eaed;"
         "border-radius: 4px; padding: 8px; }");
     aiLayout->addWidget(m_explanationEdit, 1);
 
@@ -417,6 +434,12 @@ void DiagnosisDialog::setupUi(const ExplainRequest &req)
     m_inputEdit = new QLineEdit(this);
     m_inputEdit->setPlaceholderText(tr("Ask a follow-up question…"));
     m_inputEdit->setEnabled(false);
+    // Pin a light field so it stands out against the dialog under OS dark mode.
+    m_inputEdit->setStyleSheet(
+        "QLineEdit { background: #ffffff; color: #1a1a1a; border: 1px solid #c4c8cc;"
+        "border-radius: 4px; padding: 6px 8px; }"
+        "QLineEdit:focus { border: 1px solid #1565c0; }"
+        "QLineEdit:disabled { background: #f0f0f0; color: #9aa0a6; }");
     m_sendButton = new QPushButton(tr("Send"), this);
     m_sendButton->setEnabled(false);
     m_sendButton->setAutoDefault(false);
