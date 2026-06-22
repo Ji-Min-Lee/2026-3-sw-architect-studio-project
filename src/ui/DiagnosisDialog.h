@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QTextEdit>
+#include <QLineEdit>
 #include <QLabel>
 #include <QProgressBar>
 #include <QPushButton>
@@ -22,18 +23,25 @@ public:
 private slots:
     void onExplanationReady(const QString &text);
     void onErrorOccurred(const QString &error);
+    void onSendClicked();
 
 private:
     void setupUi(const DiagnosisResult &result);
     void setLoading(bool loading);
+    void renderConversation();   // re-render m_conversationMd + m_streamBuf as markdown
 
     WatchExplainer *m_explainer;
+
+    QString m_conversationHtml;  // finalized turns, rendered HTML
+    QString m_streamBuf;         // markdown tokens of the response currently streaming
 
     QLabel       *m_titleLabel;
     QLabel       *m_statusLabel;
     QLabel       *m_ragLabel;
     QTextEdit    *m_explanationEdit;
     QProgressBar *m_progressBar;
+    QLineEdit    *m_inputEdit;
+    QPushButton  *m_sendButton;
     QPushButton  *m_closeButton;
 };
 

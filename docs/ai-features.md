@@ -22,6 +22,7 @@ flowchart LR
     VDB[("vector.db\n161 chunks")]
 
     HW --> WD --> LBL -->|click| DLG --> WE -->|streamed tokens| DLG
+    DLG -->|follow-up question| WE
     VDB --> RAG
     WE -->|query| RAG
     RAG -->|top-3 chunks| WE
@@ -44,11 +45,17 @@ negligible next to the audio DSP pipeline.
 | [`src/engine/WatchDiagnostics.cpp`](../src/engine/WatchDiagnostics.cpp) | Threshold logic |
 
 ```cpp
+// Measurement.h — each metric is std::optional; absent means "not yet valid".
+struct WatchMetrics {
+    std::optional<double> rate;       // s/day  (RLS average)
+    std::optional<double> amplitude;  // degrees (rolling average)
+    std::optional<double> beatError;  // ms      (rolling average)
+};
+
 struct DiagnosisInput {
-    double    rate_spd;        bool rate_valid;
-    double    amplitude_deg;   bool amplitude_valid;
-    double    beat_error_ms;   bool beat_error_valid;
-    WatchType watch_type = WatchType::Men;
+    WatchMetrics metrics;                  // rate / amplitude / beatError
+    WatchType    watch_type = WatchType::Men;
+    bool         noSignal   = false;       // QAS-4: no A-event for ≥ 3 s
 };
 
 struct DiagnosisResult {
@@ -108,25 +115,33 @@ Called once per beat inside `MainWindow::DisplayResults()`, reusing
 the `Measurement` struct already published by `MeasurementEngine`:
 
 ```cpp
-DiagnosisInput diagInput;
-diagInput.rate_spd        = m.rateErrorSpd;   diagInput.rate_valid       = m.rateValid;
-diagInput.amplitude_deg   = m.amplitudeDeg;   diagInput.amplitude_valid  = m.amplitudeValid;
-diagInput.beat_error_ms   = m.beatErrorMs;    diagInput.beat_error_valid = m.beatErrorValid;
-diagInput.watch_type      = mWatchType;
-
+DiagnosisInput  diagInput { m.metrics, mWatchType, m.noSignal };
 DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
+
+// Keep latest input/result for the LLM dialog
+mLastExplainRequest.input  = diagInput;
+mLastExplainRequest.result = diagResult;
+
 ui->DiagnosisLabel->setText(diagResult.label);
 ```
+
+`Measurement` is published across the DSP→UI thread boundary via a queued
+signal, so it is registered with `qRegisterMetaType<Measurement>()` at
+startup. `MeasurementEngine` also keeps a sticky cache of the last valid
+metrics so amplitude (computed only on C-event frames) does not flicker to
+`nullopt` between beats.
 
 ### Verification logging
 
 Logs to console only when the diagnosis **level changes** (not every beat):
 
+Metrics that are not yet valid print as `NULL` (the field is `std::optional`):
+
 ```
-[WatchDiagnostics] "DIAGNOSIS: Excellent"     rate= -3.5  amplitude= 303.4  beatError= 0.004
-[WatchDiagnostics] "DIAGNOSIS: Unknown"       rate= -0.3  amplitude=   0.0  beatError= 0.000
-[WatchDiagnostics] "DIAGNOSIS: Needs Service" rate= -4.5  amplitude= 203.4  beatError= 0.195
-[WatchDiagnostics] "DIAGNOSIS: Good"          rate=  9.9  amplitude= 226.5  beatError= 0.194
+[WatchDiagnostics] "DIAGNOSIS: Excellent"     rate= -3.5  amplitude= 303  beatError= 0.00
+[WatchDiagnostics] "DIAGNOSIS: Unknown"       rate= -0.3  amplitude= NULL beatError= 0.00
+[WatchDiagnostics] "DIAGNOSIS: Needs Service" rate= -4.5  amplitude= 203  beatError= 0.20
+[WatchDiagnostics] "DIAGNOSIS: Good"          rate=  9.9  amplitude= 227  beatError= 0.19
 ```
 
 ---
@@ -149,16 +164,34 @@ DiagnosisDialog          ← popup: colored banner + progress bar + text
   │  explain(req)
   ▼
 WatchExplainer           ← QObject, owns QNetworkAccessManager
-  │  POST /api/chat  (stream:true, num_ctx:512, num_thread:2)
+  │  POST /api/chat  (stream:true, num_ctx:2048, num_thread:2)
   ▼
 Ollama (localhost:11434) ← fully on-device, no cloud
   │  newline-delimited JSON stream
   ▼
-tokenReceived(token)     ← signal per token → dialog inserts text
+tokenReceived(token)     ← signal per token → dialog renders text
 explanationReady(text)   ← signal when stream finishes
 ```
 
 All network I/O is async — the Qt event loop is never blocked.
+
+### Multi-turn conversation
+
+After the initial explanation, the dialog keeps an input box so the user
+can ask follow-up questions. `WatchExplainer` accumulates the full
+`messages` array (`m_history`): each user turn and each completed
+assistant turn is appended, and the whole history is re-sent on every
+`/api/chat` call so the model retains context across turns.
+
+```cpp
+void explain(const ExplainRequest &req);  // first turn — resets history
+void chat(const QString &userMessage);    // follow-up turn — reuses history
+```
+
+A new `explain()` clears the history; a new dialog (or re-click) therefore
+starts a fresh conversation. Any in-flight reply is aborted before a new
+request starts, so closing and reopening the dialog never resumes a stale
+stream.
 
 ### Modules
 
@@ -167,7 +200,7 @@ All network I/O is async — the Qt event loop is never blocked.
 | [`src/engine/WatchExplainer.h`](../src/engine/WatchExplainer.h) | `ExplainRequest` struct, `WatchExplainer` class |
 | [`src/engine/WatchExplainer.cpp`](../src/engine/WatchExplainer.cpp) | HTTP POST to Ollama, streaming JSON parse, model list fetch |
 | [`src/ui/DiagnosisDialog.h`](../src/ui/DiagnosisDialog.h) | Popup dialog declaration |
-| [`src/ui/DiagnosisDialog.cpp`](../src/ui/DiagnosisDialog.cpp) | Dialog UI, signal wiring, error display |
+| [`src/ui/DiagnosisDialog.cpp`](../src/ui/DiagnosisDialog.cpp) | Dialog UI, follow-up input, markdown→HTML chat rendering |
 
 ### WatchExplainer API
 
@@ -184,9 +217,12 @@ signals:
     void explanationReady(const QString &text);      // full text when done
     void errorOccurred(const QString &errorMsg);     // Ollama unreachable or timeout
     void modelsAvailable(const QStringList &models); // sorted by size ascending
+    void ragStatusChanged(bool active, int chunkCount); // RAG context in/out
 public:
-    void explain(const ExplainRequest &req);  // start inference
+    void explain(const ExplainRequest &req);  // start conversation (resets history)
+    void chat(const QString &userMessage);    // follow-up turn (reuses history)
     void warmup(const QString &modelName);    // preload model into RAM at startup
+    void loadRag(const QString &dbPath);      // load vector.db for context
     void checkAvailability();                 // async ping /api/tags
 };
 ```
@@ -196,16 +232,19 @@ public:
 | Parameter | Value | Reason |
 |-----------|-------|--------|
 | `stream` | `true` | Tokens forwarded via `readyRead` as they arrive |
-| `num_ctx` | `512` | Reduces KV-cache from ~1.5 GB → ~192 MB on RPi5 |
+| `num_ctx` | `2048` | Holds accumulated multi-turn history while keeping the KV-cache modest on RPi5 |
 | `num_thread` | `2` | Leaves 2 of 4 RPi5 cores free for the audio/DSP pipeline |
-| `num_predict` | `120` | Caps response at ~3 sentences; prevents small models from rambling |
+| `num_predict` | `1024` | Headroom for a full answer; the model normally stops earlier at a natural end |
 
 Inference only runs when the user clicks — it does not run
 continuously and does not affect the real-time measurement loop.
 
 ### Prompt
 
-Intentionally short (~50 tokens) to keep inference fast on RPi5:
+The first turn's prompt is intentionally short to keep inference fast on
+RPi5. `buildPrompt()` has two branches:
+
+**Normal diagnosis** (Excellent / Good / Needs Service):
 
 ```
 You are a watchmaker. A {men's|ladies'} watch timegrapher reading:
@@ -213,8 +252,19 @@ Rate {R} s/d, Amplitude {A} deg, Beat Error {E} ms. Diagnosis: {D}.
 In 3 sentences: why this diagnosis, likely mechanical cause, what to service.
 ```
 
-Combined with `num_ctx=512`, total inference time is ~3–5 s on RPi5
-with `qwen2.5:0.5b`.
+**Unknown** (one or more metrics not yet measurable) — each missing value
+is rendered as `not measurable` so the model reasons about the gap:
+
+```
+You are a watchmaker. A {men's|ladies'} watch timegrapher reading:
+Rate {R}, Amplitude {A}, Beat Error {E}.
+One or more values cannot be measured yet. In 2 sentences:
+what mechanical condition could cause this, and what to check.
+```
+
+When RAG is active the retrieved chunks are appended to either prompt.
+Follow-up turns send the user's raw question with no template. Initial
+inference is ~3–5 s on RPi5 with `qwen2.5:0.5b`.
 
 ### Model selection
 

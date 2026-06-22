@@ -16,6 +16,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QTimer>
+#include <QJsonArray>
 
 #include "WatchDiagnostics.h"
 #include "RagRetriever.h"
@@ -33,6 +34,7 @@ public:
     explicit WatchExplainer(QObject *parent = nullptr);
 
     void explain(const ExplainRequest &req);
+    void chat(const QString &userMessage); // follow-up turn using existing history
     void warmup(const QString &modelName = "qwen2.5:0.5b"); // preload model into RAM
     void loadRag(const QString &dbPath);   // optional: load vector.db for context
 
@@ -67,6 +69,8 @@ private:
     bool                   m_available = false;
     RagRetriever           m_rag;
     ExplainRequest         m_pendingReq;   // held while waiting for RAG
+    QJsonArray             m_history;      // multi-turn: accumulated messages
+    QString                m_currentModel;
 
     static constexpr const char *kOllamaBase    = "http://127.0.0.1:11434";
     static constexpr int         kTimeoutMs      = 120000;  // 2 min — RPi5 first-load is slow
