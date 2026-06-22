@@ -43,7 +43,7 @@ All views follow the **Merson 7-section template**. Each view is written for a s
 | Category | Documents |
 |----------|-----------|
 | QA | [QAS-5 — Non-beat acoustic noise is rejected by the filter chain, keeping false trigger rate < 1% and T1 detection rate > 99%](references/qa/qas-5-correctness.md) |
-| Risk | [Risk Register — NTR-07: Risk of missing Observer registration when adding a new tab](references/risks.md) |
+| Risk | [Risk Register — NTR-07: Equation-level derivations difficult (Rate / Beat Error / Amplitude formulas)](references/risks.md) |
 | Experiment | [EXP-04 — Observer pattern compliance: measuring tab extension cost in file count](references/experiments/exp-04-extensibility-observer-pattern.md) |
 | ADR | [ADR-006 — BaseGraphTab Observer pattern and tab registration structure](references/adr/ADR-006-basegraphtab-observer-pattern.md) |
 | ADR (contingency) | [ADR-004 — Timer-decoupled rendering: if all 14 tabs are visible simultaneously, rendering is driven by a fixed 20 FPS timer instead of each beat event — activated only if EXP-05 (06/26) shows deadline miss under full tab load](references/adr/ADR-004-r2-timer-decoupled-rendering.md) |
