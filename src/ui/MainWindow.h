@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include <QElapsedTimer>
 #include <QMessageBox>
+#include <QToolButton>
 #include "SessionController.h"
 #include "WavStreamWriter.h"
 #include "WatchSynthStream.h"
@@ -90,6 +91,21 @@ private:
     void   SetGuiRunMode(void);
     void   SetGuiStopMode(void);
     void   setDisplayPaused(bool on);
+
+    // Left control-panel space efficiency (feature/ui-improvement):
+    // mode-driven visibility (SimFrame shows only in Sim mode) + collapsible
+    // "Advanced" group (MiscFrame). Frames keep their .ui sizes; these helpers
+    // only restack the left column vertically as visibility changes.
+    void   relayoutLeftColumn(void);
+    void   setAdvancedExpanded(bool expanded);
+    void   updateLeftPanelForMode(void);
+
+    // Graph-tab overflow: show the first kDefaultVisibleTabs as tabs, move the
+    // rest behind a "More" drop-down. onGraphTabChanged() collapses a revealed
+    // overflow tab back into the menu once the user returns to a default tab.
+    static constexpr int kDefaultVisibleTabs = 9;
+    void   setupTabOverflow(void);
+    void   onGraphTabChanged(int index);
     void   LiveStart(void);
     void   PlaybackStart(void);
     void   SimStart(void);
@@ -181,6 +197,13 @@ private:
     WatchExplainer   mWatchExplainer;
     ExplainRequest   mLastExplainRequest;
     DiagnosisDialog *mDiagnosisDialog    = nullptr;
+
+    // Left control-panel reflow state (feature/ui-improvement)
+    QToolButton *mAdvancedToggle   = nullptr;  // collapses the MiscFrame "Advanced" group
+    bool         mAdvancedExpanded = false;    // MiscFrame collapsed by default
+
+    // Graph-tab overflow "More" drop-down (feature/ui-improvement)
+    QToolButton *mMoreTabsButton   = nullptr;
 
     Logger          *mLogger = nullptr;
 

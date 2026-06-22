@@ -39,6 +39,8 @@ QString resolveRagDatabasePath()
 
 #include <QFileDialog>
 #include <QFile>
+#include <QMenu>
+#include <QAction>
 #include <QDataStream>
 #include <QtEndian>
 #include <QDebug>
@@ -245,11 +247,123 @@ MainWindow::MainWindow(QWidget *parent)
             });
         }
     }
+
+    // ── Graph tabs: show the first 9, rest behind a "More" drop-down ──────
+    setupTabOverflow();
+
+    // ── Left control panel: reclaim screen space (feature/ui-improvement) ──
+    // SimFrame is shown only in Sim mode, and the set-once MiscFrame collapses
+    // behind an "Advanced" toggle (collapsed by default). Frames keep their .ui
+    // sizes; relayoutLeftColumn() only restacks them as visibility changes.
+    mAdvancedToggle = new QToolButton(ui->RunFrame->parentWidget());
+    mAdvancedToggle->setObjectName("AdvancedToggle");
+    mAdvancedToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    mAdvancedToggle->setArrowType(Qt::RightArrow);
+    mAdvancedToggle->setText(tr("Advanced"));
+    mAdvancedToggle->setAutoRaise(true);
+    mAdvancedToggle->setCursor(Qt::PointingHandCursor);
+    mAdvancedToggle->setFixedSize(242, 24);
+    mAdvancedToggle->show();
+    connect(mAdvancedToggle, &QToolButton::clicked, this,
+            [this] { setAdvancedExpanded(!mAdvancedExpanded); });
+    ui->MiscFrame->setVisible(false);   // "Advanced" collapsed by default
+    mAdvancedExpanded = false;
+    updateLeftPanelForMode();           // set Sim visibility + initial reflow
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+// ── Left control-panel space efficiency (feature/ui-improvement) ──────────────
+// The .ui places the left frames with absolute geometry, so we restack them in
+// code as their visibility changes (hiding a frame must pull the rest upward).
+
+// Vertically stack the currently-visible left frames from the top, in priority
+// order: core (Run, Watch) → mode-specific (Sim, only in Sim mode) → the
+// "Advanced" toggle (always) → MiscFrame (only when expanded). Each frame keeps
+// its .ui height; we only move it.
+void MainWindow::relayoutLeftColumn(void)
+{
+    if (!mAdvancedToggle) return;          // not constructed yet (early signal)
+    const int x = 0, gap = 4;
+    int y = 0;
+    auto place = [&](QWidget *w) {
+        w->setGeometry(x, y, 242, w->height());
+        y += w->height() + gap;
+    };
+    place(ui->RunFrame);
+    place(ui->WatchFrame);
+    if (!ui->SimFrame->isHidden()) place(ui->SimFrame);   // Sim mode only
+    place(mAdvancedToggle);
+    if (mAdvancedExpanded)         place(ui->MiscFrame);   // expanded only
+}
+
+// Collapse/expand the "Advanced" (MiscFrame) group of set-once parameters.
+void MainWindow::setAdvancedExpanded(bool expanded)
+{
+    mAdvancedExpanded = expanded;
+    if (mAdvancedToggle)
+        mAdvancedToggle->setArrowType(expanded ? Qt::DownArrow : Qt::RightArrow);
+    ui->MiscFrame->setVisible(expanded);
+    relayoutLeftColumn();
+}
+
+// Show the simulation parameters only in Sim mode (less-used elsewhere), then
+// reflow the column to reclaim the freed space.
+void MainWindow::updateLeftPanelForMode(void)
+{
+    if (!mAdvancedToggle) return;          // not constructed yet (early signal)
+    const bool simMode = (ui->ModeComboBox->currentText() == ModeStrings[SIM]);
+    ui->SimFrame->setVisible(simMode);
+    relayoutLeftColumn();
+}
+
+// ── Graph-tab overflow (feature/ui-improvement) ───────────────────────────────
+// Keep the first kDefaultVisibleTabs graphs as always-visible tabs; collapse the
+// remaining specialized scopes into a "More ▾" drop-down in the tab-bar corner.
+void MainWindow::setupTabOverflow(void)
+{
+    QTabWidget *tw = ui->GraphicsTabWidget;
+    const int n = tw->count();
+    if (n <= kDefaultVisibleTabs) return;          // nothing to overflow
+
+    mMoreTabsButton = new QToolButton(tw);
+    mMoreTabsButton->setObjectName("MoreTabsButton");
+    mMoreTabsButton->setText(tr("More"));
+    mMoreTabsButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    mMoreTabsButton->setArrowType(Qt::DownArrow);
+    mMoreTabsButton->setPopupMode(QToolButton::InstantPopup);
+    mMoreTabsButton->setAutoRaise(true);
+    mMoreTabsButton->setCursor(Qt::PointingHandCursor);
+    mMoreTabsButton->setToolTip(tr("More graphs"));
+
+    QMenu *menu = new QMenu(mMoreTabsButton);
+    for (int i = kDefaultVisibleTabs; i < n; ++i) {
+        QAction *act = menu->addAction(tw->tabText(i));
+        connect(act, &QAction::triggered, this, [this, i] {
+            ui->GraphicsTabWidget->setTabVisible(i, true);   // reveal the chosen graph
+            ui->GraphicsTabWidget->setCurrentIndex(i);       // and switch to it
+        });
+    }
+    mMoreTabsButton->setMenu(menu);
+    tw->setCornerWidget(mMoreTabsButton, Qt::TopRightCorner);
+
+    for (int i = kDefaultVisibleTabs; i < n; ++i)  // collapse overflow into the menu
+        tw->setTabVisible(i, false);
+
+    connect(tw, &QTabWidget::currentChanged, this, &MainWindow::onGraphTabChanged);
+}
+
+// Keep at most one overflow tab revealed at a time: when the user returns to a
+// default tab, collapse any revealed overflow tab back into the "More" menu.
+void MainWindow::onGraphTabChanged(int index)
+{
+    QTabWidget *tw = ui->GraphicsTabWidget;
+    const int n = tw->count();
+    for (int i = kDefaultVisibleTabs; i < n; ++i)
+        if (i != index) tw->setTabVisible(i, false);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -873,4 +987,5 @@ void MainWindow::on_ModeComboBox_currentTextChanged(const QString &arg1)
             }
         }
     }
+    updateLeftPanelForMode();   // show/hide SimFrame for this mode + reflow column
 }
