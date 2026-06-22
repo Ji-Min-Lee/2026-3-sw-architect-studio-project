@@ -27,8 +27,9 @@ CMakeLists.txt.user
 # macOS
 .DS_Store
 
-# Team photo — local only, never commit
+# Team photo (real faces) — local only, never commit or publish
 src/external/team_photo.jpg
+docs/misc/team_photo.jpg
 
 # Noise/: only 3235_Starbucks SNR variants are tracked (used in EXP-03)
 # All other watches and the Extended/ dir are excluded (too large)
