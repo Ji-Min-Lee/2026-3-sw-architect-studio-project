@@ -48,6 +48,16 @@ It finds: which decisions could cause trouble, and where decisions force a trade
 | **Key constraint** | 21ms audio deadline per block (ALSA, ~96kHz) |
 | **Stakeholder concern** | Results must match WeiShi No.1000 reference device |
 
+### Critical Requirement & Architectural Drivers
+
+ATAM Step 2 asks us to separate two things: the one goal the system exists for, and the QAs that actually shaped the architecture.
+
+| Type | QA | What it shaped in the architecture |
+|------|----|------------------------------------|
+| **Critical requirement** | Measurement Accuracy (QAS-1) | The reason the system exists. Every other QA exists only to make this one achievable. |
+| **Architectural driver** | Real-Time Performance (QAS-2) | The 21ms deadline forced DSP onto its own thread (ADR-001) and lazy rendering (ADR-002). |
+| **Architectural driver** | Extensibility (QAS-4) | The "add a tab in ≤ 3 files" goal forced the Observer pattern (ADR-006): a new tab plugs in by subscribing to one signal. |
+
 ---
 
 ## 2. Architecture — Before and After
@@ -90,7 +100,8 @@ Priority notation: **(Technical Risk, Business Importance)** — H = High, M = M
 Utility
 │
 ├── Measurement Accuracy
-│   └── Rate, Amplitude, Beat Error match WeiShi No.1000 within tolerance    (H, H)
+│   └── Rate/Amplitude/Beat Error match WeiShi No.1000 at 28,800 BPH;
+│       0 deviation across all tabs (numeric tolerance set by EXP-01)        (H, H)
 │
 ├── Real-Time Performance
 │   └── 0 dropped audio blocks in a 10-minute session at 96kHz on RPi        (H, H)
