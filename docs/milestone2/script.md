@@ -73,7 +73,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/views/view-layered-4layer.md` | scroll to `## Behavior` | show "Tab addition history" table, then "Dependency Structure Matrix"]**
 
-"We did this across three rounds of tab additions — 11 tabs in Sprint 1, 2 more in Sprint 2, and 1 bonus tab. Every single time, 3 files or fewer, Domain layer untouched. The Dependency Structure Matrix here is the actual include trace from the code. Every dependency is in the lower triangle. No violations."
+"We did this across three rounds of tab additions — 11 tabs in Sprint 1, 2 more in Sprint 2, and 1 more tab we added after finding a requirement late in the grading rubric. Every single time, 3 files or fewer, Domain layer untouched. The Dependency Structure Matrix here is the actual include trace from the code. Every dependency is in the lower triangle. No violations."
 
 ---
 
