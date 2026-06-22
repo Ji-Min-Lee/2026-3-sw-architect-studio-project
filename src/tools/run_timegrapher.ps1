@@ -17,7 +17,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-# ── Parse args: mode + optional --log flag (any order) ────────
+# -- Parse args: mode + optional --log flag (any order) ----------
 $Mode    = 'all'
 $Logging = $false
 foreach ($a in $CmdArgs) {
@@ -26,7 +26,7 @@ foreach ($a in $CmdArgs) {
     else { Write-Host "[warn] ignoring unknown arg: $a" }
 }
 
-# ── Config (edit here if paths change) ────────────────────────
+# -- Config (edit here if paths change) --------------------------
 $QtPrefix    = 'C:\Qt\6.11.1\mingw_64'
 $MingwBin    = 'C:\Qt\Tools\mingw1310_64\bin'
 $CMakeBin    = 'C:\Qt\Tools\CMake_64\bin'
@@ -40,7 +40,7 @@ $BuildDir  = Join-Path $SrcDir $BuildName
 $Bin       = Join-Path $BuildDir 'TimeGrapher.exe'
 $LoggingFlag = if ($Logging) { 'ON' } else { 'OFF' }
 
-# ── PATH setup (mingw, cmake) ─────────────────────────────────
+# -- PATH setup (mingw, cmake) -----------------------------------
 $env:Path = "$MingwBin;$CMakeBin;$QtPrefix\bin;" + $env:Path
 
 function Do-Build {
