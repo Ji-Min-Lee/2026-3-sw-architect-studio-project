@@ -3,6 +3,9 @@
 
 #include <QApplication>
 #include <QMetaType>
+#include <QElapsedTimer>
+#include <QEvent>
+#include <QEventLoop>
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <processthreadsapi.h>
@@ -57,7 +60,38 @@ int main(int argc, char *argv[])
  QThread::msleep(100); //Needed for Linux.... not sure why
  app.processEvents();
 
- QThread::sleep(4);
+ // Show splash up to 2s; click / key / double-click skips early.
+ bool splashSkipped = false;
+ class SplashSkipFilter : public QObject {
+ public:
+  explicit SplashSkipFilter(bool *flag, QObject *parent = nullptr)
+      : QObject(parent), mFlag(flag) {}
+ protected:
+  bool eventFilter(QObject *, QEvent *event) override {
+   switch (event->type()) {
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonDblClick:
+    case QEvent::KeyPress:
+     *mFlag = true;
+     break;
+    default:
+     break;
+   }
+   return false;
+  }
+ private:
+  bool *mFlag;
+ };
+ SplashSkipFilter splashSkip(&splashSkipped);
+ splash.installEventFilter(&splashSkip);
+
+ QElapsedTimer splashClock;
+ splashClock.start();
+ constexpr int kSplashMaxMs = 2000;
+ while (splashClock.elapsed() < kSplashMaxMs && !splashSkipped) {
+  app.processEvents(QEventLoop::AllEvents, 50);
+  QThread::msleep(10);
+ }
 
  MainWindow mainWindow;
  mainWindow.show();
