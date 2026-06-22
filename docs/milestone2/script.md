@@ -49,7 +49,7 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `references/unit-test-results.md` | show summary table]**
 
-"One more thing on correctness. Watch domain knowledge takes time to build up — and when developers don't fully have that domain understanding yet, they can implement wrong logic without even realizing it. That was our biggest non-technical risk going in — NTR-07: equation-level derivations for Rate, Beat Error, and Amplitude are difficult to verify by intuition alone."
+"Before we move on — one more thing on correctness. Watch domain knowledge takes time to build up — and when developers don't fully have that domain understanding yet, they can implement wrong logic without even realizing it. That was our biggest non-technical risk going in — NTR-07: equation-level derivations for Rate, Beat Error, and Amplitude are difficult to verify by intuition alone."
 
 "We tackled it with AI-generated unit tests: 142 test cases across 10 binaries, all passing — covering domain math, engine integration, and Observer contract compliance. This was only possible because our architecture was testable by design. Clean boundaries meant we could verify each component in isolation. The architecture itself reduced the risk."
 
@@ -92,6 +92,8 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 ## 2-C. Extensibility: Interface — IAudioSource
 
+"Let me show you the same principle applied to the audio input side."
+
 > **Key message**: Dependency inversion on the audio source reduces adding a new source to 2 files, with zero changes propagating upward.
 
 **[SCREEN → `2-slide-architecture-view.md` | scroll to `### Interface` | show `view5-iaudiosource.png`]**
@@ -115,6 +117,8 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 ---
 
 ## 2-C. Extensibility: Domain Entity and Value Object
+
+"Last design decision — let's look at how the data itself is structured."
 
 > **Key message**: The immutable `Measurement` struct closes the correctness loop — deviation across tabs is structurally impossible.
 
@@ -142,6 +146,8 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 
 **[SCREEN → `3-slide-risk-and-schedule.md` | scroll to `## 3-A`]**
 
+"Alright — let's move on to where we stand on schedule and risks."
+
 "Four sprints in Milestone 2 — we got the architecture established, all 14 tabs implemented, every scheduled experiment completed, and the full refactor done."
 
 ---
@@ -149,6 +155,8 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 ## 3-B. Remaining Risks
 
 **[SCREEN → scroll to `## 3-B. Remaining Risks & Open Items` | show risk table]**
+
+"Now let me walk through what's still open."
 
 "We've got one critical risk and one medium risk heading into the final week."
 
@@ -161,6 +169,8 @@ Now let's look at what that separation enables: making sure all 14 tabs show exa
 ## 3-C. M3 Schedule
 
 **[SCREEN → scroll to `## 3-C. M3 Schedule` | show sprint table + GitHub board links]**
+
+"Let me show you how that maps to the final schedule."
 
 "The critical path is clear — filter tuning this week, WeiShi accuracy validation in Week 5, full Raspberry Pi run, then a buffer week before the demo on July 1st. Every remaining task has an owner, a date, and it's all tracked as GitHub issues on our project board."
 
