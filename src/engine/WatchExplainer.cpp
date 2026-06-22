@@ -68,6 +68,8 @@ void WatchExplainer::explain(const ExplainRequest &req)
     }
     m_timeout->stop();
     m_accumulated.clear();
+    m_history = QJsonArray();
+    m_currentModel = req.modelName;
 
     if (m_rag.isLoaded()) {
         // retrieve relevant context first, then fire LLM in onRagRetrieved()
@@ -82,6 +84,43 @@ void WatchExplainer::explain(const ExplainRequest &req)
         return;
     }
     explainWithContext(req, {});
+}
+
+void WatchExplainer::chat(const QString &userMessage)
+{
+    if (m_pendingReply) {
+        m_pendingReply->abort();
+        m_pendingReply = nullptr;
+    }
+    m_timeout->stop();
+    m_accumulated.clear();
+
+    QJsonObject userMsg;
+    userMsg["role"]    = "user";
+    userMsg["content"] = userMessage;
+    m_history.append(userMsg);
+
+    QJsonObject options;
+    options["num_ctx"]     = 2048; // multi-turn: history accumulates each turn
+    options["num_thread"]  = 2;
+    options["num_predict"] = 1024; // allow a full answer; model stops at natural end
+
+    QJsonObject body;
+    body["model"]    = m_currentModel;
+    body["stream"]   = true;
+    body["options"]  = options;
+    body["messages"] = m_history;
+
+    QNetworkRequest request(QUrl(QString("%1/api/chat").arg(kOllamaBase)));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::User, QVariant("explain"));
+
+    qInfo() << "[WatchExplainer] Chat follow-up, history size:" << m_history.size();
+    m_pendingReply = m_nam->post(request, QJsonDocument(body).toJson());
+    m_timeout->start(kTimeoutMs);
+
+    connect(m_pendingReply, &QNetworkReply::readyRead,
+            this,           &WatchExplainer::onReadyRead);
 }
 
 void WatchExplainer::onRagRetrieved(const QStringList &chunks)
@@ -113,17 +152,18 @@ void WatchExplainer::explainWithContext(const ExplainRequest &req, const QString
     QJsonObject userMsg;
     userMsg["role"]    = "user";
     userMsg["content"] = buildPrompt(req, context);
+    m_history.append(userMsg);
 
     QJsonObject options;
-    options["num_ctx"]     = 512;
+    options["num_ctx"]     = 2048; // multi-turn: leave room for follow-up history
     options["num_thread"]  = 2;    // leave 2 cores free for audio/DSP on RPi5
-    options["num_predict"] = 120;  // cap response to ~3 sentences
+    options["num_predict"] = 1024; // allow a full answer; model stops at natural end
 
     QJsonObject body;
     body["model"]    = req.modelName;
     body["stream"]   = true;   // stream tokens as they are generated
     body["options"]  = options;
-    body["messages"] = QJsonArray{ userMsg };
+    body["messages"] = m_history;
 
     m_accumulated.clear();
     qInfo() << "[WatchExplainer] Sending streaming request, model:" << req.modelName;
@@ -199,6 +239,10 @@ void WatchExplainer::onReplyFinished(QNetworkReply *reply)
     }
 
     qInfo() << "[WatchExplainer] Stream complete, length:" << m_accumulated.size() << "chars";
+    QJsonObject assistantMsg;
+    assistantMsg["role"]    = "assistant";
+    assistantMsg["content"] = m_accumulated;
+    m_history.append(assistantMsg);
     emit explanationReady(m_accumulated);
 }
 
