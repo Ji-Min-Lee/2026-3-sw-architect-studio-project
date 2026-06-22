@@ -79,7 +79,7 @@ function Do-Build {
         Copy-Item $RagSrc (Join-Path $RagDstDir "vector.db") -Force
         Write-Host "[build] copied rag/vector.db -> $RagDstDir"
     } else {
-        Write-Host "[build] warn: rag/vector.db not found — run: python src/tools/embed_docs.py"
+        Write-Host "[build] warn: rag/vector.db not found - run: python src/tools/embed_docs.py"
     }
 
     Write-Host "[build] done -> $Bin"
