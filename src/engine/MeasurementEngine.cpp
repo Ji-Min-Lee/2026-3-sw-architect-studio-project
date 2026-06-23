@@ -87,7 +87,7 @@ void MeasurementEngine::reset()
     mRate.rlsToc->Reset();
     mRate.rateValid = false;
     mRate.haveLastInstErr[0] = mRate.haveLastInstErr[1] = false;
-    mRate.consecRejects      = 0;
+    mRate.consecRejects[0] = mRate.consecRejects[1] = 0;
 
     mBeat.idx = 0;
     mBeat.roll->Reset();
@@ -300,7 +300,7 @@ bool MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
         mRate.rateValid       = false;
         mRate.watchHz         = bph / 3600;
         mRate.haveLastInstErr[0] = mRate.haveLastInstErr[1] = false;
-        mRate.consecRejects      = 0;
+        mRate.consecRejects[0] = mRate.consecRejects[1] = 0;
         int window = mAveragingPeriod * mRate.watchHz;
         mRate.rlsTic->Resize(window);
         mRate.rlsToc->Resize(window);
@@ -334,12 +334,12 @@ bool MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
     // parity baseline, so the next real beat re-aligns immediately.
     if (mRate.haveLastInstErr[ticOrToc]
         && std::fabs(instErrorMs - mRate.lastInstErrMs[ticOrToc]) > kGridOutlierMs
-        && mRate.consecRejects < kMaxConsecRejects) {
-        mRate.consecRejects++;
+        && mRate.consecRejects[ticOrToc] < kMaxConsecRejects) {
+        mRate.consecRejects[ticOrToc]++;
         ae.hasRatePoint = false;
         return true;                      // reject: caller skips beat error too
     }
-    mRate.consecRejects        = 0;
+    mRate.consecRejects[ticOrToc]   = 0;
     mRate.lastInstErrMs[ticOrToc]   = instErrorMs;
     mRate.haveLastInstErr[ticOrToc] = true;
 

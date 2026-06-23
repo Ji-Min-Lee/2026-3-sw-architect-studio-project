@@ -83,7 +83,8 @@ private:
         // tic/toc asymmetry (beat error) is not mistaken for an outlier.
         double lastInstErrMs[2]   = {0.0, 0.0};
         bool   haveLastInstErr[2] = {false, false};
-        int    consecRejects      = 0;
+        int    consecRejects[2]   = {0, 0};   // per parity: a stuck tic must not be
+                                              // un-stuck by an accepted toc (and vice versa)
     } mRate;
 
     // Beat-error state  (extracted from TBeatErrorEvents)
