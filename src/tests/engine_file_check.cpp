@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
            last.synced ? "yes" : "NO", firstSyncBlock, firstSyncBlock * 4096.0 / rate);
     printf("detected BPH    : %d\n", last.detectedBph);
     printf("BPH from A-A iv : %.0f  (median beat interval, %d A-events)\n", bphFromEvents, (int)aEventTimes.size());
-    printf("noise dB        : avg %.1f  max %.1f  (popup threshold 55)\n",
+    printf("noise dB        : avg %.1f  max %.1f  (popup threshold 51)\n",
            noiseN ? noiseSum / noiseN : 0.0, noiseMax);
     printf("rate error      : %s %.2f s/d\n", last.rateValid ? "valid" : "INVALID", last.rateErrorSpd);
     printf("beat error      : %s %.3f ms\n", last.beatErrorValid ? "valid" : "INVALID", last.beatErrorMs);

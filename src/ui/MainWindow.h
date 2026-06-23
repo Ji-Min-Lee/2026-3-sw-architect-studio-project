@@ -120,7 +120,7 @@ private:
     void   raiseWatchDetachedAlarm(void);
 
     // All-mode ambient-noise popup: warn when the environment is too noisy to
-    // measure (>= 55 dB sustained); dismiss when quiet and measuring again.
+    // measure (>= 51 dB sustained, EXP-04 calibrated); dismiss when quiet again.
     void   checkNoise(const Measurement &m);
     void   raiseNoiseAlarm(void);
 
@@ -163,7 +163,7 @@ private:
     QElapsedTimer mNoiseAboveSince;        // continuous time at/above threshold
     QElapsedTimer mNoiseBelowSince;        // continuous time below threshold
     QMessageBox  *mNoiseAlarm = nullptr;
-    static constexpr double  kNoiseThresholdDb = 55.0;   // noisy environment
+    static constexpr double  kNoiseThresholdDb = 51.0;   // EXP-04 calibrated (was 55; failure onset ~54)
     static constexpr qint64  kNoiseOnMs        = 2000;   // sustained → show
     static constexpr qint64  kNoiseOffMs       = 2000;   // sustained → hide
 
