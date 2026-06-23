@@ -1,105 +1,111 @@
-# Runtime View (Component & Connector View)
+# Runtime View — DSP Pipeline Thread Model
 
-This view shows the runtime structure of the TimeGrapher system: which components run at execution time, in which threads, and how they communicate. The key architectural concern is thread-safe data flow from audio capture through the DSP pipeline to the UI.
+This view shows the runtime component-and-connector structure of the audio processing pipeline. It captures which components exist at runtime, which threads they run on, and how data flows between them. It is the primary view for reasoning about real-time performance and latency.
 
 ```mermaid
 graph TD
-    subgraph AudioThread["Audio Thread"]
-        AC["AudioCapture"]
+    subgraph T1["Audio Source Thread (T1)"]
+        AW["AudioWorker\nor PlaybackWorker / SimWorker"]
     end
 
-    subgraph DSPThread["DSP Thread - ADR 001"]
-        DW["DSPWorker\nFilterChain + BeatDetector\n+ MeasurementEngine"]
+    subgraph Buf["Thread Boundary"]
+        ARB["AudioRingBuffer\nSPSC ring buffer"]
     end
 
-    subgraph UIThread["UI Thread"]
-        CP["ControlPanel"]
+    subgraph T2["DSP Thread (T2) - ADR-001"]
+        DW["DSPWorker"]
+        FC["FilterChain"]
+        BD["BeatDetector"]
+        ME["MeasurementEngine"]
+    end
+
+    subgraph TMain["Qt Main Thread"]
         GTM["GraphTabManager"]
-        GTs["Graph Tabs"]
+        Tabs["Graph Tabs x14\nBaseGraphTab subclasses"]
+        Results["Results Label"]
     end
 
-    subgraph Shared["Thread-Safe Shared State"]
-        SB["SignalBuffer\nring buffer - ADR 005"]
-        MS["MeasurementStore\nhistory store"]
-        MQ["MeasurementQueue\nQt queued signal"]
-    end
+    AW -->|"write PCM block"| ARB
+    ARB -->|"read PCM block"| DW
+    DW --> FC
+    FC --> BD
+    BD --> ME
+    ME -->|"measurementReady\nQueuedConnection"| GTM
+    ME -->|"measurementReady\nQueuedConnection"| Results
 
-    AC -->|"PCM blocks"| SB
-    SB -->|"PCM samples"| DW
-    DW -->|"Measurement"| MQ
-    DW -->|"append"| MS
-
-    MQ -->|"thread-safe dispatch"| GTM
-    GTM -->|"data update"| GTs
-    MS -->|"history query"| GTs
-
-    CP -->|"config change"| AC
-    CP -->|"start / stop"| AC
+    GTM -->|"onMeasurement\nvisible tab only"| Tabs
 ```
 
 ## Element Catalog
 
-#### AudioCapture (Audio Thread)
-- Runs the ALSA / Qt Multimedia capture loop; writes fixed-size PCM blocks into the SignalBuffer.
-- Does not perform any DSP; its only job is to keep the ring buffer filled without interruption.
-- Receives configuration changes (sample rate, mode) from ControlPanel.
+#### Audio Source Thread (T1)
+- Runs `AudioWorker` (live USB mic via ALSA), `PlaybackWorker` (WAV file), or `SimWorker` (synthetic).
+- Produces one PCM block approximately every 21 ms at 96 kHz and writes it to `AudioRingBuffer`.
+- Hard real-time constraint: must complete the write within the block period or the block is dropped.
 
-#### DSPWorker (DSP Thread)
-- Introduced by [ADR 001](../ADRs/ADR001-dsp-offload-thread.md) to eliminate Qt event-loop blocking from the audio path.
-- Owns the full DSP pipeline: FilterChain → BeatDetector → MeasurementEngine.
-- Reads PCM blocks from SignalBuffer; publishes Measurement objects via MeasurementQueue to the UI thread.
+#### AudioRingBuffer (Thread Boundary Connector)
+- SPSC (single-producer single-consumer) ring buffer; the only data path between T1 and T2.
+- Non-blocking write — T1 never blocks even if T2 is momentarily slow.
+- See [ADR-005](../ADRs/ADR005-ring-buffer-connector.md) for design rationale.
 
-#### GraphTabManager (UI Thread)
-- Receives Measurement objects via Qt's queued signal mechanism (thread-safe cross-thread dispatch).
-- Routes each measurement to the currently visible tab only — see [ADR 002](../ADRs/ADR002-lazy-rendering.md).
-- On tab switch, triggers a catch-up repaint so the newly visible tab immediately shows the latest data.
+#### DSP Thread (T2)
+- Dedicated Qt thread introduced by [ADR-001](../ADRs/ADR001-dsp-offload-thread.md) to eliminate Qt event-loop blocking from the audio path.
+- Reads PCM from `AudioRingBuffer`; runs `FilterChain` → `BeatDetector` → `MeasurementEngine`; emits `measurementReady` to the Qt main thread via `Qt::QueuedConnection`.
+- **Measured impact**: wait_ms 77.4 ms → 0.03 ms (×2,600); deadline miss 43% → 0% (EXP-03).
 
-#### Graph Tabs (UI Thread)
-- Each tab visualizes a specific aspect of measurement data.
-- Short-horizon tabs (Trace, Vario, BeatError) consume live Measurement objects from GraphTabManager.
-- Long-horizon tabs (LongTerm, Spectrogram, WaveformComparison) query MeasurementStore for historical data on demand.
+#### Qt Main Thread
+- Receives `Measurement` via `QueuedConnection`; routes to `GraphTabManager` and the Results label.
+- `GraphTabManager` delivers to the currently visible tab only — [ADR-002](../ADRs/ADR002-lazy-rendering.md) Lazy Rendering.
+- No further thread crossings downstream.
+
+## Key Timing Metrics (EXP-03 RPi Results)
+
+| Metric | Before ADR-001 | After ADR-001 + ADR-002 | Change |
+|--------|:--------------:|:-----------------------:|:------:|
+| wait_ms avg (queue wait) | 77.4 ms | 0.03 ms | ×2,600 |
+| Deadline miss (21.33 ms) | 43% | 0% | Eliminated |
+| Render calls per beat (replot/beat) | 8.22 | 1.20 | ↓85% |
+| E2E latency avg | 80.1 ms | 2.2 ms | ↓97% |
+| E2E latency max | 258.7 ms | 4.8 ms | ↓98% |
 
 ## Connector Types
 
 | Connector | Type | Between | Properties |
 |-----------|------|---------|------------|
-| SignalBuffer | Ring buffer ([ADR 005](../ADRs/ADR005-ring-buffer-connector.md)) | AudioCapture → DSPWorker | Non-blocking write; backpressure absorbed by buffer depth |
-| MeasurementQueue | Qt queued signal | DSPWorker → GraphTabManager | Thread-safe cross-thread dispatch; no manual locking needed |
-| MeasurementStore | RW-locked shared store | DSPWorker → Graph Tabs | DSP thread appends; UI thread reads on demand |
-| Direct call | Synchronous within DSP thread | FilterChain → BeatDetector → MeasurementEngine | No synchronization needed |
-| Qt Signal (direct) | Synchronous Qt signal | ControlPanel → AudioCapture | UI-to-audio configuration updates |
+| AudioRingBuffer | SPSC ring buffer ([ADR-005](../ADRs/ADR005-ring-buffer-connector.md)) | T1 → T2 | Non-blocking write; backpressure absorbed by buffer; drop-oldest policy |
+| Qt QueuedConnection | Qt cross-thread signal | T2 → Qt Main Thread | Thread-safe FIFO; no manual locking; bounded by Qt event loop |
+| Direct call | Synchronous within T2 | FilterChain → BeatDetector → MeasurementEngine | No synchronization needed |
+| Qt QueuedConnection | Qt cross-thread signal | T2 → Results label | Second observer on the same `measurementReady` signal |
 
 ## Behavior — Live Beat Processing Sequence
 
 ```mermaid
 sequenceDiagram
     participant HW as USB Microphone
-    participant AC as AudioCapture
-    participant SB as SignalBuffer
-    participant DW as DSPWorker
-    participant MQ as MeasurementQueue
-    participant GTM as GraphTabManager
+    participant T1 as Audio Source Thread
+    participant ARB as AudioRingBuffer
+    participant T2 as DSP Thread
+    participant Main as Qt Main Thread
     participant Tab as Active Graph Tab
 
-    HW->>AC: new audio block
-    AC->>SB: write PCM block
-    Note over DW: waiting for data
-    SB-->>DW: PCM block available
-    DW->>DW: apply LP/HP filter
-    DW->>DW: detect T1/T3 beat events
-    DW->>DW: compute Rate, Amplitude, Beat Error
-    DW->>MQ: enqueue Measurement
-    MQ-->>GTM: deliver to UI thread
-    GTM->>Tab: update with Measurement
-    Tab->>Tab: render (visible tab only)
+    HW->>T1: new audio block (~21 ms period)
+    T1->>ARB: write PCM block (non-blocking)
+    Note over T2: waiting for data
+    ARB-->>T2: PCM block available
+    T2->>T2: apply LP/HP filter
+    T2->>T2: detect T1/T3 beat events
+    T2->>T2: compute Rate, Amplitude, Beat Error
+    T2->>Main: measurementReady via QueuedConnection
+    Main->>Tab: onMeasurement - visible tab only
+    Tab->>Tab: render graph
 ```
 
 ## Related ADRs
-- [ADR 001 — DSP Offload Thread](../ADRs/ADR001-dsp-offload-thread.md)
-- [ADR 002 — Lazy Rendering](../ADRs/ADR002-lazy-rendering.md)
-- [ADR 004 — Qt as Application Framework](../ADRs/ADR004-qt-framework.md)
-- [ADR 005 — Ring Buffer as Thread Boundary Connector](../ADRs/ADR005-ring-buffer-connector.md)
+- [ADR-001 — DSP Offload Thread](../ADRs/ADR001-dsp-offload-thread.md)
+- [ADR-002 — Lazy Rendering](../ADRs/ADR002-lazy-rendering.md)
+- [ADR-005 — Ring Buffer as Thread Boundary Connector](../ADRs/ADR005-ring-buffer-connector.md)
 
 ## Related Views
 - [Module View](module-view.md)
+- [Graph Tab Decomposition View](graph-tab-view.md)
 - [Deployment View](deployment-view.md)

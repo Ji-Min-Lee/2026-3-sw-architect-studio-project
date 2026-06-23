@@ -26,13 +26,14 @@ The context diagram below shows the scope of the TimeGrapher system and the exte
 
 ### Architecture Views
 
-The following views document the TimeGrapher architecture from three complementary perspectives.
+The following views document the TimeGrapher architecture from four complementary perspectives.
 
 | View | Description |
 |------|-------------|
-| [Module View](architecture/module-view.md) | Code-level structure: layers, modules, and their dependencies |
-| [Runtime View](architecture/runtime-view.md) | Components and connectors at runtime: threads, queues, and data flow |
+| [Module View](architecture/module-view.md) | Code-level structure: four layers, modules, and their dependencies (DSM verified) |
+| [Runtime View](architecture/runtime-view.md) | Components and connectors at runtime: T1/T2/Main threads, AudioRingBuffer, Qt QueuedConnection |
 | [Deployment View](architecture/deployment-view.md) | Hardware/software allocation: Raspberry Pi 5, USB peripherals, and build pipeline |
+| [Graph Tab Decomposition View](architecture/graph-tab-view.md) | Observer pattern: BaseGraphTab abstract class, 14 concrete tabs, MainWindow registry, and wiring |
 
 ---
 
@@ -47,17 +48,32 @@ The linked ADRs record the key architectural decisions made during the project, 
 | [ADR 003](ADRs/ADR003-layered-architecture.md) | Four-Layer Architecture | Extensibility, Correctness |
 | [ADR 004](ADRs/ADR004-qt-framework.md) | Qt as Application Framework | Real-Time Performance, Extensibility |
 | [ADR 005](ADRs/ADR005-ring-buffer-connector.md) | Ring Buffer as Thread Boundary Connector | Real-Time Performance, Low Latency |
+| [ADR 006](ADRs/ADR006-observer-pattern.md) | BaseGraphTab Observer Pattern | Extensibility, Correctness |
+
+---
+
+## Architecture Evaluation
+
+ATAM (Architecture Tradeoff Analysis Method) evaluation of the TimeGrapher architecture, applied at the end of Milestone 2.
+
+- [Architecture Evaluation (ATAM)](architecture-evaluation.md)
+
+Key findings:
+- **Resolved**: Rendering-Audio coupling on the main thread (43% deadline miss → 0% after ADR-001 + ADR-002)
+- **Open**: WeiShi accuracy comparison (EXP-01) scheduled for 2026-06-29
 
 ---
 
 ## Experiment Results
 
-Key experiments that drove architectural decisions:
+Five experiments were conducted during M1–M2 to validate architectural assumptions. Results drove the two primary architecture decisions (ADR-001 and ADR-002).
 
-| Experiment | Finding | Decision Triggered |
-|------------|---------|-------------------|
-| EXP-02 macOS Baseline | `wait_ms` 420 ms → DSP starvation in main thread | ADR 001 (DSP Offload Thread) |
-| EXP-02 R1 Lazy Rendering | `replot_count` 8.22 → 2.08 (↓75%) on macOS | ADR 002 (Lazy Rendering) |
-| EXP-02 RPi Baseline | `exec` avg 20 ms / deadline miss 43% / thermal throttle 85°C | Architecture refinement required for RPi |
+- [Experiment Results](experiment-results.md)
 
-Detailed results: [docs/milestone2/experiment-results.md](../milestone2/experiment-results.md)
+| Experiment | QA | Key Finding |
+|------------|----|-----------  |
+| EXP-01 | Measurement Accuracy | Planned — WeiShi comparison scheduled 2026-06-29 |
+| EXP-02 | Real-Time Performance | 0 dropped blocks at 48 / 96 / 192 kHz on RPi 5 |
+| EXP-03 | Low Latency | E2E latency 80 ms → 2.2 ms avg after ADR-001 + ADR-002 (↓97%) |
+| EXP-04 | Extensibility | ≤ 3 files per tab · 0 layer violations · 14 tabs verified (37 test cases passing) |
+| EXP-05 | Measurement Accuracy | onset=0.08, min_peak=0.10 — stable through 60 dB noise |
