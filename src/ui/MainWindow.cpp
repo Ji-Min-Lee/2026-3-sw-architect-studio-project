@@ -527,6 +527,23 @@ void MainWindow::showTabConfigDialog(void)
 // ─────────────────────────────────────────────────────────────────────────────
 // Controller slot: update Results label from Measurement
 // ─────────────────────────────────────────────────────────────────────────────
+namespace {
+struct PosBaseline { double rate, amp, be; bool valid; };
+
+const char* detectWatchPosition(const PosBaseline &base, double rate, double amp, double be)
+{
+    if (!base.valid) return "1:DialUp(baseline)";
+    const double dAmp  = amp  - base.amp;
+    const double dRate = rate - base.rate;
+    const double dBE   = be   - base.be;
+    if (dAmp  > -8.0)  return "2:DialDown";
+    if (dRate > +4.0)  return "3:CrownUp";
+    if (dBE   > +0.08) return "6:CrownRight";
+    if (dAmp  > -25.5) return "4:CrownDown";
+    return                     "5:CrownLeft";
+}
+} // namespace
+
 void MainWindow::onMeasurementReady(const Measurement &m)
 {
     mLastReplotCount = g_replotCount.exchange(0);
@@ -534,6 +551,36 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     if (m.synced) ++mSyncedCount;
     checkWatchDetached(m);  // update detached state before formatting the label
     DisplayResults(m);
+
+    if (!m.synced || !m.metrics.rate || !m.metrics.amplitude || !m.metrics.beatError)
+        return;
+
+    // Set Dial Up baseline on first valid synced measurement
+    if (!mDialUpBaseline.valid) {
+        mDialUpBaseline = { *m.metrics.rate, *m.metrics.amplitude, *m.metrics.beatError, true };
+        mMeasLogTimer.start();
+    }
+
+    // Print position log every 1 second
+    if (mMeasLogTimer.elapsed() >= 1000) {
+        mMeasLogTimer.restart();
+        const char *pos = detectWatchPosition(mDialUpBaseline,
+                                              *m.metrics.rate,
+                                              *m.metrics.amplitude,
+                                              *m.metrics.beatError);
+        qInfo("[1s] Rate: \"%1 s/day\" | Amplitude: \"%2 deg\" | BeatError: \"%3 ms\""
+              " | Position: \"%4\""
+              " | BPH: \"auto(%5)\" | LiftAngle: %6 deg | SampleRate: %7 Hz"
+              " | AvgPeriod: %8 s | Synced: yes",
+              QString::number(*m.metrics.rate,      'f', 1).toUtf8().constData(),
+              QString::number(*m.metrics.amplitude, 'f', 1).toUtf8().constData(),
+              QString::number(*m.metrics.beatError, 'f', 2).toUtf8().constData(),
+              pos,
+              m.detectedBph,
+              (int)mLiftAngle,
+              mCurrentSamplesPerSecond,
+              mAveragingPeriod);
+    }
 }
 
 // Live-mode only: if a watch was being measured and the signal is then lost
@@ -707,7 +754,8 @@ void MainWindow::resetTabs(void)
     qInfo() << "RESET";
     for (BaseGraphTab *tab : mAllTabs)
         if (tab != mSequenceTab) tab->reset();
-    mSyncedCount = 0;
+    mSyncedCount    = 0;
+    mDialUpBaseline = {};
     DisplayResults(Measurement{});
     mBackgroundLastFPS = 0.0;
 }
