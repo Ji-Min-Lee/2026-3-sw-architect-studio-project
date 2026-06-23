@@ -1,12 +1,13 @@
 # Module View — 4-Layer Allowed-to-Use
 
-This view shows the four-layer module structure of the TimeGrapher system and the allowed dependency directions between layers. It is the primary tool for enforcing modifiability: any new graph tab is added to the Presentation layer only, with zero changes to lower layers.
+This view shows the four-layer module structure of the TimeGrapher system and the allowed dependency directions between layers. It is the primary tool for enforcing modifiability: any new graph tab must be added to the Presentation layer only, with zero changes to lower layers.
 
 ```mermaid
 graph TD
     subgraph UICoord["UI Coordinator (cross-cutting)"]
         MainWindow["MainWindow"]
         SessionCtrl["SessionController\nthread lifecycle owner"]
+        DiagDialog["DiagnosisDialog"]
     end
 
     subgraph Presentation["Presentation Layer"]
@@ -18,6 +19,7 @@ graph TD
     subgraph Domain["Domain Layer"]
         WatchMath["WatchMath"]
         WatchDiag["WatchDiagnostics"]
+        WatchExplainer["WatchExplainer\nOllama LLM on-device"]
         VOs["Value Objects\nMeasurement · SignalFrame\nWatchMetrics · AcousticEvent · MovementSpec"]
     end
 
@@ -26,6 +28,7 @@ graph TD
         MeasEngine["MeasurementEngine"]
         FilterChain["FilterChain LP/HP"]
         BeatDetector["BeatDetector"]
+        TgProcess["tg_process\nexternal library"]
     end
 
     subgraph Acquisition["Acquisition Layer"]
@@ -38,6 +41,7 @@ graph TD
 
     MainWindow --> GTM
     MainWindow --> BGT
+    MainWindow --> DiagDialog
     SessionCtrl --> DSPWorker
     SessionCtrl --> IAudioSource
 
@@ -48,9 +52,11 @@ graph TD
     DSPWorker --> BeatDetector
     DSPWorker --> MeasEngine
     DSPWorker --> AudioRingBuffer
+    DSPWorker --> TgProcess
 
     MeasEngine --> VOs
     WatchDiag --> VOs
+    WatchExplainer --> WatchDiag
 
     IAudioSource --> AudioRingBuffer
     AudioWorker --> IAudioSource
@@ -61,25 +67,28 @@ graph TD
 ## Element Catalog
 
 #### UI Coordinator (cross-cutting — not a numbered layer)
-- `MainWindow`: Qt top-level window; owns the tab registry (`mAllTabs`) and the `registerTab()` entry point.
+- `MainWindow`: Qt top-level window; owns the tab registry (`mAllTabs`) and the `registerTab()` entry point. Reduced from ~949 lines to ~750 lines after `SessionController` extraction (i1 refactor).
 - `SessionController`: extracted from `MainWindow` to own the Audio Thread (T1) and DSP Thread (T2) lifecycle. Not in the per-beat data path after session start.
+- `DiagnosisDialog`: displays watch diagnosis results from `WatchDiagnostics`; reads from the Domain layer only.
 
 #### Acquisition Layer
-- `IAudioSource`: abstract Qt interface for all audio input sources — decouples audio source selection from the rest of the system (see [ADR-005](../ADRs/ADR005-ring-buffer-connector.md)).
+- `IAudioSource`: abstract Qt interface for all audio input sources — decouples audio source selection from the rest of the system.
 - `AudioWorker`: live USB microphone via ALSA.
 - `PlaybackWorker`: reads a pre-recorded WAV file for offline testing.
-- `SimWorker`: generates a synthetic watch-like signal.
-- `AudioRingBuffer`: lock-free SPSC ring buffer; the only data path between the Audio Thread and the DSP Thread.
+- `SimWorker`: generates a synthetic watch-like signal; used for structural validation on macOS without microphone hardware.
+- `AudioRingBuffer`: lock-free SPSC ring buffer; the only data path between the Audio Thread and the DSP Thread (see [ADR-005](../ADRs/ADR005-ring-buffer-connector.md)).
 
 #### Signal Processing Layer
-- `DSPWorker`: runs on a dedicated thread (T2) introduced by [ADR-001](../ADRs/ADR001-dsp-offload-thread.md). Reads PCM from `AudioRingBuffer`; drives the full DSP pipeline; emits `measurementReady` to the Qt main thread via `QueuedConnection`.
-- `MeasurementEngine`: owned by `DSPWorker`; computes Rate (s/d), Amplitude (°), Beat Error (ms), and BPH from `BeatEvent` stream. Classified in Signal Processing (not Domain) because it is driven by `DSPWorker` within the T2 loop.
+- `DSPWorker`: runs on a dedicated thread (T2) introduced by [ADR-001](../ADRs/ADR001-dsp-offload-thread.md). Reads PCM from `AudioRingBuffer`; drives the full DSP pipeline; emits `measurementReady` to the Qt main thread via `QueuedConnection`. Directly owns `MeasurementEngine` — they form a single T2 pipeline unit.
+- `MeasurementEngine`: computes Rate (s/d), Amplitude (°), Beat Error (ms), and BPH from the `BeatEvent` stream. Classified here (not Domain) because it is owned and driven by `DSPWorker` within the T2 loop.
 - `FilterChain`: applies LP/HP biquad filter cascade to raw PCM samples.
 - `BeatDetector`: detects onset and peak of T1(A) and T3(C) acoustic events.
+- `tg_process`: external library in `src/external/`; called by `DSPWorker` within the T2 DSP loop.
 
 #### Domain Layer
-- Contains pure computation and value objects only: `WatchMath`, `WatchDiagnostics`, and five Value Objects (`Measurement`, `SignalFrame`, `WatchMetrics`, `AcousticEvent`, `MovementSpec`).
+- Contains pure computation and value objects only: `WatchMath`, `WatchDiagnostics` (rule-based diagnosis), `WatchExplainer` (Ollama LLM, on-device), and five Value Objects (`Measurement`, `SignalFrame`, `WatchMetrics`, `AcousticEvent`, `MovementSpec`).
 - No thread ownership, no Qt signal emission, no display logic.
+- `WatchDiagnostics` reads the `Measurement` VO produced by Signal Processing. `WatchExplainer` reads the diagnosis result.
 
 #### Presentation Layer
 - `BaseGraphTab`: abstract C++ base class (Observer) for all graph tab widgets. Establishes the measurement-delivery contract and the lazy rendering contract ([ADR-006](../ADRs/ADR006-observer-pattern.md)).
@@ -99,6 +108,16 @@ graph TD
 | **Total** | **≤ 3** |
 
 Zero changes to Domain, Signal Processing, or Acquisition layers required.
+
+**Tab addition history** (observed across three sprint rounds):
+
+| Batch | Tabs added | Files changed per tab |
+|-------|:----------:|:---------------------:|
+| W2 Sprint 1 | 11 (baseline) | 2 |
+| W2 Sprint 2 | +2 → 13 | 2 |
+| W3 Sprint 1 | +1 → 14 | 3 ¹ |
+
+¹ RadarChartTab reads per-position data from SequenceTab directly (not via `measurementReady`) — SequenceTab modified to expose `capturedReadings()` and `sequenceUpdated()`.
 
 **Dependency Structure Matrix** (actual include-path trace, M2 verified):
 
