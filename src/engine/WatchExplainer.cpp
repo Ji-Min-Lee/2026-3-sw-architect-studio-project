@@ -103,9 +103,11 @@ void WatchExplainer::chat(const QString &userMessage)
     m_history.append(userMsg);
 
     QJsonObject options;
-    options["num_ctx"]     = 2048; // multi-turn: history accumulates each turn
-    options["num_thread"]  = 2;
-    options["num_predict"] = 1024; // allow a full answer; model stops at natural end
+    options["num_ctx"]        = 2048; // multi-turn: history accumulates each turn
+    options["num_thread"]     = 2;
+    options["num_predict"]    = 512;  // full answer, but bounds runaway length
+    options["repeat_penalty"] = 1.3;  // small models loop on RPi5 — penalise repeats
+    options["repeat_last_n"]  = 256;  // window the repeat penalty looks back over
 
     QJsonObject body;
     body["model"]    = m_currentModel;
@@ -163,9 +165,11 @@ void WatchExplainer::explainWithContext(const ExplainRequest &req, const QString
     m_history.append(userMsg);
 
     QJsonObject options;
-    options["num_ctx"]     = 2048; // multi-turn: leave room for follow-up history
-    options["num_thread"]  = 2;    // leave 2 cores free for audio/DSP on RPi5
-    options["num_predict"] = 1024; // allow a full answer; model stops at natural end
+    options["num_ctx"]        = 2048; // multi-turn: leave room for follow-up history
+    options["num_thread"]     = 2;    // leave 2 cores free for audio/DSP on RPi5
+    options["num_predict"]    = 512;  // full answer, but bounds runaway length
+    options["repeat_penalty"] = 1.3;  // small models loop on RPi5 — penalise repeats
+    options["repeat_last_n"]  = 256;  // window the repeat penalty looks back over
 
     QJsonObject body;
     body["model"]    = req.modelName;
