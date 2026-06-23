@@ -112,6 +112,7 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
     connect(mModeGroup, &QButtonGroup::idClicked, this, [this](int id) {
         mViewMode = static_cast<ViewMode>(id);
         mWindowSpin->setEnabled(mViewMode == ViewMode::Seconds);
+        ensureMapSize();
         if (mViewMode == ViewMode::LastBeat) {
             rebuildLastBeatView();
         } else {
@@ -122,6 +123,7 @@ SpectrogramTab::SpectrogramTab(QWidget *parent) : BaseGraphTab(parent)
     connect(mWindowSpin, qOverload<double>(&QDoubleSpinBox::valueChanged),
             this, [this](double windowSec) {
         mWindowSec = windowSec;
+        ensureMapSize();
         rebuildAxisRanges();
         if (!mPaused) {
             mPlot->replot(QCustomPlot::rpQueuedReplot);
@@ -187,9 +189,10 @@ void SpectrogramTab::prepareFft()
 
 void SpectrogramTab::ensureMapSize()
 {
+    const int cols = timeColumnCount();
     QCPColorMapData *data = mMap->data();
-    if (data->keySize() != kTimeColumns || data->valueSize() != mFreqBins) {
-        data->setSize(kTimeColumns, mFreqBins);
+    if (data->keySize() != cols || data->valueSize() != mFreqBins) {
+        data->setSize(cols, mFreqBins);
         // QCPColorMapData::setSize() zero-fills; 0 lies above −10 dB → false yellow.
         data->fill(kDbMin);
     }
@@ -200,6 +203,25 @@ int SpectrogramTab::freqBinCount() const
     int bins = static_cast<int>(kMaxDisplayHz * kFftSize / mSampleRate) + 1;
     bins = std::min(bins, kFftSize / 2);
     return qMax(1, bins);
+}
+
+double SpectrogramTab::hopMs() const
+{
+    return kHopSize * 1000.0 / static_cast<double>(mSampleRate);
+}
+
+double SpectrogramTab::windowMs() const
+{
+    if (mViewMode == ViewMode::Seconds)
+        return mWindowSec * 1000.0;
+    return qMax(200.0, mBeatPeriodMs);
+}
+
+int SpectrogramTab::timeColumnCount() const
+{
+    // One scrolling column per FFT hop; key range 0..windowMs must match hop spacing.
+    const int cols = static_cast<int>(std::ceil(windowMs() / hopMs()));
+    return qBound(2, cols, kMaxTimeColumns);
 }
 
 void SpectrogramTab::reset()
@@ -290,13 +312,11 @@ void SpectrogramTab::processPendingColumns()
 
 void SpectrogramTab::rebuildAxisRanges()
 {
-    const double windowMs = (mViewMode == ViewMode::Seconds)
-        ? mWindowSec * 1000.0
-        : qMax(200.0, mBeatPeriodMs);
+    const double spanMs = windowMs();
 
-    mMap->data()->setKeyRange(QCPRange(0.0, windowMs));
+    mMap->data()->setKeyRange(QCPRange(0.0, spanMs));
     mMap->data()->setValueRange(QCPRange(0.0, kMaxDisplayHz));
-    mPlot->xAxis->setRange(0, windowMs);
+    mPlot->xAxis->setRange(0, spanMs);
     mPlot->yAxis->setRange(0, kMaxDisplayHz);
 }
 
@@ -334,7 +354,8 @@ void SpectrogramTab::rebuildLastBeatView()
     ensureMapSize();
 
     int col = 0;
-    for (int start = 0; start + kFftSize <= count && col < kTimeColumns; start += kHopSize) {
+    const int maxCols = timeColumnCount();
+    for (int start = 0; start + kFftSize <= count && col < maxCols; start += kHopSize) {
         const std::vector<double> magnitudes =
             computeMagnitudes(mPcmBuffer.data() + offset + start);
         const int binsToStore = std::min(mFreqBins, static_cast<int>(magnitudes.size()));
@@ -386,6 +407,7 @@ void SpectrogramTab::onMeasurement(const Measurement &m)
 
     mSampleRate = m.signal.samplesPerSecond;
     mFreqBins = freqBinCount();
+    ensureMapSize();
 
     if (mPcmBuffer.empty()) {
         mBufferStartTick = m.signal.tickStart;

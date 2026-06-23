@@ -349,6 +349,18 @@ private slots:
                  qPrintable(QString("peak row %1 → %2 Hz").arg(peakRow).arg(rowFreq)));
     }
 
+    // X-axis: one color-map column per FFT hop; column count must match window duration.
+    void spectrogram_timeColumnsMatchWindow()
+    {
+        SpectrogramTab tab;
+        tab.reset();
+        QCPColorMapData *d = tab.colorMap()->data();
+        const double hopMs = 512.0 * 1000.0 / 48000.0;
+        const int expectedCols = static_cast<int>(std::ceil(1000.0 / hopMs));
+        QCOMPARE(d->keySize(), expectedCols);
+        QCOMPARE(d->keyRange().upper, 1000.0);
+    }
+
     // ── SequenceTab → RadarChartTab data contract ───────────────────────────
     void sequence_capturedReadings_reflectValues()
     {

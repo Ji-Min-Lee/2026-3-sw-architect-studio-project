@@ -31,11 +31,12 @@ public slots:
 private:
     enum class ViewMode { Seconds, LastBeat };
 
-    // Constants from reverted Implementation commit (6535adf), tuned for Figure 16
-    static constexpr int    kFftSize      = 1024;
-    static constexpr int    kHopSize      = 512;
-    static constexpr int    kTimeColumns  = 256;
-    static constexpr double kMaxDisplayHz = 20000.0;
+    // FFT 1024 / hop 512; column count is derived from the visible time window
+    // so each column spans one hop (~10.7 ms @ 48 kHz) on the X axis.
+    static constexpr int    kFftSize        = 1024;
+    static constexpr int    kHopSize        = 512;
+    static constexpr int    kMaxTimeColumns = 512;
+    static constexpr double kMaxDisplayHz   = 20000.0;
     // Figure 16 reference: viridis colormap, fixed colorbar −70…−10 dB
     static constexpr double kDbMin        = -70.0;
     static constexpr double kDbMax        = -10.0;
@@ -44,6 +45,9 @@ private:
     void prepareFft();
     void ensureMapSize();
     int  freqBinCount() const;
+    double hopMs() const;
+    double windowMs() const;
+    int  timeColumnCount() const;
     double binMagnitudeToDb(double magnitude, int bin) const;
     std::vector<double> computeMagnitudes(const float *pcm) const;
     void shiftColumnsAndAppend(const std::vector<double> &magnitudes);
