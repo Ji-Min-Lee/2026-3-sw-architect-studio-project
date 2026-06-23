@@ -206,22 +206,28 @@ Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 
 ### Run History
 
-| Run | Date | File | noiseDb at SNR 0 dB | False alarms (SNR ≥ 10) | Result |
-|:---:|------|------|:-------------------:|:-----------------------:|:------:|
-| E6-01 | 2026-06-23 | `28800BPH_3235_Starbucks_snr{M10..60}db.wav` (8 files, float32, 96kHz) | avg 54.4 / max **56.9** | **0 / 6** | ✅ Pass |
+| Run | Date | File | noiseDb at SNR 0 dB | False alarms (SNR ≥ 10) | Result | Data |
+|:---:|------|------|:-------------------:|:-----------------------:|:------:|:----:|
+| E6-01 | 2026-06-23 | `28800BPH_3235_Starbucks_snr{M10..60}db.wav` (8 files, float32, 96kHz) | avg 54.4 / max **56.9** | **0 / 6** | ✅ Pass | [csv](../../src/logs/EXP-07/noise_detection_snr_sweep_20260623.csv) · [plot](../../src/logs/EXP-07/noise_detection_snr_sweep_20260623.png) |
 
 ### Key Data
 
-| SNR (dB) | noiseDb avg | noiseDb max | Popup triggers? | Beat Error (ms) |
-|:--------:|:-----------:|:-----------:|:---------------:|:---------------:|
-| 60 ~ 10  | 46.6 – 49.6 | 54.9        | No              | ~0.2 (mechanical baseline) |
-| **0**    | **54.4**    | **56.9**    | **Yes**         | 16.5 (corrupted) |
-| **−10**  | **61.9**    | **63.3**    | **Yes**         | INVALID (not synced) |
+| SNR (dB) | noiseDb avg | noiseDb max | Popup triggers? | Beat Error (ms) | Rate Error (s/d) | Amplitude (°) |
+|:--------:|:-----------:|:-----------:|:---------------:|:---------------:|:----------------:|:-------------:|
+| 60       | 46.6        | 54.9        | No              | 0.198           | 1.86             | 206.1         |
+| 50       | 46.6        | 54.9        | No              | 0.198           | 1.86             | 206.1         |
+| 40       | 46.6        | 54.9        | No              | 0.198           | 1.86             | 206.1         |
+| 30       | 46.7        | 54.9        | No              | 0.198           | 1.86             | 206.1         |
+| 20       | 47.3        | 54.9        | No              | 0.198           | 1.86             | 206.1         |
+| 10       | 49.6        | 54.9        | No              | 0.192           | 1.76             | 206.3         |
+| **0**    | **54.4**    | **56.9**    | **Yes**         | 16.527          | −4968            | 110.7         |
+| **−10**  | **61.9**    | **63.3**    | **Yes**         | INVALID         | INVALID          | INVALID       |
 
 > `noiseDb` is derived from the adaptive noise floor (`onset_threshold`) in `MeasurementEngine`.  
-> Popup logic: `noiseDb ≥ 55 dB` sustained for 2 s → non-modal `QMessageBox` ("Noisy Environment").
+> Popup logic: `noiseDb ≥ 55 dB` sustained for 2 s → non-modal `QMessageBox` ("Noisy Environment").  
+> SNR −10 dB file generated with `add_pink_noise.py` (pink noise, seed=42).
 
-![EXP-06 Noise Detection Graph](exp-04-noise-before-after.png)
+**Graph**: [noise_detection_snr_sweep_20260623.png](../../src/logs/EXP-07/noise_detection_snr_sweep_20260623.png)
 
 ### Conclusion
 
