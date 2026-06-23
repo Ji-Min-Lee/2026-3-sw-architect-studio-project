@@ -85,6 +85,9 @@
 
 #define TG_INITIAL_BUF      4096
 #define TG_EVENT_HISTORY    256
+/* Manual BPH: trust UI value; lock after a few A events, no phase sweep. */
+#define TG_MANUAL_SYNC_MIN_EVENTS  3
+#define TG_MANUAL_SYNC_MIN_BEATS   2.0
 
 struct tg_context {
     tg_config_t cfg;
@@ -503,33 +506,39 @@ int tg_process(tg_context_t *ctx,
             push_event_history(ctx, ctx->raw_events[i].time_seconds);
     }
 
-    /* BPH detection: if not already synced, see if we have enough history. */
+    /* BPH sync: auto sweeps candidates; manual trusts UI BPH with minimal warm-up. */
     int try_detect = 0;
-    if (!ctx->sync.synced && ctx->ev_history_count >= 8) {
-        double tmp[TG_EVENT_HISTORY];
-        copy_history_linear(ctx, tmp);
-        double earliest = tmp[0];
-        double latest   = tmp[ctx->ev_history_count - 1];
-        if (latest - earliest >= ctx->cfg.auto_detect_seconds) try_detect = 1;
+    if (!ctx->sync.synced) {
+        const int min_events = (ctx->cfg.bph_mode == TG_BPH_MODE_MANUAL)
+                                   ? TG_MANUAL_SYNC_MIN_EVENTS
+                                   : 8;
+        if (ctx->ev_history_count >= min_events) {
+            double tmp[TG_EVENT_HISTORY];
+            copy_history_linear(ctx, tmp);
+            double earliest = tmp[0];
+            double latest   = tmp[ctx->ev_history_count - 1];
+            double min_span = ctx->cfg.auto_detect_seconds;
+            if (ctx->cfg.bph_mode == TG_BPH_MODE_MANUAL) {
+                min_span = (3600.0 / (double)ctx->cfg.manual_bph)
+                           * TG_MANUAL_SYNC_MIN_BEATS;
+            }
+            if (latest - earliest >= min_span) try_detect = 1;
+        }
     }
 
     if (!ctx->sync.synced && try_detect) {
         double tmp[TG_EVENT_HISTORY];
         copy_history_linear(ctx, tmp);
         int    matched = 0;
-        double phase_score = 0.0;
         double matched_period = 0.0;
         if (ctx->cfg.bph_mode == TG_BPH_MODE_AUTO) {
+            double phase_score = 0.0;
             matched = tg_bph_pick_by_phase(tmp, ctx->ev_history_count,
                                            TG_AUTO_BPH_LIST, TG_AUTO_BPH_COUNT,
                                            0.7, &phase_score, &matched_period);
         } else {
-            int manualBph = ctx->cfg.manual_bph;
-            double T = 3600.0 / (double)manualBph;
-            phase_score = tg_phase_score(tmp, ctx->ev_history_count, T);
-            if (phase_score >= 0.7) {
-                matched = manualBph; matched_period = T;
-            }
+            matched = ctx->cfg.manual_bph;
+            matched_period = 3600.0 / (double)matched;
         }
         if (matched) {
             double half = 0.5 * matched_period;
@@ -611,9 +620,6 @@ int tg_process(tg_context_t *ctx,
     if (ctx->cfg.bph_mode == TG_BPH_MODE_MANUAL) {
         if (ctx->sync.synced) {
             result->sync_status  = TG_SYNC_SYNCED;
-            result->detected_bph = ctx->cfg.manual_bph;
-        } else if (try_detect) {
-            result->sync_status  = TG_SYNC_MISMATCH;
             result->detected_bph = ctx->cfg.manual_bph;
         } else {
             result->sync_status  = TG_SYNC_NOT_SYNCED;
