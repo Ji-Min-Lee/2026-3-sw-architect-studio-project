@@ -32,6 +32,7 @@
 #include "WaveformCompTab.h"
 #include "SweepScopeTab.h"
 #include "FilterScopeTab.h"
+#include "RadarChartTab.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -107,10 +108,11 @@ private:
     // Graph-tab overflow: show the first kDefaultVisibleTabs as tabs, move the
     // rest behind a "More" drop-down. onGraphTabChanged() collapses a revealed
     // overflow tab back into the menu once the user returns to a default tab.
-    static constexpr int kDefaultVisibleTabs = 9;
+    static constexpr int kDefaultVisibleTabs = 2;  // Trace, Vario (baseline tabs moved to end)
     void   setupTabOverflow(void);
     void   showUserGuide(UserGuideSection section);
-    void   onGraphTabChanged(int index);
+    void   showDiagnosisDialog(void);
+    void   showTabConfigDialog(void);
     void   LiveStart(void);
     void   PlaybackStart(void);
     void   SimStart(void);
@@ -160,6 +162,7 @@ private:
     WaveformCompTab   *mWaveformCompTab   = nullptr;
     SweepScopeTab     *mSweepScopeTab     = nullptr;
     FilterScopeTab    *mFilterScopeTab    = nullptr;
+    RadarChartTab     *mRadarChartTab     = nullptr;
     QList<BaseGraphTab *> mAllTabs;
 
     // Watch-position testing (NIHS 95-10/ISO 3158)
@@ -213,7 +216,8 @@ private:
     WatchType        mWatchType          = WatchType::Men;
     WatchExplainer   mWatchExplainer;
     ExplainRequest   mLastExplainRequest;
-    DiagnosisDialog *mDiagnosisDialog    = nullptr;
+    DiagnosisDialog  *mDiagnosisDialog    = nullptr;
+    UserGuideDialog  *mUserGuideDialog    = nullptr;
 
     // Left control-panel reflow state (feature/ui-improvement)
     QToolButton *mAdvancedToggle   = nullptr;  // collapses the MiscFrame "Advanced" group

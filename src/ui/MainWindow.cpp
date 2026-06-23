@@ -52,7 +52,13 @@ QString resolveRagDatabasePath()
 #include <QFileInfo>
 #include <QTimer>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QLabel>
+#include <QDialog>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QDialogButtonBox>
+#include <QScrollArea>
 #include <stdexcept>
 
 #define  LIVE     0
@@ -202,16 +208,34 @@ MainWindow::MainWindow(QWidget *parent)
     // Bonus radar lives inside SequenceTab (table + radar side-by-side);
     // SequenceTab owns and wires it, so it is not registered separately.
     mTraceTab          = registerTab(new TraceTab(this),          "Trace");
-    mBeatErrorTab      = registerTab(new BeatErrorTab(this),      "Beat Error");
     mVarioTab          = registerTab(new VarioTab(this),          "Vario");
     mSequenceTab       = registerTab(new SequenceTab(this),       "Sequence");
     mBeatNoiseScopeTab = registerTab(new BeatNoiseScopeTab(this), "Beat Scope");
+    mBeatErrorTab      = registerTab(new BeatErrorTab(this),      "Beat Error");
     mLongTermTab       = registerTab(new LongTermTab(this),       "Long Term");
     mEscapementTab     = registerTab(new EscapementTab(this),     "Escapement");
     mSpectrogramTab    = registerTab(new SpectrogramTab(this),    "Spectrogram");
     mWaveformCompTab   = registerTab(new WaveformCompTab(this),   "Waveform");
     mSweepScopeTab     = registerTab(new SweepScopeTab(this),     "Sweep");
     mFilterScopeTab    = registerTab(new FilterScopeTab(this),    "Filters");
+    mRadarChartTab     = registerTab(new RadarChartTab(mSequenceTab, this), "Radar");
+
+    // Tab tooltips: show full rubric name on hover
+    auto *tw = ui->GraphicsTabWidget;
+    tw->setTabToolTip(tw->indexOf(ui->RateTab),          "Rate / Scope — baseline rate and oscilloscope view");
+    tw->setTabToolTip(tw->indexOf(ui->SoundTab),         "Sound Print — acoustic beat waveform image");
+    tw->setTabToolTip(tw->indexOf(mTraceTab),            "Trace Display");
+    tw->setTabToolTip(tw->indexOf(mVarioTab),            "Rate and Amplitude Stability Over Time");
+    tw->setTabToolTip(tw->indexOf(mSequenceTab),         "Multi-Position Sequence Display");
+    tw->setTabToolTip(tw->indexOf(mBeatNoiseScopeTab),   "Beat-Noise Scope Display");
+    tw->setTabToolTip(tw->indexOf(mBeatErrorTab),        "Beat Error Display and Diagnostic Trace");
+    tw->setTabToolTip(tw->indexOf(mLongTermTab),         "Long-Term Performance Graph");
+    tw->setTabToolTip(tw->indexOf(mEscapementTab),       "Escapement Analyzer and Marker-Line Display");
+    tw->setTabToolTip(tw->indexOf(mSpectrogramTab),      "Time-Frequency Spectrogram Display");
+    tw->setTabToolTip(tw->indexOf(mWaveformCompTab),     "Waveform Comparison Display with Timing Markers");
+    tw->setTabToolTip(tw->indexOf(mSweepScopeTab),       "Scope Mode with Synchronized Sweep Display");
+    tw->setTabToolTip(tw->indexOf(mFilterScopeTab),      "Scope Function with Multiple Filter Views");
+    tw->setTabToolTip(tw->indexOf(mRadarChartTab),       "Radar Chart — multi-position watch health overview (bonus)");
 
     mBeatNoiseScopeTab->setLiftAngle(mLiftAngle);
     mWaveformCompTab->setLiftAngle(mLiftAngle);
@@ -329,13 +353,27 @@ void MainWindow::updateLeftPanelForMode(void)
     relayoutLeftColumn();
 }
 
-// ── Graph-tab overflow (feature/ui-improvement) ───────────────────────────────
-// Keep the first kDefaultVisibleTabs graphs as always-visible tabs; collapse the
-// remaining specialized scopes into a "More ▾" drop-down in the tab-bar corner.
+// -- Graph-tab corner button (feature/ui-improvement) --------------------------
+// "More v" button in the tab-bar corner opens:
+//   - "Configure Tabs" dialog: checklist of all tabs; checked = visible
+//   - "User Guide" (F1)
+//   - "AI Diagnosis" (F2)
+// Default visibility: Rate/Scope, Sound Print, Trace, Vario (first 4 tabs).
 void MainWindow::setupTabOverflow(void)
 {
     QTabWidget *tw = ui->GraphicsTabWidget;
     const int n = tw->count();
+
+    // Reorder tabs to match rubric demo flow:
+    //   Area 1 (Trace..Filters) → Area 2 (Sound Print, Rate/Scope) → Bonus (Radar)
+    tw->tabBar()->moveTab(1, n - 1);  // Sound Print -> last
+    tw->tabBar()->moveTab(0, n - 1);  // Rate/Scope  -> last (Sound Print shifts to n-2)
+    tw->tabBar()->moveTab(tw->indexOf(mRadarChartTab), n - 1);  // Radar -> absolute last
+
+    // Apply default visibility: show only the first kDefaultVisibleTabs tabs (Trace, Vario)
+    for (int i = kDefaultVisibleTabs; i < n; ++i)
+        tw->setTabVisible(i, false);
+    tw->setCurrentIndex(0);  // start on Trace
 
     mMoreTabsButton = new QToolButton(tw);
     mMoreTabsButton->setObjectName("MoreTabsButton");
@@ -345,58 +383,145 @@ void MainWindow::setupTabOverflow(void)
     mMoreTabsButton->setAutoRaise(true);
     mMoreTabsButton->setCursor(Qt::PointingHandCursor);
     mMoreTabsButton->setMinimumWidth(72);
-    mMoreTabsButton->setToolTip(tr("More tabs and user guide"));
+    mMoreTabsButton->setToolTip(tr("Configure visible tabs, user guide, AI diagnosis"));
 
     mMoreTabsMenu = new QMenu(mMoreTabsButton);
 
-    if (n > kDefaultVisibleTabs) {
-        QMenu *moreTabs = mMoreTabsMenu->addMenu(tr("More Tab"));
-        for (int i = kDefaultVisibleTabs; i < n; ++i) {
-            QAction *act = moreTabs->addAction(tw->tabText(i));
-            connect(act, &QAction::triggered, this, [this, i] {
-                ui->GraphicsTabWidget->setTabVisible(i, true);
-                ui->GraphicsTabWidget->setCurrentIndex(i);
-            });
-        }
-        for (int i = kDefaultVisibleTabs; i < n; ++i)
-            tw->setTabVisible(i, false);
-        connect(tw, &QTabWidget::currentChanged, this, &MainWindow::onGraphTabChanged);
-    }
+    QAction *configureTabs = mMoreTabsMenu->addAction(tr("Configure Tabs... (F2)"));
+    configureTabs->setShortcut(QKeySequence(Qt::Key_F2));
+    configureTabs->setShortcutContext(Qt::ApplicationShortcut);
+    addAction(configureTabs);
+    connect(configureTabs, &QAction::triggered, this, &MainWindow::showTabConfigDialog);
 
-    QAction *guide = mMoreTabsMenu->addAction(tr("User Guide"));
+    mMoreTabsMenu->addSeparator();
+
+    QAction *guide = mMoreTabsMenu->addAction(tr("User Guide (F1)"));
     guide->setShortcut(QKeySequence::HelpContents);
+    guide->setShortcutContext(Qt::ApplicationShortcut);
+    addAction(guide);
     connect(guide, &QAction::triggered, this, [this] {
         showUserGuide(UserGuideSection::Overview);
     });
 
+    QAction *diagnosis = mMoreTabsMenu->addAction(tr("AI Diagnosis (F3)"));
+    diagnosis->setShortcut(QKeySequence(Qt::Key_F3));
+    diagnosis->setShortcutContext(Qt::ApplicationShortcut);
+    addAction(diagnosis);
+    connect(diagnosis, &QAction::triggered, this, &MainWindow::showDiagnosisDialog);
+
     connect(mMoreTabsButton, &QToolButton::clicked, this, [this] {
-        if (!mMoreTabsMenu)
-            return;
+        if (!mMoreTabsMenu) return;
         const QPoint pos = mMoreTabsButton->mapToGlobal(
             QPoint(0, mMoreTabsButton->height()));
         mMoreTabsMenu->popup(pos);
     });
 
     tw->setCornerWidget(mMoreTabsButton, Qt::TopRightCorner);
+
+    // Keyboard shortcut hint — permanent widget on the right of the status bar
+    auto *hintLabel = new QLabel(
+        "  F1 User Guide   F2 Configure Tabs   F3 AI Diagnosis  ", this);
+    hintLabel->setStyleSheet("color: gray; font-size: 11px;");
+    statusBar()->addPermanentWidget(hintLabel);
 }
 
+// Singleton user guide dialog: raise existing window instead of opening a new one.
 void MainWindow::showUserGuide(UserGuideSection section)
 {
-    auto *dlg = new UserGuideDialog(section, this);
-    dlg->setAttribute(Qt::WA_DeleteOnClose);
-    dlg->show();
-    dlg->raise();
-    dlg->activateWindow();
+    if (mUserGuideDialog) {
+        mUserGuideDialog->raise();
+        mUserGuideDialog->activateWindow();
+        return;
+    }
+    mUserGuideDialog = new UserGuideDialog(section, this);
+    mUserGuideDialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(mUserGuideDialog, &QObject::destroyed,
+            this, [this]() { mUserGuideDialog = nullptr; });
+    mUserGuideDialog->show();
+    mUserGuideDialog->raise();
+    mUserGuideDialog->activateWindow();
 }
 
-// Keep at most one overflow tab revealed at a time: when the user returns to a
-// default tab, collapse any revealed overflow tab back into the "More" menu.
-void MainWindow::onGraphTabChanged(int index)
+// Singleton AI diagnosis dialog (same singleton pattern as UserGuideDialog).
+void MainWindow::showDiagnosisDialog(void)
+{
+    if (mDiagnosisDialog) {
+        mDiagnosisDialog->raise();
+        mDiagnosisDialog->activateWindow();
+        return;
+    }
+    mDiagnosisDialog = new DiagnosisDialog(mLastExplainRequest, &mWatchExplainer, this);
+    mDiagnosisDialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(mDiagnosisDialog, &QObject::destroyed,
+            this, [this]() { mDiagnosisDialog = nullptr; });
+    mDiagnosisDialog->show();
+}
+
+// Tab configuration dialog: checklist of all tabs; checked = visible.
+void MainWindow::showTabConfigDialog(void)
 {
     QTabWidget *tw = ui->GraphicsTabWidget;
     const int n = tw->count();
-    for (int i = kDefaultVisibleTabs; i < n; ++i)
-        if (i != index) tw->setTabVisible(i, false);
+
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Configure Tabs"));
+    dlg.setMinimumWidth(320);
+
+    auto *layout = new QVBoxLayout(&dlg);
+    layout->addWidget(new QLabel(tr("Select tabs to display:"), &dlg));
+
+    QVector<QCheckBox *> boxes;
+    for (int i = 0; i < n; ++i) {
+        auto *cb = new QCheckBox(tw->tabText(i), &dlg);
+        cb->setChecked(tw->isTabVisible(i));
+        const QString tip = tw->tabToolTip(i);
+        if (!tip.isEmpty()) cb->setToolTip(tip);
+        layout->addWidget(cb);
+        boxes.append(cb);
+    }
+
+    // Select All / Deselect All
+    auto *selRow = new QHBoxLayout();
+    auto *selAll   = new QPushButton(tr("Select All"),   &dlg);
+    auto *deselAll = new QPushButton(tr("Deselect All"), &dlg);
+    selRow->addWidget(selAll);
+    selRow->addWidget(deselAll);
+    selRow->addStretch();
+    layout->addLayout(selRow);
+
+    auto *buttons = new QDialogButtonBox(
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    layout->addWidget(buttons);
+
+    // OK enabled only when at least one tab is checked
+    auto *okBtn = buttons->button(QDialogButtonBox::Ok);
+    auto updateOk = [&boxes, okBtn] {
+        bool any = std::any_of(boxes.begin(), boxes.end(),
+                               [](QCheckBox *cb){ return cb->isChecked(); });
+        okBtn->setEnabled(any);
+    };
+    for (auto *cb : boxes)
+        connect(cb, &QCheckBox::checkStateChanged, &dlg, updateOk);
+    connect(selAll,   &QPushButton::clicked, &dlg, [&boxes, updateOk]{ for (auto *cb : boxes) cb->setChecked(true);  updateOk(); });
+    connect(deselAll, &QPushButton::clicked, &dlg, [&boxes, updateOk]{ for (auto *cb : boxes) cb->setChecked(false); updateOk(); });
+    updateOk();  // set initial state
+
+    if (dlg.exec() != QDialog::Accepted) return;
+
+    int currentIdx = tw->currentIndex();
+    bool currentWillHide = !boxes[currentIdx]->isChecked();
+
+    for (int i = 0; i < n; ++i)
+        tw->setTabVisible(i, boxes[i]->isChecked());
+
+    // If the active tab was unchecked, switch to the first visible tab
+    if (currentWillHide) {
+        for (int i = 0; i < n; ++i) {
+            if (tw->isTabVisible(i)) { tw->setCurrentIndex(i); break; }
+        }
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -558,16 +683,7 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == ui->DiagnosisLabel && event->type() == QEvent::MouseButtonPress) {
-        if (mDiagnosisDialog) {
-            mDiagnosisDialog->raise();
-            mDiagnosisDialog->activateWindow();
-            return true;
-        }
-        mDiagnosisDialog = new DiagnosisDialog(mLastExplainRequest, &mWatchExplainer, this);
-        mDiagnosisDialog->setAttribute(Qt::WA_DeleteOnClose);
-        connect(mDiagnosisDialog, &QObject::destroyed,
-                this, [this]() { mDiagnosisDialog = nullptr; });
-        mDiagnosisDialog->show();
+        showDiagnosisDialog();
         return true;
     }
     return QMainWindow::eventFilter(obj, event);
