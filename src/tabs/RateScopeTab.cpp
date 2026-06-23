@@ -99,6 +99,7 @@ void RateScopeTab::setupPlots()
 void RateScopeTab::reset()
 {
     mXTicIdx = mXTocIdx = 0;
+    mBeatX = 0;
     mXTic.clear(); mYTic.clear(); mXToc.clear(); mYToc.clear();
     mSampleTic.clear(); mSampleToc.clear();
     mRateCrosshair = nullptr;
@@ -204,21 +205,28 @@ void RateScopeTab::onMeasurement(const Measurement &m)
             mLastA = ev.samplePos; mHaveLastA = true;
 
             if (ev.hasRatePoint) {
-                int graphIdx = ev.isTic ? 0 : 1;
                 QVector<double> &xv  = ev.isTic ? mXTic : mXToc;
                 QVector<double> &yv  = ev.isTic ? mYTic : mYToc;
                 QVector<double> &sv  = ev.isTic ? mSampleTic : mSampleToc;
-                int             &idx = ev.isTic ? mXTicIdx : mXTocIdx;
-                if (yv.size() < mMaxPoints) {
-                    yv.append(ev.wrappedRateError);
-                    xv.append(idx);
-                    sv.append((double)ev.samplePos);
-                } else {
-                    yv[idx] = ev.wrappedRateError;
-                    sv[idx] = (double)ev.samplePos;
-                }
-                idx = (idx + 1) % mMaxPoints;
-                mRatePlot->graph(graphIdx)->setData(xv, yv);
+                // Shared monotonic beat count as the x-coordinate so Tic and Toc
+                // stay aligned even when ambient noise rejects one series more than
+                // the other (separate per-series indices would otherwise drift, so
+                // one colour ends up several beats ahead of the other).
+                xv.append((double)mBeatX);
+                yv.append(ev.wrappedRateError);
+                sv.append((double)ev.samplePos);
+                mBeatX++;
+                // Sliding window: keep only the last mMaxPoints beats in both series.
+                const double minX = (double)mBeatX - mMaxPoints;
+                auto trim = [minX](QVector<double> &X, QVector<double> &Y, QVector<double> &S) {
+                    while (!X.isEmpty() && X.first() < minX) { X.removeFirst(); Y.removeFirst(); S.removeFirst(); }
+                };
+                trim(mXTic, mYTic, mSampleTic);
+                trim(mXToc, mYToc, mSampleToc);
+                mRatePlot->graph(0)->setData(mXTic, mYTic);
+                mRatePlot->graph(1)->setData(mXToc, mYToc);
+                const int hi = qMax(mBeatX, mMaxPoints);
+                mRatePlot->xAxis->setRange(hi - mMaxPoints, hi);
 
                 // RS-2: Welford online update
                 mStatCount++;

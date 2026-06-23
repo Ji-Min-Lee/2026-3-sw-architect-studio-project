@@ -67,6 +67,7 @@ private:
     int     mScopeScale = 4;
     int     mXTicIdx    = 0;
     int     mXTocIdx    = 0;
+    int     mBeatX      = 0;   // shared monotonic beat count → Tic/Toc share one x axis
     int     mMaxPoints  = 250;
     QVector<double> mXTic, mYTic, mXToc, mYToc;
     // Parallel sample-position vectors for click-to-sync
