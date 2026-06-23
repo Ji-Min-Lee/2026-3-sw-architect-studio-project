@@ -1,0 +1,37 @@
+#!/bin/sh
+# Run unit tests for calculation correctness before each commit.
+# Covers QA: Correctness / Calculation Correctness (docs/milestone3/strategy/qa-correctness.md)
+#
+# Tests: TestWatchMath, TestMeasurementEngine
+# Build dir: src/build-mac (macOS) or src/build-rpi (Raspberry Pi)
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Detect platform and select build directory
+case "$(uname -s)" in
+    Darwin)  BUILD_DIR="$REPO_ROOT/src/build-mac" ;;
+    Linux)   BUILD_DIR="$REPO_ROOT/src/build-rpi" ;;
+    *)       BUILD_DIR="$REPO_ROOT/src/build-mac" ;;
+esac
+
+run_test() {
+    BINARY="$BUILD_DIR/$1"
+    if [ ! -f "$BINARY" ]; then
+        echo "[pre-commit] SKIP $1 — binary not found at $BINARY"
+        echo "[pre-commit] Run 'cmake --build $BUILD_DIR' to build tests."
+        return 0
+    fi
+    echo "[pre-commit] Running $1 ..."
+    "$BINARY"
+    if [ $? -ne 0 ]; then
+        echo "[pre-commit] FAIL $1"
+        echo "[pre-commit] Fix test failures before committing."
+        exit 1
+    fi
+    echo "[pre-commit] PASS $1"
+}
+
+run_test TestWatchMath
+run_test TestMeasurementEngine
+
+echo "[pre-commit] All unit tests passed."
