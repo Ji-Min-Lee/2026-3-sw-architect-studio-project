@@ -4,13 +4,18 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QSplitter>
+#include <cmath>
 
 namespace {
 const int kColRate = 0, kColBeat = 1, kColAmp = 2;
-const QStringList kPositions = {"CH", "CB", "9H", "6H", "3H", "12H",
-                                "CU(R)", "CU(L)", "CD(R)", "CD(L)"};
-const QStringList kVertical   = {"9H", "6H", "3H", "12H"};
-const QStringList kHorizontal = {"CH", "CB"};
+// 6 standard positions: 2 horizontal (DU/DD) + 4 vertical (CR/CU/CL/CD)
+const QStringList kPositions  = {"DU", "DD", "CR", "CU", "CL", "CD"};
+const QStringList kVertical   = {"CR", "CU", "CL", "CD"};
+const QStringList kHorizontal = {"DU", "DD"};
+// Rotation angles for DVm/Φ sinusoidal fit (Crown Right = 0°)
+const QMap<QString, double> kPositionAngleDeg = {
+    {"CR",  0.0}, {"CU", 90.0}, {"CL", 180.0}, {"CD", 270.0}
+};
 } // namespace
 
 QStringList SequenceTab::positions() { return kPositions; }
@@ -36,10 +41,10 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
     top->addWidget(clearButton);
     leftLayout->addLayout(top);
 
-    mTable = new QTableWidget(kPositions.size() + 3, 3, leftPane);
+    mTable = new QTableWidget(kPositions.size() + 5, 3, leftPane);
     mTable->setHorizontalHeaderLabels({"Rate (s/d)", "Beat (ms)", "Ampl (°)"});
     QStringList rows = kPositions;
-    rows << "X (mean)" << "D (max−min)" << "DVH";
+    rows << "X (mean)" << "D (max−min)" << "DVH" << "DVm" << "Φ";
     mTable->setVerticalHeaderLabels(rows);
     // Columns stretch to fill the (width-capped) left pane, so the table
     // spans up to the radar divider with no empty gap on its right.
@@ -159,49 +164,100 @@ void SequenceTab::recomputeSummary()
     const int xRow   = kPositions.size();
     const int dRow   = kPositions.size() + 1;
     const int dvhRow = kPositions.size() + 2;
+    const int dvmRow = kPositions.size() + 3;
+    const int phiRow = kPositions.size() + 4;
 
+    // ── X (mean) and D (max-min) across all captured positions ──────────────
     for (int c = 0; c < 3; c++) {
         QVector<double> vals;
         for (int r = 0; r < kPositions.size(); r++) {
-            bool parseOk = false;
-            double cellValue = mTable->item(r, c)->text().toDouble(&parseOk);
-            if (parseOk) vals.append(cellValue);
+            bool ok = false;
+            double v = mTable->item(r, c)->text().toDouble(&ok);
+            if (ok) vals.append(v);
         }
         if (vals.isEmpty()) {
             mTable->item(xRow, c)->setText("—");
             mTable->item(dRow, c)->setText("—");
             continue;
         }
-        double sum = 0, minVal = vals[0], maxVal = vals[0];
-        for (double val : vals) { sum += val; minVal = qMin(minVal, val); maxVal = qMax(maxVal, val); }
+        double sum = 0, lo = vals[0], hi = vals[0];
+        for (double v : vals) { sum += v; lo = qMin(lo, v); hi = qMax(hi, v); }
         int dec = (c == kColAmp) ? 0 : 1;
         mTable->item(xRow, c)->setText(QString::number(sum / vals.size(), 'f', dec));
-        mTable->item(dRow, c)->setText(QString::number(maxVal - minVal, 'f', dec));
+        mTable->item(dRow, c)->setText(QString::number(hi - lo, 'f', dec));
     }
 
-    // DVH: Vertical mean − Horizontal mean (Rate + Ampl only; Beat left blank)
+    // ── DVH: vertical mean − horizontal mean (Rate + Ampl; Beat blank) ──────
     auto groupMean = [&](const QStringList &group, int col, bool &ok) {
         double sum = 0; int count = 0;
         for (const QString &p : group) {
             int r = rowOfPosition(p);
             bool conv = false;
-            double cellValue = mTable->item(r, col)->text().toDouble(&conv);
-            if (conv) { sum += cellValue; count++; }
+            double v = mTable->item(r, col)->text().toDouble(&conv);
+            if (conv) { sum += v; count++; }
         }
-        ok = count > 0;
+        ok = (count > 0);
         return ok ? sum / count : 0.0;
     };
     for (int c = 0; c < 3; c++) {
-        if (c == kColBeat) {
-            mTable->item(dvhRow, c)->setText("—");
-            continue;
-        }
+        if (c == kColBeat) { mTable->item(dvhRow, c)->setText("—"); continue; }
         bool okV = false, okH = false;
         double vMean = groupMean(kVertical,   c, okV);
         double hMean = groupMean(kHorizontal, c, okH);
         int dec = (c == kColAmp) ? 0 : 1;
         mTable->item(dvhRow, c)->setText(
             (okV && okH) ? QString::number(vMean - hMean, 'f', dec) : "—");
+    }
+
+    // ── DVm and Φ: sinusoidal fit to 4 vertical positions ───────────────────
+    // Model: rate(θ) = R₀ + DVm × cos(θ − Φ)
+    //   CR = θ  0°,  CU = θ  90°,  CL = θ 180°,  CD = θ 270°
+    // Proof:  rate_CR − rate_CL = 2 DVm cos(Φ)
+    //         rate_CU − rate_CD = 2 DVm sin(Φ)
+    // DVm normalised to 270° reference amplitude (Witschi convention).
+    auto cellVal = [&](const QString &pos, int col, bool &ok) -> double {
+        int r = rowOfPosition(pos);
+        if (r < 0) { ok = false; return 0.0; }
+        return mTable->item(r, col)->text().toDouble(&ok);
+    };
+
+    bool okRcr, okRcu, okRcl, okRcd;
+    double rCR = cellVal("CR", kColRate, okRcr);
+    double rCU = cellVal("CU", kColRate, okRcu);
+    double rCL = cellVal("CL", kColRate, okRcl);
+    double rCD = cellVal("CD", kColRate, okRcd);
+
+    if (okRcr && okRcu && okRcl && okRcd) {
+        double xComp = (rCR - rCL) / 2.0;   // DVm × cos(Φ)
+        double yComp = (rCU - rCD) / 2.0;   // DVm × sin(Φ)
+        double dvm   = std::sqrt(xComp * xComp + yComp * yComp);
+
+        // Normalise to 270° amplitude when all 4 amplitudes are available
+        bool okACR, okACU, okACL, okACD;
+        double aCR = cellVal("CR", kColAmp, okACR);
+        double aCU = cellVal("CU", kColAmp, okACU);
+        double aCL = cellVal("CL", kColAmp, okACL);
+        double aCD = cellVal("CD", kColAmp, okACD);
+        if (okACR && okACU && okACL && okACD) {
+            double avgAmp = (aCR + aCU + aCL + aCD) / 4.0;
+            if (avgAmp > 1.0) dvm *= (270.0 / avgAmp);
+        }
+
+        double phi = std::atan2(yComp, xComp) * 180.0 / M_PI;
+        if (phi < 0.0) phi += 360.0;
+
+        // DVm shown in Rate column (s/d); Φ shown in Ampl column (°)
+        mTable->item(dvmRow, kColRate)->setText(QString::number(dvm, 'f', 1));
+        mTable->item(dvmRow, kColBeat)->setText("—");
+        mTable->item(dvmRow, kColAmp)->setText("—");
+        mTable->item(phiRow, kColRate)->setText("—");
+        mTable->item(phiRow, kColBeat)->setText("—");
+        mTable->item(phiRow, kColAmp)->setText(QString::number(phi, 'f', 0) + "°");
+    } else {
+        for (int c = 0; c < 3; c++) {
+            mTable->item(dvmRow, c)->setText("—");
+            mTable->item(phiRow, c)->setText("—");
+        }
     }
 }
 

@@ -62,6 +62,6 @@ private:
 
     Measurement   mLatest;
     bool          mHaveLatest     = false;
-    QString       mActivePosition = "CH";
-    QDateTime     mCapturedAt[10];
+    QString       mActivePosition = "CR";
+    QDateTime     mCapturedAt[6];
 };

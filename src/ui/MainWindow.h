@@ -163,7 +163,7 @@ private:
     QList<BaseGraphTab *> mAllTabs;
 
     // Watch-position testing (NIHS 95-10/ISO 3158)
-    QString mActivePosition = "CH";
+    QString mActivePosition = "CR";
 
     // Live-mode watch-detached alarm state (edge detection)
     bool         mHadWatchSignal = false;
