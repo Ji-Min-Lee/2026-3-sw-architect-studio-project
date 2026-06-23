@@ -17,6 +17,7 @@
 #include "WatchDiagnostics.h"
 #include "WatchExplainer.h"
 #include "DiagnosisDialog.h"
+#include "UserGuideDialog.h"
 // Tabs (Presentation layer — all 11 graph tabs)
 #include "RateScopeTab.h"
 #include "TraceTab.h"
@@ -108,6 +109,7 @@ private:
     // overflow tab back into the menu once the user returns to a default tab.
     static constexpr int kDefaultVisibleTabs = 9;
     void   setupTabOverflow(void);
+    void   showUserGuide(UserGuideSection section);
     void   onGraphTabChanged(int index);
     void   LiveStart(void);
     void   PlaybackStart(void);
@@ -219,6 +221,7 @@ private:
 
     // Graph-tab overflow "More" drop-down (feature/ui-improvement)
     QToolButton *mMoreTabsButton   = nullptr;
+    QMenu       *mMoreTabsMenu     = nullptr;
 
     Logger          *mLogger = nullptr;
 

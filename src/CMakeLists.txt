@@ -44,6 +44,10 @@ set(PROJECT_SOURCES
     ui/SettingsManager.cpp
     ui/DiagnosisDialog.h
     ui/DiagnosisDialog.cpp
+    ui/UserGuideContent.h
+    ui/UserGuideContent.cpp
+    ui/UserGuideDialog.h
+    ui/UserGuideDialog.cpp
     engine/WatchExplainer.h
     engine/WatchExplainer.cpp
     rag/RagRetriever.h

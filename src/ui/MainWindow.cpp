@@ -41,6 +41,7 @@ QString resolveRagDatabasePath()
 #include <QFile>
 #include <QMenu>
 #include <QAction>
+#include <QKeySequence>
 #include <QDataStream>
 #include <QtEndian>
 #include <QDebug>
@@ -255,8 +256,9 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-    // ── Graph tabs: show the first 9, rest behind a "More" drop-down ──────
+    // ── Graph tabs: overflow + user guide behind corner "More" drop-down ───
     setupTabOverflow();
+    menuBar()->setVisible(false);
 
     // ── Left control panel: reclaim screen space (feature/ui-improvement) ──
     // SimFrame is shown only in Sim mode, and the set-once MiscFrame collapses
@@ -334,33 +336,57 @@ void MainWindow::setupTabOverflow(void)
 {
     QTabWidget *tw = ui->GraphicsTabWidget;
     const int n = tw->count();
-    if (n <= kDefaultVisibleTabs) return;          // nothing to overflow
 
     mMoreTabsButton = new QToolButton(tw);
     mMoreTabsButton->setObjectName("MoreTabsButton");
     mMoreTabsButton->setText(tr("More"));
     mMoreTabsButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     mMoreTabsButton->setArrowType(Qt::DownArrow);
-    mMoreTabsButton->setPopupMode(QToolButton::InstantPopup);
     mMoreTabsButton->setAutoRaise(true);
     mMoreTabsButton->setCursor(Qt::PointingHandCursor);
-    mMoreTabsButton->setToolTip(tr("More graphs"));
+    mMoreTabsButton->setMinimumWidth(72);
+    mMoreTabsButton->setToolTip(tr("More tabs and user guide"));
 
-    QMenu *menu = new QMenu(mMoreTabsButton);
-    for (int i = kDefaultVisibleTabs; i < n; ++i) {
-        QAction *act = menu->addAction(tw->tabText(i));
-        connect(act, &QAction::triggered, this, [this, i] {
-            ui->GraphicsTabWidget->setTabVisible(i, true);   // reveal the chosen graph
-            ui->GraphicsTabWidget->setCurrentIndex(i);       // and switch to it
-        });
+    mMoreTabsMenu = new QMenu(mMoreTabsButton);
+
+    if (n > kDefaultVisibleTabs) {
+        QMenu *moreTabs = mMoreTabsMenu->addMenu(tr("More Tab"));
+        for (int i = kDefaultVisibleTabs; i < n; ++i) {
+            QAction *act = moreTabs->addAction(tw->tabText(i));
+            connect(act, &QAction::triggered, this, [this, i] {
+                ui->GraphicsTabWidget->setTabVisible(i, true);
+                ui->GraphicsTabWidget->setCurrentIndex(i);
+            });
+        }
+        for (int i = kDefaultVisibleTabs; i < n; ++i)
+            tw->setTabVisible(i, false);
+        connect(tw, &QTabWidget::currentChanged, this, &MainWindow::onGraphTabChanged);
     }
-    mMoreTabsButton->setMenu(menu);
+
+    QAction *guide = mMoreTabsMenu->addAction(tr("User Guide"));
+    guide->setShortcut(QKeySequence::HelpContents);
+    connect(guide, &QAction::triggered, this, [this] {
+        showUserGuide(UserGuideSection::Overview);
+    });
+
+    connect(mMoreTabsButton, &QToolButton::clicked, this, [this] {
+        if (!mMoreTabsMenu)
+            return;
+        const QPoint pos = mMoreTabsButton->mapToGlobal(
+            QPoint(0, mMoreTabsButton->height()));
+        mMoreTabsMenu->popup(pos);
+    });
+
     tw->setCornerWidget(mMoreTabsButton, Qt::TopRightCorner);
+}
 
-    for (int i = kDefaultVisibleTabs; i < n; ++i)  // collapse overflow into the menu
-        tw->setTabVisible(i, false);
-
-    connect(tw, &QTabWidget::currentChanged, this, &MainWindow::onGraphTabChanged);
+void MainWindow::showUserGuide(UserGuideSection section)
+{
+    auto *dlg = new UserGuideDialog(section, this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->show();
+    dlg->raise();
+    dlg->activateWindow();
 }
 
 // Keep at most one overflow tab revealed at a time: when the user returns to a
