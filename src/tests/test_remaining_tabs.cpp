@@ -277,15 +277,43 @@ private slots:
             QVERIFY(it->value >= 0.0);
     }
 
-    // FS-4: F1 negGraph is empty (F1 is a positive-only envelope, not mirrored)
-    void f1_graph1IsEmpty()
+    // FS-4: F1 produces mirrored negative series on graph(1)
+    void f1_mirroredGraph1HasData()
     {
         Measurement m;
         m.signal.samplesPerSecond = 48000;
         m.signal.rawPcm.fill(1.0f, 64);
         mTab->show();
         mTab->onMeasurement(m);
-        QCOMPARE(plot(1)->graph(1)->dataCount(), 0);
+        QVERIFY(plot(1)->graph(1)->dataCount() > 0);
+        auto data = plot(1)->graph(1)->data();
+        for (auto it = data->begin(); it != data->end(); ++it)
+            QVERIFY(it->value <= 0.0);
+    }
+
+    // FS-4b: F2 produces mirrored negative series on graph(1)
+    void f2_mirroredGraph1HasData()
+    {
+        Measurement m;
+        m.signal.samplesPerSecond = 48000;
+        m.signal.rawPcm.fill(1.0f, 64);
+        mTab->show();
+        mTab->onMeasurement(m);
+        QVERIFY(plot(2)->graph(1)->dataCount() > 0);
+        auto data = plot(2)->graph(1)->data();
+        for (auto it = data->begin(); it != data->end(); ++it)
+            QVERIFY(it->value <= 0.0);
+    }
+
+    // FS-4c: F3 upper envelope stays positive-only (no mirror)
+    void f3_graph1IsEmpty()
+    {
+        Measurement m;
+        m.signal.samplesPerSecond = 48000;
+        m.signal.rawPcm.fill(1.0f, 64);
+        mTab->show();
+        mTab->onMeasurement(m);
+        QCOMPARE(plot(3)->graph(1)->dataCount(), 0);
     }
 
     // FS-5: reset() clears both graph series on F0 panel

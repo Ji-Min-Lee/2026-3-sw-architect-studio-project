@@ -3,6 +3,7 @@
 #include "qcustomplot.h"
 #include <QLabel>
 #include <QList>
+#include <vector>
 
 // Graph 13: Scope Function with Multiple Filter Views — F0..F3 (Figure 19).
 //
@@ -42,10 +43,23 @@ private:
     Measurement mLatest;
     bool        mHaveData = false;
 
+    std::vector<float> mHpfRing;
+    uint64_t           mRingStartTick  = 0;
+    int                mSampleRate     = 48000;
+    int                mBph            = 28800;
+    uint64_t           mLastASamplePos = 0;
+    bool               mHaveLastA      = false;
+    uint64_t           mCycleStartTick = 0;
+
+    int beatPeriodSamples() const;
+    double beatPeriodMs() const;
+    void appendToRing(const Measurement &m);
+    QVector<float> extractBeatCyclePcm();
+
     static FilterStages computeFilterStages(const QVector<float> &pcm);
     void stylePanel(FilterPanel &panel, bool showXLabel);
     void drawPanel(FilterPanel &panel, int mode,
                    const QVector<double> &xs, const QVector<double> &ys,
-                   const Measurement &m);
+                   const Measurement &m, double cycleMs);
     void redraw();
 };

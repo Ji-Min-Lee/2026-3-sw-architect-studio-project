@@ -1,6 +1,7 @@
 #include "ReplotCounter.h"
 #include "FilterScopeTab.h"
 #include <QVBoxLayout>
+#include <algorithm>
 #include <cmath>
 
 namespace {
@@ -78,6 +79,70 @@ void FilterScopeTab::stylePanel(FilterPanel &panel, bool showXLabel)
     plot->xAxis->setLabel(showXLabel ? tr("Time (ms)") : QString());
 }
 
+int FilterScopeTab::beatPeriodSamples() const
+{
+    const int bph = qMax(1, mBph);
+    const double periodSec = 3600.0 / static_cast<double>(bph);
+    return qMax(64, static_cast<int>(std::ceil(periodSec * mSampleRate)));
+}
+
+double FilterScopeTab::beatPeriodMs() const
+{
+    return beatPeriodSamples() * 1000.0 / static_cast<double>(mSampleRate);
+}
+
+void FilterScopeTab::appendToRing(const Measurement &m)
+{
+    const QVector<float> &pcm = !m.signal.hpfPcm.isEmpty() ? m.signal.hpfPcm : m.signal.rawPcm;
+    if (pcm.isEmpty()) {
+        return;
+    }
+
+    if (mHpfRing.empty()) {
+        mRingStartTick = m.signal.tickStart;
+    } else {
+        const uint64_t expected = mRingStartTick + static_cast<uint64_t>(mHpfRing.size());
+        if (m.signal.tickStart > expected) {
+            mHpfRing.clear();
+            mRingStartTick = m.signal.tickStart;
+        }
+    }
+
+    mHpfRing.insert(mHpfRing.end(), pcm.constBegin(), pcm.constEnd());
+
+    const int maxKeep = beatPeriodSamples() * 3;
+    if (static_cast<int>(mHpfRing.size()) > maxKeep) {
+        const int drop = static_cast<int>(mHpfRing.size()) - maxKeep;
+        mHpfRing.erase(mHpfRing.begin(), mHpfRing.begin() + drop);
+        mRingStartTick += static_cast<uint64_t>(drop);
+    }
+}
+
+QVector<float> FilterScopeTab::extractBeatCyclePcm()
+{
+    const int need = beatPeriodSamples();
+    QVector<float> out;
+    if (mHpfRing.empty()) {
+        return out;
+    }
+
+    size_t startIdx = 0;
+    if (mHaveLastA && mLastASamplePos >= mRingStartTick) {
+        startIdx = static_cast<size_t>(mLastASamplePos - mRingStartTick);
+    } else if (mHpfRing.size() > static_cast<size_t>(need)) {
+        startIdx = mHpfRing.size() - static_cast<size_t>(need);
+    }
+
+    const size_t avail = (startIdx < mHpfRing.size()) ? mHpfRing.size() - startIdx : 0;
+    const size_t take  = std::min(static_cast<size_t>(need), avail);
+    out.reserve(static_cast<int>(take));
+    for (size_t i = 0; i < take; ++i) {
+        out.append(mHpfRing[startIdx + i]);
+    }
+    mCycleStartTick = mRingStartTick + static_cast<uint64_t>(startIdx);
+    return out;
+}
+
 FilterScopeTab::FilterStages FilterScopeTab::computeFilterStages(const QVector<float> &pcm)
 {
     const int sampleCount = pcm.size();
@@ -128,10 +193,10 @@ FilterScopeTab::FilterStages FilterScopeTab::computeFilterStages(const QVector<f
 
 void FilterScopeTab::drawPanel(FilterPanel &panel, int mode,
                                const QVector<double> &xs, const QVector<double> &ys,
-                               const Measurement &m)
+                               const Measurement &m, double cycleMs)
 {
     const int sampleCount = ys.size();
-    const bool mirrored = (mode == 0); // only F0 "raw mirrored" is a bipolar signal
+    const bool mirrored = (mode != 3); // F0–F2: bipolar scope; F3 upper envelope stays positive-only
 
     if (mirrored) {
         QVector<double> pos(sampleCount);
@@ -152,11 +217,10 @@ void FilterScopeTab::drawPanel(FilterPanel &panel, int mode,
     }
 
     int used = 0;
-    const double xMax = xs.isEmpty() ? 0.0 : xs.last();
     for (const AcousticEvent &ev : m.events) {
-        const double xMs = (ev.samplePos - static_cast<double>(m.signal.tickStart))
+        const double xMs = (ev.samplePos - static_cast<double>(mCycleStartTick))
                            / m.signal.samplesPerSecond * 1000.0;
-        if (xMs < 0.0 || xMs > xMax) {
+        if (xMs < 0.0 || xMs > cycleMs) {
             continue;
         }
         if (used >= panel.markers.size()) {
@@ -172,7 +236,7 @@ void FilterScopeTab::drawPanel(FilterPanel &panel, int mode,
         marker->setVisible(true);
     }
 
-    panel.plot->xAxis->setRange(0.0, xMax);
+    panel.plot->xAxis->setRange(0.0, cycleMs);
     panel.plot->yAxis->rescale();
     if (mirrored) {
         panel.plot->yAxis->setRange(-panel.plot->yAxis->range().upper,
@@ -188,7 +252,7 @@ void FilterScopeTab::redraw()
     }
 
     const Measurement &m = mLatest;
-    const QVector<float> &pcm = !m.signal.hpfPcm.isEmpty() ? m.signal.hpfPcm : m.signal.rawPcm;
+    const QVector<float> pcm = extractBeatCyclePcm();
     const int pcmSampleCount = pcm.size();
     if (pcmSampleCount == 0) {
         return;
@@ -201,16 +265,17 @@ void FilterScopeTab::redraw()
         xs[i] = static_cast<double>(i) / m.signal.samplesPerSecond * 1000.0;
     }
 
-    const double blockMs = xs.last();
+    const double spanMs = beatPeriodMs();
     mBlockLabel->setText(
-        tr("Filter scope — block %1 ms  (%2 samples @ %3 Hz)")
-            .arg(blockMs, 0, 'f', 1)
+        tr("Filter scope — 1 beat cycle (%1 ms, %2 samples @ %3 Hz, %4 BPH)")
+            .arg(spanMs, 0, 'f', 1)
             .arg(pcmSampleCount)
-            .arg(m.signal.samplesPerSecond));
+            .arg(m.signal.samplesPerSecond)
+            .arg(mBph));
 
     const QVector<double> *stageYs[] = {&stages.f0, &stages.f1, &stages.f2, &stages.f3};
     for (int i = 0; i < kFilterPanels; ++i) {
-        drawPanel(mPanels[i], i, xs, *stageYs[i], m);
+        drawPanel(mPanels[i], i, xs, *stageYs[i], m, spanMs);
     }
 }
 
@@ -219,6 +284,22 @@ void FilterScopeTab::onMeasurement(const Measurement &m)
     if (m.signal.hpfPcm.isEmpty() && m.signal.rawPcm.isEmpty()) {
         return;
     }
+
+    if (m.detectedBph > 0) {
+        mBph = m.detectedBph;
+    }
+    if (m.signal.samplesPerSecond > 0) {
+        mSampleRate = m.signal.samplesPerSecond;
+    }
+
+    for (const AcousticEvent &ev : m.events) {
+        if (ev.isA) {
+            mLastASamplePos = static_cast<uint64_t>(ev.samplePos);
+            mHaveLastA      = true;
+        }
+    }
+
+    appendToRing(m);
     mLatest   = m;
     mHaveData = true;
     if (mPaused || !isVisible()) {
@@ -229,7 +310,12 @@ void FilterScopeTab::onMeasurement(const Measurement &m)
 
 void FilterScopeTab::reset()
 {
-    mHaveData = false;
+    mHaveData       = false;
+    mHpfRing.clear();
+    mRingStartTick  = 0;
+    mHaveLastA      = false;
+    mLastASamplePos = 0;
+    mCycleStartTick = 0;
     mBlockLabel->setText(tr("Filter scope — waiting for data"));
     for (FilterPanel &panel : mPanels) {
         panel.posGraph->data()->clear();
