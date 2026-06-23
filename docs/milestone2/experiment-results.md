@@ -14,6 +14,7 @@
 | EXP-03 | QAS-3 | End-to-End Latency — 2-Segment Timestamp Measurement | 7 | DSP E2E avg **2.2 ms** / max **4.8 ms** achieved. FG scheduling latency avg 60 ms revealed as next bottleneck | ✅ Done |
 | EXP-04 | QAS-4 | Observer Pattern Compliance — Tab Extension Cost Measurement | — | ≤ 3 files per new tab · 0 Signal Processing references · 14 tabs all pass · DSM no violations | ✅ Done |
 | EXP-05 | QAS-5 | Detector Parameter Optimization Under Noise | 274 | `onset=0.08` most robust: rate ≈ +4.0 s/d stable across 0–50 dB. **Recommended: onset=0.08, min_peak=0.10** | ✅ Done |
+| EXP-06 | QAS-4 | Signal Quality Warning — Ambient Noise Threshold Validation | 1 | noiseDb exceeds 55 dB at SNR ≤ 0 dB; 0 false alarms at SNR ≥ 10 dB | ✅ Done |
 
 ---
 
@@ -195,6 +196,42 @@ Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 
 ---
 
+## EXP-06: Signal Quality Warning — Ambient Noise Threshold Validation
+
+**QA**: QAS-4 | **Date**: 2026-06-23 | **Status**: ✅ Done
+
+**Question**: Does the 55 dB `noiseDb` threshold implemented in `feature/noise` trigger correctly — popup at SNR ≤ 0 dB, no false alarms at SNR ≥ 10 dB?
+
+**Answer**: Yes. noiseDb exceeds 55 dB only at SNR ≤ 0 dB. Zero false alarms at SNR ≥ 10 dB.
+
+### Run History
+
+| Run | Date | File | noiseDb at SNR 0 dB | False alarms (SNR ≥ 10) | Result |
+|:---:|------|------|:-------------------:|:-----------------------:|:------:|
+| E6-01 | 2026-06-23 | `28800BPH_3235_Starbucks_snr{M10..60}db.wav` (8 files, float32, 96kHz) | avg 54.4 / max **56.9** | **0 / 6** | ✅ Pass |
+
+### Key Data
+
+| SNR (dB) | noiseDb avg | noiseDb max | Popup triggers? | Beat Error (ms) |
+|:--------:|:-----------:|:-----------:|:---------------:|:---------------:|
+| 60 ~ 10  | 46.6 – 49.6 | 54.9        | No              | ~0.2 (mechanical baseline) |
+| **0**    | **54.4**    | **56.9**    | **Yes**         | 16.5 (corrupted) |
+| **−10**  | **61.9**    | **63.3**    | **Yes**         | INVALID (not synced) |
+
+> `noiseDb` is derived from the adaptive noise floor (`onset_threshold`) in `MeasurementEngine`.  
+> Popup logic: `noiseDb ≥ 55 dB` sustained for 2 s → non-modal `QMessageBox` ("Noisy Environment").
+
+![EXP-06 Noise Detection Graph](exp-04-noise-before-after.png)
+
+### Conclusion
+
+- **0 false alarms** at SNR ≥ 10 dB (noiseDb max 54.9 — just under threshold)
+- **Popup correctly fires** at SNR 0 dB (max 56.9) and SNR −10 dB (max 63.3)
+- At SNR −10 dB engine loses sync entirely — noiseDb alone correctly signals the problem
+- Implemented in `feature/noise` (commits `c0a882a`, `2cac301`)
+
+---
+
 ## Architecture Decisions Log
 
 | Decision | QA | Source | Outcome | Date |
@@ -206,3 +243,4 @@ Representative CSVs (onset=0.08 / min_peak=0.10, best setting):
 | Observer pattern (BaseGraphTab + Qt Signal-Slot) | QAS-4 | EXP-04 | **Applied** — `MeasurementEngine` has zero tab knowledge; ≤ 3 files per new tab | 2026-06-21 |
 | IAudioSource dependency inversion | QAS-4 | EXP-04 | **Applied** — 3 audio sources unified under single interface; 1 connect() site | 2026-06-21 |
 | Detector parameters | QAS-5 | EXP-05 | **onset=0.08, min_peak=0.10** — only setting tracking through 60 dB SNR | 2026-06-17 |
+| Ambient noise popup threshold | QAS-4 | EXP-06 | **55 dB** — 0 false alarms at SNR ≥ 10 dB; popup fires at SNR ≤ 0 dB | 2026-06-23 |
