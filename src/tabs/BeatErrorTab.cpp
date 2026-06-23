@@ -4,17 +4,16 @@
 #include <QHBoxLayout>
 
 namespace {
-constexpr double kGoodBeatErrorMs = 0.6;  // "values under 0.6 ms generally good"
+constexpr double kGoodBeatErrorMs    = 0.6;   // green band: values under this are generally good
+constexpr double kDefaultYScaleMs    = 1.2;   // 0.6 ms band = lower half of the plot
+constexpr double kAutoYScaleFloorMs  = 1.2;   // auto mode never compresses below this
+constexpr int    kYScaleAutoIndex    = 4;
 } // namespace
 
 BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
 {
     auto *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
-
-    mHeaderLabel = new QLabel(this);
-    mHeaderLabel->setAlignment(Qt::AlignHCenter);
-    mainLayout->addWidget(mHeaderLabel);
 
     auto *controlsLayout = new QHBoxLayout;
     controlsLayout->setContentsMargins(4, 0, 4, 0);
@@ -23,8 +22,15 @@ BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
     mZoomCombo->addItems({"10 min", "5 min", "2.5 min", "75 s", "30 s"});
     mZoomCombo->setCurrentIndex(4);  // scrolling visible with ~45 s test files
     controlsLayout->addWidget(mZoomCombo);
+    controlsLayout->addSpacing(12);
+    controlsLayout->addWidget(new QLabel("Scale:", this));
+    mYScaleCombo = new QComboBox(this);
+    mYScaleCombo->addItems({"1.2 ms", "2.0 ms", "5.0 ms", "10.0 ms", "Auto"});
+    mYScaleCombo->setCurrentIndex(0);
+    controlsLayout->addWidget(mYScaleCombo);
     mAlertLabel = new QLabel(this);
-    mAlertLabel->setAlignment(Qt::AlignHCenter);
+    mAlertLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    mAlertLabel->setTextFormat(Qt::RichText);
     controlsLayout->addWidget(mAlertLabel, 1);
     mainLayout->addLayout(controlsLayout);
 
@@ -38,7 +44,7 @@ BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
     mPlot->graph(0)->setName("Beat Error (ms)");
     mPlot->xAxis->setLabel("Time (s)");
     mPlot->yAxis->setLabel("Beat Error (ms)");
-    mPlot->yAxis->setRange(0, 5);
+    mPlot->yAxis->setRange(0, kDefaultYScaleMs);
     mPlot->legend->setVisible(true);
     mPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
@@ -77,6 +83,11 @@ BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
                 mPlot->xAxis->setRange(hi - windowSec(), hi);
                 { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
             });
+    connect(mYScaleCombo, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, [this](int) {
+                applyBeatErrorYScale();
+                { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
+            });
 
     // Legend in its own row above the graphs so it never covers the trace
     mPlot->axisRect()->insetLayout()->take(mPlot->legend);
@@ -85,7 +96,7 @@ BeatErrorTab::BeatErrorTab(QWidget *parent) : BaseGraphTab(parent)
     mPlot->legend->setFillOrder(QCPLegend::foColumnsFirst);
     mPlot->plotLayout()->setRowStretchFactor(0, 0.001);
 
-    updateHeader(Measurement{});
+    updateAlerts(Measurement{});
 }
 
 void BeatErrorTab::reset()
@@ -95,21 +106,12 @@ void BeatErrorTab::reset()
     mPlot->graph(0)->data()->clear();
     mTicGraph->data()->clear();
     mTocGraph->data()->clear();
-    updateHeader(Measurement{});
+    updateAlerts(Measurement{});
     { int64_t _pt=TG_NOW(); mPlot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }
 
-void BeatErrorTab::updateHeader(const Measurement &m)
+void BeatErrorTab::updateAlerts(const Measurement &m)
 {
-    auto formatValue = [](bool valid, double value, int dec, const QString &unit) {
-        return valid ? QString("%1 %2").arg(value, 0, 'f', dec).arg(unit) : QString("--- %1").arg(unit);
-    };
-    mHeaderLabel->setText(QString("<b>RATE %1   AMPLITUDE %2   BEAT ERROR %3   BEAT %4</b>")
-                              .arg(formatValue(m.metrics.rate.has_value(), *m.metrics.rate, 1, "s/d"),
-                                   formatValue(m.metrics.amplitude.has_value(), *m.metrics.amplitude, 0, "°"),
-                                   formatValue(m.metrics.beatError.has_value(), *m.metrics.beatError, 2, "ms"),
-                                   m.synced ? QString("%1 bph").arg(m.detectedBph) : "----- bph"));
-
     QStringList alerts;
     if (m.metrics.beatError.has_value() && *m.metrics.beatError > kGoodBeatErrorMs)
         alerts << QString("<span style='color:#c01e1e'>⚠ Line separation %1 ms exceeds "
@@ -140,11 +142,7 @@ void BeatErrorTab::updateHeader(const Measurement &m)
                           "exceeds 45°</b></span>";
         }
     }
-    mAlertLabel->setText(alerts.isEmpty()
-                             ? QString("green band = good beat error (under %1 ms, 0.0 ideal) · "
-                                       "trace separation = beat error · slope = rate deviation")
-                                   .arg(kGoodBeatErrorMs)
-                             : alerts.join("   "));
+    mAlertLabel->setText(alerts.isEmpty() ? QString() : alerts.join("   "));
 }
 
 void BeatErrorTab::onMeasurement(const Measurement &m)
@@ -163,14 +161,13 @@ void BeatErrorTab::onMeasurement(const Measurement &m)
     }
 
     if (mPaused || !isVisible()) return;
-    updateHeader(m);
+    updateAlerts(m);
     if (m.metrics.beatError.has_value()) {
         // Rolling time window: the trace scrolls past instead of compressing;
         // all data is retained for Pause + drag/zoom review
         double hi = qMax(mTimeElapsed, windowSec());
         mPlot->xAxis->setRange(hi - windowSec(), hi);
-        mPlot->yAxis->rescale();
-        if (mPlot->yAxis->range().lower > 0) mPlot->yAxis->setRangeLower(0);
+        applyBeatErrorYScale();
     }
     // Fixed-width beat window from the start: fills left→right, then scrolls
     // (no growing axis = no compression effect)
@@ -186,4 +183,23 @@ double BeatErrorTab::windowSec() const
 {
     static const double sec[] = {600, 300, 150, 75, 30};
     return sec[qBound(0, mZoomCombo->currentIndex(), 4)];
+}
+
+double BeatErrorTab::yScaleMaxMs() const
+{
+    static const double maxMs[] = {1.2, 2.0, 5.0, 10.0};
+    return maxMs[qBound(0, mYScaleCombo->currentIndex(), 3)];
+}
+
+void BeatErrorTab::applyBeatErrorYScale()
+{
+    if (mYScaleCombo->currentIndex() == kYScaleAutoIndex) {
+        mPlot->yAxis->rescale();
+        if (mPlot->yAxis->range().lower > 0.0)
+            mPlot->yAxis->setRangeLower(0.0);
+        const double upper = qMax(mPlot->yAxis->range().upper, kAutoYScaleFloorMs);
+        mPlot->yAxis->setRange(0.0, upper);
+    } else {
+        mPlot->yAxis->setRange(0.0, yScaleMaxMs());
+    }
 }

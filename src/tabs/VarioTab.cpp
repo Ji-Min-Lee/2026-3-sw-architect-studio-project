@@ -2,14 +2,20 @@
 #include "ReplotCounter.h"
 #include <QVBoxLayout>
 
-// Acceptable (green) ranges fixed to the Witschi reference figure (Fig 9):
-// rate −5..+15 s/d (asymmetric — slight gain preferred over loss),
-// amplitude 195..300°. Witschi stores these per watch program; a per-watch
-// tolerance UI can replace these constants later.
-static constexpr double kRateLo = -20,  kRateHi = 20;
-static constexpr double kRateBandLo = -5,  kRateBandHi = 15;
-static constexpr double kAmpLo  = 180, kAmpHi  = 330;
-static constexpr double kAmpBandLo = 195, kAmpBandHi = 300;
+namespace {
+// Acceptable (green) ranges — graph-analysis.md / TraceTab strong zone:
+//   Rate −5..+15 s/d (Witschi Fig 9, asymmetric),
+//   Amplitude 270..310°.
+constexpr double kRateLo = -20,  kRateHi = 20;
+constexpr double kRateBandLo = -5,  kRateBandHi = 15;
+constexpr double kAmpLo  = 180, kAmpHi  = 330;
+constexpr double kAmpBandLo = 270, kAmpBandHi = 310;
+
+constexpr QColor kMinMaxColor(30, 60, 220);
+constexpr QColor kNowColor(200, 30, 30);
+const char *kMinMaxHtml = "#1e3cdc";
+const char *kNowHtml    = "#c81e1e";
+} // namespace
 
 VarioTab::VarioTab(QWidget *parent) : BaseGraphTab(parent)
 {
@@ -22,11 +28,11 @@ VarioTab::VarioTab(QWidget *parent) : BaseGraphTab(parent)
     mElapsedLabel->setFont(elapsedFont);
     mainLayout->addWidget(mElapsedLabel);
 
-    mRateScale = makeScale(kRateLo, kRateHi, kRateBandLo, kRateBandHi);
+    mRateScale = makeScale(kRateLo, kRateHi, kRateBandLo, kRateBandHi, "s/d");
     mainLayout->addWidget(mRateScale.label);
     mainLayout->addWidget(mRateScale.plot, 1);
 
-    mAmpScale = makeScale(kAmpLo, kAmpHi, kAmpBandLo, kAmpBandHi);
+    mAmpScale = makeScale(kAmpLo, kAmpHi, kAmpBandLo, kAmpBandHi, "°");
     mainLayout->addWidget(mAmpScale.label);
     mainLayout->addWidget(mAmpScale.plot, 1);
 
@@ -34,7 +40,8 @@ VarioTab::VarioTab(QWidget *parent) : BaseGraphTab(parent)
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, false, 0);
 }
 
-VarioTab::Scale VarioTab::makeScale(double lo, double hi, double bandLo, double bandHi)
+VarioTab::Scale VarioTab::makeScale(double lo, double hi, double bandLo, double bandHi,
+                                    const QString &axisUnit)
 {
     Scale scale;
     scale.nomLo  = lo;
@@ -47,26 +54,20 @@ VarioTab::Scale VarioTab::makeScale(double lo, double hi, double bandLo, double 
 
     scale.plot = new QCustomPlot(this);
     scale.plot->xAxis->setRange(lo, hi);
+    scale.plot->xAxis->setLabel(axisUnit);
     scale.plot->yAxis->setRange(0, 1);
     scale.plot->yAxis->setVisible(false);
     scale.plot->setMinimumHeight(70);
 
-    // Green acceptable band
     auto *band = new QCPItemRect(scale.plot);
     band->topLeft->setCoords(bandLo, 0.95);
     band->bottomRight->setCoords(bandHi, 0.05);
     band->setBrush(QBrush(QColor(120, 220, 120, 110)));
     band->setPen(Qt::NoPen);
 
-    // Yellow X̄ highlight stripe (drawn over the band, under the arrows)
-    scale.meanStripe = new QCPItemRect(scale.plot);
-    scale.meanStripe->setBrush(QBrush(QColor(255, 215, 60, 170)));
-    scale.meanStripe->setPen(Qt::NoPen);
-    scale.meanStripe->setVisible(false);
-
-    scale.minArrow  = makeArrow(scale.plot, QColor(30, 60, 220), 2);
-    scale.maxArrow  = makeArrow(scale.plot, QColor(30, 60, 220), 2);
-    scale.meanArrow = makeArrow(scale.plot, QColor(200, 30, 30), 3);
+    scale.minArrow = makeArrow(scale.plot, kMinMaxColor, 2);
+    scale.maxArrow = makeArrow(scale.plot, kMinMaxColor, 2);
+    scale.nowArrow = makeArrow(scale.plot, kNowColor, 3);
     return scale;
 }
 
@@ -86,48 +87,63 @@ void VarioTab::updateScale(Scale &s, const Stats &stats, const QString &name,
                            bool haveNow, double now)
 {
     auto formatNum = [&](double value) { return QString::number(value, 'f', decimals); };
+
     if (stats.n == 0) {
-        s.label->setText(QString("<b>%1</b> (%2) — waiting for data · green band = "
-                                 "acceptable %3..%4 %2")
-                             .arg(name, unit, formatNum(s.bandLo), formatNum(s.bandHi)));
+        s.label->setText(QString("<b>%1</b> — waiting for data").arg(name));
+        s.minArrow->setVisible(false);
+        s.maxArrow->setVisible(false);
+        s.nowArrow->setVisible(false);
         return;
     }
-    // Witschi-style pass/fail against the acceptable (green) range
-    bool pass = (stats.mean() >= s.bandLo && stats.mean() <= s.bandHi);
-    QString verdict = pass
-        ? "<span style='color:#1c8a1c'><b>✓</b></span>"
-        : QString("<span style='color:#c01e1e'><b>✗ outside acceptable "
-                  "%1..%2 %3</b></span>").arg(formatNum(s.bandLo), formatNum(s.bandHi), unit);
-    QString nowStr = haveNow ? QString("   now <b>%1</b>").arg(formatNum(now)) : QString();
-    s.label->setText(QString("<b>%1</b>  Min <b>%2</b>   "
-                             "<span style='background-color:#ffd73c;color:#000'>"
-                             "&nbsp;X̄ <b>%3</b>&nbsp;</span>   "
-                             "<span style='color:#b8860b'>σ <b>%4</b></span>   "
-                             "Max <b>%5</b>   Δ <b>%6</b>%7  %8   %9")
-                         .arg(name, formatNum(stats.min), formatNum(stats.mean()), formatNum(stats.sigma()),
-                              formatNum(stats.max), formatNum(stats.max - stats.min), nowStr, unit, verdict));
 
-    // Witschi-style adaptive axis: keep the nominal span but widen so the
-    // min/max arrows never sit on (or past) the plot edge
-    double margin = qMax((s.nomHi - s.nomLo) * 0.05, stats.sigma());
-    s.plot->xAxis->setRange(qMin(s.nomLo, stats.min - margin),
-                            qMax(s.nomHi, stats.max + margin));
+    QString nowPart;
+    if (haveNow) {
+        nowPart = QString("   <span style='color:%1'>Now <b>%2</b> %3</span>")
+                      .arg(kNowHtml, formatNum(now), unit);
+    }
 
-    // Yellow X̄ stripe: half a sigma each side (minimum visible width)
-    double half = qMax(stats.sigma() / 2.0, (s.plot->xAxis->range().size()) * 0.006);
-    s.meanStripe->topLeft->setCoords(stats.mean() - half, 0.95);
-    s.meanStripe->bottomRight->setCoords(stats.mean() + half, 0.05);
-    s.meanStripe->setVisible(true);
+    s.label->setText(QString("<b>%1</b>   "
+                             "<span style='color:%2'>Min <b>%3</b> %4</span>   "
+                             "<span style='color:%2'>Max <b>%5</b> %4</span>%6")
+                         .arg(name, kMinMaxHtml,
+                              formatNum(stats.min), unit,
+                              formatNum(stats.max), nowPart));
+
+    if (haveNow) {
+        const bool pass = (now >= s.bandLo && now <= s.bandHi);
+        const QString verdict = pass
+            ? QString("   <span style='color:#1c8a1c'><b>✓</b></span>")
+            : QString("   <span style='color:#c01e1e'><b>✗ outside acceptable "
+                      "%1..%2 %3</b></span>")
+                  .arg(formatNum(s.bandLo), formatNum(s.bandHi), unit);
+        s.label->setText(s.label->text() + verdict);
+    }
+
+    const double margin = (s.nomHi - s.nomLo) * 0.05;
+    double axisLo = s.nomLo;
+    double axisHi = s.nomHi;
+    axisLo = qMin(axisLo, stats.min - margin);
+    axisHi = qMax(axisHi, stats.max + margin);
+    if (haveNow) {
+        axisLo = qMin(axisLo, now - margin);
+        axisHi = qMax(axisHi, now + margin);
+    }
+    s.plot->xAxis->setRange(axisLo, axisHi);
 
     s.minArrow->start->setCoords(stats.min, 0.9);
     s.minArrow->end->setCoords(stats.min, 0.15);
     s.maxArrow->start->setCoords(stats.max, 0.9);
     s.maxArrow->end->setCoords(stats.max, 0.15);
-    s.meanArrow->start->setCoords(stats.mean(), 0.9);
-    s.meanArrow->end->setCoords(stats.mean(), 0.15);
     s.minArrow->setVisible(true);
     s.maxArrow->setVisible(true);
-    s.meanArrow->setVisible(true);
+
+    if (haveNow) {
+        s.nowArrow->start->setCoords(now, 0.9);
+        s.nowArrow->end->setCoords(now, 0.15);
+        s.nowArrow->setVisible(true);
+    } else {
+        s.nowArrow->setVisible(false);
+    }
 }
 
 void VarioTab::reset()
@@ -138,12 +154,11 @@ void VarioTab::reset()
     mHaveRateNow = false;
     mHaveAmpNow  = false;
     mElapsedLabel->setText("0:00");
-    for (Scale *s : {&mRateScale, &mAmpScale}) {
-        for (QCPItemLine *a : {s->minArrow, s->maxArrow, s->meanArrow})
+    for (Scale *sc : {&mRateScale, &mAmpScale}) {
+        for (QCPItemLine *a : {sc->minArrow, sc->maxArrow, sc->nowArrow})
             a->setVisible(false);
-        s->meanStripe->setVisible(false);
-        s->plot->xAxis->setRange(s->nomLo, s->nomHi);
-        { int64_t _pt=TG_NOW(); s->plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
+        sc->plot->xAxis->setRange(sc->nomLo, sc->nomHi);
+        { int64_t _pt=TG_NOW(); sc->plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
     }
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, false, 0);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, false, 0);

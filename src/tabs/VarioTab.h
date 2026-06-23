@@ -7,15 +7,12 @@
 // Graph 5: Vario Display — long-term stability statistics of Rate and Amplitude
 // (Witschi Chronoscope X1 G3 manual §5.3, project plan Figure 9).
 //
-// For each of Rate and Amplitude this view continuously updates
-//   Min / X̄ (mean) / σ (std-dev) / Max, Δ (max−min, the stability quality
-//   indicator), the current reading, and the elapsed measurement time,
-// and renders a horizontal value scale with
-//   - green band    : acceptable range
+// For each of Rate and Amplitude this view continuously updates Min, Max, and
+// the current (Now) reading, and renders a horizontal value scale with
+//   - green band    : acceptable range (Rate −5..+15 s/d, Amplitude 270..310°)
 //   - blue arrows   : measured min / max
-//   - red arrow     : mean, over a yellow X̄ highlight stripe
-// The axis adapts (Witschi-style, e.g. −10..15) so min/max arrows always
-// stay visible even when readings exceed the nominal span.
+//   - red arrow     : current (Now) reading
+// The axis adapts (Witschi-style) so min/max/now markers stay visible.
 class VarioTab : public BaseGraphTab
 {
     Q_OBJECT
@@ -50,16 +47,16 @@ public slots:
 
 private:
     struct Scale {
-        QCustomPlot *plot       = nullptr;
-        QCPItemLine *minArrow   = nullptr;
-        QCPItemLine *maxArrow   = nullptr;
-        QCPItemLine *meanArrow  = nullptr;
-        QCPItemRect *meanStripe = nullptr;   // yellow X̄ highlight
-        QLabel      *label      = nullptr;
-        double nomLo = 0, nomHi = 0;         // nominal axis span
-        double bandLo = 0, bandHi = 0;       // acceptable (green) range
+        QCustomPlot *plot     = nullptr;
+        QCPItemLine *minArrow = nullptr;
+        QCPItemLine *maxArrow = nullptr;
+        QCPItemLine *nowArrow = nullptr;
+        QLabel      *label    = nullptr;
+        double nomLo = 0, nomHi = 0;     // nominal axis span
+        double bandLo = 0, bandHi = 0;   // acceptable (green) range
     };
-    Scale makeScale(double lo, double hi, double bandLo, double bandHi);
+    Scale makeScale(double lo, double hi, double bandLo, double bandHi,
+                    const QString &axisUnit);
     void  updateScale(Scale &s, const Stats &st, const QString &name,
                       const QString &unit, int decimals,
                       bool haveNow, double now);
