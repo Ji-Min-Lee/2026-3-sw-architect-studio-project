@@ -290,9 +290,8 @@ void MeasurementEngine::computeBeatError(double evTime, bool, int)
 void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, WatchMetrics &metrics, AcousticEvent &ae)
 {
     if (!mAmp.haveA || !mRate.bphValid) return;
-    double T1     = (cTime - mAmp.lastA) / mSamplesPerSecond;
-    double period = 7200.0 / bph;
-    double amp    = mLiftAngle / sin((2.0 * M_PI * T1) / period);
+    double T1  = (cTime - mAmp.lastA) / mSamplesPerSecond;
+    double amp = (3600.0 * mLiftAngle) / (M_PI * bph * T1);
     if (amp >= 360.0) {
         if ((int)((mRate.beatNumber - 1) & 1) == TIC) mAmp.ticValid = false;
         return;
