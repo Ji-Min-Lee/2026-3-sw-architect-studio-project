@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QElapsedTimer>
+#include <QTimer>
 #include "Timegrapher.h"
 #include "RollingLeastSquares.h"
 #include "RollingAverage.h"
@@ -30,6 +31,9 @@ public:
 public slots:
     // Feed one block of raw PCM (from ring buffer).  Emits measurementReady when done.
     void processBlock(const float *pcm, int numSamples);
+
+private slots:
+    void onLogTimer();
 
 signals:
     // AP-4: single publication source.  All 11 tabs subscribe to this signal.
@@ -97,4 +101,11 @@ private:
     QElapsedTimer mNoSignalTimer;
     bool          mNoSignalTimerStarted = false;
     static constexpr qint64 kNoSignalThresholdMs = 3000;
+
+    // 1-second periodic logger
+    QTimer        mLogTimer;
+    MovementSpec  mMovementSpec;
+    AcquisitionConfig mAcqConfig;
+    int           mDetectedBph = 0;
+    bool          mSynced      = false;
 };

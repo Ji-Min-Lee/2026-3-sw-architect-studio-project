@@ -15,6 +15,8 @@ MeasurementEngine::MeasurementEngine(QObject *parent)
     mRate.rlsToc = new RollingLeastSquares(RLS_WINDOW_INIT);
     mBeat.roll   = new RollingAverage(10);
     mAmp.roll    = new RollingAverage(10);
+
+    connect(&mLogTimer, &QTimer::timeout, this, &MeasurementEngine::onLogTimer);
 }
 
 MeasurementEngine::~MeasurementEngine()
@@ -32,6 +34,8 @@ void MeasurementEngine::init(const MovementSpec &movement, const AcquisitionConf
     mSamplesPerSecond = config.sampleRate;
     mLiftAngle        = movement.liftAngle;
     mAveragingPeriod  = config.averagingPeriod;
+    mMovementSpec     = movement;
+    mAcqConfig        = config;
 
     tg_config_default(&mCfg);
     mCfg.sample_rate              = config.sampleRate;
@@ -46,10 +50,13 @@ void MeasurementEngine::init(const MovementSpec &movement, const AcquisitionConf
 
     mCtx = tg_init(&mCfg);
     if (!mCtx) qCritical() << "MeasurementEngine: tg_init failed";
+
+    mLogTimer.start(1000);
 }
 
 void MeasurementEngine::destroy()
 {
+    mLogTimer.stop();
     if (mCtx) { tg_destroy(mCtx); mCtx = nullptr; }
 }
 
@@ -99,6 +106,8 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     measurement.signal.tickStart        = mGraphTicks;
     measurement.synced                  = (tgResult.sync_status == TG_SYNC_SYNCED);
     measurement.detectedBph             = tgResult.detected_bph;
+    mSynced      = measurement.synced;
+    mDetectedBph = measurement.detectedBph;
 
     // Raw PCM for SoundPrintTab (copy before any DSP transformation)
     measurement.signal.rawPcm.reserve(numSamples);
@@ -312,4 +321,25 @@ void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, Wat
     }
     if (mAmp.roll->CurrentSize() > 0)
         metrics.amplitude = mAmp.roll->GetAverage();
+}
+
+void MeasurementEngine::onLogTimer()
+{
+    QString rate      = mLastKnownMetrics.rate      ? QString::number(*mLastKnownMetrics.rate,      'f', 1) + " s/day" : "N/A";
+    QString amplitude = mLastKnownMetrics.amplitude ? QString::number(*mLastKnownMetrics.amplitude, 'f', 1) + " deg"   : "N/A";
+    QString beatError = mLastKnownMetrics.beatError ? QString::number(*mLastKnownMetrics.beatError, 'f', 2) + " ms"    : "N/A";
+
+    QString bphStr = (mMovementSpec.bph == 0)
+                     ? QString("auto(%1)").arg(mDetectedBph)
+                     : QString::number(mMovementSpec.bph);
+
+    qInfo() << "[1s] Rate:" << rate
+            << "| Amplitude:" << amplitude
+            << "| BeatError:" << beatError
+            << "| BPH:" << bphStr
+            << "| LiftAngle:" << mMovementSpec.liftAngle << "deg"
+            << "| SampleRate:" << mAcqConfig.sampleRate << "Hz"
+            << "| HPF:" << mAcqConfig.hpfCutoff << "Hz"
+            << "| AvgPeriod:" << mAcqConfig.averagingPeriod << "s"
+            << "| Synced:" << (mSynced ? "yes" : "no");
 }
