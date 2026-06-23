@@ -37,7 +37,10 @@ private:
     double wrapInRange(double value, double lo, double hi) const;
     void   addOrOverwrite(QVector<double> &xv, QVector<double> &yv,
                           double val, int maxSize, int &idx);
-    void   computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae);
+    // Returns true when the A-event is a grid outlier (handling-noise tap that
+    // slipped past the amplitude gate) and was rejected — caller then skips the
+    // beat-error update for this event too.
+    bool   computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae);
     void   computeBeatError(double evTime, bool synced, int bph);
     void   computeAmplitude(double cTime, bool synced, int bph, Measurement &m, AcousticEvent &ae);
 
@@ -74,6 +77,13 @@ private:
         RollingLeastSquares *rlsToc = nullptr;
         bool   rateValid = false;
         double rateSpd   = 0.0; // s/day
+        // Grid-outlier (tap) rejection: per-parity (tic/toc) baseline of the
+        // instantaneous grid error. A real beat stays near its own parity's
+        // baseline; a tap lands far off it. Compared per parity so the genuine
+        // tic/toc asymmetry (beat error) is not mistaken for an outlier.
+        double lastInstErrMs[2]   = {0.0, 0.0};
+        bool   haveLastInstErr[2] = {false, false};
+        int    consecRejects      = 0;
     } mRate;
 
     // Beat-error state  (extracted from TBeatErrorEvents)

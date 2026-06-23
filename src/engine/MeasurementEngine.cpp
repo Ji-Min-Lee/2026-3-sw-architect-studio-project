@@ -13,6 +13,17 @@ static constexpr double kNoiseDbRefOffset = 100.0;
 #define ERROR_RATE_Y_SCALE  10
 #define RLS_WINDOW_INIT    100
 
+// Grid-outlier (handling-noise tap) rejection. A real beat's instantaneous grid
+// error changes only slowly between same-parity beats (sub-ms to ~1-2 ms jitter);
+// a tap inserted between beats lands tens of ms off the grid. Reject A-events
+// whose per-parity grid error jumps by more than this. kMaxConsecRejects then
+// re-baselines so a genuine grid shift (missed beat / re-lock) is not stuck.
+static constexpr double kGridOutlierMs    = 4.5;
+static constexpr int    kMaxConsecRejects = 4;
+// A running watch's beat error is at most a few ms; a value beyond this is a tap
+// that displaced a beat by less than the grid threshold — drop it from the average.
+static constexpr double kBeatErrorMaxMs   = 5.0;
+
 MeasurementEngine::MeasurementEngine(QObject *parent)
     : QObject(parent)
 {
@@ -75,6 +86,8 @@ void MeasurementEngine::reset()
     mRate.rlsTic->Reset();
     mRate.rlsToc->Reset();
     mRate.rateValid = false;
+    mRate.haveLastInstErr[0] = mRate.haveLastInstErr[1] = false;
+    mRate.consecRejects      = 0;
 
     mBeat.idx = 0;
     mBeat.roll->Reset();
@@ -160,19 +173,26 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     for (int i = 0; i < tgResult.num_events; i++) {
         const tg_event_t &ev = tgResult.events[i];
 
-        // Handling-noise rejection (tap on watch/sensor): discard impulsive
-        // outlier events before they corrupt any derived measurement, while
-        // keeping real A/C. Event-level → no per-sample cost (QAS-1/QAS-2).
+        // Handling-noise rejection (tap on watch/sensor). A tap usually does not
+        // ADD an event — it pulls one A-detection off the beat grid (right count,
+        // wrong time). Dropping such an A-event would lose its beat slot and shift
+        // the grid, so A-events are NOT removed here; the grid gate in
+        // computeRateError suppresses the tap's rate/beat output while keeping the
+        // count. The amplitude/refractory gate still drops genuinely extra non-A
+        // impulses (e.g. ring-down) before they pollute anything.
         const double evPos = ev.sample_index + ev.sub_sample_offset;
-        if (isHandlingNoise(evPos, ev.peak_value)) {
-            measurement.handlingNoiseRejected++;
-            continue;   // not a beat: skip rate/beat/amplitude and the event list
+        const bool   handlingNoise = isHandlingNoise(evPos, ev.peak_value);
+        if (handlingNoise) measurement.handlingNoiseRejected++;
+        if (handlingNoise && ev.type != TG_EVENT_A)
+            continue;   // extra non-A impulse: drop it
+        // Update the rolling amplitude baseline + refractory ref from clean events
+        // only (a flagged A-tap must not inflate the median or move the ref).
+        if (!handlingNoise) {
+            mHandling.lastAcceptedPos = evPos;
+            mHandling.recentPeaks.append(ev.peak_value);
+            if (mHandling.recentPeaks.size() > HandlingNoiseState::kWindow)
+                mHandling.recentPeaks.removeFirst();
         }
-        // Accepted event → update the rolling amplitude baseline + refractory ref
-        mHandling.lastAcceptedPos = evPos;
-        mHandling.recentPeaks.append(ev.peak_value);
-        if (mHandling.recentPeaks.size() > HandlingNoiseState::kWindow)
-            mHandling.recentPeaks.removeFirst();
 
         AcousticEvent acousticEvent;
         acousticEvent.cOnsetValid       = false;
@@ -194,8 +214,14 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
             mNoSignalTimer.restart();
             mNoSignalTimerStarted = true;
 
-            computeRateError(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph, acousticEvent);
-            computeBeatError(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph);
+            // Grid-outlier (tap) rejection: if the A-event does not fit the beat
+            // grid it is handling noise that slipped past the amplitude gate —
+            // skip the beat-error update too so it cannot corrupt that graph.
+            bool tapOutlier = computeRateError(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph, acousticEvent);
+            if (tapOutlier)
+                mBeat.idx = 0;   // corrupted slot: restart the beat-error triplet (no gap/split spike)
+            else
+                computeBeatError(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph);
 
             mAmp.haveA = true;
             mAmp.lastA = acousticEvent.samplePos;
@@ -256,12 +282,12 @@ void MeasurementEngine::addOrOverwrite(QVector<double> &xv, QVector<double> &yv,
     idx = (idx + 1) % maxSize;
 }
 
-void MeasurementEngine::computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae)
+bool MeasurementEngine::computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae)
 {
     if (!synced && mRate.haveStart) {
         mRate.haveStart = false;
         mRate.bphValid  = false;
-        return;
+        return false;
     }
     if (synced && !mRate.haveStart) {
         mRate.haveStart       = true;
@@ -273,6 +299,8 @@ void MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
         mRate.zeroOffset      = 0.0;
         mRate.rateValid       = false;
         mRate.watchHz         = bph / 3600;
+        mRate.haveLastInstErr[0] = mRate.haveLastInstErr[1] = false;
+        mRate.consecRejects      = 0;
         int window = mAveragingPeriod * mRate.watchHz;
         mRate.rlsTic->Resize(window);
         mRate.rlsToc->Resize(window);
@@ -281,7 +309,7 @@ void MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
         mBeat.roll->Reset();
         mAmp.roll->Reset();
     }
-    if (!synced || !mRate.haveStart) return;
+    if (!synced || !mRate.haveStart) return false;
 
     double timeMeasured      = evTime / mSamplesPerSecond;
     double expectedInterval  = 3600.0 / bph;
@@ -297,6 +325,23 @@ void MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
         mRate.zeroOffset     = -instErrorMs;
     }
     instErrorMs += mRate.zeroOffset;
+
+    // Grid-outlier (tap) rejection — compared against this parity's own baseline
+    // so the genuine tic/toc asymmetry is not flagged. A light tap does not add
+    // an event; it pulls one detection off the grid (right count, wrong time).
+    // So drop this beat's rate + beat-error contribution but KEEP the beat count
+    // in sync with the detector (do not touch beatNumber) and keep the last good
+    // parity baseline, so the next real beat re-aligns immediately.
+    if (mRate.haveLastInstErr[ticOrToc]
+        && std::fabs(instErrorMs - mRate.lastInstErrMs[ticOrToc]) > kGridOutlierMs
+        && mRate.consecRejects < kMaxConsecRejects) {
+        mRate.consecRejects++;
+        ae.hasRatePoint = false;
+        return true;                      // reject: caller skips beat error too
+    }
+    mRate.consecRejects        = 0;
+    mRate.lastInstErrMs[ticOrToc]   = instErrorMs;
+    mRate.haveLastInstErr[ticOrToc] = true;
 
     double wrapped = wrapInRange(instErrorMs, -ERROR_RATE_Y_SCALE, ERROR_RATE_Y_SCALE);
     ae.hasRatePoint     = true;
@@ -320,6 +365,7 @@ void MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
             mRate.rateValid = false;
         }
     }
+    return false;   // accepted as a real beat
 }
 
 void MeasurementEngine::computeBeatError(double evTime, bool, int)
@@ -329,7 +375,9 @@ void MeasurementEngine::computeBeatError(double evTime, bool, int)
     if (mBeat.idx == 3) {
         double t1 = (mBeat.times[1] - mBeat.times[0]) / mSamplesPerSecond;
         double t2 = (mBeat.times[2] - mBeat.times[1]) / mSamplesPerSecond;
-        mBeat.roll->Add(qAbs(((t1 - t2) / 2.0) * 1000.0));
+        double beMs = qAbs(((t1 - t2) / 2.0) * 1000.0);
+        if (beMs <= kBeatErrorMaxMs)         // drop non-physical (tap) samples
+            mBeat.roll->Add(beMs);
         mBeat.times[0] = mBeat.times[2];
         mBeat.idx       = 1;
     }
