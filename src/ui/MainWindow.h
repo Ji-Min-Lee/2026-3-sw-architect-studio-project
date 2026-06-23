@@ -229,5 +229,15 @@ private:
 
     Logger          *mLogger = nullptr;
 
+    // Position detection
+    struct PosBaseline {
+        double rate = 0.0;
+        double amp  = 0.0;
+        double be   = 0.0;
+        bool   valid = false;
+    };
+    PosBaseline   mDialUpBaseline;
+    QElapsedTimer mMeasLogTimer;
+
 };
 #endif
