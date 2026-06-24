@@ -51,6 +51,7 @@ QString resolveRagDatabasePath()
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QTimer>
+#include <QPointer>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -59,6 +60,7 @@ QString resolveRagDatabasePath()
 #include <QPushButton>
 #include <QDialogButtonBox>
 #include <QScrollArea>
+#include <QSplitter>
 #include <stdexcept>
 
 #define  LIVE     0
@@ -380,7 +382,8 @@ void MainWindow::setupTabOverflow(void)
         tw->setTabVisible(i, defaultVisible.contains(tw->widget(i)));
     tw->setCurrentWidget(ui->RateTab);  // start on Rate/Scope
 
-    mMoreTabsButton = new QToolButton(tw);
+    // ── More button: tab list + Configure only ──────────────────────────────
+    mMoreTabsButton = new QToolButton;
     mMoreTabsButton->setObjectName("MoreTabsButton");
     mMoreTabsButton->setText(tr("More"));
     mMoreTabsButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -388,11 +391,20 @@ void MainWindow::setupTabOverflow(void)
     mMoreTabsButton->setAutoRaise(true);
     mMoreTabsButton->setCursor(Qt::PointingHandCursor);
     mMoreTabsButton->setMinimumWidth(72);
-    mMoreTabsButton->setToolTip(tr("Configure visible tabs, user guide, AI diagnosis"));
+    mMoreTabsButton->setToolTip(tr("Show hidden tabs / manage tabs"));
 
     mMoreTabsMenu = new QMenu(mMoreTabsButton);
 
-    QAction *configureTabs = mMoreTabsMenu->addAction(tr("Configure Tabs..."));
+    // F3 Split View
+    QAction *splitAct = mMoreTabsMenu->addAction(tr("Split View"));
+    splitAct->setShortcut(QKeySequence(Qt::Key_F3));
+    splitAct->setShortcutContext(Qt::ApplicationShortcut);
+    splitAct->setCheckable(true);
+    addAction(splitAct);
+    connect(splitAct, &QAction::triggered, this, &MainWindow::toggleSplitView);
+
+    // F2 Manage Tabs
+    QAction *configureTabs = mMoreTabsMenu->addAction(tr("Manage Tabs..."));
     configureTabs->setShortcut(QKeySequence(Qt::Key_F2));
     configureTabs->setShortcutContext(Qt::ApplicationShortcut);
     addAction(configureTabs);
@@ -400,6 +412,7 @@ void MainWindow::setupTabOverflow(void)
 
     mMoreTabsMenu->addSeparator();
 
+    // F1 User Guide
     QAction *guide = mMoreTabsMenu->addAction(tr("User Guide"));
     guide->setShortcut(QKeySequence::HelpContents);
     guide->setShortcutContext(Qt::ApplicationShortcut);
@@ -408,11 +421,12 @@ void MainWindow::setupTabOverflow(void)
         showUserGuide(UserGuideSection::Overview);
     });
 
-    QAction *diagnosis = mMoreTabsMenu->addAction(tr("AI Diagnosis"));
-    diagnosis->setShortcut(QKeySequence(Qt::Key_F3));
-    diagnosis->setShortcutContext(Qt::ApplicationShortcut);
-    addAction(diagnosis);
-    connect(diagnosis, &QAction::triggered, this, &MainWindow::showDiagnosisDialog);
+    // F4 AI Diagnosis
+    QAction *diagAct = mMoreTabsMenu->addAction(tr("AI Diagnosis"));
+    diagAct->setShortcut(QKeySequence(Qt::Key_F4));
+    diagAct->setShortcutContext(Qt::ApplicationShortcut);
+    addAction(diagAct);
+    connect(diagAct, &QAction::triggered, this, &MainWindow::showDiagnosisDialog);
 
     connect(mMoreTabsButton, &QToolButton::clicked, this, [this] {
         if (!mMoreTabsMenu) return;
@@ -423,9 +437,8 @@ void MainWindow::setupTabOverflow(void)
 
     tw->setCornerWidget(mMoreTabsButton, Qt::TopRightCorner);
 
-    // Keyboard shortcut hint — permanent widget on the right of the status bar
     auto *hintLabel = new QLabel(
-        "  F1 User Guide   F2 Configure Tabs   F3 AI Diagnosis  ", this);
+        "  F1 User Guide   F2 Manage Tabs   F3 Split View   F4 AI Diagnosis  ", this);
     hintLabel->setStyleSheet("color: gray; font-size: 11px;");
     statusBar()->addPermanentWidget(hintLabel);
 }
@@ -465,6 +478,11 @@ void MainWindow::showDiagnosisDialog(void)
 // Tab configuration dialog: checklist of all tabs; checked = visible.
 void MainWindow::showTabConfigDialog(void)
 {
+    // In split view one tab is detached into the right pane, so it would be
+    // invisible to this dialog. Collapse the split first so the dialog can see
+    // and manage the full tab set consistently.
+    if (mSplitMode) exitSplitView();
+
     QTabWidget *tw = ui->GraphicsTabWidget;
     const int n = tw->count();
 
@@ -527,6 +545,39 @@ void MainWindow::showTabConfigDialog(void)
             if (tw->isTabVisible(i)) { tw->setCurrentIndex(i); break; }
         }
     }
+
+    refreshSplitCombo();
+}
+
+void MainWindow::refreshSplitCombo()
+{
+    if (!mSplitMode || !mSplitCombo) return;
+    auto *tw = ui->GraphicsTabWidget;
+
+    mSplitCombo->blockSignals(true);
+    mSplitCombo->clear();
+
+    // Add all currently visible tabs in GraphicsTabWidget
+    for (int i = 0; i < tw->count(); ++i)
+        if (tw->isTabVisible(i))
+            mSplitCombo->addItem(tw->tabText(i), QVariant::fromValue(tw->widget(i)));
+
+    // The detached widget is not in tw — add it too so user can still select it
+    if (mSplitCurrentWidget)
+        mSplitCombo->addItem(mSplitOriginalName, QVariant::fromValue(mSplitCurrentWidget));
+
+    // Restore selection to the currently shown widget
+    int restoreIdx = mSplitCombo->count() - 1;  // defaults to last (detached)
+    if (mSplitCurrentWidget) {
+        for (int i = 0; i < mSplitCombo->count(); ++i) {
+            if (mSplitCombo->itemData(i).value<QWidget *>() == mSplitCurrentWidget) {
+                restoreIdx = i;
+                break;
+            }
+        }
+    }
+    mSplitCombo->setCurrentIndex(restoreIdx);
+    mSplitCombo->blockSignals(false);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1290,4 +1341,153 @@ void MainWindow::on_ModeComboBox_currentTextChanged(const QString &arg1)
         }
     }
     updateLeftPanelForMode();   // show/hide SimFrame for this mode + reflow column
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Split view (F3) — moves one tab widget to a right panel; same instance = live
+// ─────────────────────────────────────────────────────────────────────────────
+void MainWindow::toggleSplitView()
+{
+    mSplitMode ? exitSplitView() : enterSplitView();
+}
+
+void MainWindow::enterSplitView()
+{
+    auto *tw = ui->GraphicsTabWidget;
+
+    // Count visible tabs; need at least 2 to make split meaningful
+    int visibleCount = 0;
+    for (int i = 0; i < tw->count(); ++i)
+        if (tw->isTabVisible(i)) ++visibleCount;
+    if (visibleCount < 2) {
+        statusBar()->showMessage(tr("Split view needs at least 2 visible tabs (F2 to add tabs)"), 3000);
+        return;
+    }
+
+    mSplitMode = true;
+
+    // Create splitter in the graph area
+    const int totalW = tw->width();   // capture before reparent invalidates it
+    mSplitter = new QSplitter(Qt::Horizontal, ui->CentralWidget);
+    mSplitter->setGeometry(tw->geometry());
+    // Move GraphicsTabWidget into left side of splitter
+    tw->setParent(mSplitter);
+    mSplitter->addWidget(tw);
+
+    // Right panel: dropdown + content area
+    auto *rightPanel = new QWidget(mSplitter);
+    auto *vlay = new QVBoxLayout(rightPanel);
+    vlay->setContentsMargins(2, 2, 2, 2);
+    vlay->setSpacing(4);
+
+    mSplitCombo = new QComboBox(rightPanel);
+    mSplitCombo->setFont(QFont(font().family(), 10, QFont::Bold));
+    for (int i = 0; i < tw->count(); ++i)
+        if (tw->isTabVisible(i))
+            mSplitCombo->addItem(tw->tabText(i), QVariant::fromValue(tw->widget(i)));
+    vlay->addWidget(mSplitCombo, 0);
+
+    mSplitContentArea = new QWidget(rightPanel);
+    mSplitContentLayout = new QVBoxLayout(mSplitContentArea);
+    mSplitContentLayout->setContentsMargins(0, 0, 0, 0);
+    vlay->addWidget(mSplitContentArea, 1);
+
+    mSplitter->addWidget(rightPanel);
+
+    // Force both panes to allow shrinking below their content's minimumSizeHint.
+    // NOTE: setMinimumWidth(0) does NOT do this — Qt treats 0 as "defer to
+    // minimumSizeHint", so the tab widget's large hint would keep skewing the
+    // split. A small *non-zero* explicit minimum actually overrides the hint.
+    tw->setMinimumWidth(50);
+    rightPanel->setMinimumWidth(50);
+    mSplitter->setChildrenCollapsible(false);
+    mSplitter->setStretchFactor(0, 1);
+    mSplitter->setStretchFactor(1, 1);
+
+    mSplitter->show();
+
+    connect(mSplitCombo, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, &MainWindow::setSplitViewTab);
+
+    // Default right panel: the tab AFTER the currently active one
+    int curTabIdx = tw->currentIndex();
+    int defaultComboIdx = 0;
+    for (int i = 0; i < mSplitCombo->count(); ++i) {
+        QWidget *w = mSplitCombo->itemData(i).value<QWidget *>();
+        int idx = tw->indexOf(w);
+        if (idx > curTabIdx) { defaultComboIdx = i; break; }
+        if (i == mSplitCombo->count() - 1) defaultComboIdx = 0; // wrap: pick first if current is last
+    }
+    mSplitCombo->setCurrentIndex(defaultComboIdx);
+    setSplitViewTab(defaultComboIdx);
+
+    // Apply the 50/50 ratio LAST — after the heavy tab is moved into the right
+    // pane, so its large minimumSizeHint can't re-skew the split afterwards.
+    // The ratio (not absolute px) is what matters; equal values => 50/50.
+    mSplitter->setSizes({totalW / 2, totalW / 2});
+
+    // Re-apply once more after the pending layout pass settles, otherwise a
+    // queued relayout can override the ratio right after this function returns.
+    QPointer<QSplitter> sp = mSplitter;
+    QTimer::singleShot(0, this, [sp] {
+        if (sp) { const int h = sp->width() / 2; sp->setSizes({h, h}); }
+    });
+}
+
+void MainWindow::setSplitViewTab(int comboIdx)
+{
+    auto *tw = ui->GraphicsTabWidget;
+
+    // Restore current right-panel widget back to GraphicsTabWidget
+    if (mSplitCurrentWidget) {
+        mSplitContentLayout->removeWidget(mSplitCurrentWidget);
+        mSplitCurrentWidget->setParent(nullptr);
+        tw->insertTab(mSplitOriginalIdx, mSplitCurrentWidget, mSplitOriginalName);
+        tw->setTabVisible(mSplitOriginalIdx, mSplitOriginalVisible);
+        mSplitCurrentWidget = nullptr;
+    }
+
+    if (comboIdx < 0 || comboIdx >= mSplitCombo->count()) return;
+
+    QWidget *w = mSplitCombo->itemData(comboIdx).value<QWidget *>();
+    if (!w) return;
+
+    int idx = tw->indexOf(w);
+    if (idx < 0) return;
+
+    mSplitOriginalIdx     = idx;
+    mSplitOriginalName    = tw->tabText(idx);
+    mSplitOriginalVisible = tw->isTabVisible(idx);
+    mSplitCurrentWidget   = w;
+
+    tw->removeTab(idx);
+    w->setParent(mSplitContentArea);
+    mSplitContentLayout->addWidget(w);
+    w->show();
+}
+
+void MainWindow::exitSplitView()
+{
+    // Restore right-panel widget
+    if (mSplitCurrentWidget) {
+        mSplitContentLayout->removeWidget(mSplitCurrentWidget);
+        mSplitCurrentWidget->setParent(nullptr);
+        ui->GraphicsTabWidget->insertTab(mSplitOriginalIdx,
+            mSplitCurrentWidget, mSplitOriginalName);
+        ui->GraphicsTabWidget->setTabVisible(mSplitOriginalIdx, mSplitOriginalVisible);
+        mSplitCurrentWidget = nullptr;
+    }
+
+    // Restore GraphicsTabWidget to CentralWidget
+    QRect geo = mSplitter->geometry();
+    ui->GraphicsTabWidget->setParent(ui->CentralWidget);
+    ui->GraphicsTabWidget->setGeometry(geo);
+    ui->GraphicsTabWidget->show();
+
+    delete mSplitter;       // also deletes rightPanel and its children
+    mSplitter           = nullptr;
+    mSplitCombo         = nullptr;
+    mSplitContentArea   = nullptr;
+    mSplitContentLayout = nullptr;
+    mSplitMode          = false;
 }

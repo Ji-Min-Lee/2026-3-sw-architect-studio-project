@@ -227,6 +227,23 @@ private:
     QToolButton *mMoreTabsButton   = nullptr;
     QMenu       *mMoreTabsMenu     = nullptr;
 
+    // Split view (F4): moves one tab widget to a right panel; same instance = live data
+    void   toggleSplitView();
+    void   enterSplitView();
+    void   exitSplitView();
+    void   setSplitViewTab(int comboIdx);
+    void   refreshSplitCombo();
+
+    QSplitter   *mSplitter           = nullptr;
+    QComboBox   *mSplitCombo         = nullptr;
+    QWidget     *mSplitContentArea   = nullptr;
+    QVBoxLayout *mSplitContentLayout = nullptr;
+    QWidget     *mSplitCurrentWidget = nullptr;
+    int          mSplitOriginalIdx   = -1;
+    QString      mSplitOriginalName;
+    bool         mSplitOriginalVisible = true;
+    bool         mSplitMode          = false;
+
     Logger          *mLogger = nullptr;
 
 };
