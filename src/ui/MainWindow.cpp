@@ -526,7 +526,13 @@ void MainWindow::showTabConfigDialog(void)
         okBtn->setEnabled(any);
     };
     for (auto *cb : boxes)
+        // QCheckBox::checkStateChanged was added in Qt 6.7; fall back to
+        // stateChanged on older Qt (updateOk takes no args, so both connect).
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
         connect(cb, &QCheckBox::checkStateChanged, &dlg, updateOk);
+#else
+        connect(cb, &QCheckBox::stateChanged, &dlg, updateOk);
+#endif
     connect(selAll,   &QPushButton::clicked, &dlg, [&boxes, updateOk]{ for (auto *cb : boxes) cb->setChecked(true);  updateOk(); });
     connect(deselAll, &QPushButton::clicked, &dlg, [&boxes, updateOk]{ for (auto *cb : boxes) cb->setChecked(false); updateOk(); });
     updateOk();  // set initial state
