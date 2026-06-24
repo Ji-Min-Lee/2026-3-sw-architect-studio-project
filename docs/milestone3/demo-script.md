@@ -14,154 +14,177 @@
 
 ---
 
-## 0:30 – 6:30 | Area 1 — 12 Graph Displays (60 pts)
+## 0:30 – 2:00 | Area 1 — Watch-Position Testing (5 pts)
 
-> "We implemented all 12 required graph displays.
-> I'll show each one and explain what it tells the user."
+> "First, Watch-Position Testing."
+
+- Show the sensor stand with the watch mounted
+- The position indicator in the status bar currently reads "CH" (Crown Horizontal)
+
+> "A mechanical watch behaves differently depending on how it's oriented —
+> crown up, crown down, dial up, and so on.
+> Traditionally, the user had to manually note the position and record measurements one by one.
+> We automated that.
+>
+> The sensor stand has an accelerometer built in.
+> As I rotate the watch into each position,
+> the system detects the orientation automatically
+> and updates the active position label here."
+
+- Rotate the watch to 9H (crown left)
+
+> "Crown left — the system detected it and switched to 9H automatically.
+> No button press, no dropdown."
+
+- Rotate to 6H (crown down)
+
+> "Crown down — 6H. Detected instantly."
+
+- Rotate back to CH
+
+> "Each time the position changes, the system tags the incoming measurements
+> with the detected position and routes them to the Sequence tab automatically.
+> We'll see the full picture across all positions in a moment."
 
 ---
 
-**① Watch-Position Testing** (~30 sec)
+## 2:00 – 7:30 | Area 1 — Additional Graph Displays (55 pts)
 
-- Switch to Watch Position tab
+> "Now the additional graph displays.
+> I'll navigate to each tab using the More button in the tab bar."
 
-> "A mechanical watch runs slightly differently depending on which way it's facing.
-> This display measures the watch in standard positions —
-> crown up, crown down, dial up, and so on —
-> and shows the Rate and Amplitude for each one.
-> Watchmakers use this to adjust for positional errors."
+- Click "More" to show the full tab list, then select the first tab
 
 ---
 
-**② Trace Display** (~30 sec)
+**① Trace Display** (~30 sec)
 
 - Switch to Trace tab
 
-> "This is the Trace display.
-> It draws a continuous line of how fast or slow the watch is running —
-> Rate on top, Amplitude on the bottom — as time goes on.
-> If the watch drifts, you see the line slope up or down.
-> Think of it as the watch's heartbeat over time."
+> "The Trace display draws a continuous line of Rate and Amplitude over time.
+> Rate on top — if the line drifts up, the watch is running fast.
+> If it slopes down, it's running slow.
+> Amplitude on the bottom tracks the swing of the balance wheel.
+> Think of it as the watch's heartbeat on paper."
 
 ---
 
-**③ Rate and Amplitude Stability Over Time — Vario** (~30 sec)
+**② Rate and Amplitude Stability Over Time — Vario** (~30 sec)
 
 - Switch to Vario tab
 
-> "This shows Min, Max, Average, and standard deviation of Rate and Amplitude
-> since we started measuring.
-> If those numbers are tight and stable, the watch is consistent.
-> If they're spread wide, something is off."
+> "Vario summarizes the session into a single table —
+> Min, Max, Mean, and standard deviation for both Rate and Amplitude.
+> A well-regulated watch shows a tight range.
+> A wide spread means the watch is inconsistent."
 
 ---
 
-**④ Multi-Position Sequence Display** (~30 sec)
+**③ Multi-Position Sequence Display** (~30 sec)
 
-- Switch to Multi-Position tab
+- Switch to Sequence tab
 
-> "This builds on position testing.
-> Instead of one position at a time, it lines up all measured positions side by side
-> so you can compare them at a glance.
-> Up to ten positions can be compared in one view."
+> "Here's where the position data lands.
+> Each row is a position we measured — CH, 9H, 6H, and so on.
+> Rate and Amplitude are shown side by side for each.
+> You can immediately see which positions are problematic
+> and by how much."
 
 ---
 
-**⑤ Beat-Noise Scope Display** (~30 sec)
+**④ Beat-Noise Scope Display** (~30 sec)
 
 - Switch to Beat-Noise Scope tab
 
-> "This display captures the raw waveform shape of each individual beat.
+> "This display captures the waveform of each individual beat.
 > The faint lines are single beats, the bright line is the running average.
-> You can see if the beats look clean and consistent,
-> or if there's noise contaminating the signal."
+> A clean watch shows consistent, overlapping shapes.
+> If the lines spread out, there's noise or mechanical irregularity in the signal."
 
 ---
 
-**⑥ Beat Error Display and Diagnostic Trace** (~30 sec)
+**⑤ Beat Error Display and Diagnostic Trace** (~30 sec)
 
 - Switch to Beat Error tab
 
-> "Every mechanical watch has two ticks per beat — a tic and a toc.
-> Ideally they're evenly spaced.
-> Beat Error measures how unequal that spacing is, in milliseconds.
-> This display shows the current Beat Error as a number,
-> and a trace below shows how it's been changing over time.
-> A well-adjusted watch should stay close to zero."
+> "Beat Error measures how evenly spaced the tic and toc are within each beat.
+> A perfect watch sits at zero.
+> The number at the top is the current value in milliseconds.
+> The trace below shows how it's been drifting over time —
+> a slowly climbing trace means the beat is getting progressively more uneven."
 
 ---
 
-**⑦ Long-Term Performance Graph** (~30 sec)
+**⑥ Long-Term Performance Graph** (~30 sec)
 
 - Switch to Long-Term tab
 
-> "This graph shows how Rate, Amplitude, and Beat Error are trending
-> over a long session — minutes to hours.
-> If Rate is slowly drifting in one direction, that tells you the mainspring
-> is running down or the watch needs regulation."
+> "This graph is for extended sessions.
+> It tracks Rate, Amplitude, and Beat Error as trends over time —
+> minutes to hours.
+> If Rate is slowly climbing, the mainspring is running down.
+> If Amplitude drops suddenly, something changed mechanically."
 
 ---
 
-**⑧ Escapement Analyzer and Marker-Line Display** (~30 sec)
+**⑦ Escapement Analyzer and Marker-Line Display** (~30 sec)
 
-- Switch to Escapement Analyzer tab
+- Switch to Escapement tab
 
-> "The escapement is the mechanism that releases the gear train one tick at a time.
-> This display marks the exact moment of each A and C event on a time axis —
-> with millisecond labels —
-> so you can see how evenly spaced those release points are.
-> Any irregularity here points to a problem with the escapement."
+> "The escapement releases the gear train one step at a time on every beat.
+> This display marks the exact moment of each release — the A and C events —
+> on a time axis, with millisecond labels.
+> Uneven spacing between markers means the escapement is misfiring."
 
 ---
 
-**⑨ Time-Frequency Spectrogram Display** (~30 sec)
+**⑧ Time-Frequency Spectrogram Display** (~30 sec)
 
 - Switch to Spectrogram tab
 
-> "This is a spectrogram — it shows which frequencies are present in the sound,
+> "The spectrogram shows which frequencies are in the acoustic signal
 > and how they change over time.
-> The bright horizontal bands are the main frequencies of the watch ticking.
-> If unexpected bands appear, there's something vibrating that shouldn't be."
+> The horizontal band here is the fundamental tick frequency.
+> If unexpected bands appear above it, something else is vibrating —
+> a loose part, a worn gear, or external interference."
 
 ---
 
-**⑩ Waveform Comparison Display with Timing Markers** (~30 sec)
+**⑨ Waveform Comparison Display with Timing Markers** (~30 sec)
 
 - Switch to Waveform Comparison tab
 
-> "This display overlays multiple beat waveforms on top of each other,
-> aligned to the same start point.
-> If all the beats look the same shape, the watch is consistent.
-> If they look different, there's beat-to-beat variation.
-> The timing markers show exactly how far apart the A and C peaks are."
+> "This overlays multiple beat waveforms aligned to the same start point.
+> If every beat looks the same shape, the watch is consistent.
+> The timing markers show exactly how far apart the A and C peaks are —
+> deviations here map directly to Beat Error."
 
 ---
 
-**⑪ Scope Mode with Synchronized Sweep Display** (~30 sec)
+**⑩ Scope Mode with Synchronized Sweep Display** (~30 sec)
 
 - Switch to Sweep Scope tab
 
-> "This works like a classic oscilloscope.
-> Each beat triggers a new sweep across the screen,
-> always starting from the same left edge.
-> It's the easiest way to see the raw shape of every beat
-> in a familiar, stable view."
+> "This is an oscilloscope-style view.
+> Every beat triggers a sweep from left to right, always starting at the same edge.
+> It's the most familiar way to inspect the raw waveform
+> and quickly spot anything unusual in the beat shape."
 
 ---
 
-**⑫ Scope Function with Multiple Filter Views** (~30 sec)
+**⑪ Scope Function with Multiple Filter Views** (~30 sec)
 
 - Switch to Filter Scope tab
 
-> "Finally, this display shows the signal through four different filters at once —
-> F0 is the raw signal, F1 through F3 apply progressively more filtering.
-> This lets you see exactly how each filter stage is shaping the signal
+> "Finally, this shows the signal through four filter stages simultaneously —
+> F0 is raw, F1 through F3 apply progressively more processing.
+> You can see exactly what each filter stage is doing to the signal
 > before it reaches beat detection.
-> It's a diagnostic tool for tuning the signal processing pipeline."
+> This is the diagnostic tool we used to tune our filter parameters."
 
 ---
 
-## 6:30 – 7:30 | Area 2 — Sound Print Enhancements (8 pts)
+## 7:30 – 8:30 | Area 2 — Sound Print Enhancements (8 pts)
 
 - Switch to Sound Print tab
 
@@ -185,7 +208,7 @@
 
 ---
 
-## 7:30 – 8:30 | Area 2 — Rate / Scope Enhancements (8 pts)
+## 8:30 – 9:30 | Area 2 — Rate / Scope Enhancements (8 pts)
 
 - Switch to Rate Scope tab
 
@@ -204,7 +227,7 @@
 
 ---
 
-## 8:30 – 9:30 | Area 2 — AI Feature (9 pts)
+## 9:30 – 10:30 | Area 2 — AI Feature (9 pts)
 
 - Switch to AI Diagnosis panel
 
@@ -233,7 +256,7 @@
 
 ---
 
-## 9:30 – 12:30 | Area 4 — Accuracy Verification (25 pts)
+## 10:30 – 13:00 | Area 4 — Accuracy Verification (25 pts)
 
 > "Now the most important quality attribute: Measurement Accuracy.
 >
@@ -280,7 +303,7 @@
 
 ---
 
-## 12:30 – 14:30 | Area 6 — GUI Modifications (25 pts)
+## 13:00 – 15:00 | Area 6 — GUI Modifications (25 pts)
 
 **Sensor unplug / replug detection** (~30 sec)
 
@@ -334,7 +357,7 @@
 
 ---
 
-## 14:30 – 16:00 | Area 4 — Latency & Real-Time Evidence
+## 15:00 – 16:30 | Area 4 — Latency & Real-Time Evidence
 
 > "Let me put some numbers on the real-time performance claims."
 
@@ -354,7 +377,7 @@
 
 ---
 
-## 16:00 – 17:30 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
+## 16:30 – 18:00 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
 
 **Radar Chart** (~45 sec)
 
@@ -389,43 +412,57 @@
 
 ---
 
-## 17:30 – 18:30 | Area 8 — Best UI Showcase (10 pts)
+## 18:00 – 19:30 | Area 8 — Best UI Showcase (10 pts)
 
-> "Finally, a look at the overall user experience improvements we made."
+> "Finally, a look at the user experience improvements we made."
 
-**Help system:**
+**F-key shortcuts — overview:**
 
-> "We added a built-in help system.
-> New users — or anyone who forgets what a display means —
-> can access contextual guidance without leaving the application.
-> No need to look up the manual."
+> "We added four function key shortcuts, always visible in the status bar —
+> F1 User Guide, F2 Manage Tabs, F3 Split View, F4 AI Diagnosis.
+> One keypress from anywhere in the app, no menus."
 
-- Demonstrate the help feature
+- Point to the status bar showing the shortcut hints
 
-**Dropdown menus:**
+**F1 — User Guide:**
 
-> "Less-used settings and options are grouped into dropdown menus.
-> The main interface stays clean and uncluttered during a measurement session.
-> Everything is still accessible, just one click away instead of always on screen."
+> "F1 opens the built-in help panel.
+> Every graph has an entry — what it shows, how to read it, what to watch for.
+> No external manual needed."
 
-- Open a dropdown to show
+- Press F1, scroll briefly through help content
 
-**Tab visibility management:**
+**F2 — Manage Tabs:**
 
-> "Finally, tabs that are rarely used are hidden by default.
-> The user can choose which tabs to show — reducing the visual noise
-> and making it faster to navigate to the displays that matter.
-> The tab bar reorganizes to put the most-used views front and center."
+> "F2 opens tab management.
+> You can select exactly which tabs are visible —
+> less-used graphs are hidden from the tab bar,
+> keeping the interface clean during a session."
 
-- Toggle tab visibility
+- Press F2, hide one tab, show it again
 
-> "Every one of these changes is part of the main application —
-> the same codebase that runs all 12 graph displays, the AI diagnosis, and the real-time processing.
-> Nothing is a prototype. Everything is integrated."
+**F3 — Split View:**
+
+> "F3 toggles split view.
+> Two tabs side by side, both updating live.
+> For example — Trace on the left, Beat Error on the right —
+> no switching back and forth."
+
+- Press F3, drag a second tab into the right pane
+
+**F4 — AI Diagnosis:**
+
+> "And F4 brings up the AI Diagnosis panel —
+> the same classifier we showed earlier, one keypress away from anywhere."
+
+- Press F4
+
+> "All four of these are wired into the same running application —
+> not a prototype, not a separate mode."
 
 ---
 
-## 18:30 – 20:00 | Buffer
+## 19:30 – 20:00 | Buffer
 
 - Handle evaluator questions
 - Re-demonstrate any item on request
