@@ -105,6 +105,21 @@ private:
         RollingAverage *roll = nullptr;
     } mAmp;
 
+    // Scope feature states (Witschi pp.14-19)
+    struct AsymState {
+        RollingAverage *roll = nullptr;  // |ticAmp - tocAmp| per pair
+    } mAsym;
+
+    struct JitterState {
+        RollingAverage *roll = nullptr;  // |wrappedRateError| per accepted beat
+    } mJitter;
+
+    struct EscState {
+        double lastMs   = 0.0;
+        bool   haveLast = false;
+        RollingAverage *roll = nullptr;  // |escapementMs delta| beat-to-beat
+    } mEsc;
+
     double       mLastA     = 0.0;
     bool         mHaveLastA = false;
     WatchMetrics mLastKnownMetrics;   // sticky: retains last valid values across frames

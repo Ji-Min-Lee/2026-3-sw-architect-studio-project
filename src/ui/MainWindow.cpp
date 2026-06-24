@@ -657,6 +657,9 @@ void MainWindow::raiseWatchDetachedAlarm(void)
 // (sustained for kNoiseOn/OffMs) so transient bumps don't flicker the popup.
 void MainWindow::checkNoise(const Measurement &m)
 {
+    // Simulation has no real ambient noise — skip so the alarm never fires in sim.
+    if (ui->ModeComboBox->currentText() == ModeStrings[SIM]) return;
+
     if (!ui->StopPushButton->isEnabled()) {   // not running → clear everything
         if (mNoiseAlarm) mNoiseAlarm->hide();
         mNoiseShown = false;
@@ -790,16 +793,21 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
     (void)frame;
 #endif
 
+    // fg_fps is 0 on most frames (only updated every 2 s in DSPWorker);
+    // ignore zero updates so the last real value stays on screen.
+    const bool dspUpdated = frame.fg_fps > 0 && mDspLastFPS != frame.fg_fps;
     if (mBackgroundLastFPS != frame.bg_fps ||
         mBackgroundLastSPS != frame.bg_sps ||
-        mDspLastFPS        != frame.fg_fps)
+        dspUpdated)
     {
         mBackgroundLastFPS = frame.bg_fps;
         mBackgroundLastSPS = frame.bg_sps;
         mBackgroundLastSPF = frame.bg_spf;
-        mDspLastFPS = frame.fg_fps;
-        mDspLastSPS = frame.fg_sps;
-        mDspLastSPF = frame.fg_spf;
+        if (dspUpdated) {
+            mDspLastFPS = frame.fg_fps;
+            mDspLastSPS = frame.fg_sps;
+            mDspLastSPF = frame.fg_spf;
+        }
         statusBar()->showMessage(
             QString("BG FPS:%1 SPS:%2 SPF:%3 | DSP FPS:%4 SPS:%5 SPF:%6")
                 .arg(mBackgroundLastFPS, 0, 'f', 0).arg(mBackgroundLastSPS, 0, 'f', 0)

@@ -47,6 +47,11 @@ struct WatchMetrics {
     std::optional<double> rate;       // s/day  (RLS average)
     std::optional<double> amplitude;  // degrees (rolling average)
     std::optional<double> beatError;  // ms      (rolling average)
+
+    // Scope/waveform features (Witschi Training Course pp.14-19)
+    std::optional<double> ticTocAsymmetryDeg; // rolling avg |ticAmp - tocAmp| in degrees
+    std::optional<double> rateJitterMs;        // rolling mean |wrappedRateError| — scatter magnitude
+    std::optional<double> escapementDeltaMs;   // rolling mean beat-to-beat |escapementMs change|
 };
 
 // Single Measurement emitted by MeasurementEngine after each tg_process call.
