@@ -204,6 +204,20 @@ MainWindow::MainWindow(QWidget *parent)
             ui->StopPushButton->click();
     });
 
+
+    // ←/→: cycle graph tabs
+    auto *scLeft = new QShortcut(Qt::Key_Left, this);
+    connect(scLeft, &QShortcut::activated, this, [this]() {
+        auto *tw = ui->GraphicsTabWidget;
+        int next = (tw->currentIndex() - 1 + tw->count()) % tw->count();
+        tw->setCurrentIndex(next);
+    });
+    auto *scRight = new QShortcut(Qt::Key_Right, this);
+    connect(scRight, &QShortcut::activated, this, [this]() {
+        auto *tw = ui->GraphicsTabWidget;
+        tw->setCurrentIndex((tw->currentIndex() + 1) % tw->count());
+    });
+
     // Acquisition layer — session lifecycle delegate
     mSession = new SessionController(this);
     connect(mSession, &SessionController::sessionStopped,
@@ -410,17 +424,17 @@ void MainWindow::setupTabOverflow(void)
 
     mMoreTabsMenu = new QMenu(mMoreTabsButton);
 
-    // F3 Split View
+    // Ctrl+\ Split View
     mSplitAct = mMoreTabsMenu->addAction(tr("Split View"));
-    mSplitAct->setShortcut(QKeySequence(Qt::Key_F3));
+    mSplitAct->setShortcut(QKeySequence(Qt::Key_Backslash | Qt::CTRL));
     mSplitAct->setShortcutContext(Qt::ApplicationShortcut);
     mSplitAct->setCheckable(true);
     addAction(mSplitAct);
     connect(mSplitAct, &QAction::triggered, this, &MainWindow::toggleSplitView);
 
-    // F2 Manage Tabs
+    // Ctrl+T Manage Tabs
     QAction *configureTabs = mMoreTabsMenu->addAction(tr("Manage Tabs..."));
-    configureTabs->setShortcut(QKeySequence(Qt::Key_F2));
+    configureTabs->setShortcut(QKeySequence(Qt::Key_T | Qt::CTRL));
     configureTabs->setShortcutContext(Qt::ApplicationShortcut);
     addAction(configureTabs);
     connect(configureTabs, &QAction::triggered, this, &MainWindow::showTabConfigDialog);
@@ -436,12 +450,48 @@ void MainWindow::setupTabOverflow(void)
         showUserGuide(UserGuideSection::Overview);
     });
 
-    // F4 AI Diagnosis
+    // Ctrl+D AI Diagnosis
     QAction *diagAct = mMoreTabsMenu->addAction(tr("AI Diagnosis"));
-    diagAct->setShortcut(QKeySequence(Qt::Key_F4));
+    diagAct->setShortcut(QKeySequence(Qt::Key_D | Qt::CTRL));
     diagAct->setShortcutContext(Qt::ApplicationShortcut);
     addAction(diagAct);
     connect(diagAct, &QAction::triggered, this, &MainWindow::showDiagnosisDialog);
+
+    mMoreTabsMenu->addSeparator();
+
+    // F11 Fullscreen
+    QAction *fsAct = mMoreTabsMenu->addAction(tr("Fullscreen"));
+    fsAct->setShortcut(QKeySequence(Qt::Key_F11));
+    fsAct->setShortcutContext(Qt::ApplicationShortcut);
+    fsAct->setCheckable(true);
+    addAction(fsAct);
+    connect(fsAct, &QAction::triggered, this, [this, fsAct]() {
+        if (isFullScreen()) {
+            showNormal();
+            setContentsMargins(0, 0, 0, 0);
+            fsAct->setChecked(false);
+        } else {
+            showFullScreen();
+            setContentsMargins(10, 10, 0, 10);
+            fsAct->setChecked(true);
+        }
+    });
+
+    mMoreTabsMenu->addSeparator();
+
+    // About
+    QAction *aboutAct = mMoreTabsMenu->addAction(tr("About TimeGrapher..."));
+    connect(aboutAct, &QAction::triggered, this, [this]() {
+        QMessageBox::about(this, tr("About TimeGrapher"),
+            tr("<h3>TimeGrapher</h3>"
+               "<p>Version 1.0.0</p>"
+               "<p>Mechanical Watch Timing Analyzer<br>"
+               "LG SW Architect Training Program 2026<br>"
+               "Team 3 &middot; Blue Sky</p>"
+               "<hr>"
+               "<p style='color:gray; font-size:10pt;'>"
+               "&copy; 2026 LG Electronics &middot; Internal Use Only</p>"));
+    });
 
     connect(mMoreTabsButton, &QToolButton::clicked, this, [this] {
         if (!mMoreTabsMenu) return;
@@ -453,7 +503,7 @@ void MainWindow::setupTabOverflow(void)
     tw->setCornerWidget(mMoreTabsButton, Qt::TopRightCorner);
 
     auto *hintLabel = new QLabel(
-        "  Space: Start/Pause   Esc: Stop   |   F1 User Guide   F2 Manage Tabs   F3 Split View   F4 AI Diagnosis  ", this);
+        "  Space: Start/Pause   Esc: Stop   ←/→: Tabs   F11: Fullscreen   |   F1: Guide   Ctrl+T: Tabs   Ctrl+\\: Split   Ctrl+D: AI  ", this);
     hintLabel->setStyleSheet("color: gray; font-size: 11px;");
     statusBar()->addPermanentWidget(hintLabel);
 }
