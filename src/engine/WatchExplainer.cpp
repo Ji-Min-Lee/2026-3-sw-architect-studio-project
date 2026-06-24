@@ -78,8 +78,11 @@ void WatchExplainer::explain(const ExplainRequest &req)
     QJsonObject systemMsg;
     systemMsg["role"]    = "system";
     systemMsg["content"] =
-        "You are an expert watchmaker. Be concise: at most 3 short sentences, "
-        "no preamble, no repetition, no restating the question.";
+        "You are an expert watchmaker assistant. Only answer questions about "
+        "watches, timegrapher readings, watch repair, and horology. "
+        "If the user asks about anything unrelated to watches, reply: "
+        "'I can only help with watch-related questions.' "
+        "Be concise: at most 3 short sentences, no preamble, no repetition.";
     m_history.append(systemMsg);
 
     if (m_rag.isLoaded()) {
@@ -107,7 +110,17 @@ void WatchExplainer::chat(const QString &userMessage)
     m_timeout->stop();
     m_accumulated.clear();
 
-    if (m_rag.isLoaded()) {
+    // Meta-requests (translate, summarize, format) don't benefit from RAG —
+    // injecting watchmaking chunks confuses the model on non-technical tasks.
+    static const QStringList kMetaKeywords = {
+        "translate", "번역", "summarize", "요약", "Korean", "한국어", "한글",
+        "English", "영어", "shorter", "simpler", "explain again", "다시", "짧게"
+    };
+    bool isMeta = false;
+    for (const QString &kw : kMetaKeywords)
+        if (userMessage.contains(kw, Qt::CaseInsensitive)) { isMeta = true; break; }
+
+    if (m_rag.isLoaded() && !isMeta) {
         // Retrieve chunks relevant to THIS follow-up question, then send in
         // onRagRetrieved(). Each turn gets its own question-specific context.
         m_pendingIsChat      = true;
