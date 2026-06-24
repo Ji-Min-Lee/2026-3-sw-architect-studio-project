@@ -1,0 +1,117 @@
+@startuml view2b-observer-runtime
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam RoundCorner 8
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 10
+skinparam titleFontSize 17
+skinparam ArrowFontSize 9
+skinparam ArrowThickness 1.4
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam ParticipantPadding 14
+skinparam BoxPadding 10
+skinparam ParticipantBorderThickness 1.2
+skinparam ParticipantBorderColor #444444
+skinparam BoxBorderColor #666666
+skinparam BoxBackgroundColor #FFFFFF
+skinparam BoxFontStyle bold
+skinparam SequenceLifeLineBorderColor #BBBBBB
+skinparam sequenceDividerBorderColor #CCCCCC
+skinparam sequenceDividerBackgroundColor #FFFFFF
+skinparam NoteBackgroundColor #EAF7EA
+skinparam NoteBorderColor #444444
+skinparam NoteFontSize 9
+skinparam activationBackgroundColor #FFFFFF
+skinparam activationBorderColor #444444
+skinparam stereotypeFontSize 9
+skinparam stereotypeFontStyle italic
+
+title <b>TimeGrapher Observer Runtime Sequence</b>\n
+autonumber
+hide footbox
+
+actor User
+
+box "Qt Main Thread"
+  participant "MainWindow" as MW
+  participant "SessionController" as SC <<wiring coordinator>>
+  participant "BaseGraphTab" as Tab <<Observer>>
+end box
+
+box "DSP Thread"
+  participant "MeasurementEngine" as ME <<Subject>>
+end box
+
+participant "Mic" as Mic <<Acquisition>>
+
+== Register observers (once) ==
+
+MW -> SC ++ : connectObservers()
+note right of SC
+  stores mObserverTabs
+  (no connect yet)
+end note
+SC --> MW -- : return
+deactivate SC
+
+== Wire signal-slot (per session) ==
+
+User -> MW ++ : Start()
+MW -> SC ++ : startLive() / startPlayback() / startSim()
+note over SC
+  create DSPWorker on T2
+  start mDspThread
+end note
+
+loop each tab in mObserverTabs [1 .. 14]
+  SC -> Tab ++ : connect()
+  Tab --> SC -- : return
+  deactivate Tab
+end
+
+SC -> MW ++ : connect()
+MW --> SC -- : return
+deactivate MW
+
+SC --> MW -- : return
+deactivate SC
+MW --> User -- : return
+deactivate MW
+
+== Deliver measurement (per DSP block) ==
+
+Mic ->> ME ++ : PCM samples
+note over ME
+  processBlock()
+  {duration} tg_us
+  builds Measurement snapshot
+end note
+
+note over ME, Tab
+  QueuedConnection
+  slots invoked on Main thread
+  {duration} wait_ms (EXP-02)
+end note
+
+loop each tab [1 .. 14]
+  ME -> Tab ++ : onMeasurement()
+  note right of Tab
+    isVisible() guard
+    (ADR-002)
+  end note
+  Tab --> ME -- : return
+  deactivate Tab
+end
+
+ME -> MW ++ : onMeasurementReady()
+note right of MW : DisplayResults()
+MW --> ME -- : return
+deactivate ME
+deactivate MW
+
+note bottom
+  Key: UML
+end note
+
+@enduml

@@ -1,0 +1,127 @@
+<mxfile host="65bd71144e">
+    <diagram id="dom-entity-vo-1" name="Watch Measurement Domain Model">
+        <mxGraphModel dx="1134" dy="559" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1240" pageHeight="772" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="T0" value="Module View: Domain Entity / Value Object" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=16;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="10" width="1160" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="T_QA" value="QAS-4 Extensibility/Modifiability · AP-4 Single-Source Consistency · src/engine/Measurement.h" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=3;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="38" width="1160" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="PRES" value="Presentation Layer — 14 Graph Tabs&#xa;&lt;i&gt;TraceTab · VarioTab · BeatErrorTab · RateScopeTab · SoundPrintTab · … — each receives the same Measurement&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="70" width="1160" height="58" as="geometry"/>
+                </mxCell>
+                <mxCell id="E_USE" value="«use» — received as const &amp; (read-only)" style="dashed=1;endArrow=open;endFill=0;html=1;strokeColor=#6c8ebf;fontSize=10;fontColor=#3a5a8c;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="PRES" target="MEAS" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="DOM_BG" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;opacity=40;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="158" width="1160" height="432" as="geometry"/>
+                </mxCell>
+                <mxCell id="DOM_LBL" value="Domain Layer" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=13;fontColor=#4a7a32;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="56" y="166" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="ME" value="MeasurementEngine&#xa;&lt;i&gt;(domain service)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="210" width="200" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="MEAS" value="Measurement&#xa;&lt;i&gt;«aggregate root»&lt;/i&gt;&#xa;synced · detectedBph · noSignal" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=3;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="510" y="200" width="240" height="74" as="geometry"/>
+                </mxCell>
+                <mxCell id="E_PROD" value="produces (1 / tg_process block)" style="endArrow=open;endFill=1;html=1;strokeColor=#b8860b;fontSize=10;fontColor=#b8860b;strokeWidth=1.5;" parent="1" source="ME" target="MEAS" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="VO_SF" value="«Value Object»&#xa;&lt;b&gt;SignalFrame&lt;/b&gt;&#xa;―――――――――――&#xa;+ pcm, threshold&#xa;+ hpfPcm, rawPcm&#xa;+ tickStart / tickEnd&#xa;+ samplesPerSecond" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="362" width="300" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="VO_WM" value="«Value Object»&#xa;&lt;b&gt;WatchMetrics&lt;/b&gt;&#xa;―――――――――――&#xa;+ rate       : optional&lt;s/day&gt;&#xa;+ amplitude  : optional&lt;°&gt;&#xa;+ beatError  : optional&lt;ms&gt;&#xa;&lt;i&gt;absent = not yet valid&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="362" width="300" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="VO_AE" value="«Value Object»  (× events : QVector)&#xa;&lt;b&gt;AcousticEvent&lt;/b&gt;&#xa;―――――――――――&#xa;+ samplePos, isA, peakValue&#xa;+ wrappedRateError, isTic&#xa;+ escapementMs&#xa;+ ticAmpDeg / tocAmpDeg" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="362" width="300" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="C_SF" value="signal : 1" style="startArrow=diamondThin;startFill=1;endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#333333;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="MEAS" target="VO_SF" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="C_WM" value="metrics : 1" style="startArrow=diamondThin;startFill=1;endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#333333;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="MEAS" target="VO_WM" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="C_AE" value="events : 1..*" style="startArrow=diamondThin;startFill=1;endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#333333;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="MEAS" target="VO_AE" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="LEG_BOX" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#999999;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="595" width="1160" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="LEG_T" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="52" y="603" width="80" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="LEG_H1" value="Box styles" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=9;fontColor=#555555;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="56" y="626" width="120" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_PR" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="58" y="648" width="44" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_PR_T" value="Presentation layer  —  14 Graph Tabs" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="647" width="380" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_DOM" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;opacity=40;" parent="1" vertex="1">
+                    <mxGeometry x="58" y="671" width="44" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_DOM_T" value="Domain layer  —  Entity + Value Objects" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="670" width="380" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_AR" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="58" y="694" width="44" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_AR_T" value="«aggregate root» (thick border)  —  Measurement" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="693" width="400" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_VO" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="58" y="717" width="44" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_VO_T" value="«Value Object»  —  SignalFrame · WatchMetrics · AcousticEvent" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="716" width="450" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_SV" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+                    <mxGeometry x="58" y="740" width="44" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="LS_SV_T" value="«domain service»  —  MeasurementEngine" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="739" width="400" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="LEG_H2" value="Relations" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=9;fontColor=#555555;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="626" width="120" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="LE_C" value="" style="startArrow=diamondThin;startFill=1;endArrow=none;html=1;strokeColor=#333333;strokeWidth=1.5;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="648" y="651" as="sourcePoint"/>
+                        <mxPoint x="704" y="651" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="LT_C" value="composition  (whole owns part by value)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="714" y="644" width="320" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="LE_U" value="" style="dashed=1;endArrow=open;endFill=0;html=1;strokeColor=#6c8ebf;strokeWidth=1.5;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="648" y="678" as="sourcePoint"/>
+                        <mxPoint x="704" y="678" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="LT_U" value="«use»  —  read-only delivery (const &amp;)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="714" y="671" width="320" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="LE_P" value="" style="endArrow=open;endFill=1;html=1;strokeColor=#b8860b;strokeWidth=1.5;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="648" y="705" as="sourcePoint"/>
+                        <mxPoint x="704" y="705" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="LT_P" value="produces  (factory output, 1 / block)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="714" y="698" width="320" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="KNOTE" value="Notation: UML Module Decomposition + Uses View · layer colors aligned with view1 (4-Layer Allowed-to-Use)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#777777;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="728" width="540" height="14" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
