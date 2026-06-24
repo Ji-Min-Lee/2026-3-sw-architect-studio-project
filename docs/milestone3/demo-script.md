@@ -21,55 +21,7 @@
 
 ---
 
-**① Trace Display** (~30 sec)
-
-- Switch to Trace tab
-
-> "This is the Trace display.
-> It draws a continuous line of how fast or slow the watch is running —
-> Rate on top, Amplitude on the bottom — as time goes on.
-> If the watch drifts, you see the line slope up or down.
-> Think of it as the watch's heartbeat over time."
-
----
-
-**② Rate & Amplitude Stability — Vario** (~30 sec)
-
-- Switch to Vario tab
-
-> "This is the Vario display.
-> It shows Min, Max, Average, and standard deviation of Rate and Amplitude
-> since we started measuring.
-> If those numbers are tight and stable, the watch is consistent.
-> If they're spread wide, something is off."
-
----
-
-**③ Beat Error Display & Diagnostic Trace** (~30 sec)
-
-- Switch to Beat Error tab
-
-> "Every mechanical watch has two ticks per beat — a tic and a toc.
-> Ideally they're evenly spaced.
-> Beat Error measures how unequal that spacing is, in milliseconds.
-> This display shows the current Beat Error as a number,
-> and a trace below shows how it's been changing over time.
-> A well-adjusted watch should stay close to zero."
-
----
-
-**④ Beat-Noise Scope** (~30 sec)
-
-- Switch to Beat-Noise Scope tab
-
-> "This display captures the raw waveform shape of each individual beat.
-> The faint lines are single beats, the bright line is the running average.
-> You can see if the beats look clean and consistent,
-> or if there's noise contaminating the signal."
-
----
-
-**⑤ Watch-Position Testing** (~30 sec)
+**① Watch-Position Testing** (~30 sec)
 
 - Switch to Watch Position tab
 
@@ -81,7 +33,30 @@
 
 ---
 
-**⑥ Multi-Position Sequence Display** (~30 sec)
+**② Trace Display** (~30 sec)
+
+- Switch to Trace tab
+
+> "This is the Trace display.
+> It draws a continuous line of how fast or slow the watch is running —
+> Rate on top, Amplitude on the bottom — as time goes on.
+> If the watch drifts, you see the line slope up or down.
+> Think of it as the watch's heartbeat over time."
+
+---
+
+**③ Rate and Amplitude Stability Over Time — Vario** (~30 sec)
+
+- Switch to Vario tab
+
+> "This shows Min, Max, Average, and standard deviation of Rate and Amplitude
+> since we started measuring.
+> If those numbers are tight and stable, the watch is consistent.
+> If they're spread wide, something is off."
+
+---
+
+**④ Multi-Position Sequence Display** (~30 sec)
 
 - Switch to Multi-Position tab
 
@@ -89,6 +64,30 @@
 > Instead of one position at a time, it lines up all measured positions side by side
 > so you can compare them at a glance.
 > Up to ten positions can be compared in one view."
+
+---
+
+**⑤ Beat-Noise Scope Display** (~30 sec)
+
+- Switch to Beat-Noise Scope tab
+
+> "This display captures the raw waveform shape of each individual beat.
+> The faint lines are single beats, the bright line is the running average.
+> You can see if the beats look clean and consistent,
+> or if there's noise contaminating the signal."
+
+---
+
+**⑥ Beat Error Display and Diagnostic Trace** (~30 sec)
+
+- Switch to Beat Error tab
+
+> "Every mechanical watch has two ticks per beat — a tic and a toc.
+> Ideally they're evenly spaced.
+> Beat Error measures how unequal that spacing is, in milliseconds.
+> This display shows the current Beat Error as a number,
+> and a trace below shows how it's been changing over time.
+> A well-adjusted watch should stay close to zero."
 
 ---
 
@@ -103,7 +102,7 @@
 
 ---
 
-**⑧ Escapement Analyzer & Marker-Line Display** (~30 sec)
+**⑧ Escapement Analyzer and Marker-Line Display** (~30 sec)
 
 - Switch to Escapement Analyzer tab
 
@@ -115,7 +114,7 @@
 
 ---
 
-**⑨ Time-Frequency Spectrogram** (~30 sec)
+**⑨ Time-Frequency Spectrogram Display** (~30 sec)
 
 - Switch to Spectrogram tab
 
@@ -138,7 +137,7 @@
 
 ---
 
-**⑪ Scope Mode — Synchronized Sweep** (~30 sec)
+**⑪ Scope Mode with Synchronized Sweep Display** (~30 sec)
 
 - Switch to Sweep Scope tab
 
@@ -150,7 +149,7 @@
 
 ---
 
-**⑫ Scope Function — Multiple Filter Views** (~30 sec)
+**⑫ Scope Function with Multiple Filter Views** (~30 sec)
 
 - Switch to Filter Scope tab
 

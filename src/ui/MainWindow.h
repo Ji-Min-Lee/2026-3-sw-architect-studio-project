@@ -108,7 +108,7 @@ private:
     // Graph-tab overflow: show the first kDefaultVisibleTabs as tabs, move the
     // rest behind a "More" drop-down. onGraphTabChanged() collapses a revealed
     // overflow tab back into the menu once the user returns to a default tab.
-    static constexpr int kDefaultVisibleTabs = 2;  // Trace, Vario (baseline tabs moved to end)
+    // kDefaultVisibleTabs unused for initial visibility (set explicitly by widget ptr in setupTabOverflow)
     void   setupTabOverflow(void);
     void   showUserGuide(UserGuideSection section);
     void   showDiagnosisDialog(void);

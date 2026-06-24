@@ -219,6 +219,7 @@ MainWindow::MainWindow(QWidget *parent)
     mSweepScopeTab     = registerTab(new SweepScopeTab(this),     "Sweep");
     mFilterScopeTab    = registerTab(new FilterScopeTab(this),    "Filters");
     mRadarChartTab     = registerTab(new RadarChartTab(mSequenceTab, this), "Radar");
+    connect(mSequenceTab, &SequenceTab::sequenceUpdated, mRadarChartTab, &RadarChartTab::rebuild);
 
     // Tab tooltips: show full rubric name on hover
     auto *tw = ui->GraphicsTabWidget;
@@ -348,7 +349,13 @@ void MainWindow::setAdvancedExpanded(bool expanded)
 void MainWindow::updateLeftPanelForMode(void)
 {
     if (!mAdvancedToggle) return;          // not constructed yet (early signal)
-    const bool simMode = (ui->ModeComboBox->currentText() == ModeStrings[SIM]);
+    const bool liveMode = (ui->ModeComboBox->currentText() == ModeStrings[LIVE]);
+    const bool simMode  = (ui->ModeComboBox->currentText() == ModeStrings[SIM]);
+    // Gain, InputDevice, Refresh are Live-only — disable (not hide) in other modes
+    ui->GainLabel->setEnabled(liveMode);
+    ui->MicrophoneHorizontalSlider->setEnabled(liveMode);
+    ui->InputDeviceComboBox->setEnabled(liveMode);
+    ui->RefreshPushButton->setEnabled(liveMode);
     ui->SimFrame->setVisible(simMode);
     relayoutLeftColumn();
 }
@@ -364,16 +371,14 @@ void MainWindow::setupTabOverflow(void)
     QTabWidget *tw = ui->GraphicsTabWidget;
     const int n = tw->count();
 
-    // Reorder tabs to match rubric demo flow:
-    //   Area 1 (Trace..Filters) → Area 2 (Sound Print, Rate/Scope) → Bonus (Radar)
-    tw->tabBar()->moveTab(1, n - 1);  // Sound Print -> last
-    tw->tabBar()->moveTab(0, n - 1);  // Rate/Scope  -> last (Sound Print shifts to n-2)
-    tw->tabBar()->moveTab(tw->indexOf(mRadarChartTab), n - 1);  // Radar -> absolute last
+    // Move Radar to the absolute end (bonus area — shown last in demo)
+    tw->tabBar()->moveTab(tw->indexOf(mRadarChartTab), n - 1);
 
-    // Apply default visibility: show only the first kDefaultVisibleTabs tabs (Trace, Vario)
-    for (int i = kDefaultVisibleTabs; i < n; ++i)
-        tw->setTabVisible(i, false);
-    tw->setCurrentIndex(0);  // start on Trace
+    // Default visibility: Rate/Scope, Sound Print, Trace, Vario
+    const QSet<QWidget *> defaultVisible = { ui->RateTab, ui->SoundTab, mTraceTab, mVarioTab };
+    for (int i = 0; i < n; ++i)
+        tw->setTabVisible(i, defaultVisible.contains(tw->widget(i)));
+    tw->setCurrentWidget(ui->RateTab);  // start on Rate/Scope
 
     mMoreTabsButton = new QToolButton(tw);
     mMoreTabsButton->setObjectName("MoreTabsButton");
@@ -387,7 +392,7 @@ void MainWindow::setupTabOverflow(void)
 
     mMoreTabsMenu = new QMenu(mMoreTabsButton);
 
-    QAction *configureTabs = mMoreTabsMenu->addAction(tr("Configure Tabs... (F2)"));
+    QAction *configureTabs = mMoreTabsMenu->addAction(tr("Configure Tabs..."));
     configureTabs->setShortcut(QKeySequence(Qt::Key_F2));
     configureTabs->setShortcutContext(Qt::ApplicationShortcut);
     addAction(configureTabs);
@@ -395,7 +400,7 @@ void MainWindow::setupTabOverflow(void)
 
     mMoreTabsMenu->addSeparator();
 
-    QAction *guide = mMoreTabsMenu->addAction(tr("User Guide (F1)"));
+    QAction *guide = mMoreTabsMenu->addAction(tr("User Guide"));
     guide->setShortcut(QKeySequence::HelpContents);
     guide->setShortcutContext(Qt::ApplicationShortcut);
     addAction(guide);
@@ -403,7 +408,7 @@ void MainWindow::setupTabOverflow(void)
         showUserGuide(UserGuideSection::Overview);
     });
 
-    QAction *diagnosis = mMoreTabsMenu->addAction(tr("AI Diagnosis (F3)"));
+    QAction *diagnosis = mMoreTabsMenu->addAction(tr("AI Diagnosis"));
     diagnosis->setShortcut(QKeySequence(Qt::Key_F3));
     diagnosis->setShortcutContext(Qt::ApplicationShortcut);
     addAction(diagnosis);
@@ -597,12 +602,27 @@ void MainWindow::DisplayResults(const Measurement &m)
     QString rateStr  = m.metrics.rate      ? QString::asprintf("%+6.1f", *m.metrics.rate)                          : "------";
     QString beatStr  = m.metrics.beatError ? QString("%1").arg(*m.metrics.beatError, 4, 'f', 1)                    : "----";
     QString ampStr   = m.metrics.amplitude ? QString("%1°").arg(qRound64(*m.metrics.amplitude), 3, 10, QChar(' ')) : "---";
-    ui->Results->setText(warning +
-                         "POS " + mActivePosition +
-                         "  ▏  RATE " + rateStr + " s/d" +
-                         "  ▏  AMP " + ampStr +
-                         "  ▏  ERR " + beatStr + " ms" +
-                         "  ▏  BPH " + bphStr);
+    // Highlight values: normal color per metric; alert red if out of range
+    auto colored = [](const QString &val, const QString &hex) {
+        return QString("<span style='color:%1'>%2</span>").arg(hex, val);
+    };
+    bool rateAlert = m.metrics.rate      && std::abs(*m.metrics.rate)      > 30.0;
+    bool ampAlert  = m.metrics.amplitude && (*m.metrics.amplitude < 150.0  || *m.metrics.amplitude > 360.0);
+    bool errAlert  = m.metrics.beatError && std::abs(*m.metrics.beatError) > 1.5;
+
+    const QString sep  = "<span style='color:#888'>  |  </span>";
+    const QString cLbl = "#444444", cRate = "#0066CC", cAmp = "#107C10",
+                  cErr = "#CA5010", cBph = "#5B2D90", cAlert = "#C50F1F";
+
+    QString html = "<span style='font-size:12pt; font-weight:bold;'>";
+    html += warning.isEmpty() ? "" : colored(warning, cAlert);
+    html += colored("POS ", cLbl) + colored(mActivePosition, "#111111");
+    html += sep + colored("RATE ", cLbl) + colored(rateStr + " s/d", rateAlert ? cAlert : cRate);
+    html += sep + colored("AMP ",  cLbl) + colored(ampStr,           ampAlert  ? cAlert : cAmp);
+    html += sep + colored("ERR ",  cLbl) + colored(beatStr + " ms",  errAlert  ? cAlert : cErr);
+    html += sep + colored("BPH ",  cLbl) + colored(bphStr,           cBph);
+    html += "</span>";
+    ui->Results->setText(html);
 
     DiagnosisInput diagInput { m.metrics, mWatchType, m.noSignal };
     DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
@@ -1002,26 +1022,17 @@ void MainWindow::GetAudioDevice(QString &Name) { Name = ui->InputDeviceComboBox-
 
 bool MainWindow::RecordSessionCheck(void)
 {
-    if (mNoRecord) return true;   // --no-record CLI flag: skip dialog, answer NO
+    if (mNoRecord || !ui->RecordCheckBox->isChecked()) return true;
 
-    QMessageBox msgBox;
-    msgBox.setText("Record Session");
-    msgBox.setInformativeText("Do you want to record this session?");
-    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::No);
-    int dialogResult = msgBox.exec();
-    if (dialogResult == QMessageBox::Yes) {
-        QString fileName = QFileDialog::getSaveFileName(
-            this, tr("Save Output File"), "../../Output/", tr("Wav Files (*.wav);;All Files (*)"));
-        if (fileName.isEmpty()) return false;
-        mWavWriter = new WavStreamWriter;
-        if (!mWavWriter->open(fileName, mCurrentSamplesPerSecond, 1)) {
-            QMessageBox::critical(this, "Error", "Failed to open WAV file");
-            delete mWavWriter; mWavWriter = nullptr; return false;
-        }
-        return true;
+    QString fileName = QFileDialog::getSaveFileName(
+        this, tr("Save Output File"), "../../Output/", tr("Wav Files (*.wav);;All Files (*)"));
+    if (fileName.isEmpty()) return false;
+    mWavWriter = new WavStreamWriter;
+    if (!mWavWriter->open(fileName, mCurrentSamplesPerSecond, 1)) {
+        QMessageBox::critical(this, "Error", "Failed to open WAV file");
+        delete mWavWriter; mWavWriter = nullptr; return false;
     }
-    return (dialogResult == QMessageBox::No);
+    return true;
 }
 void MainWindow::AudioCloseCheck(void)
 {
@@ -1071,6 +1082,7 @@ void MainWindow::SetGuiRunMode(void)
     ui->RealisticCheckBox->setEnabled(false);
     ui->UseConsetCheckBox->setEnabled(false);
     ui->HighLineEdit->setEnabled(false);
+    ui->RecordCheckBox->setEnabled(false);
 }
 void MainWindow::SetGuiStopMode(void)
 {
@@ -1098,6 +1110,7 @@ void MainWindow::SetGuiStopMode(void)
     ui->RealisticCheckBox->setEnabled(true);
     ui->UseConsetCheckBox->setEnabled(true);
     ui->HighLineEdit->setEnabled(true);
+    ui->RecordCheckBox->setEnabled(true);
 }
 
 void MainWindow::LiveStart(void)
