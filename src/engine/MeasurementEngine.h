@@ -39,9 +39,17 @@ private:
     double wrapInRange(double value, double lo, double hi) const;
     void   addOrOverwrite(QVector<double> &xv, QVector<double> &yv,
                           double val, int maxSize, int &idx);
-    void   computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae);
+    // Returns true when the A-event is a grid outlier (handling-noise tap that
+    // slipped past the amplitude gate) and was rejected — caller then skips the
+    // beat-error update for this event too.
+    bool   computeRateError(double evTime, bool synced, int bph, AcousticEvent &ae);
     void   computeBeatError(double evTime, bool synced, int bph);
     void   computeAmplitude(double cTime, bool synced, int bph, WatchMetrics &metrics, AcousticEvent &ae);
+
+    // Handling-noise rejection: discard impulsive events caused by tapping the
+    // watch or sensor, while preserving the real A/C beat events. Event-level
+    // (O(1) per event, no per-sample cost) — real-time safe on the RPi.
+    bool   isHandlingNoise(double samplePos, float peak) const;
 
     // DSP pipeline
     tg_config_t   mCfg{};
@@ -71,6 +79,14 @@ private:
         RollingLeastSquares *rlsToc = nullptr;
         bool   rateValid = false;
         double rateSpd   = 0.0; // s/day
+        // Grid-outlier (tap) rejection: per-parity (tic/toc) baseline of the
+        // instantaneous grid error. A real beat stays near its own parity's
+        // baseline; a tap lands far off it. Compared per parity so the genuine
+        // tic/toc asymmetry (beat error) is not mistaken for an outlier.
+        double lastInstErrMs[2]   = {0.0, 0.0};
+        bool   haveLastInstErr[2] = {false, false};
+        int    consecRejects[2]   = {0, 0};   // per parity: a stuck tic must not be
+                                              // un-stuck by an accepted toc (and vice versa)
     } mRate;
 
     // Beat-error state  (extracted from TBeatErrorEvents)
@@ -92,6 +108,17 @@ private:
     double       mLastA     = 0.0;
     bool         mHaveLastA = false;
     WatchMetrics mLastKnownMetrics;   // sticky: retains last valid values across frames
+
+    // Handling-noise (tap) rejection state. Thresholds are relative (median×K)
+    // so faint watches' real A/C are preserved; tune via EXP-03/04.
+    struct HandlingNoiseState {
+        QVector<double> recentPeaks;       // last accepted beat peaks (rolling)
+        double lastAcceptedPos = -1.0;     // sample index of last accepted event
+        static constexpr int    kWindow       = 24;   // peaks kept for the median
+        static constexpr int    kMinForOutlier = 6;   // need a baseline before rejecting
+        static constexpr double kAmplitudeK   = 5.0;  // reject if peak > median × K
+        static constexpr double kRefractoryMs = 3.0;  // reject events closer than this
+    } mHandling;
 
     // QAS-4: no-signal detection (owned by Model, not Controller)
     QElapsedTimer mNoSignalTimer;

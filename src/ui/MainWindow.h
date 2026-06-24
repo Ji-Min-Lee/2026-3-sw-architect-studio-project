@@ -138,6 +138,11 @@ private:
     void   checkWatchDetached(const Measurement &m);
     void   raiseWatchDetachedAlarm(void);
 
+    // All-mode ambient-noise popup: warn when the environment is too noisy to
+    // measure (>= 51 dB sustained, EXP-04 calibrated); dismiss when quiet again.
+    void   checkNoise(const Measurement &m);
+    void   raiseNoiseAlarm(void);
+
     bool   eventFilter(QObject *obj, QEvent *event) override;
 
     Ui::MainWindow *ui;
@@ -172,6 +177,15 @@ private:
     bool         mHadWatchSignal = false;
     bool         mWatchDetached  = false;
     QMessageBox *mDetachAlarm    = nullptr;
+
+    // All-mode ambient-noise popup state (debounced on both edges)
+    bool          mNoiseShown = false;
+    QElapsedTimer mNoiseAboveSince;        // continuous time at/above threshold
+    QElapsedTimer mNoiseBelowSince;        // continuous time below threshold
+    QMessageBox  *mNoiseAlarm = nullptr;
+    static constexpr double  kNoiseThresholdDb = 51.0;   // EXP-04 calibrated (was 55; failure onset ~54)
+    static constexpr qint64  kNoiseOnMs        = 2000;   // sustained → show
+    static constexpr qint64  kNoiseOffMs       = 2000;   // sustained → hide
 
     // WAV recording (dialog + writer owned here; session does not touch it)
     WavStreamWriter *mWavWriter = nullptr;
