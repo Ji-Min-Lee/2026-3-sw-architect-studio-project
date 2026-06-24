@@ -45,7 +45,7 @@ void WatchExplainer::warmup(const QString &modelName)
     QJsonObject body;
     body["model"]      = modelName;
     body["prompt"]     = "";
-    body["keep_alive"] = "10m";
+    body["keep_alive"] = "30m";
     body["options"]    = options;
 
     qInfo() << "[WatchExplainer] Warming up model:" << modelName;
@@ -71,6 +71,16 @@ void WatchExplainer::explain(const ExplainRequest &req)
     m_accumulated.clear();
     m_history = QJsonArray();
     m_currentModel = req.modelName;
+    m_pendingIsChat = false;   // first turn always routes through the explain path
+
+    // Conversation-wide style guide. Applies to the initial explanation and
+    // every follow-up turn, keeping small models terse and non-repetitive.
+    QJsonObject systemMsg;
+    systemMsg["role"]    = "system";
+    systemMsg["content"] =
+        "You are an expert watchmaker. Be concise: at most 3 short sentences, "
+        "no preamble, no repetition, no restating the question.";
+    m_history.append(systemMsg);
 
     if (m_rag.isLoaded()) {
         // retrieve relevant context first, then fire LLM in onRagRetrieved()
@@ -97,9 +107,30 @@ void WatchExplainer::chat(const QString &userMessage)
     m_timeout->stop();
     m_accumulated.clear();
 
+    if (m_rag.isLoaded()) {
+        // Retrieve chunks relevant to THIS follow-up question, then send in
+        // onRagRetrieved(). Each turn gets its own question-specific context.
+        m_pendingIsChat      = true;
+        m_pendingChatMessage = userMessage;
+        m_rag.retrieve(userMessage, "nomic-embed-text");
+        m_timeout->start(kTimeoutMs);
+        return;
+    }
+    sendChat(userMessage, {});
+}
+
+void WatchExplainer::sendChat(const QString &userMessage, const QStringList &context)
+{
+    if (context.isEmpty())
+        qInfo() << "[WatchExplainer] Chat: no RAG context";
+    else
+        qInfo() << "[WatchExplainer] Chat RAG: injected" << context.size() << "chunks";
+
+    emit ragStatusChanged(!context.isEmpty(), context.size());
+
     QJsonObject userMsg;
     userMsg["role"]    = "user";
-    userMsg["content"] = userMessage;
+    userMsg["content"] = userMessage + formatContextBlock(context);
     m_history.append(userMsg);
 
     QJsonObject options;
@@ -110,10 +141,11 @@ void WatchExplainer::chat(const QString &userMessage)
     options["repeat_last_n"]  = 256;  // window the repeat penalty looks back over
 
     QJsonObject body;
-    body["model"]    = m_currentModel;
-    body["stream"]   = true;
-    body["options"]  = options;
-    body["messages"] = m_history;
+    body["model"]      = m_currentModel;
+    body["stream"]     = true;
+    body["keep_alive"] = "30m";  // keep weights resident between turns
+    body["options"]    = options;
+    body["messages"]   = m_history;
 
     QNetworkRequest request(QUrl(QString("%1/api/chat").arg(kOllamaBase)));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -135,15 +167,25 @@ void WatchExplainer::onRagRetrieved(const QVector<RagCitation> &citations)
     for (const RagCitation &cite : citations)
         chunks << cite.text;
     emit ragCitationsReady(citations);
-    explainWithContext(m_pendingReq, chunks);
+    if (m_pendingIsChat) {
+        m_pendingIsChat = false;
+        sendChat(m_pendingChatMessage, chunks);
+    } else {
+        explainWithContext(m_pendingReq, chunks);
+    }
 }
 
 void WatchExplainer::onRagError(const QString &msg)
 {
     m_timeout->stop();
     qWarning() << "[WatchExplainer] RAG retrieval failed:" << msg << "— proceeding without context";
-    explainWithContext(m_pendingReq, {});
-    emit ragCitationsReady({});
+    if (m_pendingIsChat) {
+        m_pendingIsChat = false;
+        sendChat(m_pendingChatMessage, {});  // keep existing sources panel as-is
+    } else {
+        explainWithContext(m_pendingReq, {});
+        emit ragCitationsReady({});
+    }
 }
 
 void WatchExplainer::explainWithContext(const ExplainRequest &req, const QStringList &context)
@@ -172,10 +214,11 @@ void WatchExplainer::explainWithContext(const ExplainRequest &req, const QString
     options["repeat_last_n"]  = 256;  // window the repeat penalty looks back over
 
     QJsonObject body;
-    body["model"]    = req.modelName;
-    body["stream"]   = true;   // stream tokens as they are generated
-    body["options"]  = options;
-    body["messages"] = m_history;
+    body["model"]      = req.modelName;
+    body["stream"]     = true;   // stream tokens as they are generated
+    body["keep_alive"] = "30m";  // keep weights resident across the session
+    body["options"]    = options;
+    body["messages"]   = m_history;
 
     m_accumulated.clear();
     qInfo() << "[WatchExplainer] Sending streaming request, model:" << req.modelName;
@@ -285,6 +328,23 @@ void WatchExplainer::onTagsReplyFinished(QNetworkReply *reply)
 
 // ── Prompt builder ────────────────────────────────────────────────────────────
 
+// Render RAG chunks as an ASCII-only background block appended to a prompt.
+QString WatchExplainer::formatContextBlock(const QStringList &context) const
+{
+    if (context.isEmpty())
+        return {};
+
+    QString block = "\nBackground from watchmaking manual:\n";
+    for (const QString &chunk : context) {
+        QString clean;
+        for (QChar c : chunk.left(200))
+            if (c.isPrint() && c.unicode() < 128) clean += c;
+        if (!clean.trimmed().isEmpty())
+            block += clean.trimmed() + "\n";
+    }
+    return block;
+}
+
 QString WatchExplainer::buildPrompt(const ExplainRequest &req,
                                      const QStringList   &context) const
 {
@@ -293,17 +353,7 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
 
     QString watchType = (in.watch_type == WatchType::Women) ? "ladies'" : "men's";
 
-    QString contextBlock;
-    if (!context.isEmpty()) {
-        contextBlock = "\nBackground from watchmaking manual:\n";
-        for (const QString &chunk : context) {
-            QString clean;
-            for (QChar c : chunk.left(200))
-                if (c.isPrint() && c.unicode() < 128) clean += c;
-            if (!clean.trimmed().isEmpty())
-                contextBlock += clean.trimmed() + "\n";
-        }
-    }
+    const QString contextBlock = formatContextBlock(context);
 
     // Partial-unknown: one or more metrics not yet measurable — ask AI to interpret
     if (res.level == DiagnosisLevel::Unknown) {
@@ -316,7 +366,8 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
         return QString(
             "You are a watchmaker. A %1 watch timegrapher reading:\n"
             "Rate %2, Amplitude %3, Beat Error %4.\n"
-            "One or more values cannot be measured yet. In 2 sentences: "
+            "One or more values cannot be measured yet. Be concise — "
+            "2 short sentences, under 40 words total: "
             "what mechanical condition could cause this, and what to check.%5"
         )
         .arg(watchType)
@@ -335,7 +386,8 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
     return QString(
         "You are a watchmaker. A %1 watch timegrapher reading:\n"
         "Rate %2 s/d, Amplitude %3 deg, Beat Error %4 ms. Diagnosis: %5.\n"
-        "In 3 sentences: why this diagnosis, likely mechanical cause, what to service.%6"
+        "Be concise — 3 short sentences, under 60 words total: "
+        "why this diagnosis, likely mechanical cause, what to service.%6"
     )
     .arg(watchType)
     .arg(in.metrics.rate.value_or(0.0),       0, 'f', 1)

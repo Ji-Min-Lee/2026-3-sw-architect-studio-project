@@ -60,8 +60,10 @@ private slots:
 private:
     QString buildPrompt(const ExplainRequest &req,
                         const QStringList   &context) const;
+    QString formatContextBlock(const QStringList &context) const;
     void    explainWithContext(const ExplainRequest &req,
                                const QStringList   &context);
+    void    sendChat(const QString &userMessage, const QStringList &context);
 
     QNetworkAccessManager *m_nam;
     QNetworkReply         *m_pendingReply = nullptr;
@@ -72,6 +74,8 @@ private:
     ExplainRequest         m_pendingReq;   // held while waiting for RAG
     QJsonArray             m_history;      // multi-turn: accumulated messages
     QString                m_currentModel;
+    bool                   m_pendingIsChat = false;  // RAG reply routes to chat vs explain
+    QString                m_pendingChatMessage;     // follow-up question awaiting RAG
 
     static constexpr const char *kOllamaBase    = "http://127.0.0.1:11434";
     static constexpr int         kTimeoutMs      = 120000;  // 2 min — RPi5 first-load is slow
