@@ -42,6 +42,7 @@ QString resolveRagDatabasePath()
 #include <QMenu>
 #include <QAction>
 #include <QKeySequence>
+#include <QShortcut>
 #include <QDataStream>
 #include <QtEndian>
 #include <QDebug>
@@ -188,6 +189,20 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&mRunStatusTimer, &QTimer::timeout, this, &MainWindow::updateRunStatusLine);
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
+
+    // Keyboard shortcuts
+    auto *scSpace = new QShortcut(Qt::Key_Space, this);
+    connect(scSpace, &QShortcut::activated, this, [this]() {
+        if (ui->StartPushButton->isEnabled())
+            ui->StartPushButton->click();
+        else if (ui->PausePushButton->isEnabled())
+            ui->PausePushButton->click();
+    });
+    auto *scEsc = new QShortcut(Qt::Key_Escape, this);
+    connect(scEsc, &QShortcut::activated, this, [this]() {
+        if (ui->StopPushButton->isEnabled())
+            ui->StopPushButton->click();
+    });
 
     // Acquisition layer — session lifecycle delegate
     mSession = new SessionController(this);
@@ -396,12 +411,12 @@ void MainWindow::setupTabOverflow(void)
     mMoreTabsMenu = new QMenu(mMoreTabsButton);
 
     // F3 Split View
-    QAction *splitAct = mMoreTabsMenu->addAction(tr("Split View"));
-    splitAct->setShortcut(QKeySequence(Qt::Key_F3));
-    splitAct->setShortcutContext(Qt::ApplicationShortcut);
-    splitAct->setCheckable(true);
-    addAction(splitAct);
-    connect(splitAct, &QAction::triggered, this, &MainWindow::toggleSplitView);
+    mSplitAct = mMoreTabsMenu->addAction(tr("Split View"));
+    mSplitAct->setShortcut(QKeySequence(Qt::Key_F3));
+    mSplitAct->setShortcutContext(Qt::ApplicationShortcut);
+    mSplitAct->setCheckable(true);
+    addAction(mSplitAct);
+    connect(mSplitAct, &QAction::triggered, this, &MainWindow::toggleSplitView);
 
     // F2 Manage Tabs
     QAction *configureTabs = mMoreTabsMenu->addAction(tr("Manage Tabs..."));
@@ -438,7 +453,7 @@ void MainWindow::setupTabOverflow(void)
     tw->setCornerWidget(mMoreTabsButton, Qt::TopRightCorner);
 
     auto *hintLabel = new QLabel(
-        "  F1 User Guide   F2 Manage Tabs   F3 Split View   F4 AI Diagnosis  ", this);
+        "  Space: Start/Pause   Esc: Stop   |   F1 User Guide   F2 Manage Tabs   F3 Split View   F4 AI Diagnosis  ", this);
     hintLabel->setStyleSheet("color: gray; font-size: 11px;");
     statusBar()->addPermanentWidget(hintLabel);
 }
@@ -711,6 +726,10 @@ void MainWindow::raiseNoiseAlarm(void)
 void MainWindow::DisplayResults(const Measurement &m)
 {
     // View: format values for display — no domain logic here
+    // Evaluate diagnosis first so per-axis breakdown colors are available for the header.
+    DiagnosisInput diagInput { m.metrics, mWatchType, m.noSignal };
+    DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
+
     QString warning  = mWatchDetached ? "⚠ Watch detached   "
                      : m.noSignal      ? "⚠ No signal   " : "";
     QString bphStr   = m.synced ? QString("%1").arg(m.detectedBph, 5, 10, QChar(' ')) : "-----";
@@ -721,26 +740,29 @@ void MainWindow::DisplayResults(const Measurement &m)
     auto colored = [](const QString &val, const QString &hex) {
         return QString("<span style='color:%1'>%2</span>").arg(hex, val);
     };
-    bool rateAlert = m.metrics.rate      && std::abs(*m.metrics.rate)      > 30.0;
-    bool ampAlert  = m.metrics.amplitude && (*m.metrics.amplitude < 150.0  || *m.metrics.amplitude > 360.0);
-    bool errAlert  = m.metrics.beatError && std::abs(*m.metrics.beatError) > 1.5;
+    // Use the same 3-level colors as the diagnosis badge: green/amber/red per axis.
+    // AxisStatus already encodes the thresholds — reuse it directly.
+    auto axisColor = [](AxisStatus s) -> QString {
+        switch (s) {
+            case AxisStatus::PassExcellent: return QStringLiteral("#2ea04d");
+            case AxisStatus::PassGood:      return QStringLiteral("#e0a000");
+            case AxisStatus::Fail:          return QStringLiteral("#c03030");
+            default:                        return QStringLiteral("#888888"); // Unknown
+        }
+    };
 
-    const QString sep  = "<span style='color:#888'>  |  </span>";
-    const QString cLbl = "#444444", cRate = "#0066CC", cAmp = "#107C10",
-                  cErr = "#CA5010", cBph = "#5B2D90", cAlert = "#C50F1F";
+    const QString sep   = "<span style='color:#888'>  |  </span>";
+    const QString cLbl  = "#444444", cBph = "#5B2D90", cAlert = "#C50F1F";
 
     QString html = "<span style='font-size:12pt; font-weight:bold;'>";
     html += warning.isEmpty() ? "" : colored(warning, cAlert);
-    html += colored("POS ", cLbl) + colored(mActivePosition, "#111111");
-    html += sep + colored("RATE ", cLbl) + colored(rateStr + " s/d", rateAlert ? cAlert : cRate);
-    html += sep + colored("AMP ",  cLbl) + colored(ampStr,           ampAlert  ? cAlert : cAmp);
-    html += sep + colored("ERR ",  cLbl) + colored(beatStr + " ms",  errAlert  ? cAlert : cErr);
+    html += colored("POS ", cLbl) + colored(mActivePosition, cBph);
+    html += sep + colored("RATE ", cLbl) + colored(rateStr + " s/d", axisColor(diagResult.breakdown.rate));
+    html += sep + colored("AMP ",  cLbl) + colored(ampStr,           axisColor(diagResult.breakdown.amplitude));
+    html += sep + colored("ERR ",  cLbl) + colored(beatStr + " ms",  axisColor(diagResult.breakdown.beatError));
     html += sep + colored("BPH ",  cLbl) + colored(bphStr,           cBph);
     html += "</span>";
     ui->Results->setText(html);
-
-    DiagnosisInput diagInput { m.metrics, mWatchType, m.noSignal };
-    DiagnosisResult diagResult = mWatchDiagnostics.Evaluate(diagInput);
 
     // Keep latest input/result for the LLM dialog (AI step 2)
     mLastExplainRequest.input  = diagInput;
@@ -1434,6 +1456,7 @@ void MainWindow::enterSplitView()
     }
 
     mSplitMode = true;
+    if (mSplitAct) mSplitAct->setChecked(true);
 
     // Create splitter in the graph area
     const int totalW = tw->width();   // capture before reparent invalidates it
@@ -1559,4 +1582,5 @@ void MainWindow::exitSplitView()
     mSplitContentArea   = nullptr;
     mSplitContentLayout = nullptr;
     mSplitMode          = false;
+    if (mSplitAct) mSplitAct->setChecked(false);
 }

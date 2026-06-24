@@ -248,6 +248,7 @@ private:
     void   setSplitViewTab(int comboIdx);
     void   refreshSplitCombo();
 
+    QAction     *mSplitAct           = nullptr;
     QSplitter   *mSplitter           = nullptr;
     QComboBox   *mSplitCombo         = nullptr;
     QWidget     *mSplitContentArea   = nullptr;
