@@ -44,14 +44,19 @@ struct SignalFrame {
 // Watch Analysis Context — rolling-average measurement outcomes.
 // Value Object — immutable publish snapshot; absent means not yet valid.
 struct WatchMetrics {
-    std::optional<double> rate;       // s/day  (RLS average)
-    std::optional<double> amplitude;  // degrees (rolling average)
-    std::optional<double> beatError;  // ms      (rolling average)
+    std::optional<double> rate;        // s/day  (RLS average)
+    std::optional<double> amplitude;   // degrees (rolling average)
+    std::optional<double> beatError;   // ms      (rolling average)
 
     // Scope/waveform features (Witschi Training Course pp.14-19)
     std::optional<double> ticTocAsymmetryDeg; // rolling avg |ticAmp - tocAmp| in degrees
     std::optional<double> rateJitterMs;        // rolling mean |wrappedRateError| — scatter magnitude
     std::optional<double> escapementDeltaMs;   // rolling mean beat-to-beat |escapementMs change|
+
+    // Chour-style period deviation measures
+    std::optional<double> diffTicTac;  // ms, signed (tic half-period − toc half-period)
+    std::optional<double> diffPeriod;  // ms, rolling avg of per-beat period deviation (~4 s window)
+    std::optional<double> avgPeriod;   // ms, cumulative avg of per-beat period deviation since reset
 };
 
 // Single Measurement emitted by MeasurementEngine after each tg_process call.

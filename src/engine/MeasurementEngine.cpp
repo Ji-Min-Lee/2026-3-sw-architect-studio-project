@@ -27,13 +27,14 @@ static constexpr double kBeatErrorMaxMs   = 5.0;
 MeasurementEngine::MeasurementEngine(QObject *parent)
     : QObject(parent)
 {
-    mRate.rlsTic = new RollingLeastSquares(RLS_WINDOW_INIT);
-    mRate.rlsToc = new RollingLeastSquares(RLS_WINDOW_INIT);
-    mBeat.roll   = new RollingAverage(10);
-    mAmp.roll    = new RollingAverage(10);
-    mAsym.roll   = new RollingAverage(10);
-    mJitter.roll = new RollingAverage(20);
-    mEsc.roll    = new RollingAverage(20);
+    mRate.rlsTic      = new RollingLeastSquares(RLS_WINDOW_INIT);
+    mRate.rlsToc      = new RollingLeastSquares(RLS_WINDOW_INIT);
+    mBeat.roll        = new RollingAverage(10);
+    mAmp.roll         = new RollingAverage(10);
+    mAsym.roll        = new RollingAverage(10);
+    mJitter.roll      = new RollingAverage(20);
+    mEsc.roll         = new RollingAverage(20);
+    mPeriod.shortRoll = new RollingAverage(32); // default 4 s @ 8 Hz; resized on first sync
 }
 
 MeasurementEngine::~MeasurementEngine()
@@ -46,6 +47,7 @@ MeasurementEngine::~MeasurementEngine()
     delete mAsym.roll;
     delete mJitter.roll;
     delete mEsc.roll;
+    delete mPeriod.shortRoll;
 }
 
 void MeasurementEngine::init(const MovementSpec &movement, const AcquisitionConfig &config)
@@ -108,6 +110,13 @@ void MeasurementEngine::reset()
 
     mHandling.recentPeaks.clear();
     mHandling.lastAcceptedPos = -1.0;
+
+    mRate.havePrevInstError = false;
+    mRate.prevInstErrorSec  = 0.0;
+    mPeriod.shortRoll->Reset();
+    mPeriod.sumAll   = 0.0;
+    mPeriod.countAll = 0;
+    mHaveDiffTicTac  = false;
 
     mNoSignalTimerStarted = false;
     mLastKnownMetrics     = {};
@@ -277,6 +286,12 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
         measurement.metrics.rateJitterMs = mJitter.roll->GetAverage();
     if (mEsc.roll->CurrentSize() > 0)
         measurement.metrics.escapementDeltaMs = mEsc.roll->GetAverage();
+    if (mHaveDiffTicTac)
+        measurement.metrics.diffTicTac = mLastDiffTicTac;
+    if (mPeriod.shortRoll->CurrentSize() > 0)
+        measurement.metrics.diffPeriod = mPeriod.shortRoll->GetAverage();
+    if (mPeriod.countAll > 0)
+        measurement.metrics.avgPeriod = mPeriod.sumAll / mPeriod.countAll;
 
     measurement.noSignal = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
 
@@ -288,6 +303,9 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
     if (!measurement.metrics.ticTocAsymmetryDeg) measurement.metrics.ticTocAsymmetryDeg = mLastKnownMetrics.ticTocAsymmetryDeg;
     if (!measurement.metrics.rateJitterMs)       measurement.metrics.rateJitterMs       = mLastKnownMetrics.rateJitterMs;
     if (!measurement.metrics.escapementDeltaMs)  measurement.metrics.escapementDeltaMs  = mLastKnownMetrics.escapementDeltaMs;
+    if (!measurement.metrics.diffTicTac)         measurement.metrics.diffTicTac         = mLastKnownMetrics.diffTicTac;
+    if (!measurement.metrics.diffPeriod)         measurement.metrics.diffPeriod         = mLastKnownMetrics.diffPeriod;
+    if (!measurement.metrics.avgPeriod)          measurement.metrics.avgPeriod          = mLastKnownMetrics.avgPeriod;
     mLastKnownMetrics = measurement.metrics;
 
     emit measurementReady(measurement);
@@ -338,6 +356,13 @@ bool MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
         mRate.rlsToc->Reset();
         mBeat.roll->Reset();
         mAmp.roll->Reset();
+        // Size DiffPeriod window to ~4 s of beats
+        int periodWindow = std::max(4, mRate.watchHz * 4);
+        mPeriod.shortRoll->Resize(periodWindow);
+        mPeriod.shortRoll->Reset();
+        mPeriod.sumAll   = 0.0;
+        mPeriod.countAll = 0;
+        mRate.havePrevInstError = false;
     }
     if (!synced || !mRate.haveStart) return false;
 
@@ -397,6 +422,19 @@ bool MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
             mRate.rateValid = false;
         }
     }
+    // DiffPeriod / AvgPeriod: per-beat deviation from expected interval in ms.
+    // delta = -(instError[n] - instError[n-1]) * 1000:
+    //   positive → beat arrived later than expected (watch slow)
+    //   negative → beat arrived earlier than expected (watch fast)
+    if (mRate.havePrevInstError) {
+        double beatDevMs = -(instError - mRate.prevInstErrorSec) * 1000.0;
+        mPeriod.shortRoll->Add(beatDevMs);
+        mPeriod.sumAll += beatDevMs;
+        mPeriod.countAll++;
+    }
+    mRate.prevInstErrorSec  = instError;
+    mRate.havePrevInstError = true;
+
     return false;   // accepted as a real beat
 }
 
@@ -410,6 +448,8 @@ void MeasurementEngine::computeBeatError(double evTime, bool, int)
         double beMs = qAbs(((t1 - t2) / 2.0) * 1000.0);
         if (beMs <= kBeatErrorMaxMs)         // drop non-physical (tap) samples
             mBeat.roll->Add(beMs);
+        mLastDiffTicTac = (t1 - t2) * 1000.0; // signed: positive when tic > toc
+        mHaveDiffTicTac = true;
         mBeat.times[0] = mBeat.times[2];
         mBeat.idx       = 1;
     }
