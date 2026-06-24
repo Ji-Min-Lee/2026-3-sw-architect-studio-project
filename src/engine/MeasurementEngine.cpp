@@ -31,6 +31,9 @@ MeasurementEngine::MeasurementEngine(QObject *parent)
     mRate.rlsToc = new RollingLeastSquares(RLS_WINDOW_INIT);
     mBeat.roll   = new RollingAverage(10);
     mAmp.roll    = new RollingAverage(10);
+    mAsym.roll   = new RollingAverage(10);
+    mJitter.roll = new RollingAverage(20);
+    mEsc.roll    = new RollingAverage(20);
 }
 
 MeasurementEngine::~MeasurementEngine()
@@ -40,6 +43,9 @@ MeasurementEngine::~MeasurementEngine()
     delete mRate.rlsToc;
     delete mBeat.roll;
     delete mAmp.roll;
+    delete mAsym.roll;
+    delete mJitter.roll;
+    delete mEsc.roll;
 }
 
 void MeasurementEngine::init(const MovementSpec &movement, const AcquisitionConfig &config)
@@ -94,6 +100,11 @@ void MeasurementEngine::reset()
     mAmp.haveA    = false;
     mAmp.ticValid = false;
     mAmp.roll->Reset();
+
+    mAsym.roll->Reset();
+    mJitter.roll->Reset();
+    mEsc.haveLast = false;
+    mEsc.roll->Reset();
 
     mHandling.recentPeaks.clear();
     mHandling.lastAcceptedPos = -1.0;
@@ -242,6 +253,10 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
             if (mHaveLastA) {
                 acousticEvent.hasEscapementMs = true;
                 acousticEvent.escapementMs    = (acousticEvent.samplePos - mLastA) / mSamplesPerSecond * 1000.0;
+                if (mEsc.haveLast)
+                    mEsc.roll->Add(std::fabs(acousticEvent.escapementMs - mEsc.lastMs));
+                mEsc.lastMs   = acousticEvent.escapementMs;
+                mEsc.haveLast = true;
             }
 
             computeAmplitude(acousticEvent.samplePos, measurement.synced, tgResult.detected_bph, measurement.metrics, acousticEvent);
@@ -256,13 +271,23 @@ void MeasurementEngine::processBlock(const float *pcm, int numSamples)
         measurement.metrics.rate = mRate.rateSpd;
     if (mBeat.roll->CurrentSize() > 0)
         measurement.metrics.beatError = mBeat.roll->GetAverage();
+    if (mAsym.roll->CurrentSize() > 0)
+        measurement.metrics.ticTocAsymmetryDeg = mAsym.roll->GetAverage();
+    if (mJitter.roll->CurrentSize() > 0)
+        measurement.metrics.rateJitterMs = mJitter.roll->GetAverage();
+    if (mEsc.roll->CurrentSize() > 0)
+        measurement.metrics.escapementDeltaMs = mEsc.roll->GetAverage();
+
     measurement.noSignal = mNoSignalTimerStarted && (mNoSignalTimer.elapsed() > kNoSignalThresholdMs);
 
     // Retain last valid values — metrics are freshly built each frame so
     // amplitude (set only on C-event frames) would otherwise flicker to nullopt.
-    if (!measurement.metrics.rate)      measurement.metrics.rate      = mLastKnownMetrics.rate;
-    if (!measurement.metrics.amplitude) measurement.metrics.amplitude = mLastKnownMetrics.amplitude;
-    if (!measurement.metrics.beatError) measurement.metrics.beatError = mLastKnownMetrics.beatError;
+    if (!measurement.metrics.rate)               measurement.metrics.rate               = mLastKnownMetrics.rate;
+    if (!measurement.metrics.amplitude)          measurement.metrics.amplitude          = mLastKnownMetrics.amplitude;
+    if (!measurement.metrics.beatError)          measurement.metrics.beatError          = mLastKnownMetrics.beatError;
+    if (!measurement.metrics.ticTocAsymmetryDeg) measurement.metrics.ticTocAsymmetryDeg = mLastKnownMetrics.ticTocAsymmetryDeg;
+    if (!measurement.metrics.rateJitterMs)       measurement.metrics.rateJitterMs       = mLastKnownMetrics.rateJitterMs;
+    if (!measurement.metrics.escapementDeltaMs)  measurement.metrics.escapementDeltaMs  = mLastKnownMetrics.escapementDeltaMs;
     mLastKnownMetrics = measurement.metrics;
 
     emit measurementReady(measurement);
@@ -353,6 +378,8 @@ bool MeasurementEngine::computeRateError(double evTime, bool synced, int bph, Ac
     ae.wrappedRateError = wrapped;
     ae.isTic            = (ticOrToc == TIC);
 
+    mJitter.roll->Add(std::fabs(wrapped));  // scatter magnitude for AI prompt
+
     if (ticOrToc == TIC) {
         mRate.rlsTic->AddPoint(timeMeasured, instError);
         addOrOverwrite(mRate.xTic, mRate.yTic, wrapped, mRate.maxPoints, mRate.xTicIdx);
@@ -408,6 +435,7 @@ void MeasurementEngine::computeAmplitude(double cTime, bool synced, int bph, Wat
             ae.hasAmpSplit = true;
             ae.ticAmpDeg   = mAmp.ticAmp;
             ae.tocAmpDeg   = amp;
+            mAsym.roll->Add(std::fabs(mAmp.ticAmp - amp));  // asymmetry for AI prompt
             mAmp.ticValid = false;
         }
     }

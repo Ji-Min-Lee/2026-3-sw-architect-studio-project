@@ -363,15 +363,27 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
             ? QString("%1 deg").arg(*in.metrics.amplitude, 0, 'f', 0) : "not measurable";
         QString beatStr = in.metrics.beatError
             ? QString("%1 ms").arg(*in.metrics.beatError, 0, 'f', 2) : "not measurable";
+        QString scopeLines;
+        if (in.metrics.ticTocAsymmetryDeg)
+            scopeLines += QString("\nTic/Toc amplitude asymmetry: %1 deg")
+                              .arg(*in.metrics.ticTocAsymmetryDeg, 0, 'f', 1);
+        if (in.metrics.rateJitterMs)
+            scopeLines += QString("\nRate scatter (jitter): %1 ms")
+                              .arg(*in.metrics.rateJitterMs, 0, 'f', 2);
+        if (in.metrics.escapementDeltaMs)
+            scopeLines += QString("\nEscapement beat-to-beat variation: %1 ms")
+                              .arg(*in.metrics.escapementDeltaMs, 0, 'f', 2);
+
         return QString(
             "You are a watchmaker. A %1 watch timegrapher reading:\n"
-            "Rate %2, Amplitude %3, Beat Error %4.\n"
+            "Rate %2, Amplitude %3, Beat Error %4.%5\n"
             "One or more values cannot be measured yet. Be concise — "
             "2 short sentences, under 40 words total: "
-            "what mechanical condition could cause this, and what to check.%5"
+            "what mechanical condition could cause this, and what to check.%6"
         )
         .arg(watchType)
         .arg(rateStr).arg(ampStr).arg(beatStr)
+        .arg(scopeLines)
         .arg(contextBlock);
     }
 
@@ -383,16 +395,28 @@ QString WatchExplainer::buildPrompt(const ExplainRequest &req,
         default:                           levelStr = "Unknown";       break;
     }
 
+    QString scopeLines;
+    if (in.metrics.ticTocAsymmetryDeg)
+        scopeLines += QString("\nTic/Toc amplitude asymmetry: %1 deg")
+                          .arg(*in.metrics.ticTocAsymmetryDeg, 0, 'f', 1);
+    if (in.metrics.rateJitterMs)
+        scopeLines += QString("\nRate scatter (jitter): %1 ms")
+                          .arg(*in.metrics.rateJitterMs, 0, 'f', 2);
+    if (in.metrics.escapementDeltaMs)
+        scopeLines += QString("\nEscapement beat-to-beat variation: %1 ms")
+                          .arg(*in.metrics.escapementDeltaMs, 0, 'f', 2);
+
     return QString(
         "You are a watchmaker. A %1 watch timegrapher reading:\n"
-        "Rate %2 s/d, Amplitude %3 deg, Beat Error %4 ms. Diagnosis: %5.\n"
+        "Rate %2 s/d, Amplitude %3 deg, Beat Error %4 ms. Diagnosis: %5.%6\n"
         "Be concise — 3 short sentences, under 60 words total: "
-        "why this diagnosis, likely mechanical cause, what to service.%6"
+        "why this diagnosis, likely mechanical cause, what to service.%7"
     )
     .arg(watchType)
     .arg(in.metrics.rate.value_or(0.0),       0, 'f', 1)
     .arg(in.metrics.amplitude.value_or(0.0),  0, 'f', 0)
     .arg(in.metrics.beatError.value_or(0.0),  0, 'f', 2)
     .arg(levelStr)
+    .arg(scopeLines)
     .arg(contextBlock);
 }
