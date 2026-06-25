@@ -3,9 +3,9 @@
 **Team**: Blue Sky (Team 3) | **Date**: 2026-07-01
 
 Team members:
+- HUNG SON TONG
 - DONG HO SHIN
 - GYEONGJIN SHIN
-- HUNG SON TONG
 - JIMIN LEE
 - KYUDAE BAHN
 - SUNGHO SHIN
