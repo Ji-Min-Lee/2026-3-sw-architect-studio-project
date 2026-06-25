@@ -487,8 +487,9 @@
 > making T1 slightly longer than the true mechanical value,
 > which lowers the amplitude reading.
 >
-> Additionally, Weishi's exact internal formula is not publicly documented,
-> so a formula difference cannot be ruled out either.
+> Weishi also uses a microphone, but its internal detection threshold and
+> signal processing are not publicly documented,
+> so differences in C-event detection tuning or formula cannot be ruled out."
 >
 > The offset is small and consistent — characteristic of a systematic offset, not random error.
 > The root cause is the C-event detection timing, not our A-event pipeline."
