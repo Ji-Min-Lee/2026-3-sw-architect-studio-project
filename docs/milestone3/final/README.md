@@ -3,9 +3,13 @@
 **Team**: Blue Sky (Team 3) | **Date**: 2026-07-01
 
 Team members:
-- Lee Ji-Min
-- Kang Seong-Jun
-- Hwang Min-Jun
+- DONG HO SHIN
+- GYEONGJIN SHIN
+- HUNG SON TONG
+- JIMIN LEE
+- KYUDAE BAHN
+- SUNGHO SHIN
+- TAEJOON SONG
 
 Repository: [Ji-Min-Lee/2026-3-sw-architect-studio-project](https://github.com/Ji-Min-Lee/2026-3-sw-architect-studio-project)
 
