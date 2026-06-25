@@ -1,6 +1,6 @@
 # EXP-03: Observer Pattern Compliance — Tab Extension Cost Measurement
 
-**QA**: QAS-4 | **Status**: ✅ Done (2026-06-21)
+**QA**: QAS-3 | **Status**: ✅ Done (2026-06-21)
 
 ---
 
@@ -10,7 +10,7 @@ Verify that the BaseGraphTab observer pattern allows adding a new graph tab with
 
 ## Result
 
-All 14 tabs implemented under the ≤ 3-file constraint. Zero layer violations. QAS-4 Pass.
+All 14 tabs implemented under the ≤ 3-file constraint. Zero layer violations. QAS-3 Pass.
 
 ## Evidence
 

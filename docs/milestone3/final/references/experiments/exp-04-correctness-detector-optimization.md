@@ -22,7 +22,7 @@ WAV source: 28,800 BPH real recording + pink noise (96 kHz, float32). Platform: 
 |:---:|------|-------|:------------:|:----:|
 | E5-01 | 2026-06-15 | Pilot — default params, 48 kHz | 3 | — |
 | E5-02 | 2026-06-16 | Early grid — onset {0.02, 0.08} × noise {0, 60} dB | 8 | — |
-| E5-03 | 2026-06-17 | Full grid — onset×min_peak×noise×5 reps | **274** | [logs](../../../../../src/logs/EXP-04/full-grid/) |
+| E5-03 | 2026-06-17 | Full grid — onset×min_peak×noise×5 reps | **274** | [scatter](../../../../../src/logs/EXP-04/full-grid/exp04_scatter.png) · [logs](../../../../../src/logs/EXP-04/full-grid/) |
 
 ## Architecture Decisions
 
