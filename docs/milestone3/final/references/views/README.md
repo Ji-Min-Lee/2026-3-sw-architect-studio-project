@@ -54,3 +54,19 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 > QA: Deployability
 
 [![Build-Deploy Pipeline](../../assets/view4-deployment.png)](view-deployment-build-pipeline.md)
+
+---
+
+## [Allocation View: Implementation Style — Test Binaries & Build Artifacts](view-allocation-implementation.md)
+
+> QA: Correctness (QAS-4, QAS-5) · Style: 구현 스타일
+
+Software modules → Build artifacts (`src/build-mac/`). Shows which source module is realized as which test binary and what verification scope each binary covers. 142 tests / 10 binaries, all PASS.
+
+---
+
+## [Allocation View: Work Assignment Style — Sprint & Team Structure](view-allocation-work-assignment.md)
+
+> QA: All QAS · Style: 작업할당 스타일
+
+Architecture elements → Organizational units (team1, team2, milestones, sprints). Shows who owns what, when it lands, and how scope is gated between Milestone 2 (06-22) and Milestone 3 Demo (07-01).

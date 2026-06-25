@@ -5,24 +5,33 @@
 
 Correctness is not a standard Bass/CMK Quality Attribute. Its three sub-requirements each map to a different QA lens:
 
-- **Sub-1** — **Functional Requirement**: the system must compute formulas correctly per the Equations document; WatchMath isolation is the architectural enabler that makes formula-level verification tractable (rubric Area 4 "Correctness of calculations")
+- **Sub-1** — **Testability** (Bass/CMK Ch.12): formula correctness is enforced through architectural isolation that makes the calculation unit independently and deterministically testable at every commit
 - **Sub-2** — **Reliability**: single-source data flow ensures all tabs display consistent values at runtime
 - **Sub-3** — **Usability**: the system remains usable (signal quality feedback, noise warnings) when the acoustic environment degrades
 
 ---
 
-## Sub-Requirement 1: Calculation Accuracy — Functional Requirement
+## Sub-Requirement 1: Calculation Accuracy — Testability
 
-The system shall compute rate (s/d), amplitude (°), and beat error (ms) in exact accordance with the formulas in the TimeGrapher Equations document.
+The architecture shall make formula correctness continuously verifiable: the `WatchMath` module must be structured so that any formula deviation from the TimeGrapher Equations document is revealed by a unit test before the commit is accepted.
 
 | Field | Detail |
 |-------|--------|
-| **Source** | Developer running pre-commit hook |
-| **Stimulus** | Commit containing changes to measurement calculation code |
-| **Artifact** | `WatchMath` module (`src/engine/WatchMath.h/.cpp`) |
-| **Environment** | Development environment (pre-commit CI gate) |
-| **Response** | All unit tests in `test_watch_math.cpp` pass before commit is accepted |
-| **Measure** | 30+ test cases covering beatErrorMs, amplitudeDeg, rateSpdFromPhase, instErrorSec all pass; zero tolerance on formula deviation from Equations doc worked examples |
+| **Source** | Automated unit tester (pre-commit CI gate) |
+| **Stimulus** | A coding increment is completed — any change to `WatchMath.h/.cpp` triggers the test suite |
+| **Artifact** | `WatchMath` module (`src/engine/WatchMath.h/.cpp`) + `TestWatchMath` test binary |
+| **Environment** | Completion of a coding increment; development environment before commit is accepted |
+| **Response** | Test suite executes, captures results, and blocks the commit if any case fails |
+| **Measure** | 44 test cases covering `beatErrorMs`, `amplitudeDeg`, `rateSpdFromPhase`, `instErrorSec` all pass within 30 s; zero formula deviation from Equations doc worked examples tolerated |
+
+**Tactics applied (Bass/CMK Ch.12 §12.2):**
+
+| Tactic | How it appears in this system |
+|--------|-------------------------------|
+| **Limit Structural Complexity** | ADR-008 isolates `WatchMath` as a no-dependency pure-math module — no Qt, no ALSA, no hardware coupling. Low coupling → small state space → faults surface immediately during test. |
+| **Abstract Data Sources** | `WatchMath` functions accept numeric primitives (`double`, `int`) directly; tests inject any value without mocking hardware or the audio pipeline. |
+| **Specialized Interfaces** | Each formula (`beatErrorMs`, `amplitudeDeg`, `rateSpdFromPhase`, `instErrorSec`) is exposed as an individual public method, allowing per-formula test cases rather than end-to-end integration tests. |
+| **Limit Nondeterminism** | Pure math functions — no threads, no timers, no I/O — guarantee deterministic output for any given input, making fault reproduction exact. |
 
 ## Related
 
@@ -30,7 +39,7 @@ The system shall compute rate (s/d), amplitude (°), and beat error (ms) in exac
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| `WatchMath` Pure Calculation Module | [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) | [EXP-03: Calculation Accuracy Unit Tests](../experiments/exp-03-calculation-accuracy.md) | [Decomposition View: Engine Layer](../views/view-decomposition-engine.md) |
+| `WatchMath` Pure Calculation Module (Limit Structural Complexity + Abstract Data Sources) | [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) | [EXP-03: Calculation Accuracy Unit Tests](../experiments/exp-03-calculation-accuracy.md) | [Allocation View: Implementation Style](../views/view-allocation-implementation.md) |
 
 ---
 
