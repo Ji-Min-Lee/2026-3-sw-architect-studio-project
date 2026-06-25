@@ -57,38 +57,122 @@
 
 ---
 
-**① Trace Display** (~30 sec)
+**① Rate/Scope** (~45 sec)
+
+- Switch to Rate/Scope tab
+
+> "Rate/Scope is the main measurement display — two panels.
+>
+> The top panel plots timing offset in milliseconds for every single beat.
+> Red dots are tic events, blue dots are toc events.
+> The green line is a 20-beat rolling average trend.
+> In the top-left corner you can see the session statistics —
+> mean, standard deviation, and total beat count.
+> Right now: mean −0.002 ms, σ 0.055 ms across 919 beats.
+> Those numbers tell you this watch is running almost perfectly.
+>
+> The bottom panel is the scope view.
+> It shows the raw acoustic signal in real time.
+> The blue line is the rectified signal — the actual sound envelope.
+> The red line is the detection trigger threshold.
+> The green dashed lines mark A events, the red dashed lines mark C events.
+> The arrows on the graph show the measured values directly —
+> 6.8 milliseconds A-to-C interval giving 302 degrees of amplitude,
+> and 125 milliseconds for the full beat interval at 28800 BPH.
+> Every number you see in the status bar is derived from exactly what's on this screen."
+
+---
+
+**② Sound Print** (~30 sec)
+
+- Switch to Sound Print tab
+
+> "Sound Print is a fingerprint of the watch's acoustic pattern.
+> Each dot is a detected beat event, plotted by timing.
+> Green, yellow, and orange dots are A events — tic —
+> colored by signal strength: strong, medium, weak.
+> Blue dots are C events — tac — same three levels.
+> The green horizontal line marks the A event boundary.
+> The blue horizontal line marks the C event boundary — the half-period.
+> The pink background band is the normal operating zone.
+>
+> When the dots are tightly clustered in one spot,
+> the watch is producing consistent beats.
+> If they scatter vertically, the timing is inconsistent.
+> If a whole color disappears, the signal is too weak to detect that event reliably."
+
+---
+
+**③ Trace Display** (~40 sec)
 
 - Switch to Trace tab
 
-> "The Trace display draws a continuous line of Rate and Amplitude over time.
-> Rate on top — if the line drifts up, the watch is running fast.
-> If it slopes down, it's running slow.
-> Amplitude on the bottom tracks the swing of the balance wheel.
-> Think of it as the watch's heartbeat on paper."
+> "Trace shows Rate and Amplitude as continuous lines over time —
+> the same measurements as Rate/Scope, but scrolling over a longer window.
+>
+> The top panel is Rate Error in seconds per day.
+> Zero means perfect. Positive means running fast, negative means slow.
+> The blue line here is flat near zero — this watch is well regulated.
+> The header says 'Rate and amplitude within normal limits.'
+>
+> The bottom panel is Amplitude in degrees.
+> The green flat line sitting at 302 degrees means the balance wheel
+> is swinging consistently at a healthy angle.
+> The background color bands tell you immediately how to interpret the value —
+> green zone is 270 to 310 degrees: strong.
+> Amber is 220 to 270: acceptable.
+> Red below 220 means the mainspring is running down
+> or there is friction — the watch needs service.
+> Right now we are firmly in the green zone."
 
 ---
 
-**② Rate and Amplitude Stability Over Time — Vario** (~30 sec)
+**④ Rate and Amplitude Stability — Vario** (~40 sec)
 
 - Switch to Vario tab
 
-> "Vario summarizes the session into a single table —
-> Min, Max, Mean, and standard deviation for both Rate and Amplitude.
-> A well-regulated watch shows a tight range.
-> A wide spread means the watch is inconsistent."
+> "Vario summarizes the entire session into a compact statistical view.
+> The large number at the top is the elapsed session time — here, 3 minutes 3 seconds.
+>
+> The top half shows Rate.
+> Min, Max, Now, and sigma — all shown as colored text, and plotted as arrows on the scale below.
+> Blue arrows are the Min and Max, the red arrow is the current value.
+> The green background means all values are within tolerance.
+> Here: Min −3.5, Max 0.6, Now −0.4 seconds per day, sigma 0.3.
+> The checkmark confirms it's within acceptable range.
+>
+> The bottom half shows Amplitude the same way.
+> Right now Min, Max, and Now are all 302 degrees with sigma zero —
+> perfectly stable.
+>
+> If you see a wide spread between Min and Max,
+> the watch is behaving inconsistently —
+> probably warming up, or the mainspring tension is uneven."
 
 ---
 
-**③ Multi-Position Sequence Display** (~30 sec)
+**⑤ Multi-Position Sequence Display** (~45 sec)
 
 - Switch to Sequence tab
 
-> "Here's where the position data lands.
-> Each row is a position we measured — CH, 9H, 6H, and so on.
-> Rate and Amplitude are shown side by side for each.
-> You can immediately see which positions are problematic
-> and by how much."
+> "Sequence is where all the position measurements come together.
+> Each row is one watch position — CH is crown horizontal, CB is crown back,
+> then 9H, 6H, 3H, 12H for the four vertical positions.
+> The columns show Rate, Beat Error, and Amplitude for each position.
+> The currently active position is highlighted — right now 12H.
+>
+> At the bottom, three summary rows:
+> X is the mean across all positions.
+> D is max minus min — the positional spread.
+> DVH is the difference between vertical and horizontal averages —
+> a key number for diagnosing balance and poising issues.
+>
+> On the right, the Radar Chart plots Amplitude for each position
+> as a polygon on a circular grid.
+> A perfectly balanced watch would produce a near-perfect circle.
+> Deviations show exactly which positions are pulling the watch off.
+> The warning at the bottom tells you which position is worst
+> and what it likely means mechanically."
 
 ---
 
