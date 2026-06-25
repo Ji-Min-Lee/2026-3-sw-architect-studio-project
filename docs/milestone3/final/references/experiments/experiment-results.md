@@ -70,15 +70,15 @@ The ~25° amplitude offset is systematic: C-event detection threshold delay exte
 
 | Run | Date | Scheduling | sps | exec avg/max (ms) | exec > deadline | Dropped | Data |
 |:---:|------|-----------|:---:|:-----------------:|:---------------:|:-------:|:----:|
-| E2-01 | 2026-06-15 | default | 48k | 5.8 / 36.6 | 4.9 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) |
-| E2-02 | 2026-06-15 | default | **96k** ★ | **9.6 / 39.2** | **8.1 %** | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) |
-| E2-03 | 2026-06-15 | default | 192k | 15.8 / 51.6 | 12.1 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) |
-| E2-04 | 2026-06-15 | SCHED_RR p50 | 48k | 6.9 / 37.5 | 6.6 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) |
-| E2-05 | 2026-06-15 | SCHED_RR p50 | **96k** ★ | **9.8 / 39.9** | **8.4 %** | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) |
-| E2-06 | 2026-06-15 | SCHED_RR p50 | 192k | 16.0 / 61.7 | 12.5 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) |
-| E2-07 | 2026-06-15 | SCHED_FIFO p50 | 48k | 7.2 / 35.2 | 6.9 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) |
-| E2-08 | 2026-06-15 | SCHED_FIFO p50 | **96k** ★ | **9.9 / 41.4** | **8.6 %** | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) |
-| E2-09 | 2026-06-15 | SCHED_FIFO p50 | 192k | 16.0 / 52.1 | 12.5 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) |
+| E2-01 | 2026-06-15 | default | 48k | 5.8 / 36.6 | 4.9 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_203222_48000_default.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_203222_48000_default.png) |
+| E2-02 | 2026-06-15 | default | **96k** ★ | **9.6 / 39.2** | **8.1 %** | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_204746_96000_default.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_204746_96000_default.png) |
+| E2-03 | 2026-06-15 | default | 192k | 15.8 / 51.6 | 12.1 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_210310_192000_default.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_210310_192000_default.png) |
+| E2-04 | 2026-06-15 | SCHED_RR p50 | 48k | 6.9 / 37.5 | 6.6 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_203730_48000_rr.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_203730_48000_rr.png) |
+| E2-05 | 2026-06-15 | SCHED_RR p50 | **96k** ★ | **9.8 / 39.9** | **8.4 %** | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_205254_96000_rr.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_205254_96000_rr.png) |
+| E2-06 | 2026-06-15 | SCHED_RR p50 | 192k | 16.0 / 61.7 | 12.5 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_210818_192000_rr.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_210818_192000_rr.png) |
+| E2-07 | 2026-06-15 | SCHED_FIFO p50 | 48k | 7.2 / 35.2 | 6.9 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_204238_48000_fifo.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_204238_48000_fifo.png) |
+| E2-08 | 2026-06-15 | SCHED_FIFO p50 | **96k** ★ | **9.9 / 41.4** | **8.6 %** | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
+| E2-09 | 2026-06-15 | SCHED_FIFO p50 | 192k | 16.0 / 52.1 | 12.5 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_211326_192000_fifo.png) |
 
 ★ = QAS-1 target sps
 
@@ -104,13 +104,13 @@ The ~25° amplitude offset is systematic: C-event detection threshold delay exte
 
 | Run | Date | Configuration | E2E avg/max (ms) | Note | Data |
 |:---:|------|--------------|:----------------:|------|:----:|
-| E3-01 | 2026-06-12 | Windows reference (dev PC) | 2.8 / 363.9 | Healthy — one OS scheduling spike | [csv](../../../../../src/logs/EXP-02/log_20260612_132536.csv) |
-| E3-02 | 2026-06-11 | rpi1 — unoptimized | 255.4 / 900.9 | ❌ FAIL — exec overrun 43 % | [csv](../../../../../src/logs/EXP-02/log_20260611_145543.csv) |
-| E3-03 | 2026-06-15 | rpi2 baseline | 57.2 / 208.9 | ❌ exec overrun 4.4 % | [csv](../../../../../src/logs/EXP-02/log_20260615_152751.csv) |
-| E3-04 | 2026-06-15 | rpi2 + multi-tab | 80.1 / 258.7 | plot removed from exec path; FG queue lag | [csv](../../../../../src/logs/EXP-02/log_20260615_162055.csv) |
-| E3-05 | 2026-06-15 | E3-04 + T2 (DSP offload thread) | 2.1 / 11.1 | ✅ **Ideal real-time** — 0 drops, 0 backlog | [csv](../../../../../src/logs/EXP-02/log_20260615_163106.csv) |
-| E3-06 | 2026-06-15 | E3-05 + R1 (Lazy Rendering) | 2.1 / 5.7 | ✅ Same perf + tighter max | [csv](../../../../../src/logs/EXP-02/log_20260615_165612.csv) |
-| E3-07 | 2026-06-16 | E3-06 + FG wait measurement | 2.2 / 4.8 | ✅ DSP healthy; **FG scheduling lag 60 ms revealed** | [csv](../../../../../src/logs/EXP-02/log_20260616_140850.csv) |
+| E3-01 | 2026-06-12 | Windows reference (dev PC) | 2.8 / 363.9 | Healthy — one OS scheduling spike | [csv](../../../../../src/logs/EXP-02/log_20260612_132536.csv) · [plot](../../../../../src/logs/EXP-02/log_20260612_132536.png) |
+| E3-02 | 2026-06-11 | rpi1 — unoptimized | 255.4 / 900.9 | ❌ FAIL — exec overrun 43 % | [csv](../../../../../src/logs/EXP-02/log_20260611_145543.csv) · [plot](../../../../../src/logs/EXP-02/log_20260611_145543.png) |
+| E3-03 | 2026-06-15 | rpi2 baseline | 57.2 / 208.9 | ❌ exec overrun 4.4 % | [csv](../../../../../src/logs/EXP-02/log_20260615_152751.csv) · [plot](../../../../../src/logs/EXP-02/log_20260615_152751.png) |
+| E3-04 | 2026-06-15 | rpi2 + multi-tab | 80.1 / 258.7 | plot removed from exec path; FG queue lag | [csv](../../../../../src/logs/EXP-02/log_20260615_162055.csv) · [plot](../../../../../src/logs/EXP-02/log_20260615_162055.png) |
+| E3-05 | 2026-06-15 | E3-04 + T2 (DSP offload thread) | 2.1 / 11.1 | ✅ **Ideal real-time** — 0 drops, 0 backlog | [csv](../../../../../src/logs/EXP-02/log_20260615_163106.csv) · [plot](../../../../../src/logs/EXP-02/log_20260615_163106.png) |
+| E3-06 | 2026-06-15 | E3-05 + R1 (Lazy Rendering) | 2.1 / 5.7 | ✅ Same perf + tighter max | [csv](../../../../../src/logs/EXP-02/log_20260615_165612.csv) · [plot](../../../../../src/logs/EXP-02/log_20260615_165612.png) |
+| E3-07 | 2026-06-16 | E3-06 + FG wait measurement | 2.2 / 4.8 | ✅ DSP healthy; **FG scheduling lag 60 ms revealed** | [csv](../../../../../src/logs/EXP-02/log_20260616_140850.csv) · [plot](../../../../../src/logs/EXP-02/log_20260616_140850.png) · [timeline](../../../../../src/logs/EXP-02/log_20260616_140850_timeline_dark_all.png) |
 
 ### Conclusion
 
@@ -168,7 +168,7 @@ The ~25° amplitude offset is systematic: C-event detection threshold delay exte
 |:---:|------|-------|:------------:|------------|:----:|
 | E5-01 | 2026-06-15 | Pilot — default params, 48 kHz | 3 | File format validation only | — |
 | E5-02 | 2026-06-16 | Early grid — onset {0.02, 0.08} × noise {0, 60} dB | 8 | 96 kHz playback confirmed | — |
-| E5-03 | 2026-06-17 | Full grid — 3×3×7×5 reps | 274 | **onset=0.08/min_peak=0.10 best across all noise levels** | [logs](../../../../../src/logs/EXP-04/) |
+| E5-03 | 2026-06-17 | Full grid — 3×3×7×5 reps | 274 | **onset=0.08/min_peak=0.10 best across all noise levels** | [scatter](../../../../../src/logs/EXP-04/full-grid/exp04_scatter.png) · [logs](../../../../../src/logs/EXP-04/full-grid/) |
 
 ### Results
 
