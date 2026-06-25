@@ -472,22 +472,26 @@
 **If values differ (especially Amplitude):**
 > "There is a small difference — most visible in Amplitude. This is expected and understood.
 >
-> Both devices use the same fundamental formula:
-> Amplitude = (3600 × lift angle) / (π × BPH × T1),
-> where T1 is the time between the A-event and C-event.
+> Notice that Rate and Beat Error match closely between the two systems.
+> That is not a coincidence — it is evidence.
 >
-> The difference likely comes from two sources.
-> First, T1 detection timing: Weishi uses dedicated hardware with a tuned analog circuit.
-> We use a microphone and software onset detection.
-> The C-event sound is weaker than the A-event — the pallet fork exits without transferring energy —
-> so our detector crosses the threshold slightly later, making T1 marginally longer,
+> Rate and Beat Error are computed from A-events only:
+> the strong impulse sound when the pallet fork engages the balance wheel.
+> A-events are loud and sharp, so our onset detection is accurate.
+> The fact that these match Weishi confirms our A-event detection is correct.
+>
+> Amplitude is the only metric that uses both A and C events.
+> The C-event — when the pallet fork exits — produces a much weaker sound,
+> because no energy is transferred at that moment.
+> A weaker signal takes longer to cross our detection threshold,
+> making T1 slightly longer than the true mechanical value,
 > which lowers the amplitude reading.
 >
-> Second, Weishi's exact internal formula is not publicly documented,
+> Additionally, Weishi's exact internal formula is not publicly documented,
 > so a formula difference cannot be ruled out either.
 >
 > The offset is small and consistent — characteristic of a systematic offset, not random error.
-> Rate and Beat Error, which do not depend on T1 in the same way, match closely."
+> The root cause is the C-event detection timing, not our A-event pipeline."
 
 **Consistency demonstration:**
 
