@@ -133,6 +133,7 @@ void SoundImageRenderer::resetStateOnly(quint64 next_input_absolute_sample_index
     internal_vertical_offset_rows_ = 0;
     anchor_used_ = 0;
 
+
     write_column_ = 0;
     last_completed_column_ = -1;
 
@@ -175,6 +176,7 @@ void SoundImageRenderer::clearRenderStateKeepingSampleCounter()
     center_locked_ = false;
     internal_vertical_offset_rows_ = 0;
     anchor_used_ = 0;
+
 
     write_column_ = 0;
     last_completed_column_ = -1;

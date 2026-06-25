@@ -458,11 +458,12 @@
 
 > "Let me read the values."
 
-| Metric | WeiShi No.1000 | Our TimeGrapher |
-|--------|:--------------:|:---------------:|
-| Rate (s/day) | ___ | ___ |
-| Amplitude (°) | ___ | ___ |
-| Beat Error (ms) | ___ | ___ |
+| Metric | WeiShi No.1000 | Our TimeGrapher | Notes |
+|--------|:--------------:|:---------------:|-------|
+| Rate (s/day) | 11 | 11.2 | Match — Weishi shows integers only |
+| Amplitude (°) | 309–321 | 282–296 | ~25° systematic offset (C-event detection) |
+| Beat Error (ms) | 0.1 | 0.1 | Match |
+| BPH | 21600 | 21600 | Match |
 
 **If values match:**
 > "Rate, Amplitude, and Beat Error are consistent between the two systems —

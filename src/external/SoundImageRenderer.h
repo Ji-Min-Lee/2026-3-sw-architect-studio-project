@@ -502,8 +502,9 @@ private:
     /** Number of anchor columns collected so far. */
     int anchor_used_ = 0;
 
-    /** Sum of anchor columns used to find dominant band. */
+    /** Sum of anchor columns used to find dominant band (fallback). */
     std::vector<float> anchor_sum_;
+
 
     /** Buffered anchor column bin data. */
     std::vector<float> anchor_columns_buffer_;
