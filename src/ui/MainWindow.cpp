@@ -661,7 +661,8 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     mLastReplotCount = g_replotCount.exchange(0);
     mLastPlotUs      = g_plotUs.exchange(0);
     if (m.synced) ++mSyncedCount;
-    mLastMeasurement = m;
+    mLogSnapshot = { m.metrics.rate, m.metrics.amplitude, m.metrics.beatError,
+                     m.detectedBph, m.synced };
     checkWatchDetached(m);  // update detached state before formatting the label
     checkNoise(m);          // all modes: ambient-noise popup
     DisplayResults(m);
@@ -847,12 +848,11 @@ void MainWindow::DisplayResults(const Measurement &m)
 
 void MainWindow::logMeasurement()
 {
-    const Measurement &m = mLastMeasurement;
-    if (!m.synced) return;
+    if (!mLogSnapshot.synced) return;
 
-    QString rateStr = m.metrics.rate      ? QString::number(*m.metrics.rate, 'f', 1)      : "N/A";
-    QString ampStr  = m.metrics.amplitude ? QString::number(*m.metrics.amplitude, 'f', 0) : "N/A";
-    QString beStr   = m.metrics.beatError ? QString::number(*m.metrics.beatError, 'f', 1) : "N/A";
+    QString rateStr = mLogSnapshot.rate      ? QString::number(*mLogSnapshot.rate, 'f', 1)      : "N/A";
+    QString ampStr  = mLogSnapshot.amplitude ? QString::number(*mLogSnapshot.amplitude, 'f', 0) : "N/A";
+    QString beStr   = mLogSnapshot.beatError ? QString::number(*mLogSnapshot.beatError, 'f', 1) : "N/A";
 
     qInfo().noquote() << QString(
         "[1s] Rate: \"%1 s/day\" | Amplitude: \"%2 deg\" | BeatError: \"%3 ms\""
@@ -860,7 +860,7 @@ void MainWindow::logMeasurement()
         " | AvgPeriod: %8 s | Synced: yes")
         .arg(rateStr, ampStr, beStr)
         .arg(QString{})
-        .arg(m.detectedBph)
+        .arg(mLogSnapshot.detectedBph)
         .arg(mLiftAngle, 0, 'f', 1)
         .arg(mCurrentSamplesPerSecond)
         .arg(mAveragingPeriod);

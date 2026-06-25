@@ -217,7 +217,11 @@ private:
     qint64        mSessionActiveMs = 0;
     QTimer        mRunStatusTimer;
     QTimer        mLogTimer;
-    Measurement   mLastMeasurement;
+    struct LogSnapshot {
+        std::optional<double> rate, amplitude, beatError;
+        int  detectedBph = 0;
+        bool synced      = false;
+    } mLogSnapshot;
 
     // FPS stats (updated from SessionController::frameLogged)
     double mBackgroundLastFPS = 0.0;
