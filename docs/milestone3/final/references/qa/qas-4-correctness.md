@@ -7,7 +7,7 @@ Correctness is not a standard Bass/CMK Quality Attribute. It is better understoo
 
 ---
 
-## Sub-Requirement 1: Calculation Accuracy
+## Sub-Requirement 1: Calculation Accuracy — Testability
 
 The system shall compute rate (s/d), amplitude (°), and beat error (ms) in exact accordance with the formulas in the TimeGrapher Equations document.
 
@@ -30,7 +30,7 @@ The system shall compute rate (s/d), amplitude (°), and beat error (ms) in exac
 
 ---
 
-## Sub-Requirement 2: Internal Consistency
+## Sub-Requirement 2: Internal Consistency — Reliability
 
 Displayed values and graphs shall remain consistent across all GUI tabs — rate, amplitude, and beat error shown in the summary bar, Rate/Scope tab, Trace tab, Vario tab, and Sequence tab must all derive from the same underlying data.
 
@@ -54,7 +54,7 @@ Displayed values and graphs shall remain consistent across all GUI tabs — rate
 
 ---
 
-## Sub-Requirement 3: Noise Resilience
+## Sub-Requirement 3: Noise Resilience — Availability
 
 The system shall remain usable and produce reliable measurements in the presence of ambient acoustic noise (speech, handling vibration, environmental hum), while preserving the T1 (A) and T3 (C) events needed for correct beat detection.
 
@@ -78,7 +78,7 @@ The system shall remain usable and produce reliable measurements in the presence
 
 ---
 
-## Warning Conditions (Usability Integration)
+## Warning Conditions — Usability
 
 | Condition | Detection Method | GUI Message |
 |-----------|-----------------|-------------|
