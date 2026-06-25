@@ -72,6 +72,7 @@ private slots:
     void on_UseConsetCheckBox_toggled(bool checked);
 
     void onMeasurementReady(const Measurement &m);
+    void logMeasurement();
 
 public slots:
     void onSessionStopped();
@@ -215,6 +216,8 @@ private:
     QElapsedTimer mSessionTimer;
     qint64        mSessionActiveMs = 0;
     QTimer        mRunStatusTimer;
+    QTimer        mLogTimer;
+    Measurement   mLastMeasurement;
 
     // FPS stats (updated from SessionController::frameLogged)
     double mBackgroundLastFPS = 0.0;

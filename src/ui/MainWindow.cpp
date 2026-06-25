@@ -187,6 +187,8 @@ MainWindow::MainWindow(QWidget *parent)
         " padding: 3px 8px; border: 1px solid #e5e7eb; border-radius: 3px; }");
     mRunStatusTimer.setInterval(250);
     connect(&mRunStatusTimer, &QTimer::timeout, this, &MainWindow::updateRunStatusLine);
+    mLogTimer.setInterval(1000);
+    connect(&mLogTimer, &QTimer::timeout, this, &MainWindow::logMeasurement);
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
 
@@ -659,6 +661,7 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     mLastReplotCount = g_replotCount.exchange(0);
     mLastPlotUs      = g_plotUs.exchange(0);
     if (m.synced) ++mSyncedCount;
+    mLastMeasurement = m;
     checkWatchDetached(m);  // update detached state before formatting the label
     checkNoise(m);          // all modes: ambient-noise popup
     DisplayResults(m);
@@ -842,6 +845,26 @@ void MainWindow::DisplayResults(const Measurement &m)
 }
 
 
+void MainWindow::logMeasurement()
+{
+    const Measurement &m = mLastMeasurement;
+    if (!m.synced) return;
+
+    QString rateStr = m.metrics.rate      ? QString::number(*m.metrics.rate, 'f', 1)      : "N/A";
+    QString ampStr  = m.metrics.amplitude ? QString::number(*m.metrics.amplitude, 'f', 0) : "N/A";
+    QString beStr   = m.metrics.beatError ? QString::number(*m.metrics.beatError, 'f', 1) : "N/A";
+
+    qInfo("[1s] Rate: \"%1 s/day\" | Amplitude: \"%2 deg\" | BeatError: \"%3 ms\""
+          " | BPH: \"auto(%5)\" | LiftAngle: %6 deg | SampleRate: %7 Hz"
+          " | AvgPeriod: %8 s | Synced: yes",
+          rateStr, ampStr, beStr,
+          QString{},             // %4 intentionally unused (reserved placeholder)
+          QString::number(m.detectedBph),
+          QString::number(mLiftAngle, 'f', 1),
+          QString::number(mCurrentSamplesPerSecond),
+          QString::number(mAveragingPeriod));
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // T2: receive per-frame log data from DSP thread, write CSV on main thread
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1023,6 +1046,7 @@ void MainWindow::startSessionClock()
     mSessionActiveMs = 0;
     mSessionTimer.start();
     mRunStatusTimer.start();
+    mLogTimer.start();
     updateRunStatusLine();
 }
 
@@ -1031,6 +1055,7 @@ void MainWindow::stopSessionClock()
     mSessionActiveMs = 0;
     mSessionTimer.invalidate();
     mRunStatusTimer.stop();
+    mLogTimer.stop();
     updateRunStatusLine();
 }
 
