@@ -48,13 +48,7 @@ GraphTabManager → BaseGraphTab::onMeasurement(m)
     └─▶ update() → paintEvent() → replot()
 ```
 
-**Key timing metrics (EXP-03 RPi results):**
-
-| Metric | Before ADR-001 | After ADR-001 (DSP Thread) | Change |
-|--------|:--------------:|:---------------------------:|:------:|
-| wait_ms avg | 77.4 ms | 0.03 ms | ×2,600 |
-| deadline miss | 43% | 0% | eliminated |
-| replot/beat (R1 guard) | 8.22 | 1.20 | ↓85% |
+Measured results on RPi: → [EXP-03: End-to-End Latency](../experiments/exp-03-latency-e2e.md)
 
 ## Related ADRs
 

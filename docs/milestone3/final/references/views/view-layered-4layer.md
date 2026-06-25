@@ -57,18 +57,6 @@ Presentation       →  Domain (receives Measurement struct)
 
 Zero changes to Domain, Signal Processing, or Acquisition layers required.
 
-**Tab addition history** (observed across three sprint rounds):
-
-| Batch | Tabs | Trigger | Files changed (excl. build/test) |
-|---|---|---|---|
-| W2 S1 | 11 (baseline) | Core requirements | NewTab + MainWindow = **2** |
-| W2 S2 | +2 → 13 | Project-plan screen requirements (Fig 7-19) | FilterScopeTab + SweepScopeTab + MainWindow = **2 each** |
-| W3 S1 | +1 → **14** | Radar/Polar chart (bonus) | RadarChartTab + SequenceTab + MainWindow = **3** ¹ |
-
-¹ RadarChartTab reads per-position data from SequenceTab directly (not via `measurementReady`) → SequenceTab modified to expose `capturedReadings()` + `sequenceUpdated()`.
-
-✅ All 14 added within ≤ 3-component rule — Domain layer untouched each time.
-
 **Dependency Structure Matrix** (actual `#include` trace):
 
 Row = used module · Column = using module · `1` = depends · `-` = self
