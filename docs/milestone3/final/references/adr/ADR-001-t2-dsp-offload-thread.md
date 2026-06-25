@@ -7,8 +7,7 @@ it is drained. On Raspberry Pi 5, cpu2 reached 91% load with 43% of frames excee
 21ms exec deadline. The remaining three cores were idle.
 
 The root cause is structural: a single thread serializes audio I/O, signal processing,
-and the Qt event loop. Thermal throttling (85°C on RPi) compounds the problem by further
-reducing effective clock speed.
+and the Qt event loop.
 
 ## Decision
 
@@ -83,7 +82,6 @@ RPi R5 confirmation scheduled: 2026-06-23.
 **Positive**:
 - wait_ms reduced ×32,000; frame backlog eliminated
 - DSP and capture now distributed across at least two cores
-- Thermal load expected to distribute, reducing throttle risk
 - AudioCapture callback is lightweight — only ring buffer write; lowest latency path preserved
 
 **Negative**:

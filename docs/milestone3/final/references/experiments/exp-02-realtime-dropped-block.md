@@ -20,7 +20,7 @@ Verify that RPi 5 sustains **zero dropped audio blocks** at 96k sps under contin
 |---------|--------|
 | Target sps | **96k** — 0 drops, exec avg 9.6 ms well within 21.3 ms deadline |
 | SCHED_RR / FIFO | Not required — no improvement in drop count |
-| Thermal throttling | ≥ 85 °C on rpi1; 30 s ring buffer absorbs exec spikes → Dropped stays 0 |
+
 
 ## Run Summary
 

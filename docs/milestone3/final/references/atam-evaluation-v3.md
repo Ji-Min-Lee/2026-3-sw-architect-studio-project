@@ -138,8 +138,7 @@ A tradeoff is: this decision helps one QA goal but puts pressure on another.
 |----|------|----|--------|
 | R-1 | **WeiShi accuracy not validated** — QAS-1 is the governing goal but no comparison against reference hardware has been done yet | QAS-1 | ⏳ EXP-01 scheduled 06/29 |
 | R-2 | **Ring buffer depth not stress-tested** — Too shallow = dropped blocks; too deep = added latency. Set conservatively but not validated under peak load | QAS-2, QAS-3 | ⏳ Needs RPi stress test |
-| R-3 | **Thermal throttling on RPi** — At 85°C the CPU clock drops. Headroom may shrink under sustained operation with no cooling specified | QAS-2 | ⏳ No active cooling yet |
-| R-4 | **Timer rendering (ADR-004) not activated** — Rendering under all 14 tabs visible at once is untested | QAS-2 | ⏳ Conditional on EXP-05 |
+| R-3 | **Timer rendering (ADR-004) not activated** — Rendering under all 14 tabs visible at once is untested | QAS-2 | ⏳ Conditional on EXP-05 |
 
 ### Non-Risks
 
@@ -193,8 +192,7 @@ A tradeoff is: this decision helps one QA goal but puts pressure on another.
 |----------|--------|-----------|
 | **Critical** | Run EXP-01 — WeiShi accuracy comparison | R-1, Theme 2 |
 | **High** | Stress-test ring buffer depth on RPi under peak load | R-2 |
-| **Medium** | Add cooling (heatsink/fan) for sustained RPi operation | R-3 |
-| **Low** | Confirm ADR-004 behavior if all 14 tabs open simultaneously | R-4, Theme 3 |
+| **Low** | Confirm ADR-004 behavior if all 14 tabs open simultaneously | R-3, Theme 3 |
 
 ---
 

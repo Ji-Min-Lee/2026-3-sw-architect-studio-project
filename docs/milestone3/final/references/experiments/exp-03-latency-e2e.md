@@ -25,7 +25,7 @@ DSP E2E avg **2.2 ms** / max **4.8 ms** — within QAS-3 target (< 100 ms).
 | Run | Date | Configuration | E2E avg/max (ms) | Note | Data |
 |:---:|------|--------------|:----------------:|------|:----:|
 | E3-01 | 2026-06-12 | Windows reference (dev PC) | 2.8 / 363.9 | Healthy baseline | [csv](../../../../../src/logs/EXP-02/log_20260612_132536.csv) · [plot](../../../../../src/logs/EXP-02/log_20260612_132536.png) |
-| E3-02 | 2026-06-11 | rpi1 — unoptimized | 255.4 / 900.9 | ❌ thermal throttling, exec overrun 43 % | [csv](../../../../../src/logs/EXP-02/log_20260611_145543.csv) · [plot](../../../../../src/logs/EXP-02/log_20260611_145543.png) |
+| E3-02 | 2026-06-11 | rpi1 — unoptimized | 255.4 / 900.9 | ❌ exec overrun 43 % | [csv](../../../../../src/logs/EXP-02/log_20260611_145543.csv) · [plot](../../../../../src/logs/EXP-02/log_20260611_145543.png) |
 | E3-03 | 2026-06-15 | rpi2 baseline | 57.2 / 208.9 | ❌ `plot` on exec path | [csv](../../../../../src/logs/EXP-02/log_20260615_152751.csv) · [plot](../../../../../src/logs/EXP-02/log_20260615_152751.png) |
 | E3-04 | 2026-06-15 | rpi2 + multi-tab | 80.1 / 258.7 | FG queue lag | [csv](../../../../../src/logs/EXP-02/log_20260615_162055.csv) · [plot](../../../../../src/logs/EXP-02/log_20260615_162055.png) |
 | E3-05 | 2026-06-15 | +T2 (DSP offload thread) | 2.1 / 11.1 | ✅ **−97 %** | [csv](../../../../../src/logs/EXP-02/log_20260615_163106.csv) · [plot](../../../../../src/logs/EXP-02/log_20260615_163106.png) |
