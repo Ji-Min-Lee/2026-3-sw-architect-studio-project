@@ -1,4 +1,4 @@
-# QAS-6: Long-Term Session Performance — Priority 4 (Reliability Enabler)
+# QAS-6: Long-Term Session Performance — Priority 4 (Performance)
 
 > Added M3 for the Long-Term Performance Graph feature (project plan §"Long-Term Performance Graph", Figure 14).
 > Status: ✅ Verified analytically (2026-06-25). See EXP-06 for point-count derivation.
