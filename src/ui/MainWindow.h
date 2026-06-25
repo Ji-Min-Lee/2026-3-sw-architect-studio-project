@@ -194,19 +194,25 @@ private:
     static constexpr qint64  kNoiseOffMs       = 2000;   // sustained → hide
 
     // Demo: auto horizontal<->vertical position detection (amplitude step).
-    QCheckBox    *mAutoPosCheck  = nullptr; // "Auto H↔V" toggle in the Advanced group
-    bool          mPosRunActive  = false;  // a Live run is in progress (re-inits each run)
-    bool          mPosVertical   = false;  // current detected state (false = horizontal)
+    QCheckBox    *mAutoPosCheck   = nullptr; // "Auto H↔V" toggle in the Advanced group
+    bool          mPosRunActive   = false; // a Live run is in progress (re-inits each run)
+    bool          mPosVertical    = false; // current detected state (false = horizontal)
+    bool          mPosBaselineSet = false; // flat baseline captured yet?
+    double        mPosBaselineAmp = 0.0;   // frozen flat amplitude (learned at run start)
+    double        mPosLearnSum    = 0.0;   // accumulator for the learning-window average
+    int           mPosLearnCount  = 0;
+    QElapsedTimer mPosLearnSince;          // learning-window timer
     QElapsedTimer mPosBelowSince;          // sustained time below the vertical threshold
     QElapsedTimer mPosAboveSince;          // sustained time above the horizontal threshold
-    // On the demo rig lying flat (horizontal) reads HIGHER amplitude than standing
-    // (vertical). Live logs: flat settles 282-290 (noise dips to ~277), standing
-    // settles 266-270. The clean gap is only ~270..277, so an ABSOLUTE threshold
-    // (not baseline-relative — the baseline wandered and missed standing) is used:
-    // below 274 -> vertical (catches standing 270, ignores flat noise 277), above
-    // 279 -> horizontal (hysteresis). Retune these two if the rig changes.
-    static constexpr double kPosVertBelow  = 274.0; // amp < this → vertical
-    static constexpr double kPosHorizAbove = 279.0; // amp > this → horizontal (hysteresis)
+    // The demo always starts flat (horizontal), so learn the flat amplitude over
+    // the first kPosLearnMs and FREEZE it as the baseline (frozen — not an EMA that
+    // would drift down over the run and miss the vertical drop). Detection is then
+    // RELATIVE: vertical when amp falls kPosDropDeg below the baseline, back to
+    // horizontal within kPosReturnDeg (hysteresis). Live logs: flat ~286, standing
+    // ~268 → a ~13 deg drop separates them while ignoring flat noise dips (~277).
+    static constexpr qint64 kPosLearnMs    = 2500;  // learn the flat baseline this long
+    static constexpr double kPosDropDeg    = 13.0;  // amp < baseline-this → vertical
+    static constexpr double kPosReturnDeg  = 8.0;   // amp > baseline-this → horizontal (hysteresis)
     static constexpr qint64 kPosDebounceMs = 1500;  // sustained for this long before switching
     // Position labels shown for each class (vertical is acoustically ambiguous —
     // pick the one the demo physically uses; change here if needed).

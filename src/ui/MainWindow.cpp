@@ -731,42 +731,61 @@ void MainWindow::checkPosition(const Measurement &m)
         return;
     }
     if (!mPosRunActive) {             // new run → assume the watch starts flat
-        mPosRunActive = true;
-        mPosVertical  = false;
+        mPosRunActive   = true;
+        mPosVertical    = false;
+        mPosBaselineSet = false;
+        mPosLearnSum    = 0.0;
+        mPosLearnCount  = 0;
+        mPosLearnSince.invalidate();
         mPosBelowSince.invalidate();
         mPosAboveSince.invalidate();
         mSequenceTab->selectPosition(kPosHorizLabel);
-        qInfo() << "[AutoPOS] run start → horizontal";
+        qInfo() << "[AutoPOS] run start → learning flat baseline…";
     }
     if (!m.metrics.amplitude.has_value()) return;
     const double amp = *m.metrics.amplitude;
 
-    // Absolute amplitude thresholds with hysteresis (see header for calibration).
-    // Flat settles ~282-290, standing ~266-270; the clean gap is narrow so a fixed
-    // gate is more reliable than a baseline that wandered and missed standing.
+    // Learn the flat baseline once, from the first kPosLearnMs of the run (the
+    // watch starts flat by demo convention), then freeze it. Detection below is
+    // relative to this frozen value, so it adapts to the day's flat amplitude.
+    if (!mPosBaselineSet) {
+        if (!mPosLearnSince.isValid()) mPosLearnSince.restart();
+        mPosLearnSum += amp;
+        ++mPosLearnCount;
+        if (mPosLearnSince.elapsed() >= kPosLearnMs && mPosLearnCount >= 3) {
+            mPosBaselineAmp = mPosLearnSum / mPosLearnCount;
+            mPosBaselineSet = true;
+            qInfo("[AutoPOS] flat baseline=%.0f  →VERT if amp<%.0f  →HORIZ if amp>%.0f",
+                  mPosBaselineAmp, mPosBaselineAmp - kPosDropDeg, mPosBaselineAmp - kPosReturnDeg);
+        }
+        return;                       // hold horizontal until the baseline is set
+    }
+
+    // Throttled diagnostic so the relative thresholds can be checked from console.
     static int logN = 0;
     if ((++logN % 6) == 0)
-        qInfo("[AutoPOS] %s amp=%.0f  →VERT if amp<%.0f  →HORIZ if amp>%.0f",
-              mPosVertical ? "VERT " : "HORIZ", amp, kPosVertBelow, kPosHorizAbove);
+        qInfo("[AutoPOS] %s amp=%.0f base=%.0f  →VERT if amp<%.0f  →HORIZ if amp>%.0f",
+              mPosVertical ? "VERT " : "HORIZ", amp, mPosBaselineAmp,
+              mPosBaselineAmp - kPosDropDeg, mPosBaselineAmp - kPosReturnDeg);
 
-    if (!mPosVertical) {                                   // horizontal → vertical?
-        if (amp < kPosVertBelow) {
+    if (!mPosVertical) {                                   // horizontal → vertical (drop)?
+        if (amp < mPosBaselineAmp - kPosDropDeg) {
             if (!mPosBelowSince.isValid()) mPosBelowSince.restart();
             if (mPosBelowSince.elapsed() >= kPosDebounceMs) {
                 mPosVertical = true;
                 mPosBelowSince.invalidate(); mPosAboveSince.invalidate();
                 mSequenceTab->selectPosition(kPosVertLabel);
-                qInfo("[AutoPOS] → VERTICAL  (amp=%.0f)", amp);
+                qInfo("[AutoPOS] → VERTICAL  (amp=%.0f, base=%.0f)", amp, mPosBaselineAmp);
             }
         } else mPosBelowSince.invalidate();
-    } else {                                               // vertical → horizontal?
-        if (amp > kPosHorizAbove) {
+    } else {                                               // vertical → horizontal (recover)?
+        if (amp > mPosBaselineAmp - kPosReturnDeg) {
             if (!mPosAboveSince.isValid()) mPosAboveSince.restart();
             if (mPosAboveSince.elapsed() >= kPosDebounceMs) {
                 mPosVertical = false;
                 mPosAboveSince.invalidate(); mPosBelowSince.invalidate();
                 mSequenceTab->selectPosition(kPosHorizLabel);
-                qInfo("[AutoPOS] → HORIZONTAL  (amp=%.0f)", amp);
+                qInfo("[AutoPOS] → HORIZONTAL  (amp=%.0f, base=%.0f)", amp, mPosBaselineAmp);
             }
         } else mPosAboveSince.invalidate();
     }
