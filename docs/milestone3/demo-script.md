@@ -321,26 +321,52 @@
 
 ---
 
-**⑩ Scope Mode with Synchronized Sweep Display** (~30 sec)
+**⑩ Scope Mode with Synchronized Sweep Display** (~40 sec)
 
-- Switch to Sweep Scope tab
+- Switch to Sweep tab
 
-> "This is an oscilloscope-style view.
-> Every beat triggers a sweep from left to right, always starting at the same edge.
-> It's the most familiar way to inspect the raw waveform
-> and quickly spot anything unusual in the beat shape."
+> "Sweep mode shows multiple beats across one continuous time axis.
+> The window is currently set to 4 ticks — so you see 4 complete beat events
+> spread across 500 milliseconds.
+>
+> Each pair of spikes is one beat — the first spike is the A event, the second is C.
+> The spacing between pairs is the beat period — here about 125 milliseconds,
+> which is exactly what you expect at 28800 BPH.
+>
+> The key insight from this view is in the x-axis label:
+> stable pattern means the watch is on rate.
+> If the spikes drift left over time, the watch is running fast.
+> If they drift right, it's running slow.
+> Here the pattern is perfectly stable — the watch is on rate.
+>
+> The header confirms: Daily Rate −0.2 s/d, Amplitude 302°, Beat Error 0.02 ms."
 
 ---
 
-**⑪ Scope Function with Multiple Filter Views** (~30 sec)
+**⑪ Scope Function with Multiple Filter Views** (~40 sec)
 
-- Switch to Filter Scope tab
+- Switch to Filters tab
 
-> "Finally, this shows the signal through four filter stages simultaneously —
-> F0 is raw, F1 through F3 apply progressively more processing.
-> You can see exactly what each filter stage is doing to the signal
-> before it reaches beat detection.
-> This is the diagnostic tool we used to tune our filter parameters."
+> "Filter Scope shows one full beat cycle — 125 milliseconds, 3803 samples —
+> through four different filter stages stacked vertically.
+>
+> The top panel is Raw — the unprocessed high-pass filtered signal.
+> You can see the beat event as a sharp spike around 50 to 60 milliseconds.
+> But it's noisy — hard to pinpoint the exact moment.
+>
+> The second panel is Smoothed — a moving average applied on top of the raw signal.
+> The event shape is now cleaner and easier to read.
+>
+> The third panel is Envelope — the absolute value of the smoothed signal.
+> This removes the negative half and shows only the energy profile.
+>
+> The fourth panel is Upper Envelope — a single clean positive spike.
+> This is what the beat detector actually sees.
+> One unambiguous peak, no noise, no false triggers.
+>
+> Each stage makes the signal easier to detect reliably.
+> This view lets us verify that the filter chain is working correctly —
+> and helped us tune the High Pass Cutoff parameter during development."
 
 ---
 
@@ -543,17 +569,32 @@
 
 - Switch to Radar Chart tab
 
-> "For the bonus features, first — the Radar Chart.
+> "For the bonus feature — the Radar Chart.
 >
-> After measuring the watch in multiple positions,
-> this chart plots Rate and Amplitude for each position
-> as a polygon on a radar grid.
-> A perfectly regulated watch would produce a near-perfect circle.
-> Deviations from the circle show exactly which positions are off
-> and by how much.
-> It's a quick, visual health check of the whole watch."
+> Each position label around the edge corresponds to a watch orientation —
+> CH is crown horizontal, CB is crown back, then 9H, 6H, 3H, 12H for vertical positions,
+> and CU, CD for crown up and down.
+>
+> The red dots are the measured Amplitude for each position.
+> The blue polygon connects them.
+> The green dashed circles are the tolerance bands —
+> the inner circle is the minimum acceptable Amplitude,
+> the outer circle is the target.
+>
+> A perfectly regulated watch produces a polygon that hugs the outer green circle uniformly.
+> Here you can see the polygon is asymmetric —
+> the CH and CB positions are close to 300 degrees,
+> but 12H and 3H are pulling inward toward 275 degrees.
+> That asymmetry tells you exactly which positions are weak
+> and by how much — without needing to read a table.
+>
+> The warning at the bottom confirms: 6 of 6 positions out of tolerance,
+> worst at CH at 302 degrees.
+> Positional variance suggests a poising or balance review is needed.
+> That is the kind of diagnostic that used to require a trained watchmaker
+> to manually compare six separate measurements."
 
-- Rotate the watch into 2–3 positions to populate the chart
+- Point to the asymmetric shape and the warning message
 
 ---
 
