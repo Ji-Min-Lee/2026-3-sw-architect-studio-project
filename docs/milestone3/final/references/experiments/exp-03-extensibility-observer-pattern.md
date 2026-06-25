@@ -1,4 +1,4 @@
-# EXP-04: Observer Pattern Compliance — Tab Extension Cost Measurement
+# EXP-03: Observer Pattern Compliance — Tab Extension Cost Measurement
 
 **QA**: QAS-4 | **Status**: ✅ Done (2026-06-21)
 

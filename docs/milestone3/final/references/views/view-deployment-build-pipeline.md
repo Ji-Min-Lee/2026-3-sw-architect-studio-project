@@ -9,13 +9,13 @@ This view shows which hardware nodes run which software artifacts and what the d
 #### Dev Machine (macOS)
 - Primary development environment: Qt Creator, C++17 toolchain.
 - Runs the full build, unit tests, and structural validation (layered + C&C views).
-- Executes macOS experiments (e.g., EXP-02 R2–R4 for baseline latency measurements).
+- Executes macOS experiments (e.g., EXP-01 R2–R4 for baseline latency measurements).
 - Does **not** require direct access to microphone hardware for structural validation.
 
 #### Raspberry Pi 5 (Target Hardware)
 - ARM64, Ubuntu 24.04, 4-core Cortex-A76.
 - Runs the production binary: AudioCapture via ALSA, DSPWorker, Qt 6 GUI.
-- Used for hardware experiments (EXP-01, EXP-02 R5, EXP-05) and M3 final demo.
+- Used for hardware experiments (EXP-06, EXP-01 R5, EXP-04) and M3 final demo.
 - **Constraint**: AGC must be disabled on every boot (`alsamixer`) — AGC enabled causes Amplitude and Beat Error measurements to be unreliable.
 
 #### Git Repository (Shared)
@@ -57,7 +57,7 @@ Dev Machine
 ## Related ADRs
 
 - [ADR-003: Audio Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — determines ALSA sample rate configured on RPi
-- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — thread model confirmed on macOS; RPi confirmation via EXP-02 R5
+- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — thread model confirmed on macOS; RPi confirmation via EXP-01 R5
 
 ## Related views
 

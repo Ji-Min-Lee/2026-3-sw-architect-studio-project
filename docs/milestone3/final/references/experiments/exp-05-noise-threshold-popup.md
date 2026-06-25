@@ -1,4 +1,4 @@
-# EXP-07: Signal Quality Warning — Ambient Noise Threshold Validation
+# EXP-05: Signal Quality Warning — Ambient Noise Threshold Validation
 
 **QA**: QAS-4 (Correctness, Sub-3 Noise Resilience) + Usability | **Status**: ✅ Done (2026-06-23)
 
@@ -46,7 +46,7 @@ Technical question: Does the `noiseDb ≥ 55 dB` condition correctly separate re
 
 | Run | Date | File | noiseDb at SNR 0 dB | False alarms (SNR ≥ 10) | Result | Data |
 |:---:|------|------|:-------------------:|:-----------------------:|:------:|:----:|
-| E7-01 | 2026-06-23 | `28800BPH_3235_Starbucks_snr{M10..60}db.wav` (8 files, float32, 96kHz) | avg 54.4 / max **56.9** | **0 / 6** | ✅ Pass | [csv](../../src/logs/EXP-07/noise_detection_snr_sweep_20260623.csv) · [plot](../../src/logs/EXP-07/noise_detection_snr_sweep_20260623.png) |
+| E7-01 | 2026-06-23 | `28800BPH_3235_Starbucks_snr{M10..60}db.wav` (8 files, float32, 96kHz) | avg 54.4 / max **56.9** | **0 / 6** | ✅ Pass | [csv](../../../../../src/logs/EXP-05/noise_detection_snr_sweep_20260623.csv) · [plot](../../../../../src/logs/EXP-05/noise_detection_snr_sweep_20260623.png) |
 
 ## Architecture Decision
 
@@ -61,5 +61,5 @@ The 55 dB value was chosen because:
 ## Links
 
 - [QAS-4: Correctness — Sub-3 Noise Resilience](../qa/qas-4-correctness.md)
-- [EXP-05: Detector Parameter Optimization Under Noise](exp-05-correctness-detector-optimization.md) — establishes onset=0.08 that determines `onset_threshold` (and therefore `noiseDb`)
+- [EXP-04: Detector Parameter Optimization Under Noise](exp-04-correctness-detector-optimization.md) — establishes onset=0.08 that determines `onset_threshold` (and therefore `noiseDb`)
 - [experiment-results.md](experiment-results.md) — summary table and architecture decisions log

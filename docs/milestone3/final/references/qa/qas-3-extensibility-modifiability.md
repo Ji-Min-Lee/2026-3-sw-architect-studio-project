@@ -53,7 +53,7 @@ coupling and separation of concerns that the modifiability tactics prescribe.
 publish-subscribe pattern can negatively impact testability."* We mitigate this via:
 - `Qt::QueuedConnection` (FIFO) limits nondeterminism — Ch.12 *Limit Nondeterminism* tactic
 - DSM verification confirms zero cross-layer signal wiring (no hidden pub-sub coupling)
-- `EXP-04 TestAddedTabs 20/20` verifies observer contract compliance end-to-end
+- `EXP-03 TestAddedTabs 20/20` verifies observer contract compliance end-to-end
 
 ## Related
 
@@ -61,5 +61,5 @@ publish-subscribe pattern can negatively impact testability."* We mitigate this 
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| 4-Layer Allowed-to-Use | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-04: Observer Pattern Compliance](../experiments/exp-04-extensibility-observer-pattern.md) | [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md) |
-| Observer Pattern (BaseGraphTab) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-04: Observer Pattern Compliance](../experiments/exp-04-extensibility-observer-pattern.md) | [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) |
+| 4-Layer Allowed-to-Use | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md) |
+| Observer Pattern (BaseGraphTab) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) |

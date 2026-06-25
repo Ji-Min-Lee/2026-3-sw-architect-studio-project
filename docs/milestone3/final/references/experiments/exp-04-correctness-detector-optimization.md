@@ -1,4 +1,4 @@
-# EXP-05: Detector Parameter Optimization Under Noise
+# EXP-04: Detector Parameter Optimization Under Noise
 
 **QA**: QAS-4 (Sub-3: Noise Resilience) | **Status**: ✅ Done (2026-06-16 ~ 2026-06-17)
 
@@ -22,7 +22,7 @@ WAV source: 28,800 BPH real recording + pink noise (96 kHz, float32). Platform: 
 |:---:|------|-------|:------------:|:----:|
 | E5-01 | 2026-06-15 | Pilot — default params, 48 kHz | 3 | — |
 | E5-02 | 2026-06-16 | Early grid — onset {0.02, 0.08} × noise {0, 60} dB | 8 | — |
-| E5-03 | 2026-06-17 | Full grid — onset×min_peak×noise×5 reps | **274** | [logs](../../../../../src/logs/EXP-03/) |
+| E5-03 | 2026-06-17 | Full grid — onset×min_peak×noise×5 reps | **274** | [logs](../../../../../src/logs/EXP-04/full-grid/) |
 
 ## Architecture Decisions
 
@@ -34,5 +34,5 @@ WAV source: 28,800 BPH real recording + pink noise (96 kHz, float32). Platform: 
 ## Links
 
 - Full results table (7 noise levels): [experiment-results.md](../../../../milestone2/experiment-results.md#exp-05-detector-parameter-optimization-under-noise)
-- Log directory (274 CSVs): `src/logs/EXP-03/` (legacy directory name)
+- Log directory: `src/logs/EXP-04/full-grid/` (274 CSVs) · `src/logs/EXP-04/pilot/` (pilot runs)
 - Analysis tool: `src/tools/analyze_exp04_scatter.py`

@@ -1,7 +1,7 @@
 # QAS-4: Correctness — Priority 4
 
 > M1 name: "Correctness (QA-C2)". M2 refactor: split into signal quality (this) and accuracy goal (QAS-1).
-> M1 status: Provisional (pending EXP-05). M2 status: ✅ Verified 06/17 — onset=0.08, min_peak=0.10 confirmed.
+> M1 status: Provisional (pending EXP-04). M2 status: ✅ Verified 06/17 — onset=0.08, min_peak=0.10 confirmed.
 
 Correctness is not a standard Bass/CMK Quality Attribute. Its three sub-requirements each map to a different QA lens:
 
@@ -39,7 +39,7 @@ The architecture shall make formula correctness continuously verifiable: the `Wa
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| `WatchMath` Pure Calculation Module (Limit Structural Complexity + Abstract Data Sources) | [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) | [EXP-03: Calculation Accuracy Unit Tests](../experiments/exp-03-calculation-accuracy.md) | [Allocation View: Implementation Style](../views/view-allocation-implementation.md) |
+| `WatchMath` Pure Calculation Module (Limit Structural Complexity + Abstract Data Sources) | [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) | [EXP-02: Calculation Accuracy Unit Tests](../experiments/exp-03-calculation-accuracy.md) | [Allocation View: Implementation Style](../views/view-allocation-implementation.md) |
 
 ---
 
@@ -62,8 +62,8 @@ Displayed values and graphs shall remain consistent across all GUI tabs — rate
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| Observer Pattern (BaseGraphTab) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-04: Observer Pattern Compliance](../experiments/exp-04-extensibility-observer-pattern.md) | [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) |
-| 4-Layer Allowed-to-Use (single ownership of measurement state) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-04: Observer Pattern Compliance](../experiments/exp-04-extensibility-observer-pattern.md) | [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md) |
+| Observer Pattern (BaseGraphTab) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) |
+| 4-Layer Allowed-to-Use (single ownership of measurement state) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md) |
 
 ---
 
@@ -78,7 +78,7 @@ The system shall remain usable and produce reliable measurements in the presence
 | **Artifact** | Signal Processing layer — LP/HP `FilterChain` → `BeatDetector` |
 | **Environment** | Live mode; ambient noise present |
 | **Response** | LP/HP filter rejects the non-beat signal; `BeatDetector` fires only on genuine T1/T3 events |
-| **Measure** | False trigger rate < 1% under standard ambient conditions; true T1 detection rate > 99% (verified in EXP-05) |
+| **Measure** | False trigger rate < 1% under standard ambient conditions; true T1 detection rate > 99% (verified in EXP-04) |
 
 ## Related
 
@@ -86,8 +86,8 @@ The system shall remain usable and produce reliable measurements in the presence
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| 96kHz Sample Rate | [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [Allocation View](../views/view-allocation.md) |
-| LP/HP FilterChain | [ADR-009: FilterChain Design](../adr/ADR-009-filterchain-design.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [C&C View: Signal Processing Pipeline](../views/view-cnc-signal-pipeline.md) |
+| 96kHz Sample Rate | [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) | [EXP-04: Detector Parameter Optimization](../experiments/exp-04-correctness-detector-optimization.md) | [Allocation View](../views/view-allocation.md) |
+| LP/HP FilterChain | [ADR-009: FilterChain Design](../adr/ADR-009-filterchain-design.md) | [EXP-04: Detector Parameter Optimization](../experiments/exp-04-correctness-detector-optimization.md) | [C&C View: Signal Processing Pipeline](../views/view-cnc-signal-pipeline.md) |
 
 ---
 

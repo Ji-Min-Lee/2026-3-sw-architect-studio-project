@@ -103,11 +103,11 @@ resolve identified risks before committing to design choices.
 
 | ID | Title | QAS | Status |
 |----|-------|-----|--------|
-| [EXP-01](references/experiments/exp-01-accuracy-weishi-comparison.md) | Accuracy vs. WeiShi Reference Device | QAS-5 | ✅ Done |
-| [EXP-02](references/experiments/exp-02-realtime-dropped-block.md) | Real-Time Block Drop Under Load | QAS-1, QAS-2 | ✅ Done |
-| [EXP-03](references/experiments/exp-03-latency-e2e.md) | End-to-End Latency Measurement | QAS-1, QAS-2 | ✅ Done |
-| [EXP-04](references/experiments/exp-04-extensibility-observer-pattern.md) | Extensibility — Observer Pattern | QAS-3 | ✅ Done |
-| [EXP-05](references/experiments/exp-05-correctness-detector-optimization.md) | Detector Parameter Optimization Under Noise | QAS-4, QAS-5 | ✅ Done |
+| [EXP-06](references/experiments/exp-06-accuracy-weishi-comparison.md) | Accuracy vs. WeiShi Reference Device | QAS-5 | ✅ Done |
+| [EXP-01](references/experiments/exp-01-realtime-dropped-block.md) | Real-Time Block Drop Under Load | QAS-1, QAS-2 | ✅ Done |
+| [EXP-02](references/experiments/exp-02-latency-e2e.md) | End-to-End Latency Measurement | QAS-1, QAS-2 | ✅ Done |
+| [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | Extensibility — Observer Pattern | QAS-3 | ✅ Done |
+| [EXP-04](references/experiments/exp-04-correctness-detector-optimization.md) | Detector Parameter Optimization Under Noise | QAS-4, QAS-5 | ✅ Done |
 
 See [planned-experiments.md](references/experiments/planned-experiments.md) for the
 original experiment plan and rationale.
@@ -141,16 +141,16 @@ risks, their resolution status, and the experiments or architectural decisions t
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| [TR-02](references/risks.md) | Single-threaded pipeline saturates cpu2; 43% deadline miss on RPi | [EXP-03](references/experiments/exp-03-latency-e2e.md) | wait_ms 420ms → **0.013ms** (×32,000) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
-| [TR-03](references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-03](references/experiments/exp-03-latency-e2e.md) | Backlog 0% (macOS + RPi) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
-| [TR-04](references/risks.md) | `replot()` in exec path consumes 79% of exec budget | [EXP-03](references/experiments/exp-03-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%) | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ |
+| [TR-02](references/risks.md) | Single-threaded pipeline saturates cpu2; 43% deadline miss on RPi | [EXP-02](references/experiments/exp-02-latency-e2e.md) | wait_ms 420ms → **0.013ms** (×32,000) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
+| [TR-03](references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-02](references/experiments/exp-02-latency-e2e.md) | Backlog 0% (macOS + RPi) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
+| [TR-04](references/risks.md) | `replot()` in exec path consumes 79% of exec budget | [EXP-02](references/experiments/exp-02-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%) | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ |
 
 ### QAS-2 — Low Latency and Low Number of Missed Beats *(Priority 2)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| [TR-01](references/risks.md) | RPi cannot sustain 96kHz audio capture alongside Qt GUI | [EXP-02](references/experiments/exp-02-realtime-dropped-block.md) | Dropped=0 at 48k/96k/192k | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
-| TR-02/03 | Single-threaded capture-to-process latency | [EXP-03](references/experiments/exp-03-latency-e2e.md) | E2E avg **2.05ms** on RPi | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
+| [TR-01](references/risks.md) | RPi cannot sustain 96kHz audio capture alongside Qt GUI | [EXP-01](references/experiments/exp-01-realtime-dropped-block.md) | Dropped=0 at 48k/96k/192k | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
+| TR-02/03 | Single-threaded capture-to-process latency | [EXP-02](references/experiments/exp-02-latency-e2e.md) | E2E avg **2.05ms** on RPi | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
 
 ### QAS-3 — Extensibility / Modifiability *(Priority 3)*
 
@@ -159,20 +159,20 @@ risks, their resolution status, and the experiments or architectural decisions t
 | [TR-06](references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | — | 116 unit tests (7 binaries) all passing ✅ | 4-Layer Allowed-to-Use enforced |
 | [TR-07](references/risks.md) | Residual coupling survives refactoring | — | Compiler catches upward dependency ✅ | Allowed-to-use rule + per-layer include restriction |
 | [TR-08](references/risks.md) | New tab requires data not in current Domain output | — | All 11-tab data requirements covered ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
-| — | Audio source extension touches multiple unrelated components | [EXP-04](references/experiments/exp-04-extensibility-observer-pattern.md) | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
+| — | Audio source extension touches multiple unrelated components | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
 
 ### QAS-4 — Correctness *(Priority 4)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| [TR-05](references/risks.md) | Filter defaults reject beat signal at edge BPH values | [EXP-05](references/experiments/exp-05-correctness-detector-optimization.md) | onset=0.08, min_peak=0.10 confirmed ✅ | Default parameters locked in `Detector.cpp` |
+| [TR-05](references/risks.md) | Filter defaults reject beat signal at edge BPH values | [EXP-04](references/experiments/exp-04-correctness-detector-optimization.md) | onset=0.08, min_peak=0.10 confirmed ✅ | Default parameters locked in `Detector.cpp` |
 | [NTR-07](references/risks.md) | Domain knowledge gap prevents structural verification | — | 119 AI-assisted unit tests across 5 binaries ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) — all tabs receive identical `Measurement` |
 
 ### QAS-5 — Measurement Accuracy *(Priority 5 — Usability)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| — | Accuracy vs. WeiShi reference device unvalidated | [EXP-01](references/experiments/exp-01-accuracy-weishi-comparison.md) | Validation against reference device completed ✅ | — |
+| — | Accuracy vs. WeiShi reference device unvalidated | [EXP-06](references/experiments/exp-06-accuracy-weishi-comparison.md) | Validation against reference device completed ✅ | — |
 | [NTR-07](references/risks.md) | Equation-level derivations difficult to verify manually | — | Test suite provides safety net (119 tests / 5 binaries) | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) |
 
 ---
@@ -190,7 +190,7 @@ docs/milestone3/final/
     ├── github-project-status.md          ← Kanban board snapshot and sprint log
     ├── unit-test-results.md              ← unit test summary (119 tests / 5 binaries)
     ├── views/                            ← architecture view files (6 views)
-    ├── experiments/                      ← experiment files (EXP-01 ~ EXP-05)
+    ├── experiments/                      ← experiment files (EXP-06 ~ EXP-04)
     ├── adr/                              ← ADR files (ADR-001 ~ ADR-006)
     └── requirments/                      ← functional requirements
 ```

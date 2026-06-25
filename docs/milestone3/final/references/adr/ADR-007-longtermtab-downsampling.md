@@ -75,7 +75,7 @@ most needs to see whether measurement is stable before committing to a long run.
 Accepted (2026-06-12)
 
 Implemented in `src/tabs/LongTermTab.h` / `LongTermTab.cpp` (commits f6d78c1, 48ddc0d).
-Verified by QAS-6 experiment EXP-06.
+Verified by QAS-6 experiment EXP-07.
 
 ## Consequences
 
