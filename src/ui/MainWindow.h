@@ -201,11 +201,11 @@ private:
     double        mPosBaselineAmp = 0.0;   // EMA of amplitude while horizontal
     QElapsedTimer mPosBelowSince;          // sustained time below the drop threshold
     QElapsedTimer mPosAboveSince;          // sustained time back near the baseline
-    // NOTE: on the demo rig the STANDING (vertical) amplitude reads HIGHER than
-    // lying flat (horizontal ~<=260s, vertical ~>=270), so vertical is detected
-    // by an amplitude RISE above the learned horizontal baseline.
-    static constexpr double kPosRiseDeg    = 7.0;   // amp > baseline+this → vertical
-    static constexpr double kPosReturnDeg  = 4.0;   // amp < baseline+this → horizontal (hysteresis)
+    // On the demo rig lying flat (horizontal) reads HIGHER amplitude than
+    // standing (vertical) — horizontal ~>=270, vertical ~<=260s — so vertical is
+    // detected by an amplitude DROP below the learned horizontal baseline.
+    static constexpr double kPosDropDeg    = 7.0;   // amp < baseline-this → vertical
+    static constexpr double kPosReturnDeg  = 4.0;   // amp > baseline-this → horizontal (hysteresis)
     static constexpr qint64 kPosDebounceMs = 1200;  // sustained for this long before switching
     // Position labels shown for each class (vertical is acoustically ambiguous —
     // pick the one the demo physically uses; change here if needed).

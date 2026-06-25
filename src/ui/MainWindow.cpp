@@ -742,46 +742,46 @@ void MainWindow::checkPosition(const Measurement &m)
     if (!m.metrics.amplitude.has_value()) return;
     const double amp = *m.metrics.amplitude;
 
-    // Track the HORIZONTAL (lying-flat) baseline. On this rig flat reads LOWER
-    // than standing, so vertical is an amplitude RISE: fall quickly toward a
-    // lower amplitude (a high lock-in seed self-corrects), follow small dips
-    // slowly, but FREEZE once the amplitude rises well above it — otherwise the
-    // baseline would chase the rise up and the vertical transition never fires.
+    // Track the HORIZONTAL (lying-flat) baseline. On this rig flat reads HIGHER
+    // than standing, so vertical is an amplitude DROP: rise quickly toward a
+    // higher amplitude (a low lock-in seed self-corrects), follow small bumps
+    // slowly, but FREEZE once the amplitude drops well below it — otherwise the
+    // baseline would chase the drop down and the vertical transition never fires.
     if (!mPosVertical) {
         if (!mPosBaselineSet)                          { mPosBaselineAmp = amp; mPosBaselineSet = true; }
-        else if (amp < mPosBaselineAmp)                  mPosBaselineAmp = 0.7  * mPosBaselineAmp + 0.3  * amp;
-        else if (amp <= mPosBaselineAmp + kPosReturnDeg) mPosBaselineAmp = 0.95 * mPosBaselineAmp + 0.05 * amp;
-        // else (amp far above baseline): frozen — a rise is in progress
+        else if (amp > mPosBaselineAmp)                  mPosBaselineAmp = 0.7  * mPosBaselineAmp + 0.3  * amp;
+        else if (amp >= mPosBaselineAmp - kPosReturnDeg) mPosBaselineAmp = 0.95 * mPosBaselineAmp + 0.05 * amp;
+        // else (amp far below baseline): frozen — a drop is in progress
     }
     if (!mPosBaselineSet) return;
 
     // Throttled diagnostic so the thresholds can be tuned from the console.
     static int logN = 0;
     if ((++logN % 6) == 0)
-        qInfo("[AutoPOS] %s amp=%.0f base=%.0f  →VERT if amp>%.0f  →HORIZ if amp<%.0f",
+        qInfo("[AutoPOS] %s amp=%.0f base=%.0f  →VERT if amp<%.0f  →HORIZ if amp>%.0f",
               mPosVertical ? "VERT " : "HORIZ", amp, mPosBaselineAmp,
-              mPosBaselineAmp + kPosRiseDeg, mPosBaselineAmp + kPosReturnDeg);
+              mPosBaselineAmp - kPosDropDeg, mPosBaselineAmp - kPosReturnDeg);
 
-    if (!mPosVertical) {                                   // horizontal → vertical (rise)?
-        if (amp > mPosBaselineAmp + kPosRiseDeg) {
-            if (!mPosAboveSince.isValid()) mPosAboveSince.restart();
-            if (mPosAboveSince.elapsed() >= kPosDebounceMs) {
+    if (!mPosVertical) {                                   // horizontal → vertical (drop)?
+        if (amp < mPosBaselineAmp - kPosDropDeg) {
+            if (!mPosBelowSince.isValid()) mPosBelowSince.restart();
+            if (mPosBelowSince.elapsed() >= kPosDebounceMs) {
                 mPosVertical = true;
-                mPosAboveSince.invalidate(); mPosBelowSince.invalidate();
+                mPosBelowSince.invalidate(); mPosAboveSince.invalidate();
                 mSequenceTab->selectPosition(kPosVertLabel);
                 qInfo("[AutoPOS] → VERTICAL  (amp=%.0f, base=%.0f)", amp, mPosBaselineAmp);
             }
-        } else mPosAboveSince.invalidate();
-    } else {                                               // vertical → horizontal (fall back)?
-        if (amp < mPosBaselineAmp + kPosReturnDeg) {
-            if (!mPosBelowSince.isValid()) mPosBelowSince.restart();
-            if (mPosBelowSince.elapsed() >= kPosDebounceMs) {
+        } else mPosBelowSince.invalidate();
+    } else {                                               // vertical → horizontal (recover)?
+        if (amp > mPosBaselineAmp - kPosReturnDeg) {
+            if (!mPosAboveSince.isValid()) mPosAboveSince.restart();
+            if (mPosAboveSince.elapsed() >= kPosDebounceMs) {
                 mPosVertical = false;
-                mPosBelowSince.invalidate(); mPosAboveSince.invalidate();
+                mPosAboveSince.invalidate(); mPosBelowSince.invalidate();
                 mSequenceTab->selectPosition(kPosHorizLabel);
                 qInfo("[AutoPOS] → HORIZONTAL  (amp=%.0f, base=%.0f)", amp, mPosBaselineAmp);
             }
-        } else mPosBelowSince.invalidate();
+        } else mPosAboveSince.invalidate();
     }
 }
 
