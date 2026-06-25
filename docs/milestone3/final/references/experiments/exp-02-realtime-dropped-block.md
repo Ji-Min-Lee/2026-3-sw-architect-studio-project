@@ -1,6 +1,6 @@
 # EXP-02: RPi Real-Time Performance — Dropped Block Measurement
 
-**QA**: QAS-2 | **Status**: ✅ Done (2026-06-15)
+**QA**: QAS-1 | **Status**: ✅ Done (2026-06-15)
 
 ---
 

@@ -1,6 +1,6 @@
 # EXP-03: End-to-End Latency — 2-Segment Timestamp Measurement
 
-**QA**: QAS-3 | **Status**: ✅ Done (2026-06-11 ~ 2026-06-16)
+**QA**: QAS-2 | **Status**: ✅ Done (2026-06-11 ~ 2026-06-16)
 
 ---
 
