@@ -201,9 +201,9 @@ private:
     double        mPosBaselineAmp = 0.0;   // EMA of amplitude while horizontal
     QElapsedTimer mPosBelowSince;          // sustained time below the drop threshold
     QElapsedTimer mPosAboveSince;          // sustained time back near the baseline
-    static constexpr double kPosDropDeg    = 15.0;  // amp < baseline-this → vertical
-    static constexpr double kPosReturnDeg  = 8.0;   // amp > baseline-this → horizontal (hysteresis)
-    static constexpr qint64 kPosDebounceMs = 1500;  // sustained for this long before switching
+    static constexpr double kPosDropDeg    = 10.0;  // amp < baseline-this → vertical
+    static constexpr double kPosReturnDeg  = 6.0;   // amp > baseline-this → horizontal (hysteresis)
+    static constexpr qint64 kPosDebounceMs = 1200;  // sustained for this long before switching
     // Position labels shown for each class (vertical is acoustically ambiguous —
     // pick the one the demo physically uses; change here if needed).
     inline static const QString kPosHorizLabel = "CH";   // dial up (flat)
