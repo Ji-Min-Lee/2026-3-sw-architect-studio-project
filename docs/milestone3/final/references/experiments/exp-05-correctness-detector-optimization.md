@@ -1,6 +1,6 @@
 # EXP-05: Detector Parameter Optimization Under Noise
 
-**QA**: QAS-5 | **Status**: ✅ Done (2026-06-16 ~ 2026-06-17)
+**QA**: QAS-4 (Sub-3: Noise Resilience) | **Status**: ✅ Done (2026-06-16 ~ 2026-06-17)
 
 ---
 

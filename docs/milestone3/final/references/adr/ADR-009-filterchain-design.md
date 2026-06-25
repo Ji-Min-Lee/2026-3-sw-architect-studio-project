@@ -95,7 +95,16 @@ in varied environments while preserving measurement accuracy.
 Accepted (implementation inherited from baseline; design rationale documented 2026-06-25)
 
 Implemented in `src/external/Dsp.h` / `Dsp.cpp`.
-Default parameters verified via EXP-05 (onset=0.08, min_peak=0.10 confirmed).
+Default parameters verified via EXP-05 (274 runs, onset=0.08, min_peak=0.10 confirmed):
+
+| onset | 0–50 dB SNR | 60 dB SNR |
+|-------|:-----------:|:---------:|
+| 0.02 | unstable (+8–12 s/d) | ❌ −4,264 s/d |
+| 0.05 | stable (+4.1–4.2 s/d) | ❌ −393 s/d |
+| **0.08** ✅ | **stable (+3.9–4.1 s/d)** | **+7.5 s/d** |
+
+`onset=0.08` is the only value that maintains tracking at 60 dB SNR.
+`min_peak` has negligible effect within the `onset=0.08` group; `0.10` selected for lowest Beat Error.
 
 ## Consequences
 
