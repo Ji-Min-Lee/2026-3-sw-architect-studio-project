@@ -414,51 +414,73 @@
 
 ## 18:00 – 19:30 | Area 8 — Best UI Showcase (10 pts)
 
-> "Finally, a look at the user experience improvements we made."
+> "Finally, a look at the UI improvements we made."
 
-**F-key shortcuts — overview:**
+**Status bar — live metric colors:**
 
-> "We added four function key shortcuts, always visible in the status bar —
-> F1 User Guide, F2 Manage Tabs, F3 Split View, F4 AI Diagnosis.
-> One keypress from anywhere in the app, no menus."
+> "The status bar always shows RATE, AMP, and Beat Error live.
+> We added three-level color coding — green means excellent, amber means acceptable, red means needs service.
+> The color matches the AI diagnosis badge, so the user gets the same signal in two places at once."
 
-- Point to the status bar showing the shortcut hints
+- Point to the status bar with colors visible
+
+**Keyboard shortcuts:**
+
+> "The full shortcut map is in the status bar at all times.
+> Space to start or pause. Escape to stop. Left and right arrows to navigate tabs.
+> F11 for fullscreen — useful when presenting or on a small display.
+> F1 opens the User Guide. Ctrl+T opens tab management. Ctrl+backslash toggles split view. Ctrl+D opens AI Diagnosis.
+> Everything reachable without touching the mouse."
+
+- Demonstrate: Space to pause, arrow keys to switch tabs, F11 fullscreen then back
 
 **F1 — User Guide:**
 
 > "F1 opens the built-in help panel.
-> Every graph has an entry — what it shows, how to read it, what to watch for.
-> No external manual needed."
+> Every graph has its own entry — what it shows, how to read it, what to watch for."
 
-- Press F1, scroll briefly through help content
+- Press F1, scroll briefly
 
-**F2 — Manage Tabs:**
+**Ctrl+T — Manage Tabs:**
 
-> "F2 opens tab management.
-> You can select exactly which tabs are visible —
-> less-used graphs are hidden from the tab bar,
-> keeping the interface clean during a session."
+> "Ctrl+T opens tab management.
+> The app starts with four tabs visible by default — Rate, Sound Print, Trace, and Vario.
+> You can add or remove tabs depending on what the session needs."
 
-- Press F2, hide one tab, show it again
+- Press Ctrl+T, toggle a tab on and off
 
-**F3 — Split View:**
+**Ctrl+\ — Split View:**
 
-> "F3 toggles split view.
-> Two tabs side by side, both updating live.
-> For example — Trace on the left, Beat Error on the right —
-> no switching back and forth."
+> "Ctrl+backslash toggles split view —
+> two tabs side by side, both updating live.
+> Trace on the left, Beat Error on the right — no switching."
 
-- Press F3, drag a second tab into the right pane
+- Press Ctrl+\, show two live tabs
 
-**F4 — AI Diagnosis:**
+**Ctrl+D — AI Diagnosis:**
 
-> "And F4 brings up the AI Diagnosis panel —
-> the same classifier we showed earlier, one keypress away from anywhere."
+> "Ctrl+D opens AI Diagnosis — same panel we showed earlier, one shortcut away."
 
-- Press F4
+- Press Ctrl+D briefly
 
-> "All four of these are wired into the same running application —
-> not a prototype, not a separate mode."
+**Record session — checkbox:**
+
+> "Recording a session used to open a separate dialog.
+> We replaced it with a simple checkbox in the Run Parameters panel —
+> check it before starting, and the session is recorded automatically.
+> The checkbox is disabled while a session is running so you can't accidentally change it mid-measurement."
+
+- Show the checkbox in the left panel
+
+**About TimeGrapher:**
+
+> "Finally — About TimeGrapher in the More menu.
+> Version, build info, team.
+> Small detail, but it's what a finished application looks like."
+
+- Open More → About TimeGrapher
+
+> "All of this is the same integrated application running live on the Raspberry Pi."
 
 ---
 
