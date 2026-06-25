@@ -291,7 +291,7 @@ MainWindow::MainWindow(QWidget *parent)
     // (Misc) group. Grow the frame by one row to make room; it stays a child of
     // MiscFrame, so it only appears when the Advanced section is expanded.
     ui->MiscFrame->setFixedHeight(154);
-    mAutoPosCheck = new QCheckBox(tr("Auto H↔V position (demo)"), ui->MiscFrame);
+    mAutoPosCheck = new QCheckBox(tr("Auto H↔V position"), ui->MiscFrame);
     mAutoPosCheck->setObjectName("AutoPosCheck");
     mAutoPosCheck->setGeometry(10, 126, 222, 22);
     mAutoPosCheck->setToolTip(tr("Auto-switch POS between horizontal and vertical from the "
