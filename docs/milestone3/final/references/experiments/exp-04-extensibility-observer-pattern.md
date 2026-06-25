@@ -43,4 +43,4 @@ Observed file-change counts across three sprint rounds (excludes build system an
 ## Links
 
 - Full experiment tracker: [experiment-results.md](../../../../milestone2/experiment-results.md#exp-04-observer-pattern-compliance----tab-extension-cost-measurement)
-- Test evidence: [unit-test-results.md](../unit-test-results.md)
+- Test evidence: [Allocation View: Implementation Style](../views/view-allocation-implementation.md)

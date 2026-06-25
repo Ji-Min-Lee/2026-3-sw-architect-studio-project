@@ -39,7 +39,7 @@ The architecture shall make formula correctness continuously verifiable: the `Wa
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| `WatchMath` Pure Calculation Module (Limit Structural Complexity + Abstract Data Sources) | [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) | [EXP-03: Calculation Accuracy Unit Tests](../experiments/exp-03-calculation-accuracy.md) | [Allocation View: Implementation Style](../views/view-allocation-implementation.md) |
+| `WatchMath` Pure Calculation Module (Limit Structural Complexity + Abstract Data Sources) | [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) | Pre-commit unit test gate (44 `WatchMath` cases) | [Allocation View: Implementation Style](../views/view-allocation-implementation.md) |
 
 ---
 
@@ -86,8 +86,8 @@ The system shall remain usable and produce reliable measurements in the presence
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| 96kHz Sample Rate | [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [Allocation View](../views/view-allocation.md) |
-| LP/HP FilterChain | [ADR-009: FilterChain Design](../adr/ADR-009-filterchain-design.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [C&C View: Signal Processing Pipeline](../views/view-cnc-signal-pipeline.md) |
+| 96kHz Sample Rate | [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [C&C View: DSP Pipeline Thread Model](../views/view-cc-dsp-pipeline.md) |
+| LP/HP FilterChain | [ADR-009: FilterChain Design](../adr/ADR-009-filterchain-design.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [C&C View: DSP Pipeline Thread Model](../views/view-cc-dsp-pipeline.md) |
 
 ---
 

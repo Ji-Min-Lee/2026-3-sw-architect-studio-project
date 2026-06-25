@@ -168,7 +168,7 @@ All 14 tabs implemented under the ≤ 3-file constraint. Zero layer violations. 
 
 | Resource | Detail |
 |----------|--------|
-| Evidence | [unit-test-results.md](../unit-test-results.md) |
+| Evidence | [Allocation View: Implementation Style](../views/view-allocation-implementation.md) |
 | Code | `src/tabs/BaseGraphTab.h`, `src/tests/` |
 
 ---
@@ -196,7 +196,7 @@ Identify `onset_fraction` and `min_peak_fraction` values that maintain accurate 
 
 ### Architecture Decision
 
-`Detector.cpp` default parameters updated. [QAS-5](../../qa/qas-4-correctness.md)
+`Detector.cpp` default parameters updated. [QAS-4: Correctness](../qa/qas-4-correctness.md)
 
 ### Resources Used
 

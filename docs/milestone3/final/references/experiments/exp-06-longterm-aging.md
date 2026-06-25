@@ -119,5 +119,5 @@ Milestone: data collection complete by 2026-06-28; analysis + write-up by 2026-0
 - `src/tabs/LongTermTab.cpp` — implementation under test; see `onMeasurement()` for
   `mBucketSize` logic and `addPoint()` for bucket accumulation.
 - `src/tabs/ReplotCounter.h` — `g_plotUs` / `g_replotCount` instrumentation macros.
-- [Experiment Logging & Analysis](../../../../.claude/skills/time-grapher/references/workflow/experiment-logging.md)
+- [Experiment Logging & Analysis](../../../../../.github/skills/time-grapher/references/workflow/experiment-logging.md)
   — workflow for running `--log` build and `analyze_log.py`.
