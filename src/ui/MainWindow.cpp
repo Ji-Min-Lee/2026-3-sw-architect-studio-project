@@ -683,11 +683,14 @@ void MainWindow::onMeasurementReady(const Measurement &m)
             } else if (std::abs(rate - mSettledRate) > kRateShiftThreshold) {
                 ++mRateShiftCount;
                 if (mRateShiftCount >= kRateShiftTicks) {
+                    double delta    = rate - mSettledRate;
+                    QString posName = delta > 0 ? "Dial Up" : "Dial Down";
                     qInfo().noquote() << QString(
-                        "[position-change] Rate: %1 -> %2 s/day (delta: %3)")
+                        "[position-change] %1 | Rate: %2 -> %3 s/day (delta: %4)")
+                        .arg(posName)
                         .arg(mSettledRate, 0, 'f', 1)
                         .arg(rate, 0, 'f', 1)
-                        .arg(rate - mSettledRate, 0, 'f', 1, '+');
+                        .arg(delta, 0, 'f', 1, '+');
                     mSettledRate    = rate;
                     mRateShiftCount = 0;
                 }
