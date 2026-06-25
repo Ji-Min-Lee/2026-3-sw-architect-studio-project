@@ -4,7 +4,6 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QSplitter>
-#include <QCheckBox>
 
 namespace {
 const int kColRate = 0, kColBeat = 1, kColAmp = 2;
@@ -30,13 +29,9 @@ SequenceTab::SequenceTab(QWidget *parent) : BaseGraphTab(parent)
     mCaptureButton = new QPushButton("Capture position", leftPane);
     mCaptureButton->setEnabled(false);
     auto *clearButton = new QPushButton("Clear sequence", leftPane);
-    mAutoPosCheck = new QCheckBox("Auto H↔V", leftPane);
-    mAutoPosCheck->setToolTip("Demo: auto-switch POS between horizontal and vertical "
-                              "from the amplitude drop. Start with the watch lying flat.");
     top->addWidget(mHeaderLabel, 1);
     top->addWidget(new QLabel("Position:", leftPane));
     top->addWidget(mPositionCombo);
-    top->addWidget(mAutoPosCheck);
     top->addWidget(mCaptureButton);
     top->addWidget(clearButton);
     leftLayout->addLayout(top);
@@ -115,11 +110,6 @@ void SequenceTab::selectPosition(const QString &pos)
 {
     if (mPositionCombo->currentText() != pos)
         mPositionCombo->setCurrentText(pos);
-}
-
-bool SequenceTab::autoPosition() const
-{
-    return mAutoPosCheck && mAutoPosCheck->isChecked();
 }
 
 int SequenceTab::rowOfPosition(const QString &pos) const

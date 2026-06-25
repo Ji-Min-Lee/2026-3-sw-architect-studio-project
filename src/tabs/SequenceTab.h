@@ -4,7 +4,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QComboBox>
-#include <QCheckBox>
 #include <QDateTime>
 
 class RadarChartTab;   // embedded on the right (forward decl — avoids include cycle)
@@ -48,9 +47,8 @@ public slots:
     void setActivePosition(const QString &pos);
 
 public:
-    // Auto H↔V position detection (demo): driven by MainWindow from amplitude.
+    // Auto H↔V position detection (demo): MainWindow drives this from amplitude.
     void selectPosition(const QString &pos);   // programmatic combo selection
-    bool autoPosition() const;                 // is the "Auto H↔V" checkbox on?
 
 signals:
     void positionChanged(const QString &pos); // notify MainWindow for Results label
@@ -61,7 +59,6 @@ private:
     int  rowOfPosition(const QString &pos) const;
 
     QComboBox     *mPositionCombo;
-    QCheckBox     *mAutoPosCheck = nullptr;
     QLabel        *mHeaderLabel;
     QPushButton   *mCaptureButton;
     QTableWidget  *mTable;

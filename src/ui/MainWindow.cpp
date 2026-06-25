@@ -287,6 +287,17 @@ MainWindow::MainWindow(QWidget *parent)
     setupTabOverflow();
     menuBar()->setVisible(false);
 
+    // Demo "Auto H↔V position" toggle, placed at the bottom of the Advanced
+    // (Misc) group. Grow the frame by one row to make room; it stays a child of
+    // MiscFrame, so it only appears when the Advanced section is expanded.
+    ui->MiscFrame->setFixedHeight(154);
+    mAutoPosCheck = new QCheckBox(tr("Auto H↔V position (demo)"), ui->MiscFrame);
+    mAutoPosCheck->setObjectName("AutoPosCheck");
+    mAutoPosCheck->setGeometry(10, 126, 222, 22);
+    mAutoPosCheck->setToolTip(tr("Auto-switch POS between horizontal and vertical from the "
+                                 "amplitude drop. Start with the watch lying flat."));
+    mAutoPosCheck->show();
+
     // ── Left control panel: reclaim screen space (feature/ui-improvement) ──
     // SimFrame is shown only in Sim mode, and the set-once MiscFrame collapses
     // behind an "Advanced" toggle (collapsed by default). Frames keep their .ui
@@ -715,7 +726,7 @@ void MainWindow::raiseNoiseAlarm(void)
 void MainWindow::checkPosition(const Measurement &m)
 {
     const bool running = ui->StopPushButton->isEnabled();
-    if (!running || !mSequenceTab || !mSequenceTab->autoPosition()) {
+    if (!running || !mSequenceTab || !mAutoPosCheck || !mAutoPosCheck->isChecked()) {
         mPosRunActive = false;        // re-initialise on the next enabled run
         return;
     }

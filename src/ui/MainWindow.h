@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QToolButton>
+#include <QCheckBox>
 #include "SessionController.h"
 #include "WavStreamWriter.h"
 #include "WatchSynthStream.h"
@@ -193,6 +194,7 @@ private:
     static constexpr qint64  kNoiseOffMs       = 2000;   // sustained → hide
 
     // Demo: auto horizontal<->vertical position detection (amplitude step).
+    QCheckBox    *mAutoPosCheck  = nullptr; // "Auto H↔V" toggle in the Advanced group
     bool          mPosRunActive  = false;  // a Live run is in progress (re-inits each run)
     bool          mPosVertical   = false;  // current detected state (false = horizontal)
     bool          mPosBaselineSet = false; // horizontal amplitude baseline learned?
