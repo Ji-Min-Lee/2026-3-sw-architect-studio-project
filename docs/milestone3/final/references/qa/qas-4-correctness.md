@@ -5,13 +5,13 @@
 
 Correctness is not a standard Bass/CMK Quality Attribute. Its three sub-requirements each map to a different QA lens:
 
-- **Sub-1** — development-time **Modifiability**: isolating formulas into a testable module so calculation changes can be verified before they reach the binary
+- **Sub-1** — **Functional Requirement**: the system must compute formulas correctly per the Equations document; WatchMath isolation is the architectural enabler that makes formula-level verification tractable (rubric Area 4 "Correctness of calculations")
 - **Sub-2** — **Reliability**: single-source data flow ensures all tabs display consistent values at runtime
 - **Sub-3** — **Usability**: the system remains usable (signal quality feedback, noise warnings) when the acoustic environment degrades
 
 ---
 
-## Sub-Requirement 1: Calculation Accuracy — Modifiability (development-time)
+## Sub-Requirement 1: Calculation Accuracy — Functional Requirement
 
 The system shall compute rate (s/d), amplitude (°), and beat error (ms) in exact accordance with the formulas in the TimeGrapher Equations document.
 
