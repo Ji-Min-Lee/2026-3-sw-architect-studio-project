@@ -731,55 +731,42 @@ void MainWindow::checkPosition(const Measurement &m)
         return;
     }
     if (!mPosRunActive) {             // new run → assume the watch starts flat
-        mPosRunActive   = true;
-        mPosVertical    = false;
-        mPosBaselineSet = false;
+        mPosRunActive = true;
+        mPosVertical  = false;
         mPosBelowSince.invalidate();
         mPosAboveSince.invalidate();
         mSequenceTab->selectPosition(kPosHorizLabel);
-        qInfo() << "[AutoPOS] run start → learning horizontal baseline";
+        qInfo() << "[AutoPOS] run start → horizontal";
     }
     if (!m.metrics.amplitude.has_value()) return;
     const double amp = *m.metrics.amplitude;
 
-    // Track the HORIZONTAL (lying-flat) baseline. On this rig flat reads HIGHER
-    // than standing, so vertical is an amplitude DROP: rise quickly toward a
-    // higher amplitude (a low lock-in seed self-corrects), follow small bumps
-    // slowly, but FREEZE once the amplitude drops well below it — otherwise the
-    // baseline would chase the drop down and the vertical transition never fires.
-    if (!mPosVertical) {
-        if (!mPosBaselineSet)                          { mPosBaselineAmp = amp; mPosBaselineSet = true; }
-        else if (amp > mPosBaselineAmp)                  mPosBaselineAmp = 0.7  * mPosBaselineAmp + 0.3  * amp;
-        else if (amp >= mPosBaselineAmp - kPosReturnDeg) mPosBaselineAmp = 0.95 * mPosBaselineAmp + 0.05 * amp;
-        // else (amp far below baseline): frozen — a drop is in progress
-    }
-    if (!mPosBaselineSet) return;
-
-    // Throttled diagnostic so the thresholds can be tuned from the console.
+    // Absolute amplitude thresholds with hysteresis (see header for calibration).
+    // Flat settles ~282-290, standing ~266-270; the clean gap is narrow so a fixed
+    // gate is more reliable than a baseline that wandered and missed standing.
     static int logN = 0;
     if ((++logN % 6) == 0)
-        qInfo("[AutoPOS] %s amp=%.0f base=%.0f  →VERT if amp<%.0f  →HORIZ if amp>%.0f",
-              mPosVertical ? "VERT " : "HORIZ", amp, mPosBaselineAmp,
-              mPosBaselineAmp - kPosDropDeg, mPosBaselineAmp - kPosReturnDeg);
+        qInfo("[AutoPOS] %s amp=%.0f  →VERT if amp<%.0f  →HORIZ if amp>%.0f",
+              mPosVertical ? "VERT " : "HORIZ", amp, kPosVertBelow, kPosHorizAbove);
 
-    if (!mPosVertical) {                                   // horizontal → vertical (drop)?
-        if (amp < mPosBaselineAmp - kPosDropDeg) {
+    if (!mPosVertical) {                                   // horizontal → vertical?
+        if (amp < kPosVertBelow) {
             if (!mPosBelowSince.isValid()) mPosBelowSince.restart();
             if (mPosBelowSince.elapsed() >= kPosDebounceMs) {
                 mPosVertical = true;
                 mPosBelowSince.invalidate(); mPosAboveSince.invalidate();
                 mSequenceTab->selectPosition(kPosVertLabel);
-                qInfo("[AutoPOS] → VERTICAL  (amp=%.0f, base=%.0f)", amp, mPosBaselineAmp);
+                qInfo("[AutoPOS] → VERTICAL  (amp=%.0f)", amp);
             }
         } else mPosBelowSince.invalidate();
-    } else {                                               // vertical → horizontal (recover)?
-        if (amp > mPosBaselineAmp - kPosReturnDeg) {
+    } else {                                               // vertical → horizontal?
+        if (amp > kPosHorizAbove) {
             if (!mPosAboveSince.isValid()) mPosAboveSince.restart();
             if (mPosAboveSince.elapsed() >= kPosDebounceMs) {
                 mPosVertical = false;
                 mPosAboveSince.invalidate(); mPosBelowSince.invalidate();
                 mSequenceTab->selectPosition(kPosHorizLabel);
-                qInfo("[AutoPOS] → HORIZONTAL  (amp=%.0f, base=%.0f)", amp, mPosBaselineAmp);
+                qInfo("[AutoPOS] → HORIZONTAL  (amp=%.0f)", amp);
             }
         } else mPosAboveSince.invalidate();
     }

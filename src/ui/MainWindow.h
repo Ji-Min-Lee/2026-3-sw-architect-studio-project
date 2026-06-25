@@ -197,19 +197,17 @@ private:
     QCheckBox    *mAutoPosCheck  = nullptr; // "Auto H↔V" toggle in the Advanced group
     bool          mPosRunActive  = false;  // a Live run is in progress (re-inits each run)
     bool          mPosVertical   = false;  // current detected state (false = horizontal)
-    bool          mPosBaselineSet = false; // horizontal amplitude baseline learned?
-    double        mPosBaselineAmp = 0.0;   // EMA of amplitude while horizontal
-    QElapsedTimer mPosBelowSince;          // sustained time below the drop threshold
-    QElapsedTimer mPosAboveSince;          // sustained time back near the baseline
-    // On the demo rig lying flat (horizontal) reads HIGHER amplitude than
-    // standing (vertical) — horizontal ~>=270, vertical ~<=260s — so vertical is
-    // detected by an amplitude DROP below the learned horizontal baseline.
-    // Calibrated from live logs: flat ~286 (noisy, dips to ~277), standing ~268.
-    // Threshold sits at their midpoint (~base-13 ≈ 276) so flat noise stays above
-    // it and standing falls below; debounce rides out brief flat instability.
-    static constexpr double kPosDropDeg    = 13.0;  // amp < baseline-this → vertical (~276)
-    static constexpr double kPosReturnDeg  = 8.0;   // amp > baseline-this → horizontal (~281, hysteresis)
-    static constexpr qint64 kPosDebounceMs = 2000;  // sustained for this long before switching
+    QElapsedTimer mPosBelowSince;          // sustained time below the vertical threshold
+    QElapsedTimer mPosAboveSince;          // sustained time above the horizontal threshold
+    // On the demo rig lying flat (horizontal) reads HIGHER amplitude than standing
+    // (vertical). Live logs: flat settles 282-290 (noise dips to ~277), standing
+    // settles 266-270. The clean gap is only ~270..277, so an ABSOLUTE threshold
+    // (not baseline-relative — the baseline wandered and missed standing) is used:
+    // below 274 -> vertical (catches standing 270, ignores flat noise 277), above
+    // 279 -> horizontal (hysteresis). Retune these two if the rig changes.
+    static constexpr double kPosVertBelow  = 274.0; // amp < this → vertical
+    static constexpr double kPosHorizAbove = 279.0; // amp > this → horizontal (hysteresis)
+    static constexpr qint64 kPosDebounceMs = 1500;  // sustained for this long before switching
     // Position labels shown for each class (vertical is acoustically ambiguous —
     // pick the one the demo physically uses; change here if needed).
     inline static const QString kPosHorizLabel = "CH";   // dial up (flat)
