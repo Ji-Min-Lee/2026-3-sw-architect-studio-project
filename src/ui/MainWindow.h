@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QToolButton>
+#include <QSoundEffect>
 #include "SessionController.h"
 #include "WavStreamWriter.h"
 #include "WatchSynthStream.h"
@@ -260,6 +261,10 @@ private:
     bool         mSplitMode          = false;
 
     Logger          *mLogger = nullptr;
+
+    // Beat tick sound
+    QSoundEffect *mTickEffect  = nullptr;
+    bool          mTickEnabled = false;
 
 };
 #endif

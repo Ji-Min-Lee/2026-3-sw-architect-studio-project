@@ -2,5 +2,6 @@
     <qresource prefix="/images">
         <file>Splash.png</file>
         <file>team_ghibli.png</file>
+        <file>tick.wav</file>
     </qresource>
 </RCC>

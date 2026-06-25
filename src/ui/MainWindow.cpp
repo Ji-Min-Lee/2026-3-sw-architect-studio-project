@@ -479,6 +479,20 @@ void MainWindow::setupTabOverflow(void)
 
     mMoreTabsMenu->addSeparator();
 
+    // Beat tick sound toggle
+    mTickEffect = new QSoundEffect(this);
+    mTickEffect->setSource(QUrl(QStringLiteral("qrc:/images/tick.wav")));
+    mTickEffect->setVolume(0.9f);
+
+    QAction *tickAct = mMoreTabsMenu->addAction(tr("Tick Sound"));
+    tickAct->setCheckable(true);
+    tickAct->setChecked(false);
+    connect(tickAct, &QAction::toggled, this, [this](bool on) {
+        mTickEnabled = on;
+    });
+
+    mMoreTabsMenu->addSeparator();
+
     // About
     QAction *aboutAct = mMoreTabsMenu->addAction(tr("About TimeGrapher..."));
     connect(aboutAct, &QAction::triggered, this, [this]() {
@@ -688,6 +702,12 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     checkWatchDetached(m);  // update detached state before formatting the label
     checkNoise(m);          // all modes: ambient-noise popup
     DisplayResults(m);
+
+    if (mTickEnabled && mTickEffect) {
+        for (const AcousticEvent &ev : m.events) {
+            if (ev.isA) { mTickEffect->play(); break; }
+        }
+    }
 }
 
 // Live-mode only: if a watch was being measured and the signal is then lost
