@@ -83,6 +83,62 @@ Row = used module · Column = using module · `1` = depends · `-` = self
 
 All 1s are in the lower triangle → no layer violations ✅. Domain column is all `0` → no upward dependency ✅.
 
+## Modifiability Tactics (Bass/CMK Ch.8)
+
+The 4-layer structure directly implements the **Restrict Dependencies** tactic from
+Bass, Clements & Kazman *Software Architecture in Practice* (4th ed., Ch.8 §8.2 p.124):
+
+> *"The restrict dependencies tactic is seen in layered architectures, in which a layer
+> is allowed to use only lower layers … restricting a module's visibility (when developers
+> cannot see an interface, they cannot employ it)."*
+
+Consequences for change cost (Ch.8 p.128 Layers Pattern):
+
+> *"Because a layer is constrained to use only lower layers, software in lower layers can
+> be changed (as long as the interface does not change) without affecting the upper layers."*
+
+In this system: any change to `WatchMath` or `MeasurementEngine` (Domain / Signal Processing)
+is invisible to Presentation — 14 tabs require zero modification when lower-layer internals change.
+
+**Change cost table** (response measure for modifiability scenarios):
+
+| Change type | Files outside the changed unit | Reason |
+|---|:---:|---|
+| New graph tab | ≤ 3 | Only `NewTab.h/cpp` + `MainWindow.cpp` (registerTab) |
+| New audio source | 1–2 | Only new class implementing `IAudioSource` |
+| New watch formula | 1 | Only `WatchMath.cpp` + test case |
+| New DSP filter | 1–2 | Only FilterChain internals; no Presentation change |
+
+## Testability Connection (Bass/CMK Ch.12 §12.2 p.191)
+
+The same structural properties that achieve modifiability also enable testability.
+Ch.12 p.191 states:
+
+> *"Ensuring that the system has high cohesion, loose coupling, and separation of concerns —
+> all modifiability tactics (see Chapter 8) — can also help with testability."*
+
+And specifically for the layered pattern (Ch.12 p.191):
+
+> *"In a layered pattern, you can test lower layers first, then test higher layers with
+> confidence in the lower layers."*
+
+This is exactly how our test suite is structured:
+
+| Test binary | Layer under test | Dependencies needed | Tests |
+|---|---|---|:---:|
+| `TestWatchMath` | Domain | None (pure math) | 44 |
+| `TestDetector` | Signal Processing | Domain only | ~30 |
+| `TestFilterChain` | Signal Processing | Domain only | ~20 |
+| `TestAddedTabs` | Presentation | Domain structs (mock) | 20 |
+| … (6 more) | Various | Layer-appropriate | ~28 |
+| **Total** | | | **142** |
+
+**The 142 unit tests across 10 independent binaries are structural evidence**:
+they are only possible because the 4-layer architecture achieves the low coupling
+required by the *Limit Structural Complexity* testability tactic (Ch.12 §12.2).
+If any layer boundary were violated, transitive hardware or Qt dependencies would
+prevent isolated compilation of a test binary.
+
 ## Related ADRs
 
 - [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — introduces `DSPWorker` as a separate thread between Acquisition and Signal Processing

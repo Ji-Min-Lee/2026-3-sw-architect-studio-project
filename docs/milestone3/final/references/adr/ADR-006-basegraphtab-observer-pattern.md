@@ -93,6 +93,31 @@ indirection between `MainWindow` and the tab widget. Since `MainWindow` already 
 `QTabWidget`, extracting a manager adds complexity without reducing coupling. The
 `registerTab()` template achieves the same single-point-of-registration goal inline.
 
+## Architectural Pattern Classification (Bass/CMK Ch.8 §8.4)
+
+This ADR implements the **Publish-Subscribe pattern** as described in
+Bass, Clements & Kazman *Software Architecture in Practice* (4th ed., Ch.8 §8.4 p.129):
+
+> *"Adding or changing subscribers requires only registering for an event and causes
+> no changes to the publisher."*
+
+`MeasurementEngine` is the **publisher** component. All 14 `BaseGraphTab` implementations
+are **subscriber** components. The Qt Signal-Slot mechanism (`Qt::QueuedConnection`) acts
+as the **event bus**. `MeasurementEngine` has zero compile-time knowledge of any tab.
+
+**Testability tradeoff and mitigation**: Ch.8 p.130 explicitly notes:
+
+> *"Use of the publish-subscribe pattern can negatively impact testability. Seemingly
+> small changes in the event bus can have a wide impact on system behavior."*
+
+We mitigate this risk by three means, each corresponding to a Ch.12 testability tactic:
+
+| Risk | Mitigation | Ch.12 Tactic |
+|---|---|---|
+| Nondeterministic event delivery order | `Qt::QueuedConnection` is FIFO-ordered on the main thread — delivery order is deterministic per beat cycle | **Limit Nondeterminism** |
+| Hidden cross-layer signal wiring | DSM `#include` trace confirms zero Presentation→Signal Processing references; signal is wired in `SessionController` only | **Limit Structural Complexity** |
+| Observer contract correctness across 14 tabs | `EXP-04 TestAddedTabs 20/20` verifies that every registered tab receives and processes the `Measurement` signal correctly | **Specialized Interfaces** (observable via test) |
+
 ## Status
 
 Accepted (2026-06-22)
