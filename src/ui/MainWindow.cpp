@@ -685,9 +685,10 @@ void MainWindow::onMeasurementReady(const Measurement &m)
                 if (mRateShiftCount >= kRateShiftTicks) {
                     double delta    = rate - mSettledRate;
                     QString posName = delta > 0 ? "Dial Up" : "Dial Down";
+                    mActivePosition = delta > 0 ? "CH" : "CB";
                     qInfo().noquote() << QString(
-                        "[position-change] %1 | Rate: %2 -> %3 s/day (delta: %4)")
-                        .arg(posName)
+                        "[position-change] %1 (%2) | Rate: %3 -> %4 s/day (delta: %5)")
+                        .arg(posName, mActivePosition)
                         .arg(mSettledRate, 0, 'f', 1)
                         .arg(rate, 0, 'f', 1)
                         .arg(delta, 0, 'f', 1, '+');
