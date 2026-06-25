@@ -36,8 +36,15 @@ VarioTab::VarioTab(QWidget *parent) : BaseGraphTab(parent)
     mainLayout->addWidget(mAmpScale.label);
     mainLayout->addWidget(mAmpScale.plot, 1);
 
+    mTimingLabel = new QLabel(this);
+    mTimingLabel->setTextFormat(Qt::RichText);
+    mTimingLabel->setAlignment(Qt::AlignHCenter);
+    mTimingLabel->setStyleSheet("QLabel { border-top: 1px solid #ccc; padding-top: 4px; }");
+    mainLayout->addWidget(mTimingLabel);
+
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, false, 0);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, false, 0);
+    updateTimingLabel();
 }
 
 VarioTab::Scale VarioTab::makeScale(double lo, double hi, double bandLo, double bandHi,
@@ -150,6 +157,20 @@ void VarioTab::updateScale(Scale &s, const Stats &stats, const QString &name,
     }
 }
 
+void VarioTab::updateTimingLabel()
+{
+    auto fmt = [](std::optional<double> v, int dec) -> QString {
+        if (!v) return "<b>—</b>";
+        return QString("<b>%1</b>").arg(QString::number(*v, 'f', dec));
+    };
+    mTimingLabel->setText(
+        QString("<b>Timing Deviation</b> &nbsp;&nbsp; "
+                "Tic-Toc&nbsp;%1&nbsp;ms &nbsp;&nbsp; "
+                "DiffPeriod&nbsp;%2&nbsp;ms &nbsp;&nbsp; "
+                "AvgPeriod&nbsp;%3&nbsp;ms")
+            .arg(fmt(mDiffTicTac, 2), fmt(mDiffPeriod, 2), fmt(mAvgPeriod, 2)));
+}
+
 void VarioTab::reset()
 {
     mRate = Stats{};
@@ -157,6 +178,9 @@ void VarioTab::reset()
     mElapsedSec = 0.0;
     mHaveRateNow = false;
     mHaveAmpNow  = false;
+    mDiffTicTac.reset();
+    mDiffPeriod.reset();
+    mAvgPeriod.reset();
     mElapsedLabel->setText("0:00");
     for (Scale *sc : {&mRateScale, &mAmpScale}) {
         for (QCPItemLine *a : {sc->minArrow, sc->maxArrow, sc->nowArrow})
@@ -166,6 +190,7 @@ void VarioTab::reset()
     }
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, false, 0);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, false, 0);
+    updateTimingLabel();
 }
 
 void VarioTab::onMeasurement(const Measurement &m)
@@ -183,6 +208,9 @@ void VarioTab::onMeasurement(const Measurement &m)
         mAmpNow = *m.metrics.amplitude; mHaveAmpNow = true;
         changed = true;
     }
+    if (m.metrics.diffTicTac.has_value()) mDiffTicTac = m.metrics.diffTicTac;
+    if (m.metrics.diffPeriod.has_value())  mDiffPeriod  = m.metrics.diffPeriod;
+    if (m.metrics.avgPeriod.has_value())   mAvgPeriod   = m.metrics.avgPeriod;
     if (!changed || mPaused || !isVisible()) return;
 
     int sec = (int)mElapsedSec;
@@ -190,6 +218,7 @@ void VarioTab::onMeasurement(const Measurement &m)
                                .arg(sec % 60, 2, 10, QChar('0')));
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, mHaveRateNow, mRateNow);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, mHaveAmpNow, mAmpNow);
+    updateTimingLabel();
     g_replotCount++;
     mRateScale.plot->replot(QCustomPlot::rpQueuedReplot);
     g_replotCount++;
@@ -200,5 +229,6 @@ void VarioTab::replotAll()
 {
     updateScale(mRateScale, mRate, "Rate", "s/d", 1, mHaveRateNow, mRateNow);
     updateScale(mAmpScale,  mAmp,  "Amplitude", "°", 0, mHaveAmpNow, mAmpNow);
+    updateTimingLabel();
     { int64_t _pt=TG_NOW(); mRateScale.plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); }; { int64_t _pt=TG_NOW(); mAmpScale.plot->replot(); g_plotUs.fetch_add(TG_NOW()-_pt,std::memory_order_relaxed); };
 }

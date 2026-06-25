@@ -62,10 +62,18 @@ private:
                       bool haveNow, double now);
     static QCPItemLine *makeArrow(QCustomPlot *p, const QColor &c, double width);
 
+    void updateTimingLabel();
+
     QLabel *mElapsedLabel;
     Scale   mRateScale, mAmpScale;
     Stats   mRate, mAmp;
     double  mElapsedSec = 0.0;
     bool    mHaveRateNow = false; double mRateNow = 0.0;
     bool    mHaveAmpNow  = false; double mAmpNow  = 0.0;
+
+    // Chour-style timing deviation display
+    QLabel *mTimingLabel  = nullptr;
+    std::optional<double> mDiffTicTac;
+    std::optional<double> mDiffPeriod;
+    std::optional<double> mAvgPeriod;
 };
