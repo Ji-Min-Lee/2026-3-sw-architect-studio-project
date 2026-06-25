@@ -1,3 +1,4 @@
+#include <cmath>
 #include <QtGlobal>
 #include "MainWindow.h"
 #include "MovementSpec.h"
@@ -674,6 +675,27 @@ void MainWindow::onMeasurementReady(const Measurement &m)
             .arg(mLiftAngle, 0, 'f', 1)
             .arg(mCurrentSamplesPerSecond)
             .arg(mAveragingPeriod);
+
+        if (m.metrics.rate.has_value()) {
+            double rate = *m.metrics.rate;
+            if (std::isnan(mSettledRate)) {
+                mSettledRate = rate;
+            } else if (std::abs(rate - mSettledRate) > kRateShiftThreshold) {
+                ++mRateShiftCount;
+                if (mRateShiftCount >= kRateShiftTicks) {
+                    qInfo().noquote() << QString(
+                        "[position-change] Rate: %1 -> %2 s/day (delta: %3)")
+                        .arg(mSettledRate, 0, 'f', 1)
+                        .arg(rate, 0, 'f', 1)
+                        .arg(rate - mSettledRate, 0, 'f', 1, '+');
+                    mSettledRate    = rate;
+                    mRateShiftCount = 0;
+                }
+            } else {
+                mRateShiftCount = 0;
+                mSettledRate    = 0.9 * mSettledRate + 0.1 * rate; // EMA
+            }
+        }
     }
     checkWatchDetached(m);  // update detached state before formatting the label
     checkNoise(m);          // all modes: ambient-noise popup
@@ -1041,6 +1063,8 @@ void MainWindow::startSessionClock()
     mSessionTimer.start();
     mRunStatusTimer.start();
     mLogThrottle.invalidate();
+    mSettledRate    = std::numeric_limits<double>::quiet_NaN();
+    mRateShiftCount = 0;
     updateRunStatusLine();
 }
 

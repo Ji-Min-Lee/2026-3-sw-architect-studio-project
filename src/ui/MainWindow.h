@@ -1,5 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+#include <limits>
 #include <QDir>
 #include <QEvent>
 #include <QMainWindow>
@@ -216,6 +217,12 @@ private:
     qint64        mSessionActiveMs = 0;
     QTimer        mRunStatusTimer;
     QElapsedTimer mLogThrottle;
+
+    // Position-change detection from rate drift
+    double mSettledRate    = std::numeric_limits<double>::quiet_NaN();
+    int    mRateShiftCount = 0;
+    static constexpr double kRateShiftThreshold = 2.0; // s/day
+    static constexpr int    kRateShiftTicks     = 5;   // consecutive 1-s ticks to confirm
 
     // FPS stats (updated from SessionController::frameLogged)
     double mBackgroundLastFPS = 0.0;
