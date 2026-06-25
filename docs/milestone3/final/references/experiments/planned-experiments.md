@@ -8,11 +8,11 @@
 
 | ID | Experiment | QA | Risk | Status | Date |
 |----|------------|----|------|:------:|------|
-| **EXP-06** | [WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000](exp-06-accuracy-weishi-comparison.md) | QAS-1 | — | ⏸ Planned | W5 S1 (2026-06-29) |
-| **EXP-01** | [RPi Real-Time Performance — Dropped Block Measurement](exp-01-realtime-dropped-block.md) | QAS-2 | TR-01 | ✅ Done | 2026-06-15 |
-| **EXP-02** | [End-to-End Latency — 2-Segment Timestamp Measurement](exp-02-latency-e2e.md) | QAS-3 | TR-02, TR-03, TR-04 | ✅ Done | 2026-06-11~16 |
-| **EXP-03** | [Observer Pattern Compliance — Tab Extension Cost Measurement](exp-03-extensibility-observer-pattern.md) | QAS-4 | — | ✅ Done | 2026-06-21 |
-| **EXP-04** | [Detector Parameter Optimization Under Noise](exp-04-correctness-detector-optimization.md) | QAS-5 | TR-05 | ✅ Done | 2026-06-16~17 |
+| **EXP-06** | [WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000](exp-06-accuracy-weishi-comparison.md) | QAS-5 | — | ⏸ Planned | W5 S1 (2026-06-29) |
+| **EXP-01** | [RPi Real-Time Performance — Dropped Block Measurement](exp-01-realtime-dropped-block.md) | QAS-1 | TR-01 | ✅ Done | 2026-06-15 |
+| **EXP-02** | [End-to-End Latency — 2-Segment Timestamp Measurement](exp-02-latency-e2e.md) | QAS-2 | TR-02, TR-03, TR-04 | ✅ Done | 2026-06-11~16 |
+| **EXP-03** | [Observer Pattern Compliance — Tab Extension Cost Measurement](exp-03-extensibility-observer-pattern.md) | QAS-3 | — | ✅ Done | 2026-06-21 |
+| **EXP-04** | [Detector Parameter Optimization Under Noise](exp-04-correctness-detector-optimization.md) | QAS-4 | TR-05 | ✅ Done | 2026-06-16~17 |
 
 > **Dependency order**: EXP-01 → EXP-02 → EXP-04 → EXP-06. EXP-03 is independent.
 
@@ -26,7 +26,7 @@
 
 ### Objective
 
-Verify that TimeChecker (RPi 5, 96 kHz, real microphone) produces Rate, Amplitude, and Beat Error values within tolerance of WeiShi No.1000, confirming QAS-1 (Measurement Accuracy).
+Verify that TimeChecker (RPi 5, 96 kHz, real microphone) produces Rate, Amplitude, and Beat Error values within tolerance of WeiShi No.1000, confirming QAS-5 (Measurement Accuracy).
 
 ### Pass Condition
 
@@ -69,11 +69,11 @@ EXP-01 (96k sps confirmed), EXP-02 (E2E < 100 ms), EXP-04 (onset=0.08 confirmed)
 
 ### Objective
 
-Verify that RPi 5 sustains zero dropped audio blocks at 96k sps under continuous operation, confirming QAS-2 is achievable without real-time scheduling extensions.
+Verify that RPi 5 sustains zero dropped audio blocks at 96k sps under continuous operation, confirming QAS-1 is achievable without real-time scheduling extensions.
 
 ### Result
 
-**Dropped Block = 0** across all 9 runs (3 sps × 3 scheduling policies). QAS-2 Pass.
+**Dropped Block = 0** across all 9 runs (3 sps × 3 scheduling policies). QAS-1 Pass.
 
 **Confirmed operating point**: 96k sps, default scheduling — exec avg 9.6 ms (< 21.3 ms deadline). SCHED_RR / FIFO not required.
 
@@ -122,7 +122,7 @@ Measure end-to-end latency from audio block ready to beat result delivered, iden
 | Baseline (rpi2) | 57.2 / 208.9 ms | — |
 | +T2 DSP Offload | 2.1 / 11.1 ms | −97% |
 | +R1 Lazy Rendering | 2.1 / 5.7 ms | tighter max |
-| Final (E3-07) | **2.2 / 4.8 ms** | ✅ QAS-3 Pass |
+| Final (E3-07) | **2.2 / 4.8 ms** | ✅ QAS-2 Pass |
 
 ### Architecture Decisions
 
@@ -151,7 +151,7 @@ Verify that the BaseGraphTab observer pattern allows adding a new graph tab with
 
 ### Result
 
-All 14 tabs implemented under the ≤ 3-file constraint. Zero layer violations. QAS-4 Pass.
+All 14 tabs implemented under the ≤ 3-file constraint. Zero layer violations. QAS-3 Pass.
 
 | Measure | Target | Result |
 |---------|:------:|:------:|

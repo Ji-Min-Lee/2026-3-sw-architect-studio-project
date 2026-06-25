@@ -1,6 +1,6 @@
 # Module View: IAudioSource Dependency Inversion
 
-This view shows the AS-IS vs. TO-BE structure of the audio source extension point. It answers: "What must a developer do to add a new audio source (e.g., network stream, USB device)?" It is the primary evidence for QAS-4 (Extensibility / Modifiability).
+This view shows the AS-IS vs. TO-BE structure of the audio source extension point. It answers: "What must a developer do to add a new audio source (e.g., network stream, USB device)?" It is the primary evidence for QAS-3 (Extensibility / Modifiability).
 
 In the AS-IS design, adding a new audio input source requires modifying `MainWindow` and the now-removed `AudioManager` coordinator — two components unrelated to the new source. In the TO-BE design (P1 + i1 refactors), the developer implements `IAudioSource` only; no other file changes are needed.
 

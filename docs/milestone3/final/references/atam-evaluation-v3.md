@@ -120,10 +120,10 @@ A sensitivity point is: if you change this one thing, a QA goal changes signific
 
 | ID | What is sensitive | What changes if you touch it | QA |
 |----|------------------|-----------------------------|----|
-| SP-1 | **Which thread runs DSP** | Move DSP back to Qt Main Thread → wait_ms jumps from 0.03ms back to 77ms | QAS-2, QAS-3 |
-| SP-2 | **isVisible() guard in each tab** | Remove the guard from one tab → that tab's render fires on every beat, restoring the bottleneck | QAS-2 |
-| SP-3 | **Sample rate (96kHz)** | Drop to 48kHz → Beat Error resolution halves (0.01ms → 0.02ms) | QAS-1 |
-| SP-4 | **Measurement struct is immutable** | If tabs could modify the struct → two tabs could show different values for the same beat | QAS-5 |
+| SP-1 | **Which thread runs DSP** | Move DSP back to Qt Main Thread → wait_ms jumps from 0.03ms back to 77ms | QAS-1, QAS-2 |
+| SP-2 | **isVisible() guard in each tab** | Remove the guard from one tab → that tab's render fires on every beat, restoring the bottleneck | QAS-1 |
+| SP-3 | **Sample rate (96kHz)** | Drop to 48kHz → Beat Error resolution halves (0.01ms → 0.02ms) | QAS-5 |
+| SP-4 | **Measurement struct is immutable** | If tabs could modify the struct → two tabs could show different values for the same beat | QAS-4 |
 
 ### Tradeoff Points
 
@@ -142,9 +142,9 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 | ID | Risk | QA | Status |
 |----|------|----|--------|
-| R-1 | **WeiShi accuracy not validated** — QAS-1 is the governing goal but no comparison against reference hardware has been done yet | QAS-1 | ⏳ EXP-06 scheduled 06/29 |
-| R-2 | **Ring buffer depth not stress-tested** — Too shallow = dropped blocks; too deep = added latency. Set conservatively but not validated under peak load | QAS-2, QAS-3 | ⏳ Needs RPi stress test |
-| R-3 | **Timer rendering (ADR-004) not activated** — Rendering under all 14 tabs visible at once is untested | QAS-2 | ⏳ Conditional on EXP-04 |
+| R-1 | **WeiShi accuracy not validated** — QAS-5 is the governing goal but no comparison against reference hardware has been done yet | QAS-5 | ⏳ EXP-06 scheduled 06/29 |
+| R-2 | **Ring buffer depth not stress-tested** — Too shallow = dropped blocks; too deep = added latency. Set conservatively but not validated under peak load | QAS-1, QAS-2 | ⏳ Needs RPi stress test |
+| R-3 | **Timer rendering (ADR-004) not activated** — Rendering under all 14 tabs visible at once is untested | QAS-1 | ⏳ Conditional on EXP-04 |
 
 ### Non-Risks
 
@@ -174,7 +174,7 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 ### Theme 2 — Reference Hardware Validation Gap → OPEN ⏳
 
-**What it is**: QAS-1 (Measurement Accuracy) has never been compared against a real WeiShi watch. Architecture is correct by design, but unconfirmed.
+**What it is**: QAS-5 (Measurement Accuracy) has never been compared against a real WeiShi watch. Architecture is correct by design, but unconfirmed.
 
 **Why it matters**: This is the governing goal — the most important QA.
 

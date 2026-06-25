@@ -10,7 +10,7 @@ Measure end-to-end latency from audio block ready to beat result delivered, and 
 
 ## Result
 
-DSP E2E avg **2.2 ms** / max **4.8 ms** — within QAS-3 target (< 100 ms).
+DSP E2E avg **2.2 ms** / max **4.8 ms** — within QAS-2 target (< 100 ms).
 
 ## Measurement Segments
 
