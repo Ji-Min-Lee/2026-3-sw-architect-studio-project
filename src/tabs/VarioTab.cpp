@@ -102,12 +102,16 @@ void VarioTab::updateScale(Scale &s, const Stats &stats, const QString &name,
                       .arg(kNowHtml, formatNum(now), unit);
     }
 
+    QString sigmaPart;
+    if (stats.n >= 2)
+        sigmaPart = QString("   σ <b>%1</b> %2").arg(formatNum(stats.sigma()), unit);
+
     s.label->setText(QString("<b>%1</b>   "
                              "<span style='color:%2'>Min <b>%3</b> %4</span>   "
-                             "<span style='color:%2'>Max <b>%5</b> %4</span>%6")
+                             "<span style='color:%2'>Max <b>%5</b> %4</span>%6%7")
                          .arg(name, kMinMaxHtml,
                               formatNum(stats.min), unit,
-                              formatNum(stats.max), nowPart));
+                              formatNum(stats.max), nowPart, sigmaPart));
 
     if (haveNow) {
         const bool pass = (now >= s.bandLo && now <= s.bandHi);
