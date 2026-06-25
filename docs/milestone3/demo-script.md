@@ -92,14 +92,27 @@
 
 ---
 
-**④ Beat-Noise Scope Display** (~30 sec)
+**④ Beat-Noise Scope Display** (~45 sec)
 
-- Switch to Beat-Noise Scope tab
+- Switch to Beat Scope tab
 
-> "This display captures the waveform of each individual beat.
-> The faint lines are single beats, the bright line is the running average.
-> A clean watch shows consistent, overlapping shapes.
-> If the lines spread out, there's noise or mechanical irregularity in the signal."
+> "This display shows the acoustic waveform of a single beat — zoomed in to about 20 milliseconds.
+> Every mechanical watch produces two impacts per beat — we call them A and C.
+> The green dashed line marks the A event — the tic.
+> The red dashed line marks the C event — the tac.
+> The distance between those two lines, relative to the half-beat interval,
+> is what gives us Beat Error.
+>
+> The bottom strip shows the last ten beats as thumbnails.
+> If every thumbnail looks the same shape and the two peaks land in the same spots,
+> the watch is consistent.
+> If the peaks shift or the waveform changes shape between beats,
+> something is off mechanically.
+>
+> Right now you can see the green line at roughly 1.5 milliseconds
+> and the red line at roughly 12 milliseconds.
+> The gap between them is the measured A-to-C interval —
+> our system uses that to compute amplitude and beat error."
 
 ---
 
@@ -107,11 +120,14 @@
 
 - Switch to Beat Error tab
 
-> "Beat Error measures how evenly spaced the tic and toc are within each beat.
-> A perfect watch sits at zero.
-> The number at the top is the current value in milliseconds.
-> The trace below shows how it's been drifting over time —
-> a slowly climbing trace means the beat is getting progressively more uneven."
+> "Beat Error is the number that comes out of that A-to-C measurement.
+> It tells you how evenly the tic and toc are spaced within each beat.
+> A perfect watch is at zero.
+> Anything under 1 millisecond is generally acceptable for a well-adjusted watch.
+> The current reading is 0.2 milliseconds — well within tolerance.
+> The trace below shows how it has been changing over time.
+> A flat line means the watch is stable.
+> A drifting trace means the beat is slowly going out of adjustment."
 
 ---
 
