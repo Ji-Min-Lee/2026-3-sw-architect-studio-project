@@ -1,6 +1,6 @@
 # EXP-06: Long-Term Aging Test — Bucket Downsampling Efficiency
 
-**QA**: QAS-6 | **Status**: Concluded (analytical verification)
+**QA**: QAS-6 | **Status**: ✅ Done (analytical verification, 2026-06-25)
 
 ---
 
@@ -51,7 +51,7 @@ for the "Long-Term Performance Graph" criterion (5 pts, Area 1).
 
 ## Status
 
-Concluded (analytical verification, 2026-06-25)
+✅ Done (analytical verification, 2026-06-25)
 
 ## Expected Outcomes
 

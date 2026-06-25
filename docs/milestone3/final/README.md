@@ -109,7 +109,7 @@ resolve identified risks before committing to design choices.
 | [EXP-03](references/experiments/exp-03-latency-e2e.md) | End-to-End Latency Measurement | QAS-1, QAS-2 | ✅ Done |
 | [EXP-04](references/experiments/exp-04-extensibility-observer-pattern.md) | Extensibility — Observer Pattern | QAS-3 | ✅ Done |
 | [EXP-05](references/experiments/exp-05-correctness-detector-optimization.md) | Detector Parameter Optimization Under Noise | QAS-4, QAS-5 | ✅ Done |
-| [EXP-06](references/experiments/exp-06-longterm-aging.md) | Long-Term Aging Test — Bucket Downsampling Efficiency | QAS-6 | ✅ Concluded |
+| [EXP-06](references/experiments/exp-06-longterm-aging.md) | Long-Term Aging Test — Bucket Downsampling Efficiency | QAS-6 | ✅ Done |
 
 See [planned-experiments.md](references/experiments/planned-experiments.md) for the
 original experiment plan and rationale.
