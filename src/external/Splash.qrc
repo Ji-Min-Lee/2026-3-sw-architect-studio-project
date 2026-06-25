@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/images">
         <file>Splash.png</file>
+        <file>team_ghibli.png</file>
     </qresource>
 </RCC>

@@ -482,7 +482,23 @@ void MainWindow::setupTabOverflow(void)
     // About
     QAction *aboutAct = mMoreTabsMenu->addAction(tr("About TimeGrapher..."));
     connect(aboutAct, &QAction::triggered, this, [this]() {
-        QMessageBox::about(this, tr("About TimeGrapher"),
+        QDialog dlg(this);
+        dlg.setWindowTitle(tr("About TimeGrapher"));
+        dlg.setFixedWidth(480);
+
+        auto *vlay = new QVBoxLayout(&dlg);
+        vlay->setSpacing(12);
+        vlay->setContentsMargins(20, 20, 20, 20);
+
+        QPixmap photo(QStringLiteral(":/images/team_ghibli.png"));
+        if (!photo.isNull()) {
+            auto *photoLabel = new QLabel;
+            photoLabel->setPixmap(photo.scaledToWidth(440, Qt::SmoothTransformation));
+            photoLabel->setAlignment(Qt::AlignCenter);
+            vlay->addWidget(photoLabel);
+        }
+
+        auto *textLabel = new QLabel(
             tr("<h3>TimeGrapher</h3>"
                "<p>Version 1.0.0</p>"
                "<p>Mechanical Watch Timing Analyzer<br>"
@@ -491,6 +507,16 @@ void MainWindow::setupTabOverflow(void)
                "<hr>"
                "<p style='color:gray; font-size:10pt;'>"
                "&copy; 2026 LG Electronics &middot; Internal Use Only</p>"));
+        textLabel->setAlignment(Qt::AlignCenter);
+        textLabel->setWordWrap(true);
+        vlay->addWidget(textLabel);
+
+        auto *btn = new QPushButton(tr("OK"));
+        btn->setDefault(true);
+        connect(btn, &QPushButton::clicked, &dlg, &QDialog::accept);
+        vlay->addWidget(btn, 0, Qt::AlignCenter);
+
+        dlg.exec();
     });
 
     connect(mMoreTabsButton, &QToolButton::clicked, this, [this] {
