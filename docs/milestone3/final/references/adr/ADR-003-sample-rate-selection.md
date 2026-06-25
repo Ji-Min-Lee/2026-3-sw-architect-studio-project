@@ -31,8 +31,15 @@ the pipeline:
 2. `FilterChain` LP/HP cutoff frequencies (normalized to Nyquist = SPS / 2)
 3. Beat Error resolution ceiling (1 sample = 1/SPS seconds)
 
-These constants must be fixed before Phase A task A-02 (filter chain configuration) and
-A-03 (beat detection validation) can be completed.
+**Performance vs. Accuracy trade-off:**
+
+48kHz satisfies QAS-1 (real-time performance) — EXP-02 confirms 0 dropped blocks at 48kHz
+with exec avg 5.8ms, well within the 42.67ms deadline. However, 48kHz yields a Beat Error
+resolution of 20.8 µs/sample, which is insufficient to meet the Δ Beat Error = 0 ms
+tolerance required for WeiShi No.1000 comparison (EXP-01). 96kHz doubles the resolution
+to 10.4 µs/sample at the cost of higher CPU load (exec avg 9.6ms vs. 5.8ms at 48kHz) and
+increased thermal pressure on the RPi 5. We accepted this Performance cost in favour of
+Accuracy — the project's governing goal.
 
 Rejected early: Option C (192kHz). RPi 5 DSP load at 192kHz under full Qt GUI has not been
 measured and the block period (~5ms) leaves almost no margin for DSP processing spikes.

@@ -61,6 +61,17 @@ Private methods in a `QObject` subclass cannot be called without instantiating t
 configuration to construct. This makes unit-testing the formulas in isolation impractical.
 Extracting them removes the transitive dependency entirely.
 
+**Modifiability vs. Accuracy trade-off:**
+
+Extracting `WatchMath` as a separate namespace increases structural complexity: the
+production binary now has an additional compilation unit, the test binary links
+`WatchMath.cpp` separately, and `MeasurementEngine` delegates formula calls rather than
+owning them inline. This is a real Modifiability cost — more moving parts. We accepted
+it because keeping formulas inside `MeasurementEngine` means a formula bug propagates
+silently to all 11 display tabs with no automated check to catch it before the binary
+ships. The cost of a wrong formula (corrupt Rate, Amplitude, and Beat Error across every
+view) outweighs the cost of maintaining a separate module and test binary.
+
 **Rejected alternative — test via `MeasurementEngine` integration test:**
 
 Integration tests feed synthetic audio through the full pipeline. This verifies
