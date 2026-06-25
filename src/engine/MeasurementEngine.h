@@ -87,7 +87,22 @@ private:
         bool   haveLastInstErr[2] = {false, false};
         int    consecRejects[2]   = {0, 0};   // per parity: a stuck tic must not be
                                               // un-stuck by an accepted toc (and vice versa)
+
+        // Per-beat period deviation tracking (for DiffPeriod / AvgPeriod)
+        double prevInstErrorSec  = 0.0;
+        bool   havePrevInstError = false;
     } mRate;
+
+    // Period-deviation state (DiffPeriod / AvgPeriod)
+    struct PeriodState {
+        RollingAverage *shortRoll = nullptr; // ~4 s window, sized on first sync
+        double          sumAll    = 0.0;     // cumulative for AvgPeriod
+        int             countAll  = 0;
+    } mPeriod;
+
+    // DiffTicTac state
+    double mLastDiffTicTac  = 0.0;
+    bool   mHaveDiffTicTac  = false;
 
     // Beat-error state  (extracted from TBeatErrorEvents)
     struct BeatState {

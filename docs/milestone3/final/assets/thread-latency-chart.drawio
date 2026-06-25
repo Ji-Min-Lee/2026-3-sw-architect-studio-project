@@ -1,0 +1,108 @@
+<mxfile host="65bd71144e">
+    <diagram name="Thread Latency" id="0">
+        <mxGraphModel dx="1147" dy="647" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1100" pageHeight="600" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="&lt;b&gt;E2E Latency Comparsion&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="104.5" y="4" width="530" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="lbl1" value="AS-IS&lt;br&gt;&lt;font color=&quot;#888888&quot; style=&quot;font-size: 10px;&quot;&gt;(single thread)&lt;/font&gt;" style="text;html=1;align=right;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="6" y="76" width="162" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="lbl2" value="TO-BE&lt;br&gt;&lt;font color=&quot;#888888&quot; style=&quot;font-size: 10px;&quot;&gt;(multi thread + lazy rendering)&lt;/font&gt;" style="text;html=1;align=right;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="6" y="162" width="162" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="bar1_wait" value="wait_ms  77.4 ms" style="rounded=0;html=1;fillColor=#4472C4;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="176" y="78" width="387" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="bar1_exec" value="" style="rounded=0;html=1;fillColor=#7030A0;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="563" y="78" width="14" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="val1" value="&lt;font color=&quot;#CC0000&quot;&gt;&lt;b&gt;total 80.1 ms avg · max 258.7 ms&lt;/b&gt; ❌ &amp;gt; 21 ms goal&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="582" y="78" width="360" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="bar2_exec" value="" style="rounded=0;html=1;fillColor=#70AD47;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="176" y="164" width="11" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="val2" value="&lt;font color=&quot;#375623&quot;&gt;&lt;b&gt;total 2.2 ms avg · max 4.8 ms&lt;/b&gt; ✅ goal achieved (&amp;lt; 21 ms)&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="192" y="164" width="400" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="deadline_line" value="" style="rounded=0;html=1;fillColor=#FF0000;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="269" y="71" width="2" height="145" as="geometry"/>
+                </mxCell>
+                <mxCell id="deadline_lbl" value="&lt;font color=&quot;#CC0000&quot;&gt;&lt;b&gt;21 ms&lt;/b&gt;&lt;br&gt;deadline&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=bottom;fontSize=10;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="234" y="41" width="72" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="xaxis" value="" style="rounded=0;html=1;fillColor=#AAAAAA;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="176" y="216" width="500" height="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tick0" value="" style="rounded=0;html=1;fillColor=#AAAAAA;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="176" y="216" width="1" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="tick30" value="" style="rounded=0;html=1;fillColor=#AAAAAA;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="326" y="216" width="1" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="tick60" value="" style="rounded=0;html=1;fillColor=#AAAAAA;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="476" y="216" width="1" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="tick90" value="" style="rounded=0;html=1;fillColor=#AAAAAA;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="626" y="216" width="1" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="x0" value="0 ms" style="text;html=1;align=center;fontSize=10;strokeColor=none;fillColor=none;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="158" y="222" width="36" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="x60" value="60 ms" style="text;html=1;align=center;fontSize=10;strokeColor=none;fillColor=none;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="458" y="222" width="36" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="x90" value="90 ms" style="text;html=1;align=center;fontSize=10;strokeColor=none;fillColor=none;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="608" y="222" width="36" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_bg_wait" value="" style="rounded=0;html=1;fillColor=#4472C4;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="176" y="252" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_bg_wait_l" value="wait_ms — notify arrow queue latency, dominated by GUI blocking" style="text;html=1;align=left;fontSize=10;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="196" y="250" width="440" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_exec_b" value="" style="rounded=0;html=1;fillColor=#7030A0;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="176" y="272" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_exec_b_l" value="exec_ms — Analyze Audio Data processing time" style="text;html=1;align=left;fontSize=10;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="196" y="270" width="380" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_exec_a" value="" style="rounded=0;html=1;fillColor=#70AD47;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="176" y="292" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_exec_a_l" value="exec_ms — Analyze Audio Data processing time" style="text;html=1;align=left;fontSize=10;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="196" y="290" width="380" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="note" value="Source: E2-3, E2-7" style="text;html=1;align=left;fontSize=9;strokeColor=none;fillColor=none;fontColor=#AAAAAA;" parent="1" vertex="1">
+                    <mxGeometry x="174" y="312" width="500" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="callout" value="&lt;b&gt;wait_ms: 77.4 ms → 0.03 ms&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;&quot;&gt;×2,600 improvement&lt;/font&gt;" style="rounded=1;html=1;fillColor=#EBF5E0;strokeColor=#70AD47;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="623" y="125" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="callout_arrow" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#70AD47;strokeWidth=1.5;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=1;" parent="1" source="callout" target="bar2_exec" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="30 ms" style="text;html=1;align=center;fontSize=10;strokeColor=none;fillColor=none;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="308.5" y="224" width="36" height="16" as="geometry"/>
+                </mxCell>
+                <!-- exec label for AS-IS bar (above bar1_exec: x=563, width=14) -->
+                <mxCell id="exec_lbl1" value="exec&lt;br&gt;2.7 ms" style="text;html=1;align=center;verticalAlign=bottom;fontSize=9;strokeColor=none;fillColor=none;fontColor=#7030A0;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="524" y="46" width="52" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="exec_arr1" value="" style="rounded=0;html=1;fillColor=#7030A0;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="569" y="74" width="2" height="4" as="geometry"/>
+                </mxCell>
+                <!-- exec label for TO-BE bar (above bar2_exec: x=176, width=11) -->
+                <mxCell id="exec_lbl2" value="exec&lt;br&gt;2.1 ms" style="text;html=1;align=center;verticalAlign=bottom;fontSize=9;strokeColor=none;fillColor=none;fontColor=#375623;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="155" y="130" width="52" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="exec_arr2" value="" style="rounded=0;html=1;fillColor=#70AD47;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="181" y="158" width="2" height="6" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
