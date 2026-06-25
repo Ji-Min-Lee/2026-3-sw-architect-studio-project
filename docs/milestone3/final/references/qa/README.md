@@ -8,22 +8,45 @@
 
 Accuracy — producing Rate, Amplitude, and Beat Error values that faithfully represent the watch's true mechanical behavior — is the overarching objective of this project, not a single architectural QA scenario.
 
-Accuracy is not directly achievable through one architectural decision. Instead, it is delivered by the combined effect of multiple structural QAs, each of which removes a failure mode that would otherwise corrupt the output:
+Accuracy is not directly achievable through one architectural decision. In Bass, Clements & Kazman terminology (*Software Architecture in Practice*, Ch.3), Real-Time Performance, Low Latency, and Correctness are **enabling QAs** for Accuracy: each one removes a failure mode that would otherwise corrupt the output. Extensibility is an independent architectural driver.
 
-| QA | How it serves Accuracy |
-|----|----------------------|
-| QAS-1 Real-Time Performance | Dropped audio blocks cause missed beats → wrong Rate and Beat Error |
-| QAS-2 Low Latency | Stale display values mislead the user about current watch state |
-| QAS-4 Correctness (Sub-1) | Formula errors in WatchMath produce systematically wrong values |
-| QAS-4 Correctness (Sub-3) | Noise-triggered false beats corrupt Rate and Beat Error statistics |
-| ADR-003 96kHz Sample Rate | Higher timing resolution reduces quantization error in Beat Error computation |
+```
+Measurement Accuracy (governing goal — QAS-5)
+├── Real-Time Performance (QAS-1)   ← dropped audio block → missed beat → wrong Rate / Beat Error
+│     ADR-001 (DSP Offload Thread), ADR-002 (Lazy Rendering), EXP-02
+├── Low Latency (QAS-2)             ← stale display value → user misreads current watch state
+│     ADR-001, EXP-03
+└── Correctness (QAS-4)
+      ├── Sub-1 Testability          ← formula error in WatchMath → systematically wrong values
+      │     ADR-008, EXP-05
+      └── Sub-3 Noise Resilience     ← false beat trigger → corrupted Rate / Beat Error statistics
+            ADR-003, ADR-009, EXP-05
 
-When architectural decisions conflicted with other QAs, accuracy concerns broke the tie:
-- **Performance cost vs. Accuracy**: 96kHz adopted over 48kHz despite higher CPU/memory cost (ADR-003)
-- **Complexity vs. Accuracy**: WatchMath isolated as a pure calculation module to enable formula-level unit testing (QAS-4 Sub-1)
-- **Usability vs. Accuracy**: FilterChain parameters exposed to the user so the signal can be tuned for each environment rather than locked to a default that may degrade measurement quality
+Extensibility / Modifiability (QAS-3) — independent architectural driver
+      ADR-005, ADR-006, EXP-04
+```
 
-QAS-5 captures the user-observable verification of this goal. Its measure (Δ Rate < 0.3 s/d vs. WeiShi No.1000) is an acceptance criterion, not an architectural driver.
+QAS-5 is the **acceptance criterion**: Δ Rate < ±2 s/d vs. WeiShi No.1000 confirms that all enabling QAs are working together correctly. It is a verification step, not an architectural driver.
+
+### Enabling QA Summary
+
+| Enabling QA | Failure mode prevented | Architecture decision |
+|-------------|----------------------|-----------------------|
+| QAS-1 Real-Time Performance | Dropped audio block → missed beat → wrong Rate and Beat Error | ADR-001, ADR-002 |
+| QAS-2 Low Latency | Stale display value → user misreads current watch state | ADR-001 |
+| QAS-4 Sub-1 Testability | Formula error in WatchMath → systematically wrong values | ADR-008 |
+| QAS-4 Sub-3 Noise Resilience | False beat trigger → corrupted Rate / Beat Error statistics | ADR-003, ADR-009 |
+| ADR-003 96kHz Sample Rate | Quantization error in Beat Error computation too coarse at 48kHz | ADR-003 |
+
+### Accuracy Broke the Tie
+
+When architectural decisions conflicted with other QAs, accuracy concerns resolved the tradeoff:
+
+| Decision | Conflicting QA | Accuracy rationale |
+|----------|---------------|--------------------|
+| 96kHz over 48kHz | Performance (higher CPU/memory cost) | Beat Error resolution: 0.01ms at 96kHz vs 0.02ms at 48kHz — halving resolution is unacceptable (ADR-003) |
+| WatchMath module isolation | Simplicity (extra abstraction layer) | Formula-level unit testing impossible without isolation; undetected formula error directly corrupts output (ADR-008) |
+| FilterChain parameters exposed to user | Usability (more complex UI) | Default parameters that degrade measurement quality in one environment must be tunable per deployment (ADR-009) |
 
 ---
 

@@ -54,11 +54,15 @@ It finds: which decisions could cause trouble, and where decisions force a trade
 
 ATAM Step 2 asks us to separate two things: the one goal the system exists for, and the QAs that actually shaped the architecture.
 
+In Bass, Clements & Kazman terminology (*Software Architecture in Practice*, Ch.3), Real-Time Performance, Low Latency, and Correctness are **enabling QAs** for Accuracy: each removes a failure mode that would otherwise corrupt the measurement output. Extensibility is an independent architectural driver.
+
 | Type | QA | What it shaped in the architecture |
 |------|----|------------------------------------|
-| **Usability (Priority 5)** | Measurement Accuracy (QAS-1) | The user-facing outcome — Rate / Amplitude / Beat Error legible and matching WeiShi reference. Structural QAs 1–4 are prerequisites that make this achievable. |
-| **Architectural driver** | Real-Time Performance (QAS-2) | The 21ms deadline forced DSP onto its own thread (ADR-001) and lazy rendering (ADR-002). |
-| **Architectural driver** | Extensibility (QAS-4) | The "add a tab in ≤ 3 files" goal forced the Observer pattern (ADR-006): a new tab plugs in by subscribing to one signal. |
+| **Governing goal** | Measurement Accuracy (QAS-5) | The user-facing outcome — Rate / Amplitude / Beat Error matching WeiShi No.1000. Verified by EXP-01. Not an architectural driver; it is the acceptance criterion that all enabling QAs serve. |
+| **Enabling QA** | Real-Time Performance (QAS-1) | Dropped audio blocks cause missed beats → wrong Rate and Beat Error. Forced DSP onto its own thread (ADR-001) and lazy rendering (ADR-002). |
+| **Enabling QA** | Low Latency (QAS-2) | Stale display values mislead the user about current watch state. Resolved by ADR-001 (E2E avg 2.2ms, EXP-03). |
+| **Enabling QA** | Correctness (QAS-4) | Formula errors and noise-triggered false beats corrupt Rate/Beat Error. Resolved by WatchMath isolation (ADR-008) and detector parameter tuning (ADR-003, ADR-009, EXP-05). |
+| **Independent driver** | Extensibility / Modifiability (QAS-3) | The "add a tab in ≤ 3 files" goal forced the Observer pattern (ADR-006) and IAudioSource interface (ADR-005). |
 
 ---
 
@@ -125,12 +129,14 @@ A sensitivity point is: if you change this one thing, a QA goal changes signific
 
 A tradeoff is: this decision helps one QA goal but puts pressure on another.
 
-| ID | Decision | Helps | Puts pressure on | How we resolved it |
-|----|----------|-------|------------------|--------------------|
-| TP-1 | **96kHz sample rate** | Better Beat Error resolution (QAS-1 ↑) | Higher CPU load (QAS-2 at risk) | EXP-02: 0 dropped blocks at 96kHz — headroom confirmed |
-| TP-2 | **Ring buffer between threads** | Removes GUI coupling (QAS-2, QAS-3 ↑) | Adds ~21ms propagation delay | Still well within 100ms E2E target. EXP-03 confirmed. |
-| TP-3 | **Lazy Rendering** | 85% fewer render calls (QAS-2 ↑) | Non-visible tabs don't update in real time | Users can't see non-visible tabs. Tab catches up on show. |
-| TP-4 | **Shared Measurement struct** | All tabs get identical data (QAS-5 ↑) | Changing the struct affects all 14 tabs | Struct split into 3 immutable Value Objects — each tab only depends on what it needs |
+Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy (or prevented a failure mode that would corrupt measurement output), it was chosen even at cost to another QA.
+
+| ID | Decision | Helps | Puts pressure on | Accuracy rationale | How we resolved it |
+|----|----------|-------|------------------|--------------------|--------------------|
+| TP-1 | **96kHz sample rate** | Beat Error resolution 0.01ms (Accuracy ↑) | Higher CPU load (Real-Time Performance at risk) | 48kHz halves timing resolution — unacceptable for accuracy | EXP-02: 0 dropped blocks at 96kHz — CPU headroom confirmed |
+| TP-2 | **Ring buffer between threads** | Removes GUI coupling (Real-Time Performance ↑) | Adds ~21ms propagation delay (Latency at risk) | Delay is bounded and within 100ms E2E — accuracy unaffected | EXP-03: E2E avg 2.2ms, well within target |
+| TP-3 | **Lazy Rendering** | 85% fewer render calls (Real-Time Performance ↑) | Non-visible tabs don't update in real time (Latency for background tabs) | Non-visible tab data is not used for decisions — no accuracy impact | Users can't see non-visible tabs; tab catches up on show |
+| TP-4 | **Shared Measurement struct** | All tabs show identical values (Correctness / Consistency ↑) | Changing the struct affects all 14 tabs (Modifiability at risk) | Single source of truth prevents tabs from showing divergent values — required for accuracy | Struct split into 3 immutable Value Objects — each tab only depends on what it needs |
 
 ### Risks
 
