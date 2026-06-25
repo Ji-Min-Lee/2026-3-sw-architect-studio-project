@@ -1,4 +1,4 @@
-# EXP-02: RPi Real-Time Performance — Dropped Block Measurement
+# EXP-01: RPi Real-Time Performance — Dropped Block Measurement
 
 **QA**: QAS-1 | **Status**: ✅ Done (2026-06-15)
 
@@ -48,4 +48,4 @@ Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline: 48k=42.67 ms ·
 
 - Risk resolved: [TR-01](../risks.md)
 - Full run table: [experiment-results.md](../../../../milestone2/experiment-results.md#exp-02-rpi-real-time-performance----dropped-block-measurement)
-- Log directory: `src/logs/EXP-01/` (legacy directory name)
+- Log directory: `src/logs/EXP-01/`

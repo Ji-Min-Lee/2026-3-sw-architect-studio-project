@@ -2,7 +2,7 @@
 
 Even after T2 (ADR-001) offloads DSP to a separate thread, the UI thread still calls
 `replot()` on every beat event for all graph tabs, regardless of visibility.
-EXP-02 Run R2b measured an average of 8.22 `replot()` calls per beat with no visibility guard.
+EXP-01 Run R2b measured an average of 8.22 `replot()` calls per beat with no visibility guard.
 On Raspberry Pi 5, the `plot` step alone consumed 16ms — 79% of the 21ms exec deadline —
 before T2 was applied. After T2, the replot count remains the primary variable that
 determines whether the UI thread keeps pace with the audio rate.
@@ -30,7 +30,7 @@ void TraceDisplay::showEvent(QShowEvent* e) {
 
 ## Rationale
 
-EXP-02 Runs R3 and R4 (macOS, 96kHz Playback mode, T2 + R1 applied):
+EXP-01 Runs R3 and R4 (macOS, 96kHz Playback mode, T2 + R1 applied):
 
 | Run | Setup | replot/beat avg | Reduction |
 |:---:|-------|:---------------:|:---------:|
@@ -57,7 +57,7 @@ one beat period (< 21ms at 28,800 BPH), which is imperceptible.
 | Data consistency risk | None | None | Requires lock on QPixmap sharing |
 | M2 feasibility | ✅ Immediate | ✅ Feasible | ⚠️ Design change too large |
 
-**R2 rejected**: Provides cleaner temporal decoupling but requires timer lifecycle management (start/stop with pipeline) and introduces over-rendering at low BPH. R1 preferred for M2 due to minimal change scope. R2 remains a viable upgrade path if EXP-05 reveals R1 insufficient under 11-tab full load — documented in [ADR-004](ADR-004-r2-timer-decoupled-rendering.md).
+**R2 rejected**: Provides cleaner temporal decoupling but requires timer lifecycle management (start/stop with pipeline) and introduces over-rendering at low BPH. R1 preferred for M2 due to minimal change scope. R2 remains a viable upgrade path if EXP-04 reveals R1 insufficient under 11-tab full load — documented in [ADR-004](ADR-004-r2-timer-decoupled-rendering.md).
 
 **R3 rejected**: Maximum isolation between audio path and rendering. QPixmap creation is UI-thread-only in Qt, requiring a worker thread for off-screen rendering and a separate blit step. Design change scope rated High; M2 deadline risk rated High. Deferred to post-M3 review.
 
@@ -65,8 +65,8 @@ one beat period (< 21ms at 28,800 BPH), which is imperceptible.
 
 Accepted (2026-06-15, macOS validated)
 
-RPi impact confirmation via EXP-02 R5 scheduled: 2026-06-23.
-Full 11-tab load test via EXP-05 scheduled: 2026-06-26.
+RPi impact confirmation via EXP-01 R5 scheduled: 2026-06-23.
+Full 11-tab load test via EXP-04 scheduled: 2026-06-26.
 
 ## Consequences
 
@@ -83,9 +83,9 @@ Full 11-tab load test via EXP-05 scheduled: 2026-06-26.
   no benefit — R2 or R3 would be needed in that scenario (not a current use case)
 - Catch-up frame fires once on showEvent(); rapid tab cycling could produce visible
   one-frame lag on very fast switches (not observed in testing)
-- RPi effectiveness depends on the ratio of active to total tabs — must be confirmed by EXP-05
+- RPi effectiveness depends on the ratio of active to total tabs — must be confirmed by EXP-04
 
 ## Supersedes
 
-None. If EXP-05 confirms R1 insufficient under 11-tab full load, this ADR will be superseded
+None. If EXP-04 confirms R1 insufficient under 11-tab full load, this ADR will be superseded
 by a new ADR adopting R2 (Timer-Decoupled Rendering).

@@ -138,13 +138,13 @@ User switches to tab T
 
 **Observer contract validation (NTR-07 risk mitigation)**: AI-generated unit tests verify structural correctness — every tab receives the same `Measurement`, does not mutate it, and honors the `BaseGraphTab` interface contract.
 
-Measured results: → [EXP-04: Observer Pattern Compliance](../experiments/exp-04-extensibility-observer-pattern.md)
+Measured results: → [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md)
 
 ## Related ADRs
 
 - [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) — rationale for the `BaseGraphTab` interface and `registerTab()` registration pattern
 - [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md) — `isVisible()` guard in `onMeasurement()`; `showEvent()` catch-up via `replotAll()`
-- [ADR-004: R2 Timer-Decoupled Rendering](../adr/ADR-004-r2-timer-decoupled-rendering.md) — conditional replacement for ADR-002 if EXP-05 confirms R1 insufficient
+- [ADR-004: R2 Timer-Decoupled Rendering](../adr/ADR-004-r2-timer-decoupled-rendering.md) — conditional replacement for ADR-002 if EXP-04 confirms R1 insufficient
 
 ## Related views
 

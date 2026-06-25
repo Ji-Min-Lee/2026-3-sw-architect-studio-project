@@ -58,10 +58,10 @@ In Bass, Clements & Kazman terminology (*Software Architecture in Practice*, Ch.
 
 | Type | QA | What it shaped in the architecture |
 |------|----|------------------------------------|
-| **Governing goal** | Measurement Accuracy (QAS-5) | The user-facing outcome — Rate / Amplitude / Beat Error matching WeiShi No.1000. Verified by EXP-01. Not an architectural driver; it is the acceptance criterion that all enabling QAs serve. |
+| **Governing goal** | Measurement Accuracy (QAS-5) | The user-facing outcome — Rate / Amplitude / Beat Error matching WeiShi No.1000. Verified by EXP-06. Not an architectural driver; it is the acceptance criterion that all enabling QAs serve. |
 | **Enabling QA** | Real-Time Performance (QAS-1) | Dropped audio blocks cause missed beats → wrong Rate and Beat Error. Forced DSP onto its own thread (ADR-001) and lazy rendering (ADR-002). |
-| **Enabling QA** | Low Latency (QAS-2) | Stale display values mislead the user about current watch state. Resolved by ADR-001 (E2E avg 2.2ms, EXP-03). |
-| **Enabling QA** | Correctness (QAS-4) | Formula errors and noise-triggered false beats corrupt Rate/Beat Error. Resolved by WatchMath isolation (ADR-008) and detector parameter tuning (ADR-003, ADR-009, EXP-05). |
+| **Enabling QA** | Low Latency (QAS-2) | Stale display values mislead the user about current watch state. Resolved by ADR-001 (E2E avg 2.2ms, EXP-02). |
+| **Enabling QA** | Correctness (QAS-4) | Formula errors and noise-triggered false beats corrupt Rate/Beat Error. Resolved by WatchMath isolation (ADR-008) and detector parameter tuning (ADR-003, ADR-009, EXP-04). |
 | **Independent driver** | Extensibility / Modifiability (QAS-3) | The "add a tab in ≤ 3 files" goal forced the Observer pattern (ADR-006) and IAudioSource interface (ADR-005). |
 
 ---
@@ -98,7 +98,7 @@ Priority notation: **(Technical Risk, Business Importance)** — H = High, M = M
 
 | Option | Idea | Chosen? |
 |--------|------|:-------:|
-| T1 — SCHED_RR | Give audio thread higher OS priority | ❌ Not needed (EXP-02: no improvement in dropped blocks) |
+| T1 — SCHED_RR | Give audio thread higher OS priority | ❌ Not needed (EXP-01: no improvement in dropped blocks) |
 | T2 — DSP Offload Thread | Move DSP to its own thread, pass data via buffer | ✅ M2 (ADR-001) |
 | T3 — Full Pipeline Split | One thread per pipeline stage | ❌ Too complex for timeline |
 
@@ -133,8 +133,8 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 | ID | Decision | Helps | Puts pressure on | Accuracy rationale | How we resolved it |
 |----|----------|-------|------------------|--------------------|--------------------|
-| TP-1 | **96kHz sample rate** | Beat Error resolution 0.01ms (Accuracy ↑) | Higher CPU load (Real-Time Performance at risk) | 48kHz halves timing resolution — unacceptable for accuracy | EXP-02: 0 dropped blocks at 96kHz — CPU headroom confirmed |
-| TP-2 | **Ring buffer between threads** | Removes GUI coupling (Real-Time Performance ↑) | Adds ~21ms propagation delay (Latency at risk) | Delay is bounded and within 100ms E2E — accuracy unaffected | EXP-03: E2E avg 2.2ms, well within target |
+| TP-1 | **96kHz sample rate** | Beat Error resolution 0.01ms (Accuracy ↑) | Higher CPU load (Real-Time Performance at risk) | 48kHz halves timing resolution — unacceptable for accuracy | EXP-01: 0 dropped blocks at 96kHz — CPU headroom confirmed |
+| TP-2 | **Ring buffer between threads** | Removes GUI coupling (Real-Time Performance ↑) | Adds ~21ms propagation delay (Latency at risk) | Delay is bounded and within 100ms E2E — accuracy unaffected | EXP-02: E2E avg 2.2ms, well within target |
 | TP-3 | **Lazy Rendering** | 85% fewer render calls (Real-Time Performance ↑) | Non-visible tabs don't update in real time (Latency for background tabs) | Non-visible tab data is not used for decisions — no accuracy impact | Users can't see non-visible tabs; tab catches up on show |
 | TP-4 | **Shared Measurement struct** | All tabs show identical values (Correctness / Consistency ↑) | Changing the struct affects all 14 tabs (Modifiability at risk) | Single source of truth prevents tabs from showing divergent values — required for accuracy | Struct split into 3 immutable Value Objects — each tab only depends on what it needs |
 
@@ -142,19 +142,19 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 | ID | Risk | QA | Status |
 |----|------|----|--------|
-| R-1 | **WeiShi accuracy not validated** — QAS-1 is the governing goal but no comparison against reference hardware has been done yet | QAS-1 | ⏳ EXP-01 scheduled 06/29 |
+| R-1 | **WeiShi accuracy not validated** — QAS-1 is the governing goal but no comparison against reference hardware has been done yet | QAS-1 | ⏳ EXP-06 scheduled 06/29 |
 | R-2 | **Ring buffer depth not stress-tested** — Too shallow = dropped blocks; too deep = added latency. Set conservatively but not validated under peak load | QAS-2, QAS-3 | ⏳ Needs RPi stress test |
-| R-3 | **Timer rendering (ADR-004) not activated** — Rendering under all 14 tabs visible at once is untested | QAS-2 | ⏳ Conditional on EXP-05 |
+| R-3 | **Timer rendering (ADR-004) not activated** — Rendering under all 14 tabs visible at once is untested | QAS-2 | ⏳ Conditional on EXP-04 |
 
 ### Non-Risks
 
 | ID | What was confirmed | Evidence |
 |----|--------------------|---------|
-| NR-1 | DSP Thread removes queue wait | EXP-03 RPi: wait_ms 77.4ms → 0.03ms, 0 deadline miss |
-| NR-2 | 96kHz is sustainable on RPi | EXP-02: 0 dropped blocks at 48 / 96 / 192kHz |
-| NR-3 | Lazy Rendering cuts render calls by 85% | EXP-03: replot/beat 8.22 → 1.20 |
-| NR-4 | 14 tabs each fit within the 3-file constraint | EXP-04: 14 tabs verified, 0 layer violations |
-| NR-5 | Adding a new audio source requires ≤ 2 files | EXP-04: NetworkWorker prototype verified |
+| NR-1 | DSP Thread removes queue wait | EXP-02 RPi: wait_ms 77.4ms → 0.03ms, 0 deadline miss |
+| NR-2 | 96kHz is sustainable on RPi | EXP-01: 0 dropped blocks at 48 / 96 / 192kHz |
+| NR-3 | Lazy Rendering cuts render calls by 85% | EXP-02: replot/beat 8.22 → 1.20 |
+| NR-4 | 14 tabs each fit within the 3-file constraint | EXP-03: 14 tabs verified, 0 layer violations |
+| NR-5 | Adding a new audio source requires ≤ 2 files | EXP-03: NetworkWorker prototype verified |
 | NR-6 | Qt signals deliver data correctly across threads | Qt QueuedConnection is FIFO — bounded latency well under 125ms beat interval |
 | NR-7 | Architecture is testable in isolation | 142 unit tests across 10 binaries, all passing |
 
@@ -178,7 +178,7 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 **Why it matters**: This is the governing goal — the most important QA.
 
-**What to do**: EXP-01 must complete before the final demo on 07/01.
+**What to do**: EXP-06 must complete before the final demo on 07/01.
 
 ---
 
@@ -188,7 +188,7 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 **Why it's low risk**: Normal usage never triggers it.
 
-**What to watch**: If EXP-05 shows deadline miss under full tab load, activate ADR-004.
+**What to watch**: If EXP-04 shows deadline miss under full tab load, activate ADR-004.
 
 ---
 
@@ -196,7 +196,7 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 | Priority | Action | Addresses |
 |----------|--------|-----------|
-| **Critical** | Run EXP-01 — WeiShi accuracy comparison | R-1, Theme 2 |
+| **Critical** | Run EXP-06 — WeiShi accuracy comparison | R-1, Theme 2 |
 | **High** | Stress-test ring buffer depth on RPi under peak load | R-2 |
 | **Low** | Confirm ADR-004 behavior if all 14 tabs open simultaneously | R-3, Theme 3 |
 

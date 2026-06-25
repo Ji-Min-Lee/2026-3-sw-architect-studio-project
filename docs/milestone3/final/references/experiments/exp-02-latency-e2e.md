@@ -1,4 +1,4 @@
-# EXP-03: End-to-End Latency — 2-Segment Timestamp Measurement
+# EXP-02: End-to-End Latency — 2-Segment Timestamp Measurement
 
 **QA**: QAS-2 | **Status**: ✅ Done (2026-06-11 ~ 2026-06-16)
 
@@ -20,7 +20,7 @@ DSP E2E avg **2.2 ms** / max **4.8 ms** — within QAS-3 target (< 100 ms).
 
 ## Run History
 
-> Log files in `src/logs/EXP-02/` (legacy directory name).
+> Log files in `src/logs/EXP-02/`.
 
 | Run | Date | Configuration | E2E avg/max (ms) | Note | Data |
 |:---:|------|--------------|:----------------:|------|:----:|

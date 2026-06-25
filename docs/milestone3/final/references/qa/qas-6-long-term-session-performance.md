@@ -1,7 +1,7 @@
 # QAS-6: Long-Term Session Performance — Priority 4 (Performance)
 
 > Added M3 for the Long-Term Performance Graph feature (project plan §"Long-Term Performance Graph", Figure 14).
-> Status: ✅ Verified analytically (2026-06-25). See EXP-06 for point-count derivation.
+> Status: ✅ Verified analytically (2026-06-25). See EXP-07 for point-count derivation.
 
 | Field | Detail |
 |-------|--------|
@@ -24,4 +24,4 @@ The `mBucketSize` adaptive strategy (ADR-007) bounds the worst-case point count 
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| Time-Based Bucket Downsampling (`mBucketSize`) | [ADR-007: LongTermTab Downsampling](../adr/ADR-007-longtermtab-downsampling.md) | [EXP-06: Long-Term Aging Test](../experiments/exp-06-longterm-aging.md) | [Decomposition View: LongTermTab Downsampling](../views/view-longtermtab-downsampling.md) |
+| Time-Based Bucket Downsampling (`mBucketSize`) | [ADR-007: LongTermTab Downsampling](../adr/ADR-007-longtermtab-downsampling.md) | [EXP-07: Long-Term Aging Test](../experiments/exp-07-longterm-aging.md) | [Decomposition View: LongTermTab Downsampling](../views/view-longtermtab-downsampling.md) |

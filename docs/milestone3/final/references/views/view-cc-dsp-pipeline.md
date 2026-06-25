@@ -48,7 +48,7 @@ GraphTabManager → BaseGraphTab::onMeasurement(m)
     └─▶ update() → paintEvent() → replot()
 ```
 
-Measured results on RPi: → [EXP-03: End-to-End Latency](../experiments/exp-03-latency-e2e.md)
+Measured results on RPi: → [EXP-02: End-to-End Latency](../experiments/exp-02-latency-e2e.md)
 
 ## Related ADRs
 

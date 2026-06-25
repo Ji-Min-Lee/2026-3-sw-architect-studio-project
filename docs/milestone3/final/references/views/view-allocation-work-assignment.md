@@ -47,7 +47,7 @@ Each issue represents an architecture element that must be built, validated, or 
 
 | Work Unit Type | Examples | QAS Traceability |
 |---------------|----------|-----------------|
-| Experiment (EXP-xx) | EXP-01 WeiShi comparison, EXP-02 latency | QAS-1 Accuracy, QAS-3 Performance |
+| Experiment (EXP-xx) | EXP-06 WeiShi comparison, EXP-01 latency | QAS-1 Accuracy, QAS-3 Performance |
 | ADR | ADR-001 T2 thread, ADR-003 sample rate | All QAS |
 | Architecture View | Module view, C&C view, Allocation view | QAS-5 Modifiability |
 | Implementation task | God Object → 4-layer refactor | QAS-4 Correctness |
@@ -79,7 +79,7 @@ Each issue represents an architecture element that must be built, validated, or 
 
 | Architecture Element | Team | Sprint | Milestone | Status |
 |---------------------|------|--------|-----------|--------|
-| EXP-01 WeiShi accuracy comparison | team1 | w2-1 | M2 | ✅ Done |
+| EXP-06 WeiShi accuracy comparison | team1 | w2-1 | M2 | ✅ Done |
 | ADR-003 Sample rate selection | team1 | w2-1 | M2 | ✅ Done |
 | 4-layer God Object refactor | team1+2 | w3-1 | M2 | ✅ Done |
 | Unit test suite (142 tests) | team2 | w3-2 | M2 | ✅ Done |

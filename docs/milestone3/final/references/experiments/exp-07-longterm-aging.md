@@ -1,4 +1,4 @@
-# EXP-06: Long-Term Aging Test — Bucket Downsampling Efficiency
+# EXP-07: Long-Term Aging Test — Bucket Downsampling Efficiency
 
 **QA**: QAS-6 | **Status**: ✅ Done (analytical verification, 2026-06-25)
 

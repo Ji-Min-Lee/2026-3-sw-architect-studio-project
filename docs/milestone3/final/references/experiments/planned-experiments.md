@@ -8,17 +8,17 @@
 
 | ID | Experiment | QA | Risk | Status | Date |
 |----|------------|----|------|:------:|------|
-| **EXP-01** | [WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000](exp-01-accuracy-weishi-comparison.md) | QAS-1 | — | ⏸ Planned | W5 S1 (2026-06-29) |
-| **EXP-02** | [RPi Real-Time Performance — Dropped Block Measurement](exp-02-realtime-dropped-block.md) | QAS-2 | TR-01 | ✅ Done | 2026-06-15 |
-| **EXP-03** | [End-to-End Latency — 2-Segment Timestamp Measurement](exp-03-latency-e2e.md) | QAS-3 | TR-02, TR-03, TR-04 | ✅ Done | 2026-06-11~16 |
-| **EXP-04** | [Observer Pattern Compliance — Tab Extension Cost Measurement](exp-04-extensibility-observer-pattern.md) | QAS-4 | — | ✅ Done | 2026-06-21 |
-| **EXP-05** | [Detector Parameter Optimization Under Noise](exp-05-correctness-detector-optimization.md) | QAS-5 | TR-05 | ✅ Done | 2026-06-16~17 |
+| **EXP-06** | [WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000](exp-06-accuracy-weishi-comparison.md) | QAS-1 | — | ⏸ Planned | W5 S1 (2026-06-29) |
+| **EXP-01** | [RPi Real-Time Performance — Dropped Block Measurement](exp-01-realtime-dropped-block.md) | QAS-2 | TR-01 | ✅ Done | 2026-06-15 |
+| **EXP-02** | [End-to-End Latency — 2-Segment Timestamp Measurement](exp-02-latency-e2e.md) | QAS-3 | TR-02, TR-03, TR-04 | ✅ Done | 2026-06-11~16 |
+| **EXP-03** | [Observer Pattern Compliance — Tab Extension Cost Measurement](exp-03-extensibility-observer-pattern.md) | QAS-4 | — | ✅ Done | 2026-06-21 |
+| **EXP-04** | [Detector Parameter Optimization Under Noise](exp-04-correctness-detector-optimization.md) | QAS-5 | TR-05 | ✅ Done | 2026-06-16~17 |
 
-> **Dependency order**: EXP-02 → EXP-03 → EXP-05 → EXP-01. EXP-04 is independent.
+> **Dependency order**: EXP-01 → EXP-02 → EXP-04 → EXP-06. EXP-03 is independent.
 
 ---
 
-## EXP-01: WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000
+## EXP-06: WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000
 
 ### Status
 
@@ -48,7 +48,7 @@ Verify that TimeChecker (RPi 5, 96 kHz, real microphone) produces Rate, Amplitud
 
 ### Prerequisites
 
-EXP-02 (96k sps confirmed), EXP-03 (E2E < 100 ms), EXP-05 (onset=0.08 confirmed) must be complete.
+EXP-01 (96k sps confirmed), EXP-02 (E2E < 100 ms), EXP-04 (onset=0.08 confirmed) must be complete.
 
 ### Resources Required
 
@@ -61,7 +61,7 @@ EXP-02 (96k sps confirmed), EXP-03 (E2E < 100 ms), EXP-05 (onset=0.08 confirmed)
 
 ---
 
-## EXP-02: RPi Real-Time Performance — Dropped Block Measurement
+## EXP-01: RPi Real-Time Performance — Dropped Block Measurement
 
 ### Status
 
@@ -94,11 +94,11 @@ Verify that RPi 5 sustains zero dropped audio blocks at 96k sps under continuous
 |----------|--------|
 | Hardware | RPi 5 (host=lg1, device=rpi1) |
 | Software | TimeChecker with `droppedBlockCount` counter, 30 s ring buffer |
-| Log directory | `src/logs/EXP-01/` (legacy name) |
+| Log directory | `src/logs/EXP-01/` |
 
 ---
 
-## EXP-03: End-to-End Latency — 2-Segment Timestamp Measurement
+## EXP-02: End-to-End Latency — 2-Segment Timestamp Measurement
 
 ### Status
 
@@ -134,12 +134,12 @@ Measure end-to-end latency from audio block ready to beat result delivered, iden
 | Resource | Detail |
 |----------|--------|
 | Hardware | RPi 5 (rpi1, rpi2), macOS dev PC |
-| Log directory | `src/logs/EXP-02/` (legacy name) |
+| Log directory | `src/logs/EXP-02/` |
 | Analysis tool | `src/tools/analyze_log.py` |
 
 ---
 
-## EXP-04: Observer Pattern Compliance — Tab Extension Cost Measurement
+## EXP-03: Observer Pattern Compliance — Tab Extension Cost Measurement
 
 ### Status
 
@@ -173,7 +173,7 @@ All 14 tabs implemented under the ≤ 3-file constraint. Zero layer violations. 
 
 ---
 
-## EXP-05: Detector Parameter Optimization Under Noise
+## EXP-04: Detector Parameter Optimization Under Noise
 
 ### Status
 
@@ -205,7 +205,7 @@ Identify `onset_fraction` and `min_peak_fraction` values that maintain accurate 
 | Hardware | RPi 5 (host=lg1, device=rpi1) |
 | WAV source | 28,800 BPH real recording + pink noise (96 kHz, float32) |
 | Measurements | 274 (full grid: onset × min_peak × noise × 5 reps) |
-| Log directory | `src/logs/EXP-03/` (legacy name) |
+| Log directory | `src/logs/EXP-04/` |
 | Analysis tools | `src/tools/analyze_exp04_scatter.py` |
 
 ---
