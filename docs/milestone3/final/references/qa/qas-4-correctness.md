@@ -3,11 +3,15 @@
 > M1 name: "Correctness (QA-C2)". M2 refactor: split into signal quality (this) and accuracy goal (QAS-1).
 > M1 status: Provisional (pending EXP-05). M2 status: ✅ Verified 06/17 — onset=0.08, min_peak=0.10 confirmed.
 
-Correctness is not a standard Bass/CMK Quality Attribute. It is better understood as a **Functional Requirement + Reliability** property: the system must compute watch-performance measures correctly, display them consistently across all views, and remain reliable in the presence of acoustic noise.
+Correctness is not a standard Bass/CMK Quality Attribute. Its three sub-requirements each map to a different QA lens:
+
+- **Sub-1** — development-time **Modifiability**: isolating formulas into a testable module so calculation changes can be verified before they reach the binary
+- **Sub-2** — **Reliability**: single-source data flow ensures all tabs display consistent values at runtime
+- **Sub-3** — **Usability**: the system remains usable (signal quality feedback, noise warnings) when the acoustic environment degrades
 
 ---
 
-## Sub-Requirement 1: Calculation Accuracy — Testability
+## Sub-Requirement 1: Calculation Accuracy — Modifiability (development-time)
 
 The system shall compute rate (s/d), amplitude (°), and beat error (ms) in exact accordance with the formulas in the TimeGrapher Equations document.
 
@@ -54,7 +58,7 @@ Displayed values and graphs shall remain consistent across all GUI tabs — rate
 
 ---
 
-## Sub-Requirement 3: Noise Resilience — Availability
+## Sub-Requirement 3: Noise Resilience — Usability
 
 The system shall remain usable and produce reliable measurements in the presence of ambient acoustic noise (speech, handling vibration, environmental hum), while preserving the T1 (A) and T3 (C) events needed for correct beat detection.
 
