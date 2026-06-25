@@ -200,64 +200,124 @@
 
 ---
 
-**⑤ Beat Error Display and Diagnostic Trace** (~30 sec)
+**⑤ Beat Error Display and Diagnostic Trace** (~40 sec)
 
 - Switch to Beat Error tab
 
-> "Beat Error is the number that comes out of that A-to-C measurement.
-> It tells you how evenly the tic and toc are spaced within each beat.
-> A perfect watch is at zero.
-> Anything under 1 millisecond is generally acceptable for a well-adjusted watch.
-> The current reading is 0.2 milliseconds — well within tolerance.
-> The trace below shows how it has been changing over time.
-> A flat line means the watch is stable.
-> A drifting trace means the beat is slowly going out of adjustment."
+> "Beat Error has two panels.
+>
+> The top panel shows Beat Error in milliseconds over time.
+> The purple line is the rolling Beat Error value.
+> The red dots are the tic timing offset, the blue dots are the toc timing offset.
+> The green background band is the tolerance zone — roughly 0 to 0.5 milliseconds.
+> As long as the purple line stays inside the green band, the watch is well adjusted.
+> Right now the line is flat near zero, well inside tolerance.
+>
+> The bottom panel plots the same tic and toc offsets against beat number instead of time.
+> This lets you see whether the timing is drifting beat to beat,
+> or staying consistently at the same level.
+> Red and blue dots both sitting on zero means the tic and toc are perfectly even."
 
 ---
 
-**⑥ Long-Term Performance Graph** (~30 sec)
+**⑥ Long-Term Performance Graph** (~45 sec)
 
-- Switch to Long-Term tab
+- Switch to Long Term tab
 
-> "This graph is for extended sessions.
-> It tracks Rate, Amplitude, and Beat Error as trends over time —
-> minutes to hours.
-> If Rate is slowly climbing, the mainspring is running down.
-> If Amplitude drops suddenly, something changed mechanically."
+> "Long Term stacks three graphs on top of each other —
+> Rate, Amplitude, and Beat Error — all over the same time axis.
+> The header shows the current values at a glance:
+> Rate, Amplitude, Beat Error, and the granularity mode.
+>
+> The top panel is Rate in seconds per day.
+> The pink line shows the raw measurement, the dashed line is the mean.
+> You can see it started noisy and then settled — that's normal warm-up behavior.
+>
+> The middle panel is Amplitude in degrees.
+> The blue line fluctuates slightly around 302 degrees.
+> The shaded blue band is the one-sigma range — it tells you how much the amplitude varies.
+> A narrow band means the watch is consistent. A wide band means something is changing.
+>
+> The bottom panel is Beat Error in milliseconds.
+> The green line oscillates around 0.013 milliseconds — essentially zero.
+> Again the shaded band shows the variation range.
+>
+> All three together give you a complete picture of how the watch behaves over time,
+> not just at this moment."
 
 ---
 
-**⑦ Escapement Analyzer and Marker-Line Display** (~30 sec)
+**⑦ Escapement Analyzer** (~40 sec)
 
 - Switch to Escapement tab
 
-> "The escapement releases the gear train one step at a time on every beat.
-> This display marks the exact moment of each release — the A and C events —
-> on a time axis, with millisecond labels.
-> Uneven spacing between markers means the escapement is misfiring."
+> "The Escapement display zooms into a single beat and measures the A-to-C interval directly.
+>
+> The x-axis is time from the A event — from negative 2.5 milliseconds to about 11 milliseconds.
+> The green vertical line is the A event — T1 — the tic.
+> The red vertical line is the C event — T3 — the tac.
+> The amber shaded area between them is the measured interval.
+> Right now that interval is 6.84 milliseconds, labeled in the center.
+>
+> At the top you can see two sigma values —
+> sigma peak is 0.012 milliseconds, sigma onset is also 0.012 milliseconds.
+> That means the system measured this interval 20 times
+> and the standard deviation is 0.012 milliseconds.
+> Sub-millisecond precision, consistent across every beat.
+>
+> The waveform shows the actual acoustic signal —
+> the burst at A, quiet space in between, and the spike at C.
+> If that quiet space has extra bumps, the escapement is not releasing cleanly."
 
 ---
 
-**⑧ Time-Frequency Spectrogram Display** (~30 sec)
+**⑧ Time-Frequency Spectrogram** (~35 sec)
 
 - Switch to Spectrogram tab
 
-> "The spectrogram shows which frequencies are in the acoustic signal
-> and how they change over time.
-> The horizontal band here is the fundamental tick frequency.
-> If unexpected bands appear above it, something else is vibrating —
-> a loose part, a worn gear, or external interference."
+> "The Spectrogram shows which frequencies are present in the sound
+> and how they change over time — a 200 millisecond window per beat.
+>
+> X-axis is time in milliseconds, Y-axis is frequency from 0 to 20,000 Hz.
+> The color scale on the right goes from yellow — loud — to purple — quiet.
+>
+> What you see here are two bright vertical bursts.
+> The left burst is the A event, the right burst is the C event.
+> Both events produce energy across a very wide frequency range,
+> from a few hundred Hz all the way up to 20 kilohertz.
+> That wide spread is characteristic of a sharp mechanical impact.
+>
+> The True Peak meter at the top shows −0.1 dBFS — the signal is strong and clean.
+> If the watch had a loose part or a worn gear,
+> you would see an extra burst appearing between the two main ones,
+> or a smeared frequency pattern instead of a clean vertical line."
 
 ---
 
-**⑨ Waveform Comparison Display with Timing Markers** (~30 sec)
+**⑨ Waveform Comparison** (~40 sec)
 
-- Switch to Waveform Comparison tab
+- Switch to Waveform tab
 
-> "This overlays multiple beat waveforms aligned to the same start point.
-> If every beat looks the same shape, the watch is consistent.
-> The timing markers show exactly how far apart the A and C peaks are —
-> deviations here map directly to Beat Error."
+> "Waveform Comparison stacks the last three beats one below the other —
+> all aligned to the same A event at time zero.
+>
+> The top x-axis shows the balance wheel angle from A in degrees —
+> so you can read off where in the swing the C event happens.
+> Lift angle is 52 degrees, matching our Watch Parameters setting.
+>
+> The blue vertical line on each panel marks the A event.
+> The yellow spike is the C event — the tac.
+> The t_AC value in each panel header is the measured A-to-C interval for that beat.
+> Beat 1: 131.85 ms. Beat 2: 131.82 ms. Beat 3: 131.86 ms.
+>
+> The header at the top summarizes the range —
+> min 131.82, max 131.86, sigma 0.01 milliseconds across all captured beats.
+> That 0.04 millisecond spread is what produces the Beat Error reading.
+>
+> If the yellow spike shifts left or right between panels,
+> the timing is inconsistent beat to beat.
+> If the spike disappears in one panel, that beat was not detected —
+> a signal quality problem."
 
 ---
 
