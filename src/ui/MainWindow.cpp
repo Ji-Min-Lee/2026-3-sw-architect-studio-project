@@ -187,8 +187,6 @@ MainWindow::MainWindow(QWidget *parent)
         " padding: 3px 8px; border: 1px solid #e5e7eb; border-radius: 3px; }");
     mRunStatusTimer.setInterval(250);
     connect(&mRunStatusTimer, &QTimer::timeout, this, &MainWindow::updateRunStatusLine);
-    mLogTimer.setInterval(1000);
-    connect(&mLogTimer, &QTimer::timeout, this, &MainWindow::logMeasurement);
     ui->LiftAngleSpinBox->setValue(mLiftAngle);
     ui->SoundImage->CreateImage();
 
@@ -661,8 +659,22 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     mLastReplotCount = g_replotCount.exchange(0);
     mLastPlotUs      = g_plotUs.exchange(0);
     if (m.synced) ++mSyncedCount;
-    mLogSnapshot = { m.metrics.rate, m.metrics.amplitude, m.metrics.beatError,
-                     m.detectedBph, m.synced };
+    if (m.synced && (!mLogThrottle.isValid() || mLogThrottle.elapsed() >= 1000)) {
+        mLogThrottle.restart();
+        QString rateStr = m.metrics.rate      ? QString::number(*m.metrics.rate, 'f', 1)      : "N/A";
+        QString ampStr  = m.metrics.amplitude ? QString::number(*m.metrics.amplitude, 'f', 0) : "N/A";
+        QString beStr   = m.metrics.beatError ? QString::number(*m.metrics.beatError, 'f', 1) : "N/A";
+        qInfo().noquote() << QString(
+            "[1s] Rate: \"%1 s/day\" | Amplitude: \"%2 deg\" | BeatError: \"%3 ms\""
+            " | BPH: \"auto(%5)\" | LiftAngle: %6 deg | SampleRate: %7 Hz"
+            " | AvgPeriod: %8 s | Synced: yes")
+            .arg(rateStr, ampStr, beStr)
+            .arg(QString{})
+            .arg(m.detectedBph)
+            .arg(mLiftAngle, 0, 'f', 1)
+            .arg(mCurrentSamplesPerSecond)
+            .arg(mAveragingPeriod);
+    }
     checkWatchDetached(m);  // update detached state before formatting the label
     checkNoise(m);          // all modes: ambient-noise popup
     DisplayResults(m);
@@ -846,25 +858,6 @@ void MainWindow::DisplayResults(const Measurement &m)
 }
 
 
-void MainWindow::logMeasurement()
-{
-    if (!mLogSnapshot.synced) return;
-
-    QString rateStr = mLogSnapshot.rate      ? QString::number(*mLogSnapshot.rate, 'f', 1)      : "N/A";
-    QString ampStr  = mLogSnapshot.amplitude ? QString::number(*mLogSnapshot.amplitude, 'f', 0) : "N/A";
-    QString beStr   = mLogSnapshot.beatError ? QString::number(*mLogSnapshot.beatError, 'f', 1) : "N/A";
-
-    qInfo().noquote() << QString(
-        "[1s] Rate: \"%1 s/day\" | Amplitude: \"%2 deg\" | BeatError: \"%3 ms\""
-        " | BPH: \"auto(%5)\" | LiftAngle: %6 deg | SampleRate: %7 Hz"
-        " | AvgPeriod: %8 s | Synced: yes")
-        .arg(rateStr, ampStr, beStr)
-        .arg(QString{})
-        .arg(mLogSnapshot.detectedBph)
-        .arg(mLiftAngle, 0, 'f', 1)
-        .arg(mCurrentSamplesPerSecond)
-        .arg(mAveragingPeriod);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // T2: receive per-frame log data from DSP thread, write CSV on main thread
@@ -1047,7 +1040,7 @@ void MainWindow::startSessionClock()
     mSessionActiveMs = 0;
     mSessionTimer.start();
     mRunStatusTimer.start();
-    mLogTimer.start();
+    mLogThrottle.invalidate();
     updateRunStatusLine();
 }
 
@@ -1056,7 +1049,6 @@ void MainWindow::stopSessionClock()
     mSessionActiveMs = 0;
     mSessionTimer.invalidate();
     mRunStatusTimer.stop();
-    mLogTimer.stop();
     updateRunStatusLine();
 }
 

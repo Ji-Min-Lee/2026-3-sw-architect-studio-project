@@ -72,7 +72,6 @@ private slots:
     void on_UseConsetCheckBox_toggled(bool checked);
 
     void onMeasurementReady(const Measurement &m);
-    void logMeasurement();
 
 public slots:
     void onSessionStopped();
@@ -216,12 +215,7 @@ private:
     QElapsedTimer mSessionTimer;
     qint64        mSessionActiveMs = 0;
     QTimer        mRunStatusTimer;
-    QTimer        mLogTimer;
-    struct LogSnapshot {
-        std::optional<double> rate, amplitude, beatError;
-        int  detectedBph = 0;
-        bool synced      = false;
-    } mLogSnapshot;
+    QElapsedTimer mLogThrottle;
 
     // FPS stats (updated from SessionController::frameLogged)
     double mBackgroundLastFPS = 0.0;
