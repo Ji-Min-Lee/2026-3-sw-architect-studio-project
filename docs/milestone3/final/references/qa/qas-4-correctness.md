@@ -26,7 +26,7 @@ The system shall compute rate (s/d), amplitude (°), and beat error (ms) in exac
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| `WatchMath` Pure Calculation Module | [ADR-004: WatchMath Module Isolation](../adr/ADR-004-watchmath-module-isolation.md) | [EXP-03: Calculation Accuracy Unit Tests](../experiments/exp-03-calculation-accuracy.md) | [Decomposition View: Engine Layer](../views/view-decomposition-engine.md) |
+| `WatchMath` Pure Calculation Module | [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) | [EXP-03: Calculation Accuracy Unit Tests](../experiments/exp-03-calculation-accuracy.md) | [Decomposition View: Engine Layer](../views/view-decomposition-engine.md) |
 
 ---
 
@@ -74,7 +74,7 @@ The system shall remain usable and produce reliable measurements in the presence
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
 | 96kHz Sample Rate | [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [Allocation View](../views/view-allocation.md) |
-| LP/HP FilterChain | [ADR-005: FilterChain Design](../adr/ADR-005-filterchain-design.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [C&C View: Signal Processing Pipeline](../views/view-cnc-signal-pipeline.md) |
+| LP/HP FilterChain | [ADR-009: FilterChain Design](../adr/ADR-009-filterchain-design.md) | [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md) | [C&C View: Signal Processing Pipeline](../views/view-cnc-signal-pipeline.md) |
 
 ---
 
