@@ -854,15 +854,16 @@ void MainWindow::logMeasurement()
     QString ampStr  = m.metrics.amplitude ? QString::number(*m.metrics.amplitude, 'f', 0) : "N/A";
     QString beStr   = m.metrics.beatError ? QString::number(*m.metrics.beatError, 'f', 1) : "N/A";
 
-    qInfo("[1s] Rate: \"%1 s/day\" | Amplitude: \"%2 deg\" | BeatError: \"%3 ms\""
-          " | BPH: \"auto(%5)\" | LiftAngle: %6 deg | SampleRate: %7 Hz"
-          " | AvgPeriod: %8 s | Synced: yes",
-          rateStr, ampStr, beStr,
-          QString{},             // %4 intentionally unused (reserved placeholder)
-          QString::number(m.detectedBph),
-          QString::number(mLiftAngle, 'f', 1),
-          QString::number(mCurrentSamplesPerSecond),
-          QString::number(mAveragingPeriod));
+    qInfo().noquote() << QString(
+        "[1s] Rate: \"%1 s/day\" | Amplitude: \"%2 deg\" | BeatError: \"%3 ms\""
+        " | BPH: \"auto(%5)\" | LiftAngle: %6 deg | SampleRate: %7 Hz"
+        " | AvgPeriod: %8 s | Synced: yes")
+        .arg(rateStr, ampStr, beStr)
+        .arg(QString{})
+        .arg(m.detectedBph)
+        .arg(mLiftAngle, 0, 'f', 1)
+        .arg(mCurrentSamplesPerSecond)
+        .arg(mAveragingPeriod);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
