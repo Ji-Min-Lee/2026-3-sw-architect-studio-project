@@ -134,9 +134,12 @@ Multi-position measurement table with embedded Radar Chart.
 **Left — Position table**
 
 Rows:
-- **CH** — Crown Horizontal (face up)
-- **CB** — Crown Back (face down)
-- **9H / 6H / 3H / 12H** — four vertical positions (crown pointing left/down/right/up)
+- **CH** — Cadran Haut: Dial Up (face up)
+- **CB** — Cadran Bas: Dial Down (face down)
+- **9H** — 9 Hour: Crown Down (9:00 position facing upward)
+- **6H** — 6 Hour: Crown Left (6:00 position facing upward)
+- **3H** — 3 Hour: Crown Up (3:00 position facing upward)
+- **12H** — 12 Hour: Crown Right (12:00 position facing upward)
 - **CU(R) / CU(L)** — Crown Up right/left
 - **CD(R) / CD(L)** — Crown Down right/left
 

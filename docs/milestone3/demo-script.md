@@ -22,7 +22,7 @@
 - The position indicator in the status bar currently reads "CH" (Crown Horizontal)
 
 > "A mechanical watch behaves differently depending on how it's oriented —
-> crown up, crown down, dial up, and so on.
+> dial up, dial down, crown down, crown left, and so on.
 > Traditionally, the user had to manually note the position and record measurements one by one.
 > We automated that.
 >
@@ -31,14 +31,14 @@
 > the system detects the orientation automatically
 > and updates the active position label here."
 
-- Rotate the watch to 9H (crown left)
+- Rotate the watch to 9H (crown down)
 
-> "Crown left — the system detected it and switched to 9H automatically.
+> "Crown down — the system detected it and switched to 9H automatically.
 > No button press, no dropdown."
 
-- Rotate to 6H (crown down)
+- Rotate to 6H (crown left)
 
-> "Crown down — 6H. Detected instantly."
+> "Crown left — 6H. Detected instantly."
 
 - Rotate back to CH
 
@@ -156,8 +156,9 @@
 - Switch to Sequence tab
 
 > "Sequence is where all the position measurements come together.
-> Each row is one watch position — CH is crown horizontal, CB is crown back,
-> then 9H, 6H, 3H, 12H for the four vertical positions.
+> Each row is one watch position —
+> CH is dial up, CB is dial down,
+> 9H is crown down, 6H is crown left, 3H is crown up, 12H is crown right.
 > The columns show Rate, Beat Error, and Amplitude for each position.
 > The currently active position is highlighted — right now 12H.
 >
@@ -572,7 +573,7 @@
 > "For the bonus feature — the Radar Chart.
 >
 > Each position label around the edge corresponds to a watch orientation —
-> CH is crown horizontal, CB is crown back, then 9H, 6H, 3H, 12H for vertical positions,
+> CH is dial up, CB is dial down, 9H is crown down, 6H is crown left, 3H is crown up, 12H is crown right,
 > and CU, CD for crown up and down.
 >
 > The red dots are the measured Amplitude for each position.
