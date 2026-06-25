@@ -489,7 +489,7 @@
 >
 > Weishi also uses a microphone, but its internal detection threshold and
 > signal processing are not publicly documented,
-> so differences in C-event detection tuning or formula cannot be ruled out."
+> so differences in C-event detection tuning or formula cannot be ruled out.
 >
 > The offset is small and consistent — characteristic of a systematic offset, not random error.
 > The root cause is the C-event detection timing, not our A-event pipeline."
