@@ -4,6 +4,29 @@
 
 ---
 
+## Accuracy as the Governing Project Goal
+
+Accuracy — producing Rate, Amplitude, and Beat Error values that faithfully represent the watch's true mechanical behavior — is the overarching objective of this project, not a single architectural QA scenario.
+
+Accuracy is not directly achievable through one architectural decision. Instead, it is delivered by the combined effect of multiple structural QAs, each of which removes a failure mode that would otherwise corrupt the output:
+
+| QA | How it serves Accuracy |
+|----|----------------------|
+| QAS-1 Real-Time Performance | Dropped audio blocks cause missed beats → wrong Rate and Beat Error |
+| QAS-2 Low Latency | Stale display values mislead the user about current watch state |
+| QAS-4 Correctness (Sub-1) | Formula errors in WatchMath produce systematically wrong values |
+| QAS-4 Correctness (Sub-3) | Noise-triggered false beats corrupt Rate and Beat Error statistics |
+| ADR-003 96kHz Sample Rate | Higher timing resolution reduces quantization error in Beat Error computation |
+
+When architectural decisions conflicted with other QAs, accuracy concerns broke the tie:
+- **Performance cost vs. Accuracy**: 96kHz adopted over 48kHz despite higher CPU/memory cost (ADR-003)
+- **Complexity vs. Accuracy**: WatchMath isolated as a pure calculation module to enable formula-level unit testing (QAS-4 Sub-1)
+- **Usability vs. Accuracy**: FilterChain parameters exposed to the user so the signal can be tuned for each environment rather than locked to a default that may degrade measurement quality
+
+QAS-5 captures the user-observable verification of this goal. Its measure (Δ Rate < 0.3 s/d vs. WeiShi No.1000) is an acceptance criterion, not an architectural driver.
+
+---
+
 ## Priority Summary
 
 | Priority | QA | Architecture | Rationale | Experiment | View |
