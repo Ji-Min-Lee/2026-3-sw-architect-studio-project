@@ -469,14 +469,25 @@
 > within our target tolerance.
 > This confirms that our signal processing pipeline produces accurate measurements."
 
-**If values differ:**
-> "There is a small difference here.
-> Our analysis suggests this is due to [microphone placement distance / ambient noise attenuation /
-> filter cutoff tuning].
-> The WeiShi uses a contact sensor directly on the watch case —
-> our system uses a non-contact microphone,
-> so some signal attenuation is expected.
-> The relative trend and directional reading are consistent between both systems."
+**If values differ (especially Amplitude):**
+> "There is a small difference — most visible in Amplitude. This is expected and understood.
+>
+> Both devices use the same fundamental formula:
+> Amplitude = (3600 × lift angle) / (π × BPH × T1),
+> where T1 is the time between the A-event and C-event.
+>
+> The difference likely comes from two sources.
+> First, T1 detection timing: Weishi uses dedicated hardware with a tuned analog circuit.
+> We use a microphone and software onset detection.
+> The C-event sound is weaker than the A-event — the pallet fork exits without transferring energy —
+> so our detector crosses the threshold slightly later, making T1 marginally longer,
+> which lowers the amplitude reading.
+>
+> Second, Weishi's exact internal formula is not publicly documented,
+> so a formula difference cannot be ruled out either.
+>
+> The offset is small and consistent — characteristic of a systematic offset, not random error.
+> Rate and Beat Error, which do not depend on T1 in the same way, match closely."
 
 **Consistency demonstration:**
 
