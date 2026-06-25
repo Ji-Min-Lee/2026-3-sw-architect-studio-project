@@ -143,6 +143,11 @@ private:
     void   checkNoise(const Measurement &m);
     void   raiseNoiseAlarm(void);
 
+    // Demo: auto-detect horizontal <-> vertical from the amplitude drop and set
+    // POS accordingly (enabled by the Sequence tab "Auto H↔V" checkbox). Starts
+    // from horizontal; learns the horizontal amplitude baseline automatically.
+    void   checkPosition(const Measurement &m);
+
     bool   eventFilter(QObject *obj, QEvent *event) override;
 
     Ui::MainWindow *ui;
@@ -186,6 +191,21 @@ private:
     static constexpr double  kNoiseThresholdDb = 51.0;   // EXP-04 calibrated (was 55; failure onset ~54)
     static constexpr qint64  kNoiseOnMs        = 2000;   // sustained → show
     static constexpr qint64  kNoiseOffMs       = 2000;   // sustained → hide
+
+    // Demo: auto horizontal<->vertical position detection (amplitude step).
+    bool          mPosRunActive  = false;  // a Live run is in progress (re-inits each run)
+    bool          mPosVertical   = false;  // current detected state (false = horizontal)
+    bool          mPosBaselineSet = false; // horizontal amplitude baseline learned?
+    double        mPosBaselineAmp = 0.0;   // EMA of amplitude while horizontal
+    QElapsedTimer mPosBelowSince;          // sustained time below the drop threshold
+    QElapsedTimer mPosAboveSince;          // sustained time back near the baseline
+    static constexpr double kPosDropDeg    = 15.0;  // amp < baseline-this → vertical
+    static constexpr double kPosReturnDeg  = 8.0;   // amp > baseline-this → horizontal (hysteresis)
+    static constexpr qint64 kPosDebounceMs = 1500;  // sustained for this long before switching
+    // Position labels shown for each class (vertical is acoustically ambiguous —
+    // pick the one the demo physically uses; change here if needed).
+    inline static const QString kPosHorizLabel = "CH";   // dial up (flat)
+    inline static const QString kPosVertLabel  = "6H";   // standing (vertical)
 
     // WAV recording (dialog + writer owned here; session does not touch it)
     WavStreamWriter *mWavWriter = nullptr;

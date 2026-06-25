@@ -596,6 +596,7 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     if (m.synced) ++mSyncedCount;
     checkWatchDetached(m);  // update detached state before formatting the label
     checkNoise(m);          // all modes: ambient-noise popup
+    checkPosition(m);       // demo: auto horizontal<->vertical POS
     DisplayResults(m);
 }
 
@@ -702,6 +703,58 @@ void MainWindow::raiseNoiseAlarm(void)
         mNoiseAlarm->show();
         mNoiseAlarm->raise();
         mNoiseAlarm->activateWindow();
+    }
+}
+
+// Demo: auto-switch POS between horizontal (flat) and vertical (standing) from
+// the balance amplitude. Horizontal positions read a higher amplitude than
+// vertical ones (lower pivot friction); the drop is universal in direction, so
+// we learn the horizontal amplitude as a baseline (the run starts flat) and
+// switch on a sustained drop/recovery with hysteresis. Only the H<->V class is
+// distinguishable acoustically — which specific position cannot be (sensor-free).
+void MainWindow::checkPosition(const Measurement &m)
+{
+    const bool running = ui->StopPushButton->isEnabled();
+    if (!running || !mSequenceTab || !mSequenceTab->autoPosition()) {
+        mPosRunActive = false;        // re-initialise on the next enabled run
+        return;
+    }
+    if (!mPosRunActive) {             // new run → assume the watch starts flat
+        mPosRunActive   = true;
+        mPosVertical    = false;
+        mPosBaselineSet = false;
+        mPosBelowSince.invalidate();
+        mPosAboveSince.invalidate();
+        mSequenceTab->selectPosition(kPosHorizLabel);
+    }
+    if (!m.metrics.amplitude.has_value()) return;
+    const double amp = *m.metrics.amplitude;
+
+    // Learn / track the horizontal amplitude baseline only while horizontal.
+    if (!mPosVertical) {
+        if (!mPosBaselineSet) { mPosBaselineAmp = amp; mPosBaselineSet = true; }
+        else                  mPosBaselineAmp = 0.9 * mPosBaselineAmp + 0.1 * amp;
+    }
+    if (!mPosBaselineSet) return;
+
+    if (!mPosVertical) {                                   // horizontal → vertical?
+        if (amp < mPosBaselineAmp - kPosDropDeg) {
+            if (!mPosBelowSince.isValid()) mPosBelowSince.restart();
+            if (mPosBelowSince.elapsed() >= kPosDebounceMs) {
+                mPosVertical = true;
+                mPosBelowSince.invalidate(); mPosAboveSince.invalidate();
+                mSequenceTab->selectPosition(kPosVertLabel);
+            }
+        } else mPosBelowSince.invalidate();
+    } else {                                               // vertical → horizontal?
+        if (amp > mPosBaselineAmp - kPosReturnDeg) {
+            if (!mPosAboveSince.isValid()) mPosAboveSince.restart();
+            if (mPosAboveSince.elapsed() >= kPosDebounceMs) {
+                mPosVertical = false;
+                mPosAboveSince.invalidate(); mPosBelowSince.invalidate();
+                mSequenceTab->selectPosition(kPosHorizLabel);
+            }
+        } else mPosAboveSince.invalidate();
     }
 }
 
