@@ -120,7 +120,7 @@ We mitigate this risk by three means, each corresponding to a Ch.12 testability 
 
 ## Status
 
-Accepted (2026-06-22)
+Accepted
 
 All 14 tabs implemented and registered using this pattern. Verified: no tab touches
 `MeasurementEngine`, `SessionController`, or any layer below Presentation.

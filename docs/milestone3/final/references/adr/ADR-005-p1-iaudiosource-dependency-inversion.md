@@ -69,7 +69,7 @@ blocks; and ties `SessionController` to all concrete types anyway.
 
 ## Status
 
-Accepted (2026-06-22)
+Accepted
 
 Implemented as part of the P1 refactor series (i1: `SessionController` extraction,
 i6: `AudioManager` dead-code removal).

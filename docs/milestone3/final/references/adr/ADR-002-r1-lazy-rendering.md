@@ -63,7 +63,7 @@ one beat period (< 21ms at 28,800 BPH), which is imperceptible.
 
 ## Status
 
-Accepted (2026-06-15, macOS validated)
+Accepted
 
 RPi impact confirmation via EXP-01 R5 scheduled: 2026-06-23.
 Full 11-tab load test via EXP-04 scheduled: 2026-06-26.

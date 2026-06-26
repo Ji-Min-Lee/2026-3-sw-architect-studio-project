@@ -13,7 +13,8 @@ This view shows which hardware nodes run which software artifacts and what the d
 - Does **not** require direct access to microphone hardware for structural validation.
 
 #### Raspberry Pi 5 (Target Hardware)
-- ARM64, Ubuntu 24.04, 4-core Cortex-A76.
+- ARM64 Cortex-A76, 4 cores @ 2.4 GHz, 8 GB LPDDR4X RAM.
+- Ubuntu 24.04, Qt 6, ALSA audio stack.
 - Runs the production binary: AudioCapture via ALSA, DSPWorker, Qt 6 GUI.
 - Used for hardware experiments (EXP-06, EXP-01 R5, EXP-04) and M3 final demo.
 - **Constraint**: AGC must be disabled on every boot (`alsamixer`) — AGC enabled causes Amplitude and Beat Error measurements to be unreliable.
@@ -23,7 +24,8 @@ This view shows which hardware nodes run which software artifacts and what the d
 - Dev machine pushes; RPi pulls. No file transfer or re-imaging required.
 
 #### Microphone (Hardware Input)
-- USB microphone connected to RPi; captures the watch's acoustic beat signal at 96kHz (target) or 48kHz (fallback).
+- USB microphone connected to RPi via USB 2.0 (480 Mbps); captures the watch's acoustic beat signal at 96kHz (target) or 48kHz (fallback).
+- Audio data rate at 96kHz / 32-bit mono: ~3.1 Mbps — well within USB 2.0 bandwidth.
 
 ## Behavior
 

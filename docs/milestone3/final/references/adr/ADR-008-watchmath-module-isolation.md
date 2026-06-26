@@ -81,7 +81,7 @@ are an order of magnitude faster and produce precise failure messages.
 
 ## Status
 
-Accepted (2026-06-17)
+Accepted
 
 Implemented in `src/engine/WatchMath.h` / `WatchMath.cpp`.
 Verified by `src/tests/test_watch_math.cpp` — 44 test cases, all pass (see unit-test-results.md).

@@ -92,7 +92,7 @@ in varied environments while preserving measurement accuracy.
 
 ## Status
 
-Accepted (implementation inherited from baseline; design rationale documented 2026-06-25)
+Accepted
 
 Implemented in `src/external/Dsp.h` / `Dsp.cpp`.
 Default parameters verified via EXP-04 (274 runs, onset=0.08, min_peak=0.10 confirmed):
