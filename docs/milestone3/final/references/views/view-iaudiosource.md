@@ -56,5 +56,5 @@ SessionController «use» IAudioSource
 
 ## Related views
 
-- [Layered View: 4-Layer Allowed-to-Use](view-layered-4layer.md) — shows `IAudioSource` and workers in the Acquisition layer context
+- [Layered and Module Decomposition View](view-layered-4layer.md) — shows `IAudioSource` and workers in the Acquisition layer context
 - [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — runtime view; `SessionController` owns the T1 thread lifecycle shown here

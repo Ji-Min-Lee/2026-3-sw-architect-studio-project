@@ -63,7 +63,7 @@ Displayed values and graphs shall remain consistent across all GUI tabs — rate
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
 | Observer Pattern (BaseGraphTab) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) |
-| 4-Layer Allowed-to-Use (single ownership of measurement state) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md) |
+| Layered and Module Decomposition (single ownership of measurement state) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered and Module Decomposition View](../views/view-layered-4layer.md) |
 
 ---
 

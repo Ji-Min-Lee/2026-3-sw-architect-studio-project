@@ -2,7 +2,7 @@
 
 This view shows the four-layer module structure of the TimeGrapher system and the allowed dependency directions between layers. Its purpose is not just to name the layers, but to show the architectural rule that keeps change localized: new UI features stay in Presentation, new audio sources stay in Acquisition, and lower-layer changes do not ripple upward. It is the primary evidence for QAS-3 (Extensibility / Modifiability).
 
-![4-Layer Allowed-to-Use View](../../assets/view1-layered-module.png)
+![Layered and Module Decomposition View](../../assets/view1-layered-module.png)
 
 ## When to Show This View
 

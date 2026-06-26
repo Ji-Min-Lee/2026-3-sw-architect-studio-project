@@ -158,5 +158,5 @@ All 14 tabs implemented and registered using this pattern. Verified: no tab touc
 
 - [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) — structural
   decomposition of the Presentation layer; this ADR is the rationale for that structure
-- [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md) — `BaseGraphTab`
+- [Layered and Module Decomposition View](../views/view-layered-4layer.md) — `BaseGraphTab`
   and all tab implementations live in the Presentation layer; allowed to reference Domain only

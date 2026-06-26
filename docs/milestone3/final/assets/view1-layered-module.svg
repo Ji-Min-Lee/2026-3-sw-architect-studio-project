@@ -17,7 +17,7 @@
     </marker>
   </defs>
 
-  <text x="700" y="52" text-anchor="middle" class="title">Layered View: 4-Layer Allowed-to-Use</text>
+  <text x="700" y="52" text-anchor="middle" class="title">Layered and Module Decomposition View</text>
   <text x="700" y="82" text-anchor="middle" class="subtitle">QAS-3 Extensibility / Modifiability · the architecture localizes change by restricting usage dependencies</text>
 
   <rect x="98" y="120" width="880" height="90" rx="0" fill="#f6dddd" stroke="#222222" stroke-width="3"/>

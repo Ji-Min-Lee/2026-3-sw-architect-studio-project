@@ -57,14 +57,6 @@ Observer contract compliance validated by AI-generated unit tests (see Behavior 
 
 ![Measurement Broadcast to Graph Tabs View](../../assets/view2-measurement-broadcast-to-graph-tabs.png)
 
-This UML sequence diagram shows the narrow behavior that matters for this view: one published `Measurement` event fan-outs through the observer contract to all registered graph tabs and to the summary display. It exists to explain why Observer supports the project goal of low-cost tab extension.
-
-The trace makes three points:
-
-1. `MainWindow` and `SessionController` perform setup once by wiring the observer list.
-2. `MeasurementEngine` publishes one `Measurement` event without referencing any concrete tab class.
-3. A UML `loop` frame makes the fan-out explicit: each registered `BaseGraphTab` subscriber receives the same event, so adding a new tab means adding one subscriber rather than modifying the publisher.
-
 Representative beat-event trace:
 
 ```
@@ -81,8 +73,6 @@ loop [for each registered tab]
 MeasurementEngine
     ->> ResultsSummary::onMeasurementReady(m)
 ```
-
-Observer contract validation: AI-generated unit tests verify that every registered tab receives the shared `Measurement` snapshot and honors the `BaseGraphTab` contract.
 
 Measured results: → [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md)
 

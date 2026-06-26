@@ -42,6 +42,6 @@ This view shows the module structure of the Domain layer's `Measurement` aggrega
 
 ## Related Views
 
-- [Layered View: 4-Layer Allowed-to-Use](view-layered-4layer.md) — where the Domain layer sits in the dependency hierarchy
+- [Layered and Module Decomposition View](view-layered-4layer.md) — where the Domain layer sits in the dependency hierarchy
 - [C&C View: DSP Pipeline](view-cc-dsp-pipeline.md) — how `Measurement` is published via the Observer signal
 - [Module View: IAudioSource Dependency Inversion](view-iaudiosource.md) — the sibling extension-point module view

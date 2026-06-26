@@ -108,7 +108,7 @@ src/ (source tree)
 ## Related Views
 
 - [Deployment View: Build-Deploy Pipeline](view-deployment-build-pipeline.md) — shows which node (macOS vs RPi) runs these binaries
-- [Layered View: 4-Layer Allowed-to-Use](view-layered-4layer.md) — layer structure that these binaries verify does not regress
+- [Layered and Module Decomposition View](view-layered-4layer.md) — layer structure that these binaries verify does not regress
 
 ## Related References
 

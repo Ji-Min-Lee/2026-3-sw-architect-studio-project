@@ -1,6 +1,6 @@
-# TimeGrapher build and deploy pipeline view
+# TimeGrapher Deployment View
 
-This view shows which hardware nodes run which software artifacts and what the deploy path is from the developer's machine to the Raspberry Pi 5. It answers: "How does code built on macOS reach the target hardware for experiments and the final demo?"
+This view shows the computing infrastructure on which TimeGrapher runs: the hardware nodes, their key properties, and the connections between them. It answers: "What hardware does TimeGrapher run on, how are the nodes connected, and what are the relevant hardware constraints?"
 
 ![RPi 5 Deployment View](../../assets/view4-deployment.png)
 
@@ -64,4 +64,4 @@ Dev Machine
 ## Related views
 
 - [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — shows the runtime components that execute on the RPi node
-- [Layered View: 4-Layer Allowed-to-Use](view-layered-4layer.md) — module structure validated on dev machine before RPi deployment
+- [Layered and Module Decomposition View](view-layered-4layer.md) — module structure validated on dev machine before RPi deployment

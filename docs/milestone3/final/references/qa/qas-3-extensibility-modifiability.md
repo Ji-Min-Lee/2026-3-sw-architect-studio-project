@@ -61,5 +61,5 @@ publish-subscribe pattern can negatively impact testability."* We mitigate this 
 
 | Architecture | Rationale | Experiment | View |
 |---|---|---|---|
-| 4-Layer Allowed-to-Use | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md) |
+| Layered and Module Decomposition | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered and Module Decomposition View](../views/view-layered-4layer.md) |
 | Observer Pattern (BaseGraphTab) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) |

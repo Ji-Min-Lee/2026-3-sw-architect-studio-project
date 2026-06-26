@@ -14,7 +14,7 @@
     <mxCell id="qa1" value="Measurement Accuracy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3d5a80;fontColor=#ffffff;strokeColor=#1a2a40;fontStyle=1;fontSize=11;" vertex="1" parent="1">
       <mxGeometry x="175" y="85" width="185" height="50" as="geometry" />
     </mxCell>
-    <mxCell id="sc1" value="Rate/Amplitude/Beat Error match WeiShi No.1000 at 28,800 BPH; 0 deviation across all tabs (tolerance set by EXP-01)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fb;fontColor=#333333;strokeColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+    <mxCell id="sc1" value="Rate/Amplitude/Beat Error match Witschi No.1000 at 28,800 BPH; 0 deviation across all tabs (tolerance set by EXP-01)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fb;fontColor=#333333;strokeColor=#cccccc;fontSize=10;" vertex="1" parent="1">
       <mxGeometry x="390" y="85" width="440" height="50" as="geometry" />
     </mxCell>
     <mxCell id="p1" value="(H, H)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c0392b;fontColor=#ffffff;strokeColor=#922b21;fontStyle=1;fontSize=10;" vertex="1" parent="1">
