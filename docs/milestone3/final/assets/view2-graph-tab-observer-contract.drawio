@@ -1,0 +1,100 @@
+<mxfile host="65bd71144e">
+    <diagram id="graph-tab-observer-contract" name="Graph Tab Observer Contract View">
+        <mxGraphModel dx="1260" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="760" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+
+                <mxCell id="title" value="Graph Tab Observer Contract View" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=16;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="14" width="1120" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="subtitle" value="Module View — UML Class Diagram · QAS-3 Modifiability · QAS-4 Internal Consistency" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=2;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="38" width="1120" height="18" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="mw" value="MainWindow" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;resizeParent=1;resizeLast=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#333333;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="130" width="250" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="mwOps" value="+ registerTab(tab, label)&#xa;+ onMeasurementReady(m)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;fontSize=10;" parent="mw" vertex="1">
+                    <mxGeometry y="26" width="250" height="64" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="sc" value="SessionController" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;resizeParent=1;resizeLast=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="305" width="250" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="scStereo" value="&lt;&lt;wiring coordinator&gt;&gt;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" parent="sc" vertex="1">
+                    <mxGeometry y="26" width="250" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="scOps" value="+ connectObservers(tabs, receiver, slot)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;fontSize=10;" parent="sc" vertex="1">
+                    <mxGeometry y="46" width="250" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="base" value="BaseGraphTab" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;resizeParent=1;resizeLast=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="210" width="280" height="126" as="geometry"/>
+                </mxCell>
+                <mxCell id="baseStereo" value="&lt;&lt;abstract&gt;&gt; &lt;&lt;Observer&gt;&gt;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" parent="base" vertex="1">
+                    <mxGeometry y="26" width="280" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="baseAttr" value="# mPaused : bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;fontSize=10;" parent="base" vertex="1">
+                    <mxGeometry y="48" width="280" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="baseOps" value="+ onMeasurement(m : Measurement)&#xa;+ replotAll()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;fontSize=10;" parent="base" vertex="1">
+                    <mxGeometry y="72" width="280" height="50" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="trace" value="TraceTab" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=24;resizeParent=1;resizeLast=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="120" width="170" height="48" as="geometry"/>
+                </mxCell>
+                <mxCell id="vario" value="VarioTab" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=24;resizeParent=1;resizeLast=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="210" width="170" height="48" as="geometry"/>
+                </mxCell>
+                <mxCell id="beat" value="BeatErrorTab" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=24;resizeParent=1;resizeLast=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="300" width="170" height="48" as="geometry"/>
+                </mxCell>
+                <mxCell id="other" value="OtherGraphTabs" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=24;resizeParent=1;resizeLast=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="390" width="170" height="48" as="geometry"/>
+                </mxCell>
+                <mxCell id="otherStereo" value="&lt;&lt;11 concrete tabs&gt;&gt;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" parent="other" vertex="1">
+                    <mxGeometry y="24" width="170" height="20" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="meas" value="Measurement" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=24;resizeParent=1;resizeLast=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#333333;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="455" y="78" width="180" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="measStereo" value="&lt;&lt;Value Object&gt;&gt;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" parent="meas" vertex="1">
+                    <mxGeometry y="24" width="180" height="24" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e1" value="mAllTabs[*]" style="startArrow=diamondThin;startFill=0;endArrow=none;html=1;strokeColor=#333333;strokeWidth=1.5;fontSize=10;" parent="1" source="mw" target="base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" value="connectObservers(...)" style="dashed=1;endArrow=open;endFill=0;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;" parent="1" source="mw" target="sc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" value="uses observer contract" style="dashed=1;endArrow=open;endFill=0;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;" parent="1" source="sc" target="base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" value="reads" style="dashed=1;endArrow=open;endFill=0;html=1;strokeColor=#6c8ebf;strokeWidth=1.2;fontSize=10;" parent="1" source="base" target="meas" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="g1" value="" style="endArrow=block;endFill=0;endSize=12;html=1;strokeColor=#333333;strokeWidth=1.5;" parent="1" source="trace" target="base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="g2" value="" style="endArrow=block;endFill=0;endSize=12;html=1;strokeColor=#333333;strokeWidth=1.5;" parent="1" source="vario" target="base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="g3" value="" style="endArrow=block;endFill=0;endSize=12;html=1;strokeColor=#333333;strokeWidth=1.5;" parent="1" source="beat" target="base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="g4" value="" style="endArrow=block;endFill=0;endSize=12;html=1;strokeColor=#333333;strokeWidth=1.5;" parent="1" source="other" target="base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note" value="UML reading: concrete tabs generalize the abstract BaseGraphTab contract; MainWindow aggregates the observer list; SessionController depends on the contract only for wiring." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=2;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="500" width="920" height="58" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
