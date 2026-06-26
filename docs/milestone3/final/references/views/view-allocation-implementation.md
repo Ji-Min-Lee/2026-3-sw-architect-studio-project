@@ -1,4 +1,4 @@
-# Allocation View: Implementation Style — Test Binaries & Build Artifacts
+# TimeGrapher test binaries and build artifacts view
 
 **Style**: Implementation (할당 뷰 — 구현 스타일)  
 **Mapping**: Software modules → File system / Build infrastructure  

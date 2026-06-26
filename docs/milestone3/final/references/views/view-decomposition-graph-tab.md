@@ -1,63 +1,10 @@
-# Decomposition View: Graph Tab
+# Graph tab extension view
 
 This view decomposes the Presentation layer into its internal components, focusing on the `BaseGraphTab` interface and the `MainWindow` tab registry. It answers: "What must a developer implement to add a new graph tab?"
 
-```mermaid
-classDiagram
-    class MeasurementEngine {
-        <<Subject>>
-        +measurementReady(m Measurement)
-    }
-    class BaseGraphTab {
-        <<abstract, Observer>>
-        +onMeasurement(m Measurement)*
-        +replotAll()*
-        #mPaused bool
-    }
-    class TraceTab
-    class VarioTab
-    class BeatErrorTab
-    class OtherTabs["... + 11 more tabs"]
-    class Measurement {
-        <<Value Object>>
-    }
-    class WatchMetrics {
-        rate_spd, amplitude_deg
-        beatError_ms, bph
-    }
-    class SignalFrame {
-        samples: PCMBlock
-        timestamp: uint64
-    }
-    class AcousticEvent {
-        t1, t3: uint64
-    }
-    class MainWindow {
-        +mAllTabs List~BaseGraphTab~
-        +registerTab(tab, label)
-        +onMeasurementReady(m Measurement)
-        -mSession SessionController
-    }
-    class SessionController {
-        <<wiring coordinator>>
-        +connectObservers(tabs, receiver, slot)
-        -mObserverTabs List~BaseGraphTab~
-    }
+[Open draw.io source](../../assets/view2-graph-tab-observer-contract.drawio)
 
-    MeasurementEngine ..> Measurement : «creates»
-    Measurement *-- WatchMetrics
-    Measurement *-- SignalFrame
-    Measurement *-- AcousticEvent
-    BaseGraphTab <|-- TraceTab
-    BaseGraphTab <|-- VarioTab
-    BaseGraphTab <|-- BeatErrorTab
-    BaseGraphTab <|-- OtherTabs
-    MainWindow o-- BaseGraphTab : mAllTabs[*]
-    MainWindow *-- SessionController : mSession
-    MainWindow ..> SessionController : connectObservers(mAllTabs)
-    SessionController ..> BaseGraphTab : «uses» mObserverTabs
-    SessionController ..> MeasurementEngine : «uses» at connect
-```
+![Graph Tab Observer Contract View](../../assets/view2-graph-tab-observer-contract.png)
 
 > No compile-time link `MeasurementEngine → BaseGraphTab`. `SessionController` is the wiring coordinator — it stores `mObserverTabs` and applies `connect()` at session start. Per-beat delivery remains Qt signal-slot only.
 
@@ -106,37 +53,36 @@ Observer contract compliance validated by AI-generated unit tests (see Behavior 
 
 ## Behavior
 
-**Runtime wiring** — [TimeGrapher Observer Runtime Sequence](../../assets/view2b-observer-runtime.puml):
+[Open draw.io source](../../assets/view2-measurement-broadcast-to-graph-tabs.drawio)
 
-![TimeGrapher Observer Runtime Sequence](../../assets/view2b-observer-runtime.png)
+![Measurement Broadcast to Graph Tabs View](../../assets/view2-measurement-broadcast-to-graph-tabs.png)
 
-Three phases (autonumbered UML sequence; lifelines left → right: **User** · Qt Main Thread · **MeasurementEngine** · **Mic**):
+This UML sequence diagram shows the narrow behavior that matters for this view: one published `Measurement` event fan-outs through the observer contract to all registered graph tabs and to the summary display. It exists to explain why Observer supports the project goal of low-cost tab extension.
 
-1. **Register observers (once)** — `MainWindow` → `SessionController.connectObservers()`; stores `mObserverTabs` only (no `connect` yet)
-2. **Wire signal-slot (per session)** — **User** `Start()` → each session start registers Qt `connect()`: `MeasurementEngine::measurementReady` → `BaseGraphTab::onMeasurement` (×14) and → `MainWindow::onMeasurementReady()`; `QueuedConnection` (DSP Thread → Main Thread)
-3. **Deliver measurement (per DSP block)** — **Mic** `PCM samples` → DSP Thread `processBlock()` → Main Thread `onMeasurement()` ×14 + `onMeasurementReady()`
+The trace makes three points:
 
-**Normal data flow per DSP block** (phase 3):
+1. `MainWindow` and `SessionController` perform setup once by wiring the observer list.
+2. `MeasurementEngine` publishes one `Measurement` event without referencing any concrete tab class.
+3. A UML `loop` frame makes the fan-out explicit: each registered `BaseGraphTab` subscriber receives the same event, so adding a new tab means adding one subscriber rather than modifying the publisher.
 
-```
-Mic                                      [Acquisition]
-    │  PCM samples
-    ▼
-MeasurementEngine::processBlock()          [DSP Thread]
-    ▼  QueuedConnection → Qt Main Thread
-    ├─▶ BaseGraphTab::onMeasurement()      [×14 tabs; isVisible() guard — ADR-002]
-    └─▶ MainWindow::onMeasurementReady()   [DisplayResults()]
-```
-
-**Tab switch catch-up (ADR-002 R1):**
+Representative beat-event trace:
 
 ```
-User switches to tab T
-    → T::showEvent()
-    → T::replotAll()           ← catch-up frame when tab becomes visible
+MainWindow
+    -> SessionController::connectObservers(mAllTabs, this, onMeasurementReady)
+
+SessionController
+    -> MeasurementEngine::startSourceThread() / connect(...)
+
+loop [for each registered tab]
+    MeasurementEngine
+        ->> BaseGraphTab::onMeasurement(m)
+
+MeasurementEngine
+    ->> ResultsSummary::onMeasurementReady(m)
 ```
 
-**Observer contract validation (NTR-07 risk mitigation)**: AI-generated unit tests verify structural correctness — every tab receives the same `Measurement`, does not mutate it, and honors the `BaseGraphTab` interface contract.
+Observer contract validation: AI-generated unit tests verify that every registered tab receives the shared `Measurement` snapshot and honors the `BaseGraphTab` contract.
 
 Measured results: → [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md)
 
@@ -150,3 +96,4 @@ Measured results: → [EXP-03: Observer Pattern Compliance](../experiments/exp-0
 
 - [Layered View: 4-Layer Allowed-to-Use](view-layered-4layer.md) — parent view; shows where Presentation fits in the full layer stack
 - [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — shows the runtime path that produces the `Measurement` struct consumed here
+- [Module View: Domain Entity / Value Object](view-domain-entity-vo.md) — shows the structure of the `Measurement` snapshot delivered through this observer design

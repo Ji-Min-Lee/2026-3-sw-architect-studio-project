@@ -1,4 +1,4 @@
-# Module View: IAudioSource Dependency Inversion
+# IAudioSource dependency inversion view
 
 This view shows the AS-IS vs. TO-BE structure of the audio source extension point. It answers: "What must a developer do to add a new audio source (e.g., network stream, USB device)?" It is the primary evidence for QAS-3 (Extensibility / Modifiability).
 

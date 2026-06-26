@@ -11,6 +11,8 @@ src/build-mac-log/
 
 # Test output
 src/Testing/
+Testing/
+.tmp-seqpdf/
 
 # Qt Creator 자동 생성 파일
 *.user

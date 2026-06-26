@@ -1,4 +1,4 @@
-# Deployment View: Build-Deploy Pipeline
+# TimeGrapher build and deploy pipeline view
 
 This view shows which hardware nodes run which software artifacts and what the deploy path is from the developer's machine to the Raspberry Pi 5. It answers: "How does code built on macOS reach the target hardware for experiments and the final demo?"
 

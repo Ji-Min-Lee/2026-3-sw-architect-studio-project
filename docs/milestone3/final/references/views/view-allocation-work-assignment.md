@@ -1,4 +1,4 @@
-# Allocation View: Work Assignment Style — Sprint & Team Structure
+# TimeGrapher sprint and team structure view
 
 **Style**: Work Assignment (할당 뷰 — 작업할당 스타일)  
 **Mapping**: Software architecture elements → Organizational units (teams, milestones, sprints)  

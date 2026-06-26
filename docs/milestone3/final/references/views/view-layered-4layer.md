@@ -1,8 +1,32 @@
-# Layered View: 4-Layer Allowed-to-Use
+# TimeGrapher Layered View
 
-This view shows the four-layer module structure of the TimeGrapher system and the allowed dependency directions between layers. It is the primary tool for enforcing modifiability: any new graph tab must be added to Presentation only, with zero changes to lower layers.
+This view shows the four-layer module structure of the TimeGrapher system and the allowed dependency directions between layers. Its purpose is not just to name the layers, but to show the architectural rule that keeps change localized: new UI features stay in Presentation, new audio sources stay in Acquisition, and lower-layer changes do not ripple upward. It is the primary evidence for QAS-3 (Extensibility / Modifiability).
 
 ![4-Layer Allowed-to-Use View](../../assets/view1-layered-module.png)
+
+## When to Show This View
+
+Show this view first when the discussion starts with any of these questions:
+
+- "How is the system modularized?"
+- "Why is the architecture easy to extend?"
+- "Why can you add a new graph tab without touching DSP or audio capture?"
+
+This view works best as the entry point because it establishes the global dependency rule before zooming into any one extension point.
+
+Recommended follow-up views:
+
+| If the audience asks... | Show this view next | Why |
+|---|---|---|
+| "What exactly must be implemented to add a new graph tab?" | [Decomposition View: Graph Tab](view-decomposition-graph-tab.md) | It refines the Presentation layer and shows the `BaseGraphTab` observer contract and tab registration steps. |
+| "What exactly must be implemented to add a new audio source?" | [Module View: IAudioSource Dependency Inversion](view-iaudiosource.md) | It refines the Acquisition layer and shows why a new source is isolated behind `IAudioSource`. |
+| "How does data actually move across threads at runtime?" | [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) | It complements this static module view with the runtime thread and connector path. |
+
+In a presentation, the recommended sequence is:
+
+`Layered View` → `Graph Tab` for UI extensibility questions  
+`Layered View` → `IAudioSource` for source extensibility questions  
+`Layered View` → `C&C Pipeline` for runtime and latency questions
 
 ## Element Catalog
 
@@ -35,7 +59,12 @@ This view shows the four-layer module structure of the TimeGrapher system and th
 
 ## Behavior
 
-**Dependency rule**: each layer may only reference the layer immediately below it. No upward or skip-layer dependencies are permitted.
+The main message of this view is the **allowed-to-use rule**:
+
+- Each layer may reference only the layer immediately below it.
+- No upward dependency is allowed.
+- No skip-layer dependency is allowed.
+- Extension work must remain inside the owning layer whenever possible.
 
 ```
 Acquisition
@@ -47,6 +76,8 @@ Domain             →  Signal Processing (receives BeatEvent)
 Presentation       →  Domain (receives Measurement struct)
 ```
 
+This rule matters because it constrains change impact. The clearest example is graph-tab addition.
+
 **Adding a new graph tab** (≤ 3 file change rule):
 
 | Step | File | Count |
@@ -55,7 +86,7 @@ Presentation       →  Domain (receives Measurement struct)
 | Register in tab manager | `GraphTabManager.cpp` | 1 |
 | **Total** | | **≤ 3** |
 
-Zero changes to Domain, Signal Processing, or Acquisition layers required.
+Zero changes to Domain, Signal Processing, or Acquisition layers are required. That is the practical meaning of "modifiability" in this system: the architecture lets a developer make the requested change without reopening unrelated modules.
 
 **Dependency Structure Matrix** (actual `#include` trace):
 
@@ -71,6 +102,8 @@ Row = used module · Column = using module · `1` = depends · `-` = self
 
 All 1s are in the lower triangle → no layer violations ✅. Domain column is all `0` → no upward dependency ✅.
 
+This DSM is the verification step for the view's claim. The layered structure is not only an intended design; it is backed by the actual dependency trace in the codebase.
+
 ## Modifiability Tactics (Bass/CMK Ch.8)
 
 The 4-layer structure directly implements the **Restrict Dependencies** tactic from
@@ -85,8 +118,7 @@ Consequences for change cost (Ch.8 p.128 Layers Pattern):
 > *"Because a layer is constrained to use only lower layers, software in lower layers can
 > be changed (as long as the interface does not change) without affecting the upper layers."*
 
-In this system: any change to `WatchMath` or `MeasurementEngine` (Domain / Signal Processing)
-is invisible to Presentation — 14 tabs require zero modification when lower-layer internals change.
+In this system, the consequence is direct: changes to `WatchMath` or `MeasurementEngine` stay below the Presentation boundary, so the 14 graph tabs do not need to change when lower-layer internals evolve.
 
 **Change cost table** (response measure for modifiability scenarios):
 
@@ -126,6 +158,8 @@ they are only possible because the 4-layer architecture achieves the low couplin
 required by the *Limit Structural Complexity* testability tactic (Ch.12 §12.2).
 If any layer boundary were violated, transitive hardware or Qt dependencies would
 prevent isolated compilation of a test binary.
+
+Put differently, the test suite is not just validation of behavior; it is evidence that the layering rule is strong enough to support isolated compilation and focused verification by layer.
 
 ## Related ADRs
 

@@ -1,4 +1,4 @@
-# Decomposition View: LongTermTab Downsampling
+# LongTermTab downsampling view
 
 This view decomposes `LongTermTab` into its internal structural elements, focusing on
 the adaptive bucket aggregation strategy (`mBucketSize`) and the three-series layout.
