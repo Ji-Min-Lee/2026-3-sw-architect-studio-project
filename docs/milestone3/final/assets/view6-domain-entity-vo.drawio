@@ -7,7 +7,7 @@
                 <mxCell id="T0" value="Module View: Domain Entity / Value Object" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=16;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="40" y="10" width="1160" height="28" as="geometry"/>
                 </mxCell>
-                <mxCell id="T_QA" value="QAS-4 Extensibility/Modifiability · AP-4 Single-Source Consistency · src/engine/Measurement.h" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=3;fontColor=#555555;" parent="1" vertex="1">
+                <mxCell id="T_QA" value="QAS-3 Extensibility/Modifiability · AP-4 Single-Source Consistency · src/engine/Measurement.h" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontStyle=3;fontColor=#555555;" parent="1" vertex="1">
                     <mxGeometry x="40" y="38" width="1160" height="16" as="geometry"/>
                 </mxCell>
                 <mxCell id="PRES" value="Presentation Layer — 14 Graph Tabs&#xa;&lt;i&gt;TraceTab · VarioTab · BeatErrorTab · RateScopeTab · SoundPrintTab · … — each receives the same Measurement&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=12;fontStyle=1;" parent="1" vertex="1">

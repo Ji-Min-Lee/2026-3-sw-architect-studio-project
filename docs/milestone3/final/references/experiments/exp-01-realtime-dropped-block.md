@@ -1,4 +1,4 @@
-# EXP-02: RPi Real-Time Performance — Dropped Block Measurement
+# EXP-01: RPi Real-Time Performance — Dropped Block Measurement
 
 **QA**: QAS-1 | **Status**: ✅ Done (2026-06-15)
 
@@ -6,11 +6,11 @@
 
 ## Objective
 
-Verify that RPi 5 sustains **zero dropped audio blocks** at 96k sps under continuous operation, confirming QAS-2 is achievable without real-time scheduling extensions.
+Verify that RPi 5 sustains **zero dropped audio blocks** at 96k sps under continuous operation, confirming QAS-1 is achievable without real-time scheduling extensions.
 
 ## Result
 
-**Dropped Block = 0** across all 9 runs (3 sps × 3 scheduling policies). QAS-2 Pass.
+**Dropped Block = 0** across all 9 runs (3 sps × 3 scheduling policies). QAS-1 Pass.
 
 **Confirmed operating point**: 96k sps, default scheduling — exec avg 9.6 ms (< 21.3 ms deadline).
 
@@ -38,7 +38,7 @@ Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline: 48k=42.67 ms ·
 | E2-08 | SCHED_FIFO p50 | **96k** ★ | **9.9 / 41.4** | **8.6 %** | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_205802_96000_fifo.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_205802_96000_fifo.png) |
 | E2-09 | SCHED_FIFO p50 | 192k | 16.0 / 52.1 | 12.5 % | **0** | [csv](../../../../../src/logs/EXP-01/log_20260615_211326_192000_fifo.csv) · [plot](../../../../../src/logs/EXP-01/log_20260615_211326_192000_fifo.png) |
 
-★ QAS-2 target sps
+★ QAS-1 target sps
 
 ## Architecture Decisions
 
@@ -48,4 +48,4 @@ Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline: 48k=42.67 ms ·
 
 - Risk resolved: [TR-01](../risks.md)
 - Full run table: [experiment-results.md](../../../../milestone2/experiment-results.md#exp-02-rpi-real-time-performance----dropped-block-measurement)
-- Log directory: `src/logs/EXP-01/` (legacy directory name)
+- Log directory: `src/logs/EXP-01/`

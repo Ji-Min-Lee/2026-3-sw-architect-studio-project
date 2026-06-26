@@ -5,7 +5,7 @@ validation: replot_count reduced 75–85% with 1 active tab. However, ADR-002 ex
 notes a limitation: if all tabs are simultaneously visible, the isVisible() guard provides
 no benefit.
 
-EXP-05 (2026-06-26) measures Qt rendering FPS on RPi 5 under full 11-tab load with R1 applied.
+EXP-04 (2026-06-26) measures Qt rendering FPS on RPi 5 under full 11-tab load with R1 applied.
 If deadline miss rate > 0% persists under full-tab load, R1 is insufficient and a rendering
 strategy with tighter exec-path decoupling is required.
 
@@ -14,7 +14,7 @@ a fixed-interval Qt timer drives `update()` independently of the DSP pipeline.
 
 ## Decision
 
-We will adopt R2 (Timer-Decoupled Rendering) **only if** EXP-05 confirms that R1 is
+We will adopt R2 (Timer-Decoupled Rendering) **only if** EXP-04 confirms that R1 is
 insufficient under 11-tab full load on RPi 5 (deadline miss > 0%).
 
 If adopted, R2 replaces R1. The `isVisible()` guard is removed. A `QTimer` (target: 20 FPS,
@@ -28,7 +28,7 @@ QTimer(50ms) → all visible tabs → update() → paintEvent() → replot()
 
 ## Rationale
 
-R1 limitation confirmed by EXP-02 analysis: replot_count at 8.22/beat with no guard.
+R1 limitation confirmed by EXP-01 analysis: replot_count at 8.22/beat with no guard.
 With R1, 1-tab load drops to 1.20–2.08. Under 11 simultaneously visible tabs, if all tabs
 call `update()` per beat, total rendering load scales with tab count × BPH.
 
@@ -49,9 +49,9 @@ to the UI thread — R3 needs significant redesign. Deferred to post-M3 review.
 
 Proposed
 
-Conditional on EXP-05 result (2026-06-26):
-- If EXP-05 confirms R1 sufficient (0% deadline miss under 11-tab load): **this ADR is withdrawn; ADR-002 remains Accepted**
-- If EXP-05 shows R1 insufficient (deadline miss > 0% persists): **this ADR transitions to Accepted; ADR-002 is Superseded**
+Conditional on EXP-04 result (2026-06-26):
+- If EXP-04 confirms R1 sufficient (0% deadline miss under 11-tab load): **this ADR is withdrawn; ADR-002 remains Accepted**
+- If EXP-04 shows R1 insufficient (deadline miss > 0% persists): **this ADR transitions to Accepted; ADR-002 is Superseded**
 
 ## Consequences
 

@@ -1,4 +1,6 @@
 #include <QtGlobal>
+#include <cmath>
+#include <cstring>
 #include "MainWindow.h"
 #include "MovementSpec.h"
 #include "AcquisitionConfig.h"
@@ -479,10 +481,83 @@ void MainWindow::setupTabOverflow(void)
 
     mMoreTabsMenu->addSeparator();
 
+    // Beat tick sound — push mode: a 10 ms timer writes PCM directly to the
+    // sink so the pipeline stays warm and trigger latency is < 10 ms.
+    {
+        const int sr = 44100;
+        const int clickSamples = sr * 8 / 1000;
+        mTickPcm.resize(clickSamples * 2);
+        qint16 *s = reinterpret_cast<qint16 *>(mTickPcm.data());
+        for (int i = 0; i < clickSamples; i++) {
+            double t   = static_cast<double>(i) / sr;
+            double env = std::exp(-t * 1200.0);
+            double w   = 0.6 * std::sin(2 * M_PI * 3000 * t)
+                       + 0.4 * std::sin(2 * M_PI * 6000 * t);
+            double v   = w * env * 28000.0;
+            s[i] = static_cast<qint16>(v < -32768 ? -32768 : v > 32767 ? 32767 : v);
+        }
+
+        QAudioFormat fmt;
+        fmt.setSampleRate(sr);
+        fmt.setChannelCount(1);
+        fmt.setSampleFormat(QAudioFormat::Int16);
+        mTickSink = new QAudioSink(QMediaDevices::defaultAudioOutput(), fmt, this);
+        mTickSink->setVolume(0.9);
+        mTickDevice = mTickSink->start();   // push mode
+
+        const int chunkSamples = sr / 100;  // 441 samples = 10 ms per timer tick
+        mTickChunk.resize(chunkSamples * 2); // pre-allocate once — no heap alloc in callback
+
+        mTickTimer = new QTimer(this);
+        connect(mTickTimer, &QTimer::timeout, this, [this, chunkSamples]() {
+            if (!mTickDevice) return;
+            qint16 *out = reinterpret_cast<qint16 *>(mTickChunk.data());
+            const qint16 *src = reinterpret_cast<const qint16 *>(mTickPcm.constData());
+            int pos = mTickPos.load(std::memory_order_relaxed);
+            const int pcmLen = mTickPcm.size() / 2;
+            for (int i = 0; i < chunkSamples; i++) {
+                out[i] = (pos >= 0 && pos < pcmLen) ? src[pos++] : 0;
+                if (pos >= pcmLen) pos = -1;
+            }
+            mTickPos.store(pos, std::memory_order_relaxed);
+            mTickDevice->write(mTickChunk);
+        });
+        mTickTimer->start(10);
+    }
+
+    QAction *tickAct = mMoreTabsMenu->addAction(tr("Tick Sound  F9"));
+    tickAct->setCheckable(true);
+    tickAct->setChecked(true);
+    tickAct->setShortcut(QKeySequence(Qt::Key_F9));
+    tickAct->setShortcutContext(Qt::ApplicationShortcut);
+    addAction(tickAct);
+    connect(tickAct, &QAction::toggled, this, [this](bool on) {
+        mTickEnabled = on;
+        if (!on) mTickPos.store(-1, std::memory_order_relaxed);
+    });
+
+    mMoreTabsMenu->addSeparator();
+
     // About
     QAction *aboutAct = mMoreTabsMenu->addAction(tr("About TimeGrapher..."));
     connect(aboutAct, &QAction::triggered, this, [this]() {
-        QMessageBox::about(this, tr("About TimeGrapher"),
+        QDialog dlg(this);
+        dlg.setWindowTitle(tr("About TimeGrapher"));
+        dlg.setFixedWidth(480);
+
+        auto *vlay = new QVBoxLayout(&dlg);
+        vlay->setSpacing(12);
+        vlay->setContentsMargins(20, 20, 20, 20);
+
+        QPixmap photo(QStringLiteral(":/images/team_ghibli.png"));
+        if (!photo.isNull()) {
+            auto *photoLabel = new QLabel;
+            photoLabel->setPixmap(photo.scaledToWidth(440, Qt::SmoothTransformation));
+            photoLabel->setAlignment(Qt::AlignCenter);
+            vlay->addWidget(photoLabel);
+        }
+
+        auto *textLabel = new QLabel(
             tr("<h3>TimeGrapher</h3>"
                "<p>Version 1.0.0</p>"
                "<p>Mechanical Watch Timing Analyzer<br>"
@@ -491,6 +566,16 @@ void MainWindow::setupTabOverflow(void)
                "<hr>"
                "<p style='color:gray; font-size:10pt;'>"
                "&copy; 2026 LG Electronics &middot; Internal Use Only</p>"));
+        textLabel->setAlignment(Qt::AlignCenter);
+        textLabel->setWordWrap(true);
+        vlay->addWidget(textLabel);
+
+        auto *btn = new QPushButton(tr("OK"));
+        btn->setDefault(true);
+        connect(btn, &QPushButton::clicked, &dlg, &QDialog::accept);
+        vlay->addWidget(btn, 0, Qt::AlignCenter);
+
+        dlg.exec();
     });
 
     connect(mMoreTabsButton, &QToolButton::clicked, this, [this] {
@@ -503,7 +588,7 @@ void MainWindow::setupTabOverflow(void)
     tw->setCornerWidget(mMoreTabsButton, Qt::TopRightCorner);
 
     auto *hintLabel = new QLabel(
-        "  Space: Start/Pause   Esc: Stop   ←/→: Tabs   F11: Fullscreen   |   F1: Guide   Ctrl+T: Tabs   Ctrl+\\: Split   Ctrl+D: AI  ", this);
+        "  Space: Start/Pause   Esc: Stop   ←/→: Tabs   F11: Fullscreen   F9: Tick Sound   |   F1: Guide   Ctrl+T: Tabs   Ctrl+\\: Split   Ctrl+D: AI  ", this);
     hintLabel->setStyleSheet("color: gray; font-size: 11px;");
     statusBar()->addPermanentWidget(hintLabel);
 }
@@ -662,6 +747,12 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     checkWatchDetached(m);  // update detached state before formatting the label
     checkNoise(m);          // all modes: ambient-noise popup
     DisplayResults(m);
+
+    if (mTickEnabled) {
+        for (const AcousticEvent &ev : m.events) {
+            if (ev.isA) { mTickPos.store(0, std::memory_order_relaxed); break; }
+        }
+    }
 }
 
 // Live-mode only: if a watch was being measured and the signal is then lost

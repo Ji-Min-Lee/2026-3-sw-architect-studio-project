@@ -95,7 +95,7 @@ in varied environments while preserving measurement accuracy.
 Accepted (implementation inherited from baseline; design rationale documented 2026-06-25)
 
 Implemented in `src/external/Dsp.h` / `Dsp.cpp`.
-Default parameters verified via EXP-05 (274 runs, onset=0.08, min_peak=0.10 confirmed):
+Default parameters verified via EXP-04 (274 runs, onset=0.08, min_peak=0.10 confirmed):
 
 | onset | 0–50 dB SNR | 60 dB SNR |
 |-------|:-----------:|:---------:|
@@ -119,7 +119,7 @@ Default parameters verified via EXP-05 (274 runs, onset=0.08, min_peak=0.10 conf
 **Negative**:
 - No bandpass means broadband impulse noise (e.g., sharp desk tap, speech sibilants)
   that falls above the 200 Hz HPF can reach the detector. Mitigation: onset threshold
-  tuning (EXP-05) and the `⚠ Noisy signal` warning (QAS-4 Sub-3)
+  tuning (EXP-04) and the `⚠ Noisy signal` warning (QAS-4 Sub-3)
 - The 0.15 ms smoothing constant is fixed at compile time and not user-configurable.
   For unusual watches with very short A–C intervals (high BPH, small lift angle), this
   may need adjustment.
@@ -131,4 +131,4 @@ Default parameters verified via EXP-05 (274 runs, onset=0.08, min_peak=0.10 conf
   96kHz chosen in part because it allows the 0.15 ms smoothing constant to
   span enough samples (14.4 samples) to be effective; at 48kHz the same
   constant spans only 7.2 samples, reducing smoothing stability
-- [EXP-05: Detector Parameter Optimization](../experiments/exp-05-correctness-detector-optimization.md)
+- [EXP-04: Detector Parameter Optimization](../experiments/exp-04-correctness-detector-optimization.md)

@@ -8,6 +8,9 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QToolButton>
+#include <QAudioSink>
+#include <QAudioFormat>
+#include <atomic>
 #include "SessionController.h"
 #include "WavStreamWriter.h"
 #include "WatchSynthStream.h"
@@ -260,6 +263,15 @@ private:
     bool         mSplitMode          = false;
 
     Logger          *mLogger = nullptr;
+
+    // Beat tick sound — push-mode QAudioSink fed by a 10 ms timer
+    QAudioSink      *mTickSink    = nullptr;
+    QIODevice       *mTickDevice  = nullptr;
+    QTimer          *mTickTimer   = nullptr;
+    QByteArray       mTickPcm;
+    QByteArray       mTickChunk;            // pre-allocated 10 ms write buffer
+    std::atomic<int> mTickPos{-1};
+    bool             mTickEnabled = true;
 
 };
 #endif

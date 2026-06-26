@@ -116,7 +116,7 @@ We mitigate this risk by three means, each corresponding to a Ch.12 testability 
 |---|---|---|
 | Nondeterministic event delivery order | `Qt::QueuedConnection` is FIFO-ordered on the main thread — delivery order is deterministic per beat cycle | **Limit Nondeterminism** |
 | Hidden cross-layer signal wiring | DSM `#include` trace confirms zero Presentation→Signal Processing references; signal is wired in `SessionController` only | **Limit Structural Complexity** |
-| Observer contract correctness across 14 tabs | `EXP-04 TestAddedTabs 20/20` verifies that every registered tab receives and processes the `Measurement` signal correctly | **Specialized Interfaces** (observable via test) |
+| Observer contract correctness across 14 tabs | `EXP-03 TestAddedTabs 20/20` verifies that every registered tab receives and processes the `Measurement` signal correctly | **Specialized Interfaces** (observable via test) |
 
 ## Status
 
@@ -152,7 +152,7 @@ All 14 tabs implemented and registered using this pattern. Verified: no tab touc
 - [ADR-002: R1 Lazy Rendering](ADR-002-r1-lazy-rendering.md) — `isVisible()` guard and
   `showEvent()` catch-up; this ADR provides the structural home for that pattern
 - [ADR-004: R2 Timer-Decoupled Rendering](ADR-004-r2-timer-decoupled-rendering.md) —
-  contingency if full-tab load (EXP-05) reveals R1 insufficient
+  contingency if full-tab load (EXP-04) reveals R1 insufficient
 
 ## Related views
 

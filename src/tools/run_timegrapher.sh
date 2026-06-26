@@ -47,6 +47,19 @@ export XAUTHORITY=/home/lg/.Xauthority
 export XDG_RUNTIME_DIR=/run/user/1000
 export QT_QPA_PLATFORM=xcb
 
+# ── Auto-detect display scale factor ─────────────────────────
+# Derive QT_SCALE_FACTOR from horizontal resolution unless already set.
+if [ -z "$QT_SCALE_FACTOR" ]; then
+    SCREEN_W=$(xrandr 2>/dev/null | awk '/\*/{print $1}' | head -1 | cut -dx -f1)
+    if   [ "${SCREEN_W:-0}" -ge 3840 ]; then QT_SCALE_FACTOR=2.0
+    elif [ "${SCREEN_W:-0}" -ge 2560 ]; then QT_SCALE_FACTOR=1.7
+    elif [ "${SCREEN_W:-0}" -ge 1920 ]; then QT_SCALE_FACTOR=1.4
+    else                                      QT_SCALE_FACTOR=1.0
+    fi
+    echo "[run] display ${SCREEN_W}px -> QT_SCALE_FACTOR=$QT_SCALE_FACTOR"
+fi
+export QT_SCALE_FACTOR
+
 # ── Conflict check ────────────────────────────────────────────
 # Check if a build is already in progress (make / cmake process)
 if pgrep -f "make.*-j" > /dev/null 2>&1 || pgrep -x cmake > /dev/null 2>&1; then
@@ -94,7 +107,8 @@ do_run() {
     fi
     echo "[run] launching TimeGrapher..."
     sudo DISPLAY=:0 XAUTHORITY=/home/lg/.Xauthority \
-         XDG_RUNTIME_DIR=/run/user/1000 QT_QPA_PLATFORM=xcb "$BIN"
+         XDG_RUNTIME_DIR=/run/user/1000 QT_QPA_PLATFORM=xcb \
+         QT_SCALE_FACTOR="$QT_SCALE_FACTOR" "$BIN"
 }
 
 # ── Dispatch ──────────────────────────────────────────────────

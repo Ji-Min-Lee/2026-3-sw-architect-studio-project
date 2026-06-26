@@ -1,7 +1,7 @@
 # ADR-001: Introduce a Dedicated DSP Offload Thread (T2)
 
 The original audio pipeline runs `AudioCapture → FilterChain → BeatDetector → MeasurementEngine`
-entirely on the Qt main thread (cpu2). EXP-02 R1 measured a Qt `QueuedConnection` backlog of 47%
+entirely on the Qt main thread (cpu2). EXP-01 R1 measured a Qt `QueuedConnection` backlog of 47%
 and a sustained wait_ms of 420ms on macOS — meaning the DSP queue accumulates faster than
 it is drained. On Raspberry Pi 5, cpu2 reached 91% load with 43% of frames exceeding the
 21ms exec deadline. The remaining three cores were idle.
@@ -32,7 +32,7 @@ UI Thread (Qt Main):
 
 ## Rationale
 
-EXP-02 Run R2 (macOS, 96kHz Playback mode, T2 applied) produced the following results:
+EXP-01 Run R2 (macOS, 96kHz Playback mode, T2 applied) produced the following results:
 
 | Metric | Before (R1) | After T2 (R2) | Change |
 |--------|:-----------:|:-------------:|:------:|
@@ -55,7 +55,7 @@ eliminates the backlog and distributes load across cores.
 | Module structure change | None | Ring buffer added | Full pipeline redesign |
 | M2 feasibility | ✅ Immediate | ✅ Feasible | ⚠️ High risk |
 
-**T1 rejected**: Improves OS scheduling jitter but does not reduce exec_ms or eliminate single-core saturation. [EXP-01](../experiments/exp-02-realtime-dropped-block.md) confirmed SCHED_RR showed no improvement in Dropped Block count — T1 applied to the audio capture thread is not required.
+**T1 rejected**: Improves OS scheduling jitter but does not reduce exec_ms or eliminate single-core saturation. [EXP-01](../experiments/exp-01-realtime-dropped-block.md) confirmed SCHED_RR showed no improvement in Dropped Block count — T1 applied to the audio capture thread is not required.
 
 **T3 rejected**: Provides higher parallelism but introduces three inter-stage queues and significantly higher design complexity. M2 deadline risk rated High. Deferred to post-M3 consideration.
 
@@ -69,7 +69,7 @@ eliminates the backlog and distributes load across cores.
 | T1 + R2 | ★★★☆☆ | ★★☆☆☆ | ★★☆☆☆ | Low | Render timing control priority |
 | T3 + R3 | ★★★★★ | ★★★★★ | ★★★★★ | High | Post-M3 only |
 
-Selected combination **T2 + R1** confirmed by EXP-02 on both macOS and RPi (E2-5/E2-6): E2E avg 2.05ms, 0 deadline miss, 0 backlog.
+Selected combination **T2 + R1** confirmed by EXP-01 on both macOS and RPi (E2-5/E2-6): E2E avg 2.05ms, 0 deadline miss, 0 backlog.
 
 ## Status
 
@@ -91,4 +91,4 @@ RPi R5 confirmation scheduled: 2026-06-23.
   role overlap; resolved by scoping SignalBuffer to DSP-internal use and ring buffer to
   capture-to-DSP handoff only
 - RPi validation still pending — macOS results establish confidence but do not substitute
-  for target hardware measurement (EXP-02 R5)
+  for target hardware measurement (EXP-01 R5)
