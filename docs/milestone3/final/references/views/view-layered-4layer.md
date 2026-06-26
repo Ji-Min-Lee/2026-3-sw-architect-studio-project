@@ -88,78 +88,18 @@ This rule matters because it constrains change impact. The clearest example is g
 
 Zero changes to Domain, Signal Processing, or Acquisition layers are required. That is the practical meaning of "modifiability" in this system: the architecture lets a developer make the requested change without reopening unrelated modules.
 
-**Dependency Structure Matrix** (actual `#include` trace):
+The layer rule is verified by an actual `#include` trace — all dependencies fall in the lower triangle with no upward dependency. A boundary violation causes a compiler error due to per-layer include restrictions.
 
-Row = used module · Column = using module · `1` = depends · `-` = self
+**Change cost** (response measure for modifiability scenarios):
 
-| used ↓ \ using → | Presentation | UI Coord | Sig.Proc | Domain | Acquisition |
-|---|:---:|:---:|:---:|:---:|:---:|
-| **Presentation** (`*Tab`, `BaseGraphTab`) | - | 0 | 0 | 0 | 0 |
-| **UI Coord** (`MainWindow`, `SessionCtrl`) | 0 | - | 0 | 0 | 0 |
-| **Sig.Proc** (`DSPWorker`, `MeasurementEngine`) | 1 | 1 | - | 0 | 0 |
-| **Domain** (`Measurement`, `WatchMath`, `WatchDiagnostics`) | 1 | 1 | 1 | - | 0 |
-| **Acquisition** (`IAudioSource`, `AudioWorker`, `AudioRingBuffer`) | 0 | 1 | 1 | 0 | - |
+| Change type | Files outside the changed unit |
+|---|:---:|
+| New graph tab | ≤ 3 |
+| New audio source | 1–2 |
+| New watch formula | 1 |
+| New DSP filter | 1–2 |
 
-All 1s are in the lower triangle → no layer violations ✅. Domain column is all `0` → no upward dependency ✅.
-
-This DSM is the verification step for the view's claim. The layered structure is not only an intended design; it is backed by the actual dependency trace in the codebase.
-
-## Modifiability Tactics (Bass/CMK Ch.8)
-
-The 4-layer structure directly implements the **Restrict Dependencies** tactic from
-Bass, Clements & Kazman *Software Architecture in Practice* (4th ed., Ch.8 §8.2 p.124):
-
-> *"The restrict dependencies tactic is seen in layered architectures, in which a layer
-> is allowed to use only lower layers … restricting a module's visibility (when developers
-> cannot see an interface, they cannot employ it)."*
-
-Consequences for change cost (Ch.8 p.128 Layers Pattern):
-
-> *"Because a layer is constrained to use only lower layers, software in lower layers can
-> be changed (as long as the interface does not change) without affecting the upper layers."*
-
-In this system, the consequence is direct: changes to `WatchMath` or `MeasurementEngine` stay below the Presentation boundary, so the 14 graph tabs do not need to change when lower-layer internals evolve.
-
-**Change cost table** (response measure for modifiability scenarios):
-
-| Change type | Files outside the changed unit | Reason |
-|---|:---:|---|
-| New graph tab | ≤ 3 | Only `NewTab.h/cpp` + `MainWindow.cpp` (registerTab) |
-| New audio source | 1–2 | Only new class implementing `IAudioSource` |
-| New watch formula | 1 | Only `WatchMath.cpp` + test case |
-| New DSP filter | 1–2 | Only FilterChain internals; no Presentation change |
-
-## Testability Connection (Bass/CMK Ch.12 §12.2 p.191)
-
-The same structural properties that achieve modifiability also enable testability.
-Ch.12 p.191 states:
-
-> *"Ensuring that the system has high cohesion, loose coupling, and separation of concerns —
-> all modifiability tactics (see Chapter 8) — can also help with testability."*
-
-And specifically for the layered pattern (Ch.12 p.191):
-
-> *"In a layered pattern, you can test lower layers first, then test higher layers with
-> confidence in the lower layers."*
-
-This is exactly how our test suite is structured:
-
-| Test binary | Layer under test | Dependencies needed | Tests |
-|---|---|---|:---:|
-| `TestWatchMath` | Domain | None (pure math) | 44 |
-| `TestDetector` | Signal Processing | Domain only | ~30 |
-| `TestFilterChain` | Signal Processing | Domain only | ~20 |
-| `TestAddedTabs` | Presentation | Domain structs (mock) | 20 |
-| … (6 more) | Various | Layer-appropriate | ~28 |
-| **Total** | | | **142** |
-
-**The 142 unit tests across 10 independent binaries are structural evidence**:
-they are only possible because the 4-layer architecture achieves the low coupling
-required by the *Limit Structural Complexity* testability tactic (Ch.12 §12.2).
-If any layer boundary were violated, transitive hardware or Qt dependencies would
-prevent isolated compilation of a test binary.
-
-Put differently, the test suite is not just validation of behavior; it is evidence that the layering rule is strong enough to support isolated compilation and focused verification by layer.
+The 4-layer structure implements the *Restrict Dependencies* tactic (Bass, Clements & Kazman, Ch.8): lower-layer changes do not ripple upward, and per-layer compilation isolation enables 142 independent unit tests across 10 binaries.
 
 ## Related ADRs
 
@@ -168,6 +108,6 @@ Put differently, the test suite is not just validation of behavior; it is eviden
 
 ## Related views
 
-- [Decomposition View: Graph Tab](view-decomposition-graph-tab.md) — refinement of the Presentation layer; shows internal structure of a single `BaseGraphTab`
+- [Graph Tab Module Uses View](view-decomposition-graph-tab.md) — refinement of the Presentation layer; shows internal structure of a single `BaseGraphTab`
 - [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — runtime view of the Acquisition ↔ Signal Processing boundary (ring buffer + thread)
 - [Module View: IAudioSource Dependency Inversion](view-iaudiosource.md) — AS-IS vs TO-BE comparison of the audio source extension point (QAS-3)

@@ -15,11 +15,11 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
 
-## [Layered View: 4-Layer Allowed-to-Use](view-layered-4layer.md)
+## [Layered and Module Decomposition View](view-layered-4layer.md)
 
 > QA: Extensibility / Modifiability (QAS-3)
 
-[![4-Layer Allowed-to-Use](../../assets/view1-layered-module.png)](view-layered-4layer.md)
+[![Layered and Module Decomposition](../../assets/view1-layered-module.png)](view-layered-4layer.md)
 
 ---
 
@@ -39,11 +39,11 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
 
-## [Decomposition View: Graph Tab](view-decomposition-graph-tab.md)
+## [Graph Tab Module Uses View](view-decomposition-graph-tab.md)
 
 > QA: Correctness · Extensibility (QAS-4, QAS-3)
 
-[![Graph Tab Decomposition](../../assets/view2-decomposition.png)](view-decomposition-graph-tab.md)
+[![Graph Tab Module Uses View](../../assets/view2-decomposition.png)](view-decomposition-graph-tab.md)
 
 [![Observer Module](../../assets/view2b-observer-module.png)](view-decomposition-graph-tab.md)
 

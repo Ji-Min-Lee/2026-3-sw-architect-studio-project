@@ -58,6 +58,6 @@ Measured results on RPi: → [EXP-02: End-to-End Latency](../experiments/exp-02-
 
 ## Related views
 
-- [Layered View: 4-Layer Allowed-to-Use](view-layered-4layer.md) — module structure that this runtime view instantiates
-- [Decomposition View: Graph Tab](view-decomposition-graph-tab.md) — detail of the Presentation layer components at the right end of this pipeline
+- [Layered and Module Decomposition View](view-layered-4layer.md) — module structure that this runtime view instantiates
+- [Graph Tab Module Uses View](view-decomposition-graph-tab.md) — detail of the Presentation layer components at the right end of this pipeline
 - [Deployment View: Build-Deploy Pipeline](view-deployment-build-pipeline.md) — shows which hardware nodes run the threads depicted here

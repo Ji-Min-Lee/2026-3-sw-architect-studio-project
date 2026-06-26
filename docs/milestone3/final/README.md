@@ -13,7 +13,11 @@ Team members:
 
 Repository: [Ji-Min-Lee/2026-3-sw-architect-studio-project](https://github.com/Ji-Min-Lee/2026-3-sw-architect-studio-project)
 
-Kanban Board: [GitHub Project #3](https://github.com/users/Ji-Min-Lee/projects/3/views/2)
+---
+
+## Project Plan
+
+- [Kanban Board](https://github.com/users/Ji-Min-Lee/projects/3/views/2) — single board tracking all issues across milestones
 
 ---
 
@@ -40,7 +44,7 @@ LongTermTab downsampling view; see [Architecture Views](references/views/README.
 <table>
 <tr>
   <td align="center">
-    <a href="references/views/view-layered-4layer.md">Layered: 4-Layer Allowed-to-Use<br>
+    <a href="references/views/view-layered-4layer.md">Layered and Module Decomposition<br>
     <img src="assets/view1-layered-module.png" width="200"></a>
   </td>
   <td align="center">
@@ -50,7 +54,7 @@ LongTermTab downsampling view; see [Architecture Views](references/views/README.
 </tr>
 <tr>
   <td align="center">
-    <a href="references/views/view-decomposition-graph-tab.md">Decomposition: Graph Tab (Observer)<br>
+    <a href="references/views/view-decomposition-graph-tab.md">Graph Tab Module Uses View<br>
     <img src="assets/view2-decomposition.png" width="200"></a>
   </td>
   <td align="center">
@@ -162,7 +166,7 @@ risks, their resolution status, and the experiments or architectural decisions t
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| [TR-06](references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | — | 142 unit tests (10 binaries) all passing ✅ | 4-Layer Allowed-to-Use enforced |
+| [TR-06](references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | — | 142 unit tests (10 binaries) all passing ✅ | Layered and Module Decomposition View enforced |
 | [TR-07](references/risks.md) | Residual coupling survives refactoring | — | Compiler catches upward dependency ✅ | Allowed-to-use rule + per-layer include restriction |
 | [TR-08](references/risks.md) | New tab requires data not in current Domain output | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | All 14 tabs implemented within the target change budget ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
 | — | Audio source extension touches multiple unrelated components | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
