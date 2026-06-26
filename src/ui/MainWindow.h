@@ -11,6 +11,7 @@
 #include <QAudioSink>
 #include <QAudioFormat>
 #include <atomic>
+#include <QCheckBox>
 #include "SessionController.h"
 #include "WavStreamWriter.h"
 #include "WatchSynthStream.h"
@@ -146,6 +147,11 @@ private:
     void   checkNoise(const Measurement &m);
     void   raiseNoiseAlarm(void);
 
+    // Demo: auto-detect horizontal <-> vertical from the amplitude drop and set
+    // POS accordingly (enabled by the Sequence tab "Auto H↔V" checkbox). Starts
+    // from horizontal; learns the horizontal amplitude baseline automatically.
+    void   checkPosition(const Measurement &m);
+
     bool   eventFilter(QObject *obj, QEvent *event) override;
 
     Ui::MainWindow *ui;
@@ -189,6 +195,32 @@ private:
     static constexpr double  kNoiseThresholdDb = 51.0;   // EXP-04 calibrated (was 55; failure onset ~54)
     static constexpr qint64  kNoiseOnMs        = 2000;   // sustained → show
     static constexpr qint64  kNoiseOffMs       = 2000;   // sustained → hide
+
+    // Demo: auto horizontal<->vertical position detection (amplitude step).
+    QCheckBox    *mAutoPosCheck   = nullptr; // "Auto H↔V" toggle in the Advanced group
+    bool          mPosRunActive   = false; // a Live run is in progress (re-inits each run)
+    bool          mPosVertical    = false; // current detected state (false = horizontal)
+    bool          mPosBaselineSet = false; // flat baseline captured yet?
+    double        mPosBaselineAmp = 0.0;   // frozen flat amplitude (learned at run start)
+    double        mPosLearnSum    = 0.0;   // accumulator for the learning-window average
+    int           mPosLearnCount  = 0;
+    QElapsedTimer mPosLearnSince;          // learning-window timer
+    QElapsedTimer mPosBelowSince;          // sustained time below the vertical threshold
+    QElapsedTimer mPosAboveSince;          // sustained time above the horizontal threshold
+    // The demo always starts flat (horizontal), so learn the flat amplitude over
+    // the first kPosLearnMs and FREEZE it as the baseline (frozen — not an EMA that
+    // would drift down over the run and miss the vertical drop). Detection is then
+    // RELATIVE: vertical when amp falls kPosDropDeg below the baseline, back to
+    // horizontal within kPosReturnDeg (hysteresis). Live logs: flat ~286, standing
+    // ~268 → a ~13 deg drop separates them while ignoring flat noise dips (~277).
+    static constexpr qint64 kPosLearnMs    = 2500;  // learn the flat baseline this long
+    static constexpr double kPosDropDeg    = 13.0;  // amp < baseline-this → vertical
+    static constexpr double kPosReturnDeg  = 8.0;   // amp > baseline-this → horizontal (hysteresis)
+    static constexpr qint64 kPosDebounceMs = 1500;  // sustained for this long before switching
+    // Position labels shown for each class (vertical is acoustically ambiguous —
+    // pick the one the demo physically uses; change here if needed).
+    inline static const QString kPosHorizLabel = "CH";   // dial up (flat)
+    inline static const QString kPosVertLabel  = "6H";   // standing (vertical)
 
     // WAV recording (dialog + writer owned here; session does not touch it)
     WavStreamWriter *mWavWriter = nullptr;

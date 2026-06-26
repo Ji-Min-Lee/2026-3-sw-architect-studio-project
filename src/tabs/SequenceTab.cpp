@@ -104,6 +104,14 @@ void SequenceTab::setActivePosition(const QString &pos)
     if (row >= 0) mTable->selectRow(row);
 }
 
+// Programmatically select a position (auto H↔V detection). Drives the combo so
+// the existing currentTextChanged path updates the table, header and POS label.
+void SequenceTab::selectPosition(const QString &pos)
+{
+    if (mPositionCombo->currentText() != pos)
+        mPositionCombo->setCurrentText(pos);
+}
+
 int SequenceTab::rowOfPosition(const QString &pos) const
 {
     return kPositions.indexOf(pos);

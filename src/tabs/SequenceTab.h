@@ -46,6 +46,10 @@ public slots:
     void onMeasurement(const Measurement &m) override;
     void setActivePosition(const QString &pos);
 
+public:
+    // Auto H↔V position detection (demo): MainWindow drives this from amplitude.
+    void selectPosition(const QString &pos);   // programmatic combo selection
+
 signals:
     void positionChanged(const QString &pos); // notify MainWindow for Results label
     void sequenceUpdated();                    // captured/cleared — Radar view rebuilds

@@ -318,6 +318,17 @@ MainWindow::MainWindow(QWidget *parent)
     setupTabOverflow();
     menuBar()->setVisible(false);
 
+    // Demo "Auto H↔V position" toggle, placed at the bottom of the Advanced
+    // (Misc) group. Grow the frame by one row to make room; it stays a child of
+    // MiscFrame, so it only appears when the Advanced section is expanded.
+    ui->MiscFrame->setFixedHeight(154);
+    mAutoPosCheck = new QCheckBox(tr("Auto H↔V position"), ui->MiscFrame);
+    mAutoPosCheck->setObjectName("AutoPosCheck");
+    mAutoPosCheck->setGeometry(10, 126, 222, 22);
+    mAutoPosCheck->setToolTip(tr("Auto-switch POS between horizontal and vertical from the "
+                                 "amplitude drop. Start with the watch lying flat."));
+    mAutoPosCheck->show();
+
     // ── Left control panel: reclaim screen space (feature/ui-improvement) ──
     // SimFrame is shown only in Sim mode, and the set-once MiscFrame collapses
     // behind an "Advanced" toggle (collapsed by default). Frames keep their .ui
@@ -746,6 +757,7 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     if (m.synced) ++mSyncedCount;
     checkWatchDetached(m);  // update detached state before formatting the label
     checkNoise(m);          // all modes: ambient-noise popup
+    checkPosition(m);       // demo: auto horizontal<->vertical POS
     DisplayResults(m);
 
     if (mTickEnabled) {
@@ -861,6 +873,68 @@ void MainWindow::raiseNoiseAlarm(void)
         mNoiseAlarm->show();
         mNoiseAlarm->raise();
         mNoiseAlarm->activateWindow();
+    }
+}
+
+// Demo: auto-switch POS between horizontal (flat) and vertical (standing) from
+// the balance amplitude. Horizontal positions read a higher amplitude than
+// vertical ones (lower pivot friction); the drop is universal in direction, so
+// we learn the horizontal amplitude as a baseline (the run starts flat) and
+// switch on a sustained drop/recovery with hysteresis. Only the H<->V class is
+// distinguishable acoustically — which specific position cannot be (sensor-free).
+void MainWindow::checkPosition(const Measurement &m)
+{
+    const bool running = ui->StopPushButton->isEnabled();
+    if (!running || !mSequenceTab || !mAutoPosCheck || !mAutoPosCheck->isChecked()) {
+        mPosRunActive = false;        // re-initialise on the next enabled run
+        return;
+    }
+    if (!mPosRunActive) {             // new run → assume the watch starts flat
+        mPosRunActive   = true;
+        mPosVertical    = false;
+        mPosBaselineSet = false;
+        mPosLearnSum    = 0.0;
+        mPosLearnCount  = 0;
+        mPosLearnSince.invalidate();
+        mPosBelowSince.invalidate();
+        mPosAboveSince.invalidate();
+        mSequenceTab->selectPosition(kPosHorizLabel);
+    }
+    if (!m.metrics.amplitude.has_value()) return;
+    const double amp = *m.metrics.amplitude;
+
+    // Learn the flat baseline once, from the first kPosLearnMs of the run (the
+    // watch starts flat by demo convention), then freeze it. Detection below is
+    // relative to this frozen value, so it adapts to the day's flat amplitude.
+    if (!mPosBaselineSet) {
+        if (!mPosLearnSince.isValid()) mPosLearnSince.restart();
+        mPosLearnSum += amp;
+        ++mPosLearnCount;
+        if (mPosLearnSince.elapsed() >= kPosLearnMs && mPosLearnCount >= 3) {
+            mPosBaselineAmp = mPosLearnSum / mPosLearnCount;
+            mPosBaselineSet = true;
+        }
+        return;                       // hold horizontal until the baseline is set
+    }
+
+    if (!mPosVertical) {                                   // horizontal → vertical (drop)?
+        if (amp < mPosBaselineAmp - kPosDropDeg) {
+            if (!mPosBelowSince.isValid()) mPosBelowSince.restart();
+            if (mPosBelowSince.elapsed() >= kPosDebounceMs) {
+                mPosVertical = true;
+                mPosBelowSince.invalidate(); mPosAboveSince.invalidate();
+                mSequenceTab->selectPosition(kPosVertLabel);
+            }
+        } else mPosBelowSince.invalidate();
+    } else {                                               // vertical → horizontal (recover)?
+        if (amp > mPosBaselineAmp - kPosReturnDeg) {
+            if (!mPosAboveSince.isValid()) mPosAboveSince.restart();
+            if (mPosAboveSince.elapsed() >= kPosDebounceMs) {
+                mPosVertical = false;
+                mPosAboveSince.invalidate(); mPosBelowSince.invalidate();
+                mSequenceTab->selectPosition(kPosHorizLabel);
+            }
+        } else mPosAboveSince.invalidate();
     }
 }
 
