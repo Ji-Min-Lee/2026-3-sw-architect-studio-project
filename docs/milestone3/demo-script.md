@@ -5,16 +5,39 @@
 
 ---
 
-## 0:00 – 0:30 | System Introduction
+## 0:00 – 1:00 | System Introduction + UI Overview
 
 > "Good morning. We are Team Blue Sky.
 > Let's get started."
 
-- Confirm signal is live on Sound Print or Rate display
+- Confirm signal is live on Rate/Scope tab
+
+> "Before we go into the graphs, let me quickly walk through the layout.
+>
+> The screen is divided into two areas.
+> On the left is the control panel — Run Parameters at the top,
+> Watch Parameters below, and Advanced settings at the bottom.
+> This is where you set the mode, sample rate, BPH, and lift angle.
+>
+> On the right is the graph area.
+> The tab bar across the top gives you access to all 14 displays.
+> Tabs that don't fit in the bar are accessible through the More button on the right.
+>
+> At the very top of the graph area is the status bar.
+> It always shows five live values: position, rate, amplitude, beat error, and BPH.
+> Color coding tells you the health at a glance —
+> green means within tolerance, amber is borderline, red means attention needed.
+> In the top-right corner is the AI Diagnosis badge — Excellent, Good, or Needs Service.
+>
+> At the bottom-left, the session controls: Start, Pause, Stop.
+> Space bar starts or pauses. Escape stops.
+> The elapsed time counter is next to the session status dot."
+
+- Point to each area as you describe it
 
 ---
 
-## 0:30 – 2:00 | Area 1 — Watch-Position Testing (5 pts)
+## 1:00 – 2:30 | Area 1 — Watch-Position Testing (5 pts)
 
 > "First, Watch-Position Testing."
 
@@ -48,7 +71,7 @@
 
 ---
 
-## 2:00 – 7:30 | Area 1 — Additional Graph Displays (55 pts)
+## 2:30 – 8:30 | Area 1 — Additional Graph Displays (55 pts)
 
 > "Now the additional graph displays.
 > I'll navigate to each tab using the More button in the tab bar."
@@ -371,7 +394,7 @@
 
 ---
 
-## 7:30 – 8:30 | Area 2 — Sound Print Enhancements (8 pts)
+## 8:30 – 9:30 | Area 2 — Sound Print Enhancements (8 pts)
 
 - Switch to Sound Print tab
 
@@ -395,7 +418,7 @@
 
 ---
 
-## 8:30 – 9:30 | Area 2 — Rate / Scope Enhancements (8 pts)
+## 9:30 – 10:30 | Area 2 — Rate / Scope Enhancements (8 pts)
 
 - Switch to Rate Scope tab
 
@@ -414,7 +437,7 @@
 
 ---
 
-## 9:30 – 10:30 | Area 2 — AI Feature (9 pts)
+## 10:30 – 11:30 | Area 2 — AI Feature (9 pts)
 
 - Switch to AI Diagnosis panel
 
@@ -443,7 +466,7 @@
 
 ---
 
-## 10:30 – 13:00 | Area 4 — Accuracy Verification (25 pts)
+## 11:30 – 14:00 | Area 4 — Accuracy Verification (25 pts)
 
 > "Now the most important quality attribute: Measurement Accuracy.
 >
@@ -507,7 +530,7 @@
 
 ---
 
-## 13:00 – 15:00 | Area 6 — GUI Modifications (25 pts)
+## 14:00 – 16:00 | Area 6 — GUI Modifications (25 pts)
 
 **Sensor unplug / replug detection** (~30 sec)
 
@@ -561,7 +584,7 @@
 
 ---
 
-## 15:00 – 16:30 | Area 4 — Latency & Real-Time Evidence
+## 16:00 – 17:30 | Area 4 — Latency & Real-Time Evidence
 
 > "Let me put some numbers on the real-time performance claims."
 
@@ -581,7 +604,7 @@
 
 ---
 
-## 16:30 – 18:00 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
+## 17:30 – 19:00 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
 
 **Radar Chart** (~45 sec)
 
@@ -631,7 +654,7 @@
 
 ---
 
-## 18:00 – 19:30 | Area 8 — Best UI Showcase (10 pts)
+## 19:00 – 20:00 | Area 8 — Best UI Showcase (10 pts)
 
 > "Finally, a look at the UI improvements we made."
 
@@ -703,7 +726,7 @@
 
 ---
 
-## 19:30 – 20:00 | Buffer
+## 20:00 | Buffer / Q&A
 
 - Handle evaluator questions
 - Re-demonstrate any item on request
@@ -728,12 +751,14 @@
 
 | Area | Points | Time Slot |
 |------|-------:|-----------|
-| 1 — 12 Graph Displays | 60 | 0:30 – 6:30 |
-| 2 — Sound Print + Rate/Scope Enhancements | 16 | 6:30 – 8:30 |
-| 2 — AI Feature | 9 | 8:30 – 9:30 |
-| 4 — Accuracy (WeiShi comparison) | 25 | 9:30 – 12:30 |
-| 6 — GUI Modifications | 25 | 12:30 – 14:30 |
-| 4 — Latency & Real-Time Evidence | (supporting) | 14:30 – 16:00 |
-| Bonus — Radar Chart + Diagnosis | +15 | 16:00 – 17:30 |
-| 8 — Best UI | 10 | 17:30 – 18:30 |
+| Intro + UI Overview | — | 0:00 – 1:00 |
+| 1 — Watch-Position Testing | 5 | 1:00 – 2:30 |
+| 1 — 11 Additional Graphs | 55 | 2:30 – 8:30 |
+| 2 — Sound Print + Rate/Scope Enhancements | 16 | 8:30 – 10:30 |
+| 2 — AI Feature | 9 | 10:30 – 11:30 |
+| 4 — Accuracy (WeiShi comparison) | 25 | 11:30 – 14:00 |
+| 6 — GUI Modifications | 25 | 14:00 – 16:00 |
+| 4 — Latency & Real-Time Evidence | (supporting) | 16:00 – 17:30 |
+| Bonus — Radar Chart + Diagnosis | +15 | 17:30 – 19:00 |
+| 8 — Best UI | 10 | 19:00 – 20:00 |
 | **Total** | **145 + 15** | |
