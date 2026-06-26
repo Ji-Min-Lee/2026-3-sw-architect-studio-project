@@ -1,4 +1,4 @@
-# Module View: Domain Entity / Value Object
+# Domain entity and value object view
 
 This view shows the module structure of the Domain layer's `Measurement` aggregate and the three Value Objects that compose it. It is the primary tool for two qualities: **correctness** (AP-4 single-source consistency — every tab receives the same immutable instance) and **modifiability** (QAS-3 — Presentation components can be added or replaced with zero impact on domain types).
 
