@@ -11,7 +11,7 @@
 | **Artifact** | Full pipeline — AudioCapture → DSP → MeasurementEngine → all graph displays |
 | **Environment** | Raspberry Pi 5, Live mode, 96kHz sample rate, normal operating temperature |
 | **Response** | Rate (s/d), Amplitude (°), Beat Error (ms), BPH computed and displayed in all views |
-| **Measure** | Δ Rate < 0.3 s/d vs. WeiShi No.1000; Δ Amplitude < 0.01°; Δ Beat Error = 0 ms; deviation = 0 across all graph tabs showing the same metric (see EXP-06 for protocol) |
+| **Measure** | Δ Rate < 0.3 s/d vs. Witschi No.1000; Δ Amplitude < 0.01°; Δ Beat Error = 0 ms; deviation = 0 across all graph tabs showing the same metric (see EXP-06 for protocol) |
 
 ## Trade-off Accepted
 
@@ -21,5 +21,5 @@ BPH coverage narrowed to 28,800 BPH for M3. Full range (18,000–36,000 BPH) is 
 
 - [QA Priority Summary](README.md)
 - [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — 96kHz chosen over 48kHz to improve timing resolution, directly enabling the Δ Beat Error tolerance above
-- [EXP-06: WeiShi Accuracy Comparison](../experiments/exp-06-accuracy-weishi-comparison.md) — dual-system comparison protocol and pass/fail criteria
+- [EXP-06: Witschi Accuracy Comparison](../experiments/exp-06-accuracy-witschi-comparison.md) — dual-system comparison protocol and pass/fail criteria
 - [EXP-04: Detector Parameter Optimization](../experiments/exp-04-correctness-detector-optimization.md)

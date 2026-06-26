@@ -13,7 +13,7 @@
 | Clearly identifies the major quality attributes relevant to the project | 5 | [atam-evaluation-v3.md §1](references/atam-evaluation-v3.md) | QAS-1–5 defined; Governing / Enabling / Independent driver classification |
 | Clearly explains tradeoffs among quality attributes | 5 | [atam-evaluation-v3.md §5 Tradeoff Points](references/atam-evaluation-v3.md) | TP-1–TP-4: 96 kHz, Ring Buffer, Lazy Rendering, Shared Measurement struct — each with helped/pressured QA |
 | Shows that **accuracy** was treated as the highest-priority attribute in the architecture and implementation | 5 | [atam-evaluation-v3.md §1, §5](references/atam-evaluation-v3.md) | "Accuracy was the tiebreaker in every tradeoff" explicitly stated; Real-Time, Latency, Correctness all classified as enabling QAs serving Accuracy |
-| Explains what was actually achieved and what limitations remain | 5 | [atam-evaluation-v3.md §5 Non-Risks, §7](references/atam-evaluation-v3.md) | NR-1–NR-7 confirmed; R-1 (WeiShi), R-2 (ring buffer stress), R-3 (ADR-004 inactive) remain open |
+| Explains what was actually achieved and what limitations remain | 5 | [atam-evaluation-v3.md §5 Non-Risks, §7](references/atam-evaluation-v3.md) | NR-1–NR-7 confirmed; R-1 (Witschi), R-2 (ring buffer stress), R-3 (ADR-004 inactive) remain open |
 
 **Watch out**: TP-4 claims Measurement struct was split into 3 immutable Value Objects — be ready to name them specifically (Measurement, SignalFrame, WatchMetrics) when asked.
 
@@ -25,7 +25,7 @@
 |---|:---:|---|---|
 | Demonstrates real-time performance on the Raspberry Pi | 8 | [exp-02-realtime-dropped-block.md](references/experiments/exp-02-realtime-dropped-block.md) | RPi 5 @ 96 kHz: Dropped Blocks = 0 across all 9 runs; exec avg 9.6 ms < 21.3 ms deadline |
 | Demonstrates low latency from signal capture to display/update | 6 | [exp-03-latency-e2e.md](references/experiments/exp-03-latency-e2e.md) | E2E avg **2.2 ms** / max **4.8 ms** (E3-07); before optimization: 255 ms → 97% reduction |
-| Demonstrates correctness of calculations, event detection, and displayed values | 6 | [exp-01-accuracy-weishi-comparison.md](references/experiments/exp-01-accuracy-weishi-comparison.md), [exp-05-correctness-detector-optimization.md](references/experiments/exp-05-correctness-detector-optimization.md) | WeiShi comparison: Rate Δ0.4 s/d ✅, Amp Δ15° ✅, Beat Error Δ0.1 ms ✅; detector onset=0.08 stable at 60 dB SNR |
+| Demonstrates correctness of calculations, event detection, and displayed values | 6 | [exp-06-accuracy-witschi-comparison.md](references/experiments/exp-06-accuracy-witschi-comparison.md), [exp-05-correctness-detector-optimization.md](references/experiments/exp-05-correctness-detector-optimization.md) | Witschi comparison: Rate Δ0.4 s/d ✅, Amp Δ15° ✅, Beat Error Δ0.1 ms ✅; detector onset=0.08 stable at 60 dB SNR |
 | Presents evidence, measurements, experiments, or observations supporting these claims | 5 | All EXPs above + [thread-latency-chart.png](assets/thread-latency-chart.png) | CSV logs, before/after plots, 7-run latency history, 274-run detector grid |
 
 **Watch out**:

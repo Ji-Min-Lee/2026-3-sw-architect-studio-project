@@ -14,7 +14,7 @@
 | EXP-03 | QAS-3 | Observer Pattern Compliance — Tab Extension Cost Measurement | — | ≤ 3 files per new tab · 0 Signal Processing references · 14 tabs all pass · DSM no violations | ✅ Done |
 | EXP-04 | QAS-4 | Detector Parameter Optimization Under Noise | 274 | `onset=0.08` most robust: rate ≈ +4.0 s/d stable across 0–50 dB. **Recommended: onset=0.08, min_peak=0.10** | ✅ Done |
 | EXP-05 | QAS-4 + Usability | Signal Quality Warning — Ambient Noise Threshold Validation | 1 | `noiseDb ≥ 55 dB` fires at SNR ≤ 0 dB · **0 false alarms** at SNR ≥ 10 dB | ✅ Done |
-| EXP-06 | QAS-5 | WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000 | 2 | Δ Rate **0.2–0.4 s/d** · Δ Amplitude **15–25°** · Δ Beat Error **0–0.1 ms** — all within tolerance across 2 rounds | ✅ Done |
+| EXP-06 | QAS-5 | Witschi Accuracy Comparison — TimeChecker vs Witschi No.1000 | 2 | Δ Rate **0.2–0.4 s/d** · Δ Amplitude **15–25°** · Δ Beat Error **0–0.1 ms** — all within tolerance across 2 rounds | ✅ Done |
 | EXP-07 | QAS-6 | Long-Term Aging Test — Bucket Downsampling Efficiency | analytical | **2,520 total plotted points** at 7 days (≤ 3,000 budget). `replot()` well under 16 ms | ✅ Done |
 
 ---
@@ -192,11 +192,11 @@ Rate (s/d) averaged across all reps. Values for `min_peak=0.10` (best within eac
 
 ---
 
-## EXP-06: WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000
+## EXP-06: Witschi Accuracy Comparison — TimeChecker vs Witschi No.1000
 
 **QA**: QAS-5 | **Date**: 2026-06-25 | **Status**: ✅ Done
 
-**Question**: Do Rate, Amplitude, and Beat Error values computed by TimeChecker match WeiShi No.1000 within measurement tolerance?
+**Question**: Do Rate, Amplitude, and Beat Error values computed by TimeChecker match Witschi No.1000 within measurement tolerance?
 
 **Answer**: Yes. Both rounds confirmed agreement within tolerance. The persistent Amplitude offset (15–25° lower in TC) is a systematic C-event detection delay — not measurement error.
 
@@ -209,23 +209,23 @@ Watch: 21600 BPH. Sequential measurement per round (watch transferred between sy
 | E1-01 | 2026-06-25 | 21,600 BPH | 5 min each | **0.4** | **15** | **0.1** | ✅ Pass | — |
 | E1-02 | 2026-06-25 | 21,600 BPH | 5 min each | **0.2** | **~25** | **0** | ✅ Pass | — |
 
-> **Note — Weishi Rate resolution**: WeiShi No.1000 displays Rate as integers (s/d), so Δ 0.2 s/d is within display resolution. Rate agreement is confirmed.
+> **Note — Witschi Rate resolution**: Witschi No.1000 displays Rate as integers (s/d), so Δ 0.2 s/d is within display resolution. Rate agreement is confirmed.
 
 ### Measurement Detail
 
-| Metric | WeiShi No.1000 (R2) | TimeChecker (R2) | Delta | Tolerance | Pass? |
+| Metric | Witschi No.1000 (R2) | TimeChecker (R2) | Delta | Tolerance | Pass? |
 |--------|:-------------------:|:----------------:|:-----:|:---------:|:-----:|
 | Rate | +11 s/d | +11.2 s/d | 0.2 s/d | < ±2 s/d | ✅ |
 | Amplitude | 309–321° | 282–296° | ~25° | ± 30° | ✅ |
 | Beat Error | 0.1 ms | 0.1 ms | 0 ms | ± 0.3 ms | ✅ |
 
-The ~25° amplitude offset is systematic: C-event detection threshold delay extends the measured T1 interval, and since amplitude is inversely proportional to T1, TC consistently reads lower than WeiShi.
+The ~25° amplitude offset is systematic: C-event detection threshold delay extends the measured T1 interval, and since amplitude is inversely proportional to T1, TC consistently reads lower than Witschi.
 
 ### Conclusion
 
 - **QAS-5 verified across 2 rounds**: Δ Rate 0.2–0.4 s/d · Δ Amplitude 15–25° · Δ BE 0–0.1 ms — all within tolerance
 - **Systematic amplitude offset explained**: C-event detection delay (not sensor coupling noise) — deterministic and consistent
-- Full write-up: [exp-06-accuracy-weishi-comparison.md](exp-06-accuracy-weishi-comparison.md)
+- Full write-up: [exp-06-accuracy-witschi-comparison.md](exp-06-accuracy-witschi-comparison.md)
 
 ---
 
@@ -274,5 +274,5 @@ The ~25° amplitude offset is systematic: C-event detection threshold delay exte
 | IAudioSource dependency inversion | QAS-3 | EXP-03 | **Applied** — 3 audio sources unified under single interface | 2026-06-21 |
 | Detector parameters | QAS-4 | EXP-04 | **onset=0.08, min_peak=0.10** — only setting tracking through 60 dB SNR | 2026-06-17 |
 | Ambient noise popup threshold | QAS-4 + Usability | EXP-05 | **55 dB** — 0 false alarms at SNR ≥ 10 dB; popup fires at SNR ≤ 0 dB; 2 s sustain filter prevents flicker | 2026-06-23 |
-| WeiShi accuracy validation | QAS-5 | EXP-06 | **Verified (2 rounds)** — Δ Rate 0.2–0.4 s/d · Δ Amplitude 15–25° · Δ BE 0–0.1 ms — all within tolerance; amplitude offset explained by C-event detection delay | 2026-06-25 |
+| Witschi accuracy validation | QAS-5 | EXP-06 | **Verified (2 rounds)** — Δ Rate 0.2–0.4 s/d · Δ Amplitude 15–25° · Δ BE 0–0.1 ms — all within tolerance; amplitude offset explained by C-event detection delay | 2026-06-25 |
 | LongTermTab `mBucketSize` downsampling | QAS-6 | EXP-07 | **Applied** — 4-phase bucket strategy bounds plotted points to 840/series at 7 days | 2026-06-25 |

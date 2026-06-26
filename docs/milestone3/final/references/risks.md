@@ -26,7 +26,7 @@
 |----|-------------|:----:|:------:|------------|:------:|
 | NTR-04 | English communication overhead slows documentation velocity | M | L | All deliverables in English. Internal discussion Korean; design summaries bilingual | ✅ Convention held |
 | NTR-05 | Single RPi device creates experiment bottleneck | H | M | EXP-01 validated on each dev machine first; RPi-independent work ran in parallel; RPi slot reserved for target-hardware confirmation | ✅ Mitigated |
-| NTR-07 | Equation-level derivations difficult (Rate / Beat Error / Amplitude formulas) | M | H | AI-assisted equation interpretation; [142 tests across 10 binaries](views/view-allocation-implementation.md) verify correctness independently of individual formula fluency; EXP-06 WeiShi comparison confirmed within tolerance | ✅ Resolved |
+| NTR-07 | Equation-level derivations difficult (Rate / Beat Error / Amplitude formulas) | M | H | AI-assisted equation interpretation; [142 tests across 10 binaries](views/view-allocation-implementation.md) verify correctness independently of individual formula fluency; EXP-06 Witschi comparison confirmed within tolerance | ✅ Resolved |
 
 ---
 
@@ -40,7 +40,7 @@
 
 | Date | ID | Event |
 |------|----|-------|
-| 2026-06-25 | NTR-07 | EXP-06 WeiShi comparison complete: Rate/Amplitude/Beat Error within tolerance; QAS-5 Pass |
+| 2026-06-25 | NTR-07 | EXP-06 Witschi comparison complete: Rate/Amplitude/Beat Error within tolerance; QAS-5 Pass |
 | 2026-06-21 | TR-04/06/08 | EXP-03 complete: 14 tabs verified ≤ 3-file change each, zero layer violations; test suite expanded to 142 tests (10 binaries), all passing |
 | 2026-06-17 | TR-05 | EXP-04 E5-03 complete (274 runs): `onset_fraction=0.08`, `min_peak_fraction=0.10` — stable beat detection at 0–60 dB SNR; `Detector.cpp` defaults updated |
 | 2026-06-15 | TR-01 | EXP-01 RPi: Dropped=0 at 48k/96k/192k under all scheduling policies; ADR-003 Accepted |

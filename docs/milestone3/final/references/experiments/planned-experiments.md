@@ -8,7 +8,7 @@
 
 | ID | Experiment | QA | Risk | Status | Date |
 |----|------------|----|------|:------:|------|
-| **EXP-06** | [WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000](exp-06-accuracy-weishi-comparison.md) | QAS-5 | — | ⏸ Planned | W5 S1 (2026-06-29) |
+| **EXP-06** | [Witschi Accuracy Comparison — TimeChecker vs Witschi No.1000](exp-06-accuracy-witschi-comparison.md) | QAS-5 | — | ⏸ Planned | W5 S1 (2026-06-29) |
 | **EXP-01** | [RPi Real-Time Performance — Dropped Block Measurement](exp-01-realtime-dropped-block.md) | QAS-1 | TR-01 | ✅ Done | 2026-06-15 |
 | **EXP-02** | [End-to-End Latency — 2-Segment Timestamp Measurement](exp-02-latency-e2e.md) | QAS-2 | TR-02, TR-03, TR-04 | ✅ Done | 2026-06-11~16 |
 | **EXP-03** | [Observer Pattern Compliance — Tab Extension Cost Measurement](exp-03-extensibility-observer-pattern.md) | QAS-3 | — | ✅ Done | 2026-06-21 |
@@ -18,7 +18,7 @@
 
 ---
 
-## EXP-06: WeiShi Accuracy Comparison — TimeChecker vs WeiShi No.1000
+## EXP-06: Witschi Accuracy Comparison — TimeChecker vs Witschi No.1000
 
 ### Status
 
@@ -26,7 +26,7 @@
 
 ### Objective
 
-Verify that TimeChecker (RPi 5, 96 kHz, real microphone) produces Rate, Amplitude, and Beat Error values within tolerance of WeiShi No.1000, confirming QAS-5 (Measurement Accuracy).
+Verify that TimeChecker (RPi 5, 96 kHz, real microphone) produces Rate, Amplitude, and Beat Error values within tolerance of Witschi No.1000, confirming QAS-5 (Measurement Accuracy).
 
 ### Pass Condition
 
@@ -40,10 +40,10 @@ Verify that TimeChecker (RPi 5, 96 kHz, real microphone) produces Rate, Amplitud
 
 > **Note**: Only one watch available — measurements are taken sequentially, not simultaneously.
 
-1. Place the watch on WeiShi No.1000 → run 5 min → record Rate (s/d), Amplitude (°), Beat Error (ms)
+1. Place the watch on Witschi No.1000 → run 5 min → record Rate (s/d), Amplitude (°), Beat Error (ms)
 2. Immediately transfer to TimeChecker (RPi 5, 96kHz, real mic) → run 5 min → record same metrics
 3. Repeat steps 1–2 for ≥ 3 rounds to average out short-term rate drift
-4. Compute |TimeChecker avg − WeiShi avg| for each metric across all rounds
+4. Compute |TimeChecker avg − Witschi avg| for each metric across all rounds
 5. Pass if all three deltas are within tolerance
 
 ### Prerequisites
@@ -54,7 +54,7 @@ EXP-01 (96k sps confirmed), EXP-02 (E2E < 100 ms), EXP-04 (onset=0.08 confirmed)
 
 | Resource | Detail |
 |----------|--------|
-| Hardware | RPi 5, real microphone, WeiShi No.1000 |
+| Hardware | RPi 5, real microphone, Witschi No.1000 |
 | Software | TimeChecker (Live mode, 96kHz) |
 | Mechanical watch | One 28,800 BPH watch |
 | Effort | ~1 person-day |

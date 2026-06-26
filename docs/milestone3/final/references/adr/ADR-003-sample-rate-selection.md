@@ -35,7 +35,7 @@ the pipeline:
 48kHz satisfies QAS-1 (real-time performance) — EXP-01 confirms 0 dropped blocks at 48kHz
 with exec avg 5.8ms, well within the 42.67ms deadline. However, 48kHz yields a Beat Error
 resolution of 20.8 µs/sample, which is insufficient to meet the Δ Beat Error = 0 ms
-tolerance required for WeiShi No.1000 comparison (EXP-06). 96kHz doubles the resolution
+tolerance required for Witschi No.1000 comparison (EXP-06). 96kHz doubles the resolution
 to 10.4 µs/sample at the cost of higher CPU load (exec avg 9.6ms vs. 5.8ms at 48kHz) and
 increased CPU load on the RPi 5. We accepted this Performance cost in favour of
 Accuracy — the project's governing goal.
@@ -54,7 +54,7 @@ Transitioned from Proposed to Accepted on 2026-06-15 (2 days ahead of target).
 ## Consequences
 
 **Option A (96kHz) adopted**:
-- Beat Error resolution: **10.4 µs/sample** — sufficient for WeiShi comparison
+- Beat Error resolution: **10.4 µs/sample** — sufficient for Witschi comparison
 - `FilterChain` cutoffs set on 96kHz Nyquist basis
 - SCHED_RR for audio thread: **not required** — EXP-06 showed no improvement in Dropped Block count
 - 192kHz stretch goal remains possible (0 dropped blocks confirmed), but not required for M3

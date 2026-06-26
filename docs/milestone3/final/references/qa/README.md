@@ -26,7 +26,7 @@ Extensibility / Modifiability (QAS-3) — independent architectural driver
       ADR-005, ADR-006, EXP-03
 ```
 
-QAS-5 is the **acceptance criterion**: Δ Rate < ±2 s/d vs. WeiShi No.1000 confirms that all enabling QAs are working together correctly. It is a verification step, not an architectural driver.
+QAS-5 is the **acceptance criterion**: Δ Rate < ±2 s/d vs. Witschi No.1000 confirms that all enabling QAs are working together correctly. It is a verification step, not an architectural driver.
 
 ### Enabling QA Summary
 
@@ -52,13 +52,11 @@ When architectural decisions conflicted with other QAs, accuracy concerns resolv
 
 ## Priority Summary
 
-| Priority | QA | Architecture | Rationale | Experiment | View |
-|:--------:|----|---|---|---|---|
-| **1** | [Real Time Performance](qas-1-real-time-performance.md) | T2 DSP Offload Thread | [ADR-001](../adr/ADR-001-t2-dsp-offload-thread.md) | [EXP-01](../experiments/exp-01-realtime-dropped-block.md) | [C&C View: DSP Pipeline](../views/view-cc-dsp-pipeline.md) |
-| **1** | [Real Time Performance](qas-1-real-time-performance.md) | R1 Lazy Rendering | [ADR-002](../adr/ADR-002-r1-lazy-rendering.md) | [EXP-01](../experiments/exp-01-realtime-dropped-block.md) | [C&C View: DSP Pipeline](../views/view-cc-dsp-pipeline.md) |
-| **2** | [Low Latency and Low Number of Missed Beats](qas-2-low-latency-and-low-number-of-missed-beats.md) | T2 DSP Offload Thread | [ADR-001](../adr/ADR-001-t2-dsp-offload-thread.md) | [EXP-02](../experiments/exp-02-latency-e2e.md) | [C&C View: DSP Pipeline](../views/view-cc-dsp-pipeline.md) |
-| **3** | [Extensibility, Modifiability](qas-3-extensibility-modifiability.md) | 4-Layer Allowed-to-Use | [ADR-006](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered View: 4-Layer](../views/view-layered-4layer.md) |
-| **3** | [Extensibility, Modifiability](qas-3-extensibility-modifiability.md) | Observer Pattern (BaseGraphTab) | [ADR-006](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03](../experiments/exp-03-extensibility-observer-pattern.md) | [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) |
-| **4** | [Correctness](qas-4-correctness.md) | Sample Rate Selection | [ADR-003](../adr/ADR-003-sample-rate-selection.md) | [EXP-04](../experiments/exp-04-correctness-detector-optimization.md) | [C&C View: DSP Pipeline](../views/view-cc-dsp-pipeline.md) |
-| **5** | [Measurement Accuracy, Error Detection, and Handling](qas-5-measurement-accuracy-error-detection-handling.md) | — | — | [EXP-06](../experiments/exp-06-accuracy-weishi-comparison.md) | [Domain Entity / Value Object](../views/view-domain-entity-vo.md) |
-| **4** | [Long-Term Session Performance](qas-6-long-term-session-performance.md) | Time-Based Bucket Downsampling (`mBucketSize`) | [ADR-007](../adr/ADR-007-longtermtab-downsampling.md) | [EXP-07](../experiments/exp-07-longterm-aging.md) | [Decomposition View: LongTermTab](../views/view-longtermtab-downsampling.md) |
+| Priority | QA | Architecture Decision | Experiment | View |
+|:--------:|----|---|---|---|
+| **H** | [Real Time Performance](qas-1-real-time-performance.md) | [ADR-001](../adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread, [ADR-002](../adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering | [EXP-01](../experiments/exp-01-realtime-dropped-block.md) | [C&C View: DSP Pipeline](../views/view-cc-dsp-pipeline.md) |
+| **H** | [Low Latency and Low Number of Missed Beats](qas-2-low-latency-and-low-number-of-missed-beats.md) | [ADR-001](../adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread | [EXP-02](../experiments/exp-02-latency-e2e.md) | [C&C View: DSP Pipeline](../views/view-cc-dsp-pipeline.md) |
+| **M** | [Extensibility, Modifiability](qas-3-extensibility-modifiability.md) | [ADR-006](../adr/ADR-006-basegraphtab-observer-pattern.md) Observer Pattern, 4-Layer Allowed-to-Use | [EXP-03](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered View](../views/view-layered-4layer.md), [Decomposition: Graph Tab](../views/view-decomposition-graph-tab.md) |
+| **M** | [Correctness](qas-4-correctness.md) | [ADR-003](../adr/ADR-003-sample-rate-selection.md) Sample Rate, [ADR-008](../adr/ADR-008-watchmath-module-isolation.md) WatchMath Isolation | [EXP-04](../experiments/exp-04-correctness-detector-optimization.md) | [C&C View: DSP Pipeline](../views/view-cc-dsp-pipeline.md) |
+| **M** | [Measurement Accuracy, Error Detection, and Handling](qas-5-measurement-accuracy-error-detection-handling.md) | — (acceptance criterion, not an architectural driver) | [EXP-06](../experiments/exp-06-accuracy-witschi-comparison.md) | [Domain Entity / Value Object](../views/view-domain-entity-vo.md) |
+| **L** | [Long-Term Session Performance](qas-6-long-term-session-performance.md) | [ADR-007](../adr/ADR-007-longtermtab-downsampling.md) Time-Based Bucket Downsampling | [EXP-07](../experiments/exp-07-longterm-aging.md) | [Decomposition View: LongTermTab](../views/view-longtermtab-downsampling.md) |

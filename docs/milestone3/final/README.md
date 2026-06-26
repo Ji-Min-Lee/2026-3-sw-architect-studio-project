@@ -109,7 +109,7 @@ resolve identified risks before committing to design choices.
 | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | Extensibility — Observer Pattern | QAS-3 | ✅ Done |
 | [EXP-04](references/experiments/exp-04-correctness-detector-optimization.md) | Detector Parameter Optimization Under Noise | QAS-4 | ✅ Done |
 | [EXP-05](references/experiments/exp-05-noise-threshold-popup.md) | Signal Quality Warning — Noise Threshold Validation | QAS-4 + Usability | ✅ Done |
-| [EXP-06](references/experiments/exp-06-accuracy-weishi-comparison.md) | Accuracy vs. WeiShi Reference Device | QAS-5 | ✅ Done |
+| [EXP-06](references/experiments/exp-06-accuracy-witschi-comparison.md) | Accuracy vs. Witschi Reference Device | QAS-5 | ✅ Done |
 | [EXP-07](references/experiments/exp-07-longterm-aging.md) | Long-Term Aging Test — Bucket Downsampling Efficiency | QAS-6 | ✅ Done |
 
 See [planned-experiments.md](references/experiments/planned-experiments.md) for the
@@ -143,7 +143,7 @@ risks, their resolution status, and the experiments or architectural decisions t
 
 ## Traceability: QAS → Risk → Experiment → ADR
 
-### QAS-1 — Real-Time Performance *(Priority 1)*
+### QAS-1 — Real-Time Performance *(H)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
@@ -151,14 +151,14 @@ risks, their resolution status, and the experiments or architectural decisions t
 | [TR-03](references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-02](references/experiments/exp-02-latency-e2e.md) | Backlog 0% (macOS + RPi) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
 | [TR-04](references/risks.md) | `replot()` in exec path consumes 79% of exec budget | [EXP-02](references/experiments/exp-02-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%) | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ |
 
-### QAS-2 — Low Latency and Low Number of Missed Beats *(Priority 2)*
+### QAS-2 — Low Latency and Low Number of Missed Beats *(H)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
 | [TR-01](references/risks.md) | RPi cannot sustain 96kHz audio capture alongside Qt GUI | [EXP-01](references/experiments/exp-01-realtime-dropped-block.md) | Dropped=0 at 48k/96k/192k | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
 | TR-02/03 | Single-threaded capture-to-process latency | [EXP-02](references/experiments/exp-02-latency-e2e.md) | E2E avg **2.05ms** on RPi | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
 
-### QAS-3 — Extensibility / Modifiability *(Priority 3)*
+### QAS-3 — Extensibility / Modifiability *(M)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
@@ -167,21 +167,21 @@ risks, their resolution status, and the experiments or architectural decisions t
 | [TR-08](references/risks.md) | New tab requires data not in current Domain output | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | All 14 tabs implemented within the target change budget ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
 | — | Audio source extension touches multiple unrelated components | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
 
-### QAS-4 — Correctness *(Priority 4)*
+### QAS-4 — Correctness *(M)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
 | [TR-05](references/risks.md) | Filter defaults reject beat signal at edge BPH values | [EXP-04](references/experiments/exp-04-correctness-detector-optimization.md) | onset=0.08, min_peak=0.10 confirmed ✅ | Default parameters locked in `Detector.cpp` |
 | [NTR-07](references/risks.md) | Equation-level derivations difficult to verify manually | — | 142 unit tests across 10 binaries provide an architectural safety net ✅ | [ADR-008](references/adr/ADR-008-watchmath-module-isolation.md) WatchMath module isolation |
 
-### QAS-5 — Measurement Accuracy *(Priority 5 — Usability)*
+### QAS-5 — Measurement Accuracy *(M)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| — | Accuracy vs. WeiShi reference device unvalidated | [EXP-06](references/experiments/exp-06-accuracy-weishi-comparison.md) | Validation against reference device completed ✅ | — |
+| — | Accuracy vs. Witschi reference device unvalidated | [EXP-06](references/experiments/exp-06-accuracy-witschi-comparison.md) | Validation against reference device completed ✅ | — |
 | [NTR-07](references/risks.md) | Equation-level derivations difficult to verify manually | — | Test suite provides safety net (142 tests / 10 binaries) | [ADR-008](references/adr/ADR-008-watchmath-module-isolation.md) |
 
-### QAS-6 — Long-Term Session Performance *(Priority 6)*
+### QAS-6 — Long-Term Session Performance *(L)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|

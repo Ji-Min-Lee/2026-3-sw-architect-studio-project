@@ -5,6 +5,9 @@
 **Team**: Blue Sky (Team 3)  
 **Method**: ATAM (Architecture Tradeoff Analysis Method) — SEI
 
+> **Snapshot document** — This report captures the ATAM evaluation conducted on **2026-06-22**.
+> It will not be updated. For the current architecture state, refer to the [Architecture Views](../views/README.md) and [ADRs](../adr/).
+
 ---
 
 ## Executive Summary
@@ -15,7 +18,7 @@ On Raspberry Pi 5, this caused **43% of audio blocks to miss their deadline**.
 We addressed this by separating DSP into its own thread (ADR-001) and adding lazy rendering (ADR-002).
 After the changes: deadline miss dropped to **0%**, and queue wait time dropped by **×2,600**.
 
-The one open risk is **accuracy against the WeiShi reference device** — this validation is scheduled for Week 5 (06/29).
+The one open risk is **accuracy against the Witschi reference device** — this validation is scheduled for Week 5 (06/29).
 
 ---
 
@@ -48,7 +51,7 @@ It finds: which decisions could cause trouble, and where decisions force a trade
 | **Target hardware** | Raspberry Pi 5 (4-core ARM, 8 GB RAM) |
 | **Framework** | Qt (C++) — fixed choice |
 | **Key constraint** | 21ms audio deadline per block (ALSA, ~96kHz) |
-| **Stakeholder concern** | Results must match WeiShi No.1000 reference device |
+| **Stakeholder concern** | Results must match Witschi No.1000 reference device |
 
 ### Critical Requirement & Architectural Drivers
 
@@ -58,7 +61,7 @@ In Bass, Clements & Kazman terminology (*Software Architecture in Practice*, Ch.
 
 | Type | QA | What it shaped in the architecture |
 |------|----|------------------------------------|
-| **Governing goal** | Measurement Accuracy (QAS-5) | The user-facing outcome — Rate / Amplitude / Beat Error matching WeiShi No.1000. Verified by EXP-06. Not an architectural driver; it is the acceptance criterion that all enabling QAs serve. |
+| **Governing goal** | Measurement Accuracy (QAS-5) | The user-facing outcome — Rate / Amplitude / Beat Error matching Witschi No.1000. Verified by EXP-06. Not an architectural driver; it is the acceptance criterion that all enabling QAs serve. |
 | **Enabling QA** | Real-Time Performance (QAS-1) | Dropped audio blocks cause missed beats → wrong Rate and Beat Error. Forced DSP onto its own thread (ADR-001) and lazy rendering (ADR-002). |
 | **Enabling QA** | Low Latency (QAS-2) | Stale display values mislead the user about current watch state. Resolved by ADR-001 (E2E avg 2.2ms, EXP-02). |
 | **Enabling QA** | Correctness (QAS-4) | Formula errors and noise-triggered false beats corrupt Rate/Beat Error. Resolved by WatchMath isolation (ADR-008) and detector parameter tuning (ADR-003, ADR-009, EXP-04). |
@@ -142,7 +145,7 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 | ID | Risk | QA | Status |
 |----|------|----|--------|
-| R-1 | **WeiShi accuracy not validated** — QAS-5 is the governing goal but no comparison against reference hardware has been done yet | QAS-5 | ⏳ EXP-06 scheduled 06/29 |
+| R-1 | **Witschi accuracy not validated** — QAS-5 is the governing goal but no comparison against reference hardware has been done yet | QAS-5 | ⏳ EXP-06 scheduled 06/29 |
 | R-2 | **Ring buffer depth not stress-tested** — Too shallow = dropped blocks; too deep = added latency. Set conservatively but not validated under peak load | QAS-1, QAS-2 | ⏳ Needs RPi stress test |
 | R-3 | **Timer rendering (ADR-004) not activated** — Rendering under all 14 tabs visible at once is untested | QAS-1 | ⏳ Conditional on EXP-04 |
 
@@ -174,7 +177,7 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 ### Theme 2 — Reference Hardware Validation Gap → OPEN ⏳
 
-**What it is**: QAS-5 (Measurement Accuracy) has never been compared against a real WeiShi watch. Architecture is correct by design, but unconfirmed.
+**What it is**: QAS-5 (Measurement Accuracy) has never been compared against a real Witschi watch. Architecture is correct by design, but unconfirmed.
 
 **Why it matters**: This is the governing goal — the most important QA.
 
@@ -196,7 +199,7 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 
 | Priority | Action | Addresses |
 |----------|--------|-----------|
-| **Critical** | Run EXP-06 — WeiShi accuracy comparison | R-1, Theme 2 |
+| **Critical** | Run EXP-06 — Witschi accuracy comparison | R-1, Theme 2 |
 | **High** | Stress-test ring buffer depth on RPi under peak load | R-2 |
 | **Low** | Confirm ADR-004 behavior if all 14 tabs open simultaneously | R-3, Theme 3 |
 
