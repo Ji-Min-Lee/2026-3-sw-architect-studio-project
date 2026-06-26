@@ -41,27 +41,8 @@ void  SoundImageWidget::DrawImage(void)
 
 void SoundImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if (!image || height() <= 0) return;
-
-    // Grid lines are at y-fraction 0.0 (A event boundary) and 0.5 (C event half-period).
-    // Use a ±4% band around each line to trigger the tooltip.
-    double yFrac = static_cast<double>(event->pos().y()) / height();
-
-    QString tip;
-    if (yFrac < 0.04 || yFrac > 0.96) {
-        tip = "<b style='color:#0044ee'>● C event boundary (half-period)</b><br>"
-              "Expected position of the complementary (C) impulse.<br>"
-              "Vertical spread indicates beat error or amplitude variation.";
-    } else if (yFrac > 0.46 && yFrac < 0.54) {
-        tip = "<b style='color:#00cc00'>● A event boundary</b><br>"
-              "Expected position of the tick/toc (A) impulse.<br>"
-              "Events clustering here indicate stable beat detection.";
-    }
-
-    if (!tip.isEmpty())
-        QToolTip::showText(event->globalPos(), tip, this);
-    else
-        QToolTip::hideText();
+    Q_UNUSED(event);
+    QToolTip::hideText();
 }
 
 void SoundImageWidget::paintEvent(QPaintEvent *event) {
@@ -88,9 +69,6 @@ void SoundImageWidget::paintEvent(QPaintEvent *event) {
         { QColor(0,255,0), QColor(150,255,0), QColor(255,220,0), false, "A event (strong / medium / weak)" },
         // C events: 3-tone confidence gradient
         { QColor(0,0,255), QColor(0,150,255), QColor(0,220,255), false, "C event (strong / medium / weak)" },
-        // grid reference lines
-        { QColor(0,200,0),  QColor(), QColor(), true,  "A event boundary" },
-        { QColor(0,0,200),  QColor(), QColor(), true,  "C event boundary (half-period)" },
     };
     const int nEntries = static_cast<int>(sizeof(entries) / sizeof(entries[0]));
 
