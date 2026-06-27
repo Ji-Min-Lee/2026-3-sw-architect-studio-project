@@ -37,16 +37,23 @@ The architecture shall make formula correctness continuously verifiable: the `Wa
 
 ## Sub-Requirement 2: Internal Consistency — Reliability
 
-Displayed values and graphs shall remain consistent across all GUI tabs — rate, amplitude, and beat error shown in the summary bar, Rate/Scope tab, Trace tab, Vario tab, and Sequence tab must all derive from the same underlying data.
+Displayed values and graphs shall remain consistent across all GUI tabs — rate, amplitude, and beat error shown in the summary bar, Rate/Scope tab, Trace tab, Vario tab, and Sequence tab must all derive from the same underlying data. Furthermore, this data must be produced by the same DSP computation regardless of which input mode (live mic, WAV playback, or synthetic signal) is active.
 
 | Field | Detail |
 |-------|--------|
-| **Source** | All graph tabs (11 tabs) reading measurement data |
+| **Source** | All graph tabs (14 tabs) reading measurement data; all three input modes (live mic, WAV playback, SimWorker) |
 | **Stimulus** | MeasurementEngine produces a new `Measurement` struct per beat |
-| **Artifact** | `AudioRingBuffer` (single source) → `MeasurementEngine` → all tabs |
-| **Environment** | Live mode; multiple tabs open simultaneously |
-| **Response** | Every tab receives the identical `Measurement` object via Observer signal; no tab queries a separate data source |
-| **Measure** | Deviation between the same metric shown in any two tabs = 0 at all times |
+| **Artifact** | `IAudioSource` (3 input modes → single `connect()` site) → `AudioRingBuffer` → `MeasurementEngine` → all 14 tabs |
+| **Environment** | Any input mode; multiple tabs open simultaneously |
+| **Response** | Every tab receives the identical `Measurement` object via Observer signal; all input modes enter the DSP chain through the same `SessionController::startSourceThread()` wiring |
+| **Measure** | Deviation between the same metric shown in any two tabs = 0 at all times; DSP wiring path is identical across all three input modes |
+
+**Tactics applied:**
+
+| Tactic | How it appears in this system |
+|--------|-------------------------------|
+| **Single data source (horizontal)** | `MeasurementEngine` broadcasts one `Measurement` VO via Qt signal; all 14 tabs subscribe to the same signal — no tab reads a private or duplicate data source (ADR-006) |
+| **Single wiring path (vertical)** | `IAudioSource` (ADR-005) ensures all three input modes share the identical `connect()` block in `SessionController`; the compiler prevents mode-specific DSP entry point divergence |
 
 ---
 

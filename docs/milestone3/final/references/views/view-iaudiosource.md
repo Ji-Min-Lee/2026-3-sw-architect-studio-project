@@ -1,8 +1,8 @@
-# IAudioSource dependency inversion view
+# IAudioSource Dependency Inversion View
 
-This view shows the AS-IS vs. TO-BE structure of the audio source extension point. It answers: "What must a developer do to add a new audio source (e.g., network stream, USB device)?" It is the primary evidence for QAS-3 (Extensibility / Modifiability).
+This view shows the AS-IS vs. TO-BE structure of the audio source abstraction. It answers: "How does the architecture guarantee that all three input modes (live mic, WAV playback, synthetic signal) traverse the identical DSP path?" It is the primary evidence for **QAS-4 Sub-2 (Internal Consistency)**.
 
-In the AS-IS design, adding a new audio input source requires modifying `MainWindow` and the now-removed `AudioManager` coordinator — two components unrelated to the new source. In the TO-BE design (P1 + i1 refactors), the developer implements `IAudioSource` only; no other file changes are needed.
+In the AS-IS design, each input mode had its own concrete pointer and its own `connect()` block in `MainWindow`. Mode-specific wiring meant the DSP chain could silently diverge between modes — a correctness risk. In the TO-BE design (P1 + i1 refactors), `SessionController` holds a single `IAudioSource*` and connects once; all three modes share the identical DSP entry path, enforced at compile time.
 
 ![IAudioSource Dependency Inversion](../../assets/view5-iaudiosource.png)
 
@@ -12,14 +12,14 @@ In the AS-IS design, adding a new audio input source requires modifying `MainWin
 
 | Element | Role |
 |---------|------|
-| `MainWindow` | Qt top-level window; directly wired to all concrete worker types |
+| `MainWindow` | Qt top-level window; held three concrete worker pointers; wired each mode separately |
 | `AudioManager` | Dead coordinator; held 3 concrete worker pointers; removed in i6 refactor |
 | `TAudioWorker` | Concrete ALSA live mic worker (T-prefixed legacy name) |
 | `TPlaybackWorker` | Concrete WAV file playback worker |
 | `TSimWorker` | Concrete synthetic signal worker |
 | `DSPWorker` | DSP thread; had 3 separate `connect()` blocks (one per worker type) |
 
-Adding a `NetworkWorker` required: (1) modifying `MainWindow`, (2) modifying `AudioManager`, (3) adding a 4th `connect()` block in `DSPWorker`.
+Each mode required its own `connect()` block — a divergence point where per-mode DSP wiring differences could arise undetected.
 
 #### TO-BE (after P1 + i1 refactors)
 
@@ -29,32 +29,41 @@ Adding a `NetworkWorker` required: (1) modifying `MainWindow`, (2) modifying `Au
 | `AudioWorker` | Implements `IAudioSource` — live mic (ALSA) |
 | `PlaybackWorker` | Implements `IAudioSource` — WAV file playback |
 | `SimWorker` | Implements `IAudioSource` — synthetic signal generator |
-| `SessionController` | Owns `IAudioSource*` + thread lifecycle; depends on interface only; 1 `connect()` block |
+| `SessionController` | Owns `IAudioSource*` + thread lifecycle; depends on interface only; 1 `connect()` block shared by all modes |
 
-Adding a `NetworkWorker` requires: implement `IAudioSource` in 1–2 files. Zero other changes.
+All three modes enter the DSP chain through the same single `connect()` site. The compiler enforces this: `SessionController` references only `IAudioSource`, making per-mode branching in the wiring path impossible.
 
 ## Behavior
 
-**Extension procedure (TO-BE)**:
+**Consistency guarantee (TO-BE)**:
 
 ```
-1. Create NetworkWorker : public IAudioSource
-2. Implement dataReady() emission loop
-3. Register in SessionController::startNetwork() (optional new method)
+SessionController::startSourceThread()
+    → connect(source, &IAudioSource::dataReady,
+              mDspWorker, &DSPWorker::onDataReady, Qt::QueuedConnection)
 
-SessionController «use» IAudioSource
-    → single connect(source, &IAudioSource::dataReady, …)
-    → works for all current and future workers
+AudioWorker   ─┐
+PlaybackWorker ─┼─ same connect() site ─→ DSPWorker ─→ MeasurementEngine ─→ all 14 tabs
+SimWorker     ─┘
 ```
 
-**Trade-off**: `sourceComplete()` signal contract differs between source types — live mic never emits it; Playback/Sim emit at EOF. New source implementations must follow this contract; `SessionController` handles both cases uniformly.
+All three input modes emit `dataReady(int64_t emitTimestampUs)` — the timestamp is used downstream for latency measurement (QAS-2). Because all modes share this single wiring, any measurement derived from audio data is produced by the same DSP computation regardless of which input mode is active.
+
+**`sourceComplete()` contract**: live mic never emits it (no EOF); `PlaybackWorker` and `SimWorker` emit at end of data. `SessionController::onSourceComplete()` handles both cases uniformly — new implementations must follow this contract or session teardown will malfunction.
+
+**Secondary benefit — future extensibility**: because `SessionController` depends only on `IAudioSource`, a future input mode (e.g., network stream) requires only implementing `IAudioSource` and adding one factory method in `SessionController`. No changes to `MainWindow`, `DSPWorker`, or `MeasurementEngine` are needed. This is a structural benefit, not a current requirement.
+
+## Related QA
+
+- **Primary**: [QAS-4 Sub-2 (Internal Consistency)](../qa/qas-4-correctness.md) — single `connect()` site ensures all input modes produce measurements via the identical DSP path; no mode-specific computation divergence possible
+- **Secondary**: [QAS-3 (Extensibility, Modifiability)](../qa/qas-3-extensibility-modifiability.md) — interface boundary reduces future audio source addition cost to 1–2 files; not a current requirement
 
 ## Related ADRs
 
-- [ADR-005: IAudioSource Dependency Inversion](../adr/ADR-005-p1-iaudiosource-dependency-inversion.md) — introduces `IAudioSource` interface; eliminates `AudioManager`
-- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — `DSPWorker` connects to `IAudioSource::dataReady` via `AudioRingBuffer`
+- [ADR-005: IAudioSource Dependency Inversion](../adr/ADR-005-p1-iaudiosource-dependency-inversion.md) — decision record for introducing `IAudioSource` and extracting `SessionController`
+- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — `DSPWorker` connects to `IAudioSource::dataReady` via `AudioRingBuffer`; the single connect site makes the T2 wiring unambiguous across all modes
 
-## Related views
+## Related Views
 
 - [Layered and Module Decomposition View](view-layered-4layer.md) — shows `IAudioSource` and workers in the Acquisition layer context
 - [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — runtime view; `SessionController` owns the T1 thread lifecycle shown here

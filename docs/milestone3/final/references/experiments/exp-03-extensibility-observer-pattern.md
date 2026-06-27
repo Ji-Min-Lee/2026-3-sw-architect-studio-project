@@ -38,7 +38,7 @@ Observed file-change counts across three sprint rounds (excludes build system an
 
 **Observer pattern (BaseGraphTab + Qt Signal-Slot)**: `MeasurementEngine` publishes `Measurement` via Qt signal; all 14 tabs subscribe via `QueuedConnection`. `MeasurementEngine` has zero knowledge of tabs.
 
-**IAudioSource dependency inversion**: `AudioWorker` / `PlaybackWorker` / `SimWorker` unified under single interface. `SessionController` holds 1 `connect()` site.
+**IAudioSource dependency inversion** (ADR-005): `AudioWorker` / `PlaybackWorker` / `SimWorker` unified under single interface. `SessionController` holds 1 `connect()` site, ensuring all three input modes traverse an identical DSP wiring path.
 
 ## Links
 

@@ -1,10 +1,10 @@
 # ADR-005: IAudioSource Dependency Inversion (P1 Refactor)
 
 The original design wired `MainWindow` directly to three concrete audio worker classes
-(`TAudioWorker`, `TPlaybackWorker`, `TSimWorker`). Each mode required a separate concrete
-pointer and a duplicated `connect()` block in `MainWindow`. Adding a fourth audio source
-(e.g., network stream) required modifying `MainWindow` and repeating the wiring pattern —
-a change unrelated to the new source's logic.
+(`TAudioWorker`, `TPlaybackWorker`, `TSimWorker`). Each mode had its own concrete pointer
+and its own `connect()` block. This created a correctness risk: mode-specific wiring meant
+the DSP chain could silently diverge between live mic, WAV playback, and synthetic signal
+modes — producing different computation paths for what should be identical processing.
 
 Additionally, `MainWindow` mixed UI lifecycle management with audio thread lifecycle
 management, making both concerns harder to reason about independently.
@@ -48,24 +48,35 @@ mode-agnostic.
 
 ## Rationale
 
-**AS-IS (before P1)**: `MainWindow` held three concrete worker pointers and duplicated
-the `connect()` block for each mode. Adding a `NetworkWorker` required:
-1. Adding a new concrete pointer in `MainWindow`
-2. Adding a fourth `connect()` block
-3. Modifying session start logic in `MainWindow`
+**AS-IS (before P1)**: `MainWindow` held three concrete worker pointers with a separate
+`connect()` block per mode. The three wiring paths were written independently, so a
+per-mode DSP configuration difference (e.g., different `Qt::ConnectionType`, missing
+signal, wrong slot) could go undetected at compile time and produce mode-dependent
+measurement results — a direct violation of QAS-4 Sub-2 (Internal Consistency).
 
-**TO-BE (after P1 + i1)**: `SessionController` holds `IAudioSource *mActiveSource`.
-Adding a `NetworkWorker` requires:
-1. Create `NetworkWorker : public IAudioSource` (1–2 files)
-2. Add `startNetwork()` factory method in `SessionController` (≤ 10 lines)
-3. Zero changes to `MainWindow`, `DSPWorker`, or `MeasurementEngine`
+**TO-BE (after P1 + i1)**: `SessionController` holds `IAudioSource *mActiveSource` and
+calls `startSourceThread()` once:
 
-This satisfies QAS-3 (Extensibility / Modifiability): adding a new audio input source
-affects only the Acquisition layer and does not propagate upward.
+```cpp
+connect(source, &IAudioSource::dataReady,
+        mDspWorker, &DSPWorker::onDataReady, Qt::QueuedConnection);
+```
+
+All three modes share this single wiring. The compiler prevents any mode-specific
+branching at the connect site — `SessionController` references only `IAudioSource`.
+
+**Primary**: This satisfies **QAS-4 Sub-2 (Internal Consistency)**: all three input modes
+enter the DSP chain through the identical path; no mode can produce a different computation
+outcome due to wiring divergence.
+
+**Secondary**: This also reduces future audio source addition cost — a new mode requires
+only implementing `IAudioSource` and adding one factory method, with zero changes to
+`MainWindow`, `DSPWorker`, or `MeasurementEngine`. Adding a new input source is not a
+current requirement, but the interface boundary provides this at no extra cost.
 
 Rejected alternative — keep concrete pointers, use polymorphic dispatch via `qobject_cast`:
 adds runtime type checks throughout the codebase; does not reduce the number of `connect()`
-blocks; and ties `SessionController` to all concrete types anyway.
+blocks; and retains the per-mode wiring divergence risk.
 
 ## Status
 
