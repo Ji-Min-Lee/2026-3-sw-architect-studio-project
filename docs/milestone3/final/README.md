@@ -48,7 +48,7 @@ and complements the stakeholder-oriented view separation popularized by the 4+1 
 <tr>
   <td align="center">
     <a href="references/views/view-layered-4layer.md">Layered and Module Decomposition<br>
-    <img src="assets/layered-module-view.png" width="200"></a>
+    <img src="assets/layered-view.png" width="200"></a>
   </td>
   <td align="center">
     <a href="references/views/view-cc-dsp-pipeline.md">DSP Pipeline Thread Model View<br>
@@ -67,6 +67,10 @@ and complements the stakeholder-oriented view separation popularized by the 4+1 
 </tr>
 <tr>
   <td align="center">
+    <a href="references/views/view-longtermtab-downsampling.md">LongTermTab Downsampling Decomposition View<br>
+    <img src="assets/module-decomposition-longtermtab.png" width="200"></a>
+  </td>
+  <td align="center">
     <a href="references/views/view-deployment-build-pipeline.md">Raspberry Pi Deployment View<br>
     <img src="assets/deployment-raspberry-pi.png" width="200"></a>
   </td>
@@ -83,17 +87,17 @@ The evaluation identified the DSP + GUI single-thread coupling as the primary ri
 resolved by ADR-001 (T2 Offload Thread) and ADR-002 (Lazy Rendering), cutting deadline
 misses from 43% to 0% and queue wait time by ×2,600.
 
-See [atam-evaluation-v3.md](references/atam-evaluation-v3.md) for the full evaluation,
+See [atam-evaluation-m2.md](references/atam-evaluation-m2.md) for the full evaluation,
 including utility tree, sensitivity points, tradeoff points, and risk themes.
 
 <table>
 <tr>
   <td align="center">
-    <a href="references/atam-evaluation-v3.md">ATAM Utility Tree<br>
+    <a href="references/atam-evaluation-m2.md">ATAM Utility Tree<br>
     <img src="assets/atam-utility-tree.png" width="200"></a>
   </td>
   <td align="center">
-    <a href="references/atam-evaluation-v3.md">ATAM Before / After<br>
+    <a href="references/atam-evaluation-m2.md">ATAM Before / After<br>
     <img src="assets/atam-before-after.png" width="200"></a>
   </td>
 </tr>
@@ -115,9 +119,11 @@ resolve identified risks before committing to design choices.
 | [EXP-05](references/experiments/exp-05-noise-threshold-popup.md) | Signal Quality Warning — Noise Threshold Validation | QAS-4 + Usability | ✅ Done |
 | [EXP-06](references/experiments/exp-06-accuracy-witschi-comparison.md) | Accuracy vs. Witschi Reference Device | QAS-5 | ✅ Done |
 | [EXP-07](references/experiments/exp-07-longterm-aging.md) | Long-Term Aging Test — Bucket Downsampling Efficiency | QAS-6 | ✅ Done |
+| [EXP-08](references/experiments/exp-08-tab-expansion-file-change-cost.md) | Tab Expansion File-Change Cost | QAS-3 | ✅ Done |
 
 See [planned-experiments.md](references/experiments/planned-experiments.md) for the
-original experiment plan and rationale.
+original experiment plan and rationale. Consolidated results are in
+[experiment-results.md](references/experiments/experiment-results.md).
 
 ---
 
@@ -169,6 +175,7 @@ risks, their resolution status, and the experiments or architectural decisions t
 | [TR-06](references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | — | 142 unit tests (10 binaries) all passing ✅ | Layered and Module Decomposition View enforced |
 | [TR-07](references/risks.md) | Residual coupling survives refactoring | — | Compiler catches upward dependency ✅ | Allowed-to-use rule + per-layer include restriction |
 | [TR-08](references/risks.md) | New tab requires data not in current Domain output | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | All 14 tabs implemented within the target change budget ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
+| [TR-08](references/risks.md) | Tab addition file-change cost exceeds ≤ 3-file budget | [EXP-08](references/experiments/exp-08-tab-expansion-file-change-cost.md) | All 14 tabs added within budget; no lower-layer files touched ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
 | — | Audio source extension touches multiple unrelated components | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
 
 ### QAS-4 — Correctness *(M)*
@@ -193,6 +200,21 @@ risks, their resolution status, and the experiments or architectural decisions t
 
 ---
 
+## Lessons Learned
+
+See [lessons-learned.md](references/lessons-learned.md) for team retrospective on what
+went right, what to improve, and process insights from the M3 cycle.
+
+---
+
+## AI Usage
+
+See [ai/ai-usage.md](references/ai/ai-usage.md) for a summary of how Claude Code was
+used as a development assistant throughout the project (design review, code drafting,
+and documentation).
+
+---
+
 ## Document Structure
 
 ```
@@ -202,10 +224,14 @@ docs/milestone3/final/
 └── references/
     ├── qa/                               ← QA scenario files (qas-1 ~ qas-6)
     ├── risks.md                          ← full risk register
-    ├── atam-evaluation-v3.md             ← ATAM architecture evaluation
-    ├── views/                            ← architecture view index + detailed view files
-    ├── experiments/                      ← experiment files (EXP-01 ~ EXP-07)
+    ├── atam-evaluation-m2.md             ← ATAM architecture evaluation (snapshot 2026-06-22)
+    ├── lessons-learned.md                ← team retrospective
+    ├── views/                            ← architecture view index + detailed view files (8 views)
+    ├── experiments/                      ← experiment files (EXP-01 ~ EXP-08)
+    │   ├── planned-experiments.md        ← original experiment plan
+    │   └── experiment-results.md         ← consolidated results summary
     ├── adr/                              ← ADR files (ADR-001 ~ ADR-009)
+    ├── ai/                               ← AI usage log
     └── requirments/                      ← functional requirements
 ```
 

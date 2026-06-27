@@ -1,6 +1,6 @@
 # Architecture Views — TimeGrapher
 
-Five views covering Latency, Correctness, Extensibility, and Deployability.  
+Eight views covering Latency, Correctness, Extensibility, and Deployability.  
 Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
@@ -19,13 +19,13 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 > QA: Extensibility / Modifiability (QAS-3)
 
-[![Layered and Module Decomposition](../../assets/layered-module-view.png)](view-layered-4layer.md)
+[![Layered and Module Decomposition](../../assets/layered-view.png)](view-layered-4layer.md)
 
 ---
 
 ## [IAudioSource Dependency Inversion View](view-iaudiosource.md)
 
-> QA: Extensibility / Modifiability (QAS-3)
+> QA: Correctness · Internal Consistency (QAS-4 Sub-2)
 
 [![IAudioSource Dependency Inversion View](../../assets/module-iaudiosource.png)](view-iaudiosource.md)
 
@@ -41,17 +41,25 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
 
+## [LongTermTab Downsampling Decomposition View](view-longtermtab-downsampling.md)
+
+> QA: Long-Term Performance · Bounded Plot Growth (QAS-6)
+
+[![LongTermTab Downsampling Decomposition View](../../assets/module-decomposition-longtermtab.png)](view-longtermtab-downsampling.md)
+
+---
+
 ## [Raspberry Pi Deployment View](view-deployment-build-pipeline.md)
 
 > QA: Deployability
 
-[![Raspberry Pi Deployment View](../../assets/deployment-raspberry-pi.png)](view-deployment-build-pipeline.md)
+Shows how validated code moves from the development machine to the Raspberry Pi target and where target-dependent validation happens. Deployment and commit-time correctness enforcement are treated as separate concerns.
 
 ---
 
 ## [Pre-commit Correctness Gate View](view-allocation-implementation.md)
 
-> QA: Correctness (QAS-4) · Commit-time enforcement view
+> QA: Correctness (QAS-4 Sub-1) · Commit-time enforcement view
 
 Shows how formula and calculation regressions are blocked before commit acceptance through the local `pre-commit` gate. Focuses on `TestWatchMath` and `TestMeasurementEngine` as the structural enforcement path for QAS-4 Sub-1.
 
@@ -60,5 +68,7 @@ Shows how formula and calculation regressions are blocked before commit acceptan
 ## [Work Assignment View](view-allocation-work-assignment.md)
 
 > QA: All QAS · Style: Work Assignment
+
+[![Work Assignment View](../../assets/allocation-work-assignment.png)](view-allocation-work-assignment.md)
 
 Architecture elements → Organizational units (team1, team2, milestones, sprints). Shows who owns what, when it lands, and how scope is gated between Milestone 2 (06-22) and Milestone 3 Demo (07-01).
