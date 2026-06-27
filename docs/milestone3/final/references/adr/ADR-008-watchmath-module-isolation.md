@@ -48,6 +48,8 @@ Isolating the formulas enables a pre-commit unit test gate (`TestWatchMath`) tha
 catches formula regressions before they reach the binary. Each test verifies a
 specific worked example from the TimeGrapher Equations document with a strict tolerance
 (< 1e-3 ms / < 0.01°), so any deviation from the documented formula fails the build.
+This is a direct application of the testability tactics for limiting structural
+complexity and nondeterminism [Bass21].
 
 **Why a namespace, not a class:**
 
@@ -108,3 +110,7 @@ Verified by `src/tests/test_watch_math.cpp` — 44 test cases, all pass (see uni
 - [ADR-006: BaseGraphTab Observer Pattern](ADR-006-basegraphtab-observer-pattern.md) —
   `MeasurementEngine` is the observable subject; `WatchMath` computes the values
   it publishes via `measurementReady()`
+
+## References
+
+- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.

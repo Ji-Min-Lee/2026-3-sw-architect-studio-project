@@ -16,6 +16,7 @@
 | EXP-05 | QAS-4 + Usability | Signal Quality Warning — Ambient Noise Threshold Validation | 1 | `noiseDb ≥ 55 dB` fires at SNR ≤ 0 dB · **0 false alarms** at SNR ≥ 10 dB | ✅ Done |
 | EXP-06 | QAS-5 | Witschi Accuracy Comparison — TimeChecker vs Witschi No.1000 | 2 | Δ Rate **0.2–0.4 s/d** · Δ Amplitude **15–25°** · Δ Beat Error **0–0.1 ms** — all within tolerance across 2 rounds | ✅ Done |
 | EXP-07 | QAS-6 | Long-Term Aging Test — Bucket Downsampling Efficiency | analytical | **2,520 total plotted points** at 7 days (≤ 3,000 budget). `replot()` well under 16 ms | ✅ Done |
+| EXP-08 | QAS-3 | Tab Expansion File-Change Cost | — | All 14 tabs within ≤ 3-file budget · 0 layer violations · DSM + test suite confirmed — **QAS-3 Pass** | ✅ Done |
 
 ---
 
@@ -262,6 +263,41 @@ The ~25° amplitude offset is systematic: C-event detection threshold delay exte
 
 ---
 
+## EXP-08: Tab Expansion File-Change Cost
+
+**QA**: QAS-3 | **Date**: 2026-06-21 | **Status**: ✅ Done
+
+**Question**: When a new graph tab is added to the Presentation layer, how many files outside the new tab itself must be changed?
+
+**Answer**: ≤ 3 files across all 14 tabs. No Domain / Signal Processing / Acquisition file was ever modified. QAS-3 Pass. TR-08 Resolved.
+
+### Tab Addition History
+
+| Batch | Tabs added | Trigger | Files changed outside new tab |
+|-------|-----------|---------|:----:|
+| W2 S1 | 11 (baseline) | Core requirements | **2** (NewTab × N + MainWindow) |
+| W2 S2 | +2 → 13 (FilterScopeTab, SweepScopeTab) | Project-plan screen requirements (Fig 7-19) | **2 each** |
+| W3 S1 | +1 → **14** (RadarChartTab, bonus) | Radar/Polar chart (bonus) | **3** ¹ |
+
+¹ RadarChartTab reads per-position data from SequenceTab directly — SequenceTab modified to expose `capturedReadings()` + `sequenceUpdated()`. No lower-layer file modified.
+
+### Evidence
+
+| Measure | Target | Result |
+|---------|:------:|:------:|
+| Files changed per new tab (outside tab files) | ≤ 3 | ✅ 2–3 across all batches |
+| Presentation → Signal Processing `#include` refs | 0 | ✅ 0 (DSM verified) |
+| Presentation → Acquisition `#include` refs | 0 | ✅ 0 (DSM verified) |
+| Observer contract compliance (all 14 tabs) | 100% | ✅ TestAddedTabs 20/20 · TestGraphTabs 17/17 |
+
+### Conclusion
+
+- **File-change budget**: ≤ 3 files upheld across all three sprint batches
+- **Layer isolation**: Domain and below untouched — 4-layer allowed-to-use structure preserved
+- Full write-up: [exp-08-tab-expansion-file-change-cost.md](exp-08-tab-expansion-file-change-cost.md)
+
+---
+
 ## Architecture Decisions Log
 
 | Decision | QA | Source | Outcome | Date |
@@ -276,3 +312,4 @@ The ~25° amplitude offset is systematic: C-event detection threshold delay exte
 | Ambient noise popup threshold | QAS-4 + Usability | EXP-05 | **55 dB** — 0 false alarms at SNR ≥ 10 dB; popup fires at SNR ≤ 0 dB; 2 s sustain filter prevents flicker | 2026-06-23 |
 | Witschi accuracy validation | QAS-5 | EXP-06 | **Verified (2 rounds)** — Δ Rate 0.2–0.4 s/d · Δ Amplitude 15–25° · Δ BE 0–0.1 ms — all within tolerance; amplitude offset explained by C-event detection delay | 2026-06-25 |
 | LongTermTab `mBucketSize` downsampling | QAS-6 | EXP-07 | **Applied** — 4-phase bucket strategy bounds plotted points to 840/series at 7 days | 2026-06-25 |
+| BaseGraphTab observer pattern — file-change budget | QAS-3 | EXP-08 | **Confirmed** — ≤ 3-file budget upheld across all 14 tabs; Domain layer untouched in every batch | 2026-06-21 |

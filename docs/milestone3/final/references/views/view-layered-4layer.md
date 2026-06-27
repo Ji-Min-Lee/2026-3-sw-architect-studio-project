@@ -2,13 +2,13 @@
 
 This view answers one question: **why can you add a new graph tab by touching ≤ 3 files?** The four-layer structure enforces that Presentation may only depend on Domain — so a new tab implements `BaseGraphTab`, reads the `Measurement` VO, and registers in `MainWindow`. Nothing below Domain is touched. It is the primary evidence for [QAS-3 (Extensibility / Modifiability)](../qa/qas-3-extensibility-modifiability.md).
 
-![TimeGrapher Layered View](../../assets/view1-layered-4layer.png)
+![TimeGrapher Layered View](../../assets/layered-view.png)
 
 ## Element Catalog
 
 #### Acquisition Layer
 - Contains `IAudioSource` (abstract Qt interface), `TAudioWorker` (live mic, ALSA), `TPlaybackWorker` (WAV file), `TSimWorker` (synthetic signal), and `AudioRingBuffer` (lock-free SPSC ring buffer).
-- `IAudioSource` unifies all three input modes under a single `connect()` site in `SessionController`, ensuring identical DSP entry path for live mic, WAV playback, and synthetic signal: see [Module View: IAudioSource Dependency Inversion](view-iaudiosource.md) (QAS-4 Sub-2).
+- `IAudioSource` unifies all three input modes under a single `connect()` site in `SessionController`, ensuring identical DSP entry path for live mic, WAV playback, and synthetic signal: see [IAudioSource Dependency Inversion View](view-iaudiosource.md) (QAS-4 Sub-2).
 
 #### Signal Processing Layer
 - Contains `DSPWorker` [ADR-001], `MeasurementEngine`, and `«external» Timegrapher` (C library in `src/external/`, wraps `tg_process`/`tg_context`).
@@ -71,7 +71,11 @@ The layer rule is enforced at compile time — a boundary violation causes a com
 | New watch formula | 1 |
 | New DSP filter | 1–2 |
 
-The 4-layer structure implements the *Restrict Dependencies* tactic (Bass, Clements & Kazman, Ch.8): lower-layer changes do not ripple upward, and per-layer compilation isolation enables 142 independent unit tests across 10 binaries.
+The 4-layer structure implements the *Restrict Dependencies* tactic described by
+Bass, Clements, and Kazman (Ch.8): lower-layer changes do not ripple upward, and
+per-layer compilation isolation enables 142 independent unit tests across 10 binaries
+[Bass21]. The layered organization also follows the classic hierarchical-structure
+lineage in software architecture [Dijkstra68] [Parnas74].
 
 ## Related ADRs
 
@@ -82,5 +86,11 @@ The 4-layer structure implements the *Restrict Dependencies* tactic (Bass, Cleme
 ## Related views
 
 - [Graph Tab Module Uses View](view-decomposition-graph-tab.md) — refinement of the Presentation layer; shows internal structure of a single `BaseGraphTab`
-- [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — runtime view of the Acquisition ↔ Signal Processing boundary (ring buffer + thread)
-- [Module View: IAudioSource Dependency Inversion](view-iaudiosource.md) — AS-IS vs TO-BE comparison showing how all three input modes share an identical DSP wiring path (QAS-4 Sub-2)
+- [DSP Pipeline Thread Model View](view-cc-dsp-pipeline.md) — runtime view of the Acquisition ↔ Signal Processing boundary (ring buffer + thread)
+- [IAudioSource Dependency Inversion View](view-iaudiosource.md) — AS-IS vs TO-BE comparison showing how all three input modes share an identical DSP wiring path (QAS-4 Sub-2)
+
+## References
+
+- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.
+- [Dijkstra68] E. W. Dijkstra. "The structure of the THE multiprogramming system". *Communications of the ACM*, 1968.
+- [Parnas74] D. Parnas. "On a 'buzzword': hierarchical structure". *IFIP Congress 74*, 1974.

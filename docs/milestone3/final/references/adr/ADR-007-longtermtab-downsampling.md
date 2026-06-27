@@ -111,8 +111,8 @@ Verified by QAS-6 experiment EXP-07.
 
 ## Related views
 
-- [Decomposition View: LongTermTab Downsampling](../views/view-longtermtab-downsampling.md) —
+- [LongTermTab Downsampling Decomposition View](../views/view-longtermtab-downsampling.md) —
   structural view of the `LongTermTab` internals, bucket accumulation flow, and
   three-series layout.
-- [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) —
+- [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md) —
   `LongTermTab` within the full Presentation-layer observer hierarchy.

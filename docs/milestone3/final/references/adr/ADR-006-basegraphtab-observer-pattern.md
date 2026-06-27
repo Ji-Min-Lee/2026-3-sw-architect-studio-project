@@ -96,7 +96,9 @@ indirection between `MainWindow` and the tab widget. Since `MainWindow` already 
 ## Architectural Pattern Classification (Bass/CMK Ch.8 §8.4)
 
 This ADR implements the **Publish-Subscribe pattern** as described in
-Bass, Clements & Kazman *Software Architecture in Practice* (4th ed., Ch.8 §8.4 p.129):
+Bass, Clements & Kazman *Software Architecture in Practice* (4th ed., Ch.8 §8.4 p.129)
+[Bass21], and the object-level observer role split aligns with the GoF Observer pattern
+[Gamma94]:
 
 > *"Adding or changing subscribers requires only registering for an event and causes
 > no changes to the publisher."*
@@ -156,7 +158,12 @@ All 14 tabs implemented and registered using this pattern. Verified: no tab touc
 
 ## Related views
 
-- [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) — structural
+- [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md) — structural
   decomposition of the Presentation layer; this ADR is the rationale for that structure
 - [Layered and Module Decomposition View](../views/view-layered-4layer.md) — `BaseGraphTab`
   and all tab implementations live in the Presentation layer; allowed to reference Domain only
+
+## References
+
+- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.
+- [Gamma94] E. Gamma et al. *Design Patterns: Elements of Reusable Object-Oriented Software*. Addison-Wesley, 1994.

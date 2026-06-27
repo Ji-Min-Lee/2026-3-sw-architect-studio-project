@@ -3,7 +3,7 @@
 **Project**: TimeGrapher  
 **Date**: 2026-06-22  
 **Team**: Blue Sky (Team 3)  
-**Method**: ATAM (Architecture Tradeoff Analysis Method) — SEI
+**Method**: ATAM (Architecture Tradeoff Analysis Method) — SEI [Kazman00]
 
 > **Snapshot document** — This report captures the ATAM evaluation conducted on **2026-06-22**.
 > It will not be updated. For the current architecture state, refer to the [Architecture Views](../views/README.md) and [ADRs](../adr/).
@@ -24,7 +24,8 @@ The one open risk is **accuracy against the Witschi reference device** — this 
 
 ## What is ATAM?
 
-ATAM is a method for finding risks in an architecture before they become real problems.
+ATAM is a method for finding risks in an architecture before they become real problems
+[Kazman00].
 
 It does **not** measure the system precisely.
 It finds: which decisions could cause trouble, and where decisions force a tradeoff between two goals.
@@ -55,9 +56,13 @@ It finds: which decisions could cause trouble, and where decisions force a trade
 
 ### Critical Requirement & Architectural Drivers
 
-ATAM Step 2 asks us to separate two things: the one goal the system exists for, and the QAs that actually shaped the architecture.
+ATAM Step 2 asks us to separate two things: the one goal the system exists for, and the
+QAs that actually shaped the architecture [Kazman00].
 
-In Bass, Clements & Kazman terminology (*Software Architecture in Practice*, Ch.3), Real-Time Performance, Low Latency, and Correctness are **enabling QAs** for Accuracy: each removes a failure mode that would otherwise corrupt the measurement output. Extensibility is an independent architectural driver.
+In Bass, Clements & Kazman terminology (*Software Architecture in Practice*, Ch.3),
+Real-Time Performance, Low Latency, and Correctness are **enabling QAs** for Accuracy:
+each removes a failure mode that would otherwise corrupt the measurement output.
+Extensibility is an independent architectural driver [Bass21].
 
 | Type | QA | What it shaped in the architecture |
 |------|----|------------------------------------|
@@ -210,3 +215,8 @@ Accuracy was the tiebreaker in every tradeoff: when a decision improved accuracy
 - [QA Scenarios](qa/README.md)
 - [ADR-001](adr/ADR-001-t2-dsp-offload-thread.md) · [ADR-002](adr/ADR-002-r1-lazy-rendering.md) · [ADR-003](adr/ADR-003-sample-rate-selection.md) · [ADR-004](adr/ADR-004-r2-timer-decoupled-rendering.md) · [ADR-005](adr/ADR-005-p1-iaudiosource-dependency-inversion.md) · [ADR-006](adr/ADR-006-basegraphtab-observer-pattern.md)
 - [Experiment Results](experiments/)
+
+## References
+
+- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.
+- [Kazman00] R. Kazman, M. Klein, P. Clements. "ATAM: Method for Architecture Evaluation". CMU/SEI-2000-TR-004, August 2000.

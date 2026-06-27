@@ -5,15 +5,15 @@ This view decomposes the Presentation layer into its internal components, focusi
 - **QAS-3 (Extensibility):** "What must a developer implement to add a new graph tab?"
 - **QAS-4 Sub-2 (Reliability):** "How does the architecture guarantee all 14 tabs display consistent values derived from a single data source?"
 
-[Open draw.io source](../../assets/view2-graph-tab-observer-contract.drawio)
+[Open draw.io source](../../assets/module-uses-graph-tab.drawio)
 
-![Graph Tab Observer Contract View](../../assets/view2-graph-tab-observer-contract.png)
+![Graph Tab Module Uses View](../../assets/module-uses-graph-tab-observer-contract.png)
 
 > No compile-time link `MeasurementEngine → BaseGraphTab`. `SessionController` is the wiring coordinator — it stores `mObserverTabs` and applies `connect()` at session start. Per-beat delivery remains Qt signal-slot only.
 
 ## Element Catalog
 
-#### BaseGraphTab (abstract class / Observer)
+#### BaseGraphTab (abstract class / Observer / Subscriber)
 - Abstract C++ base class that every graph tab must implement.
 - Key slot: `onMeasurement(const Measurement& m)` — wired from `MeasurementEngine::measurementReady` via `SessionController`.
 - `isVisible()` guard inside `onMeasurement()` skips `replot()` for non-visible tabs (ADR-002 R1), reducing replot/beat from 8.22 to 1.20 (↓85%).
@@ -55,6 +55,8 @@ Each extends `BaseGraphTab`:
 Adding a new tab = 1 new subclass + 3 lines in `MainWindow` → zero changes to `MeasurementEngine` or any other tab (ADR-006).
 
 Observer contract compliance validated by AI-generated unit tests (see Behavior section).
+Structurally, this is a publish-subscribe / observer arrangement in the sense described
+by the architecture and design-pattern literature [Bass21] [Gamma94].
 
 ## Behavior
 
@@ -91,4 +93,9 @@ Measured results: → [EXP-03: Observer Pattern Compliance](../experiments/exp-0
 ## Related views
 
 - [Layered and Module Decomposition View](view-layered-4layer.md) — parent view; shows where Presentation fits in the full layer stack
-- [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — shows the runtime path that produces the `Measurement` struct consumed here
+- [DSP Pipeline Thread Model View](view-cc-dsp-pipeline.md) — shows the runtime path that produces the `Measurement` struct consumed here
+
+## References
+
+- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.
+- [Gamma94] E. Gamma et al. *Design Patterns: Elements of Reusable Object-Oriented Software*. Addison-Wesley, 1994.

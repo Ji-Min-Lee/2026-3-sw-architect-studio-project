@@ -1,4 +1,4 @@
-# Decomposition View: LongTermTab Downsampling
+# LongTermTab Downsampling Decomposition View
 
 This view decomposes `LongTermTab` into its internal structural elements, focusing on
 the adaptive bucket aggregation strategy (`mBucketSize`) and the three-series layout.
@@ -10,9 +10,9 @@ the Long-Term Performance Graph requirement without letting plot size grow witho
 It answers: "How does `LongTermTab` keep the plotted point count bounded over multi-day
 sessions while maintaining meaningful long-term trends and accurate statistical overlays?"
 
-[Open draw.io source](../../assets/view-longtermtab-downsampling-structure.drawio)
+[Open draw.io source](../../assets/module-decomposition-longtermtab.drawio)
 
-![LongTermTab Downsampling Structure](../../assets/view-longtermtab-downsampling-structure.png)
+![LongTermTab Downsampling Decomposition View](../../assets/module-decomposition-longtermtab.png)
 
 ## Element Catalog
 
@@ -73,9 +73,9 @@ same-frame update requests.
 
 ### State: mBucketSize transitions
 
-[Open draw.io source](../../assets/view-longtermtab-downsampling-state.drawio)
+[Open draw.io source](../../assets/cc-longtermtab-downsampling-state.drawio)
 
-![LongTermTab Downsampling State](../../assets/view-longtermtab-downsampling-state.png)
+![LongTermTab Downsampling State](../../assets/cc-longtermtab-downsampling-state.png)
 
 Transitions are **one-way** within a session. `reset()` returns `mBucketSize` to 1.
 
@@ -92,8 +92,8 @@ Transitions are **one-way** within a session. `reset()` returns `mBucketSize` to
 
 ## Related Views
 
-- [Decomposition View: Graph Tab](view-decomposition-graph-tab.md) — shows `LongTermTab`
+- [Graph Tab Module Uses View](view-decomposition-graph-tab.md) — shows `LongTermTab`
   within the full 14-tab observer hierarchy alongside all other `BaseGraphTab` subclasses.
-- [C&C View: DSP Pipeline](view-cc-dsp-pipeline.md) — runtime thread model; `LongTermTab`
+- [DSP Pipeline Thread Model View](view-cc-dsp-pipeline.md) — runtime thread model; `LongTermTab`
   runs on the Qt main thread and receives `Measurement` objects via `Qt::QueuedConnection`
   from the `DSPWorker` thread.

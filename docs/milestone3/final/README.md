@@ -40,32 +40,35 @@ TimeGrapher's quality attribute requirements. Together they show the module deco
 runtime thread model, dependency inversion strategy, deployment pipeline, and domain
 entity structure. The full view set also includes allocation views and a dedicated
 LongTermTab downsampling view; see [Architecture Views](references/views/README.md).
+The view set follows the architectural-view documentation approach of Views and Beyond
+and complements the stakeholder-oriented view separation popularized by the 4+1 model
+[Clements10] [Kruchten95].
 
 <table>
 <tr>
   <td align="center">
     <a href="references/views/view-layered-4layer.md">Layered and Module Decomposition<br>
-    <img src="assets/view1-layered-module.png" width="200"></a>
+    <img src="assets/layered-module-view.png" width="200"></a>
   </td>
   <td align="center">
-    <a href="references/views/view-cc-dsp-pipeline.md">C&C: DSP Pipeline Thread Model<br>
-    <img src="assets/view3-thread-model-simple.png" width="200"></a>
+    <a href="references/views/view-cc-dsp-pipeline.md">DSP Pipeline Thread Model View<br>
+    <img src="assets/cc-dsp-pipeline.png" width="200"></a>
   </td>
 </tr>
 <tr>
   <td align="center">
     <a href="references/views/view-decomposition-graph-tab.md">Graph Tab Module Uses View<br>
-    <img src="assets/view2-decomposition.png" width="200"></a>
+    <img src="assets/module-uses-graph-tab-decomposition.png" width="200"></a>
   </td>
   <td align="center">
-    <a href="references/views/view-iaudiosource.md">Module: IAudioSource Dependency Inversion<br>
-    <img src="assets/view5-iaudiosource.png" width="200"></a>
+    <a href="references/views/view-iaudiosource.md">IAudioSource Dependency Inversion View<br>
+    <img src="assets/module-iaudiosource.png" width="200"></a>
   </td>
 </tr>
 <tr>
   <td align="center">
     <a href="references/views/view-deployment-build-pipeline.md">Raspberry Pi Deployment View<br>
-    <img src="assets/view4-deployment.png" width="200"></a>
+    <img src="assets/deployment-raspberry-pi.png" width="200"></a>
   </td>
 </tr>
 </table>
@@ -74,7 +77,8 @@ LongTermTab downsampling view; see [Architecture Views](references/views/README.
 
 ## Architecture Evaluation
 
-The architecture was evaluated using **ATAM** (Architecture Tradeoff Analysis Method).
+The architecture was evaluated using **ATAM** (Architecture Tradeoff Analysis Method)
+[Kazman00].
 The evaluation identified the DSP + GUI single-thread coupling as the primary risk,
 resolved by ADR-001 (T2 Offload Thread) and ADR-002 (Lazy Rendering), cutting deadline
 misses from 43% to 0% and queue wait time by ×2,600.
@@ -204,3 +208,11 @@ docs/milestone3/final/
     ├── adr/                              ← ADR files (ADR-001 ~ ADR-009)
     └── requirments/                      ← functional requirements
 ```
+
+## External References
+
+A full bibliography is available as a PDF: [Software Architecture References.pdf](references/Software%20Architecture%20References.pdf)
+
+- [Clements10] P. Clements et al. *Documenting Software Architectures: Views and Beyond*, Second Edition. Addison-Wesley, 2010.
+- [Kazman00] R. Kazman, M. Klein, P. Clements. "ATAM: Method for Architecture Evaluation". CMU/SEI-2000-TR-004, August 2000.
+- [Kruchten95] P. Kruchten. "The 4+1 View Model of Software Architecture". *IEEE Software*, November 1995.

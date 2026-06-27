@@ -90,7 +90,7 @@ rate for the rest of the session.
   architectural decision being validated.
 - [QAS-6: Long-Term Session Performance](../qa/qas-6-long-term-session-performance.md) —
   the quality attribute scenario this experiment addresses.
-- [Decomposition View: LongTermTab Downsampling](../views/view-longtermtab-downsampling.md)
+- [LongTermTab Downsampling Decomposition View](../views/view-longtermtab-downsampling.md)
   — structural explanation of the mechanism validated here.
 - [Risk Register](../risks.md) — this concern is resolved through the QAS-6
   evidence chain rather than a standalone `TR-*` row.

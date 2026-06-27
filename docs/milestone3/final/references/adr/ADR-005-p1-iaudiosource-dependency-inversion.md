@@ -106,9 +106,9 @@ i6: `AudioManager` dead-code removal).
 
 ## Related views
 
-- [Module View: IAudioSource Dependency Inversion](../views/view-iaudiosource.md) — AS-IS
+- [IAudioSource Dependency Inversion View](../views/view-iaudiosource.md) — AS-IS
   vs TO-BE structural comparison
 - [Layered and Module Decomposition View](../views/view-layered-4layer.md) — `IAudioSource`
   and workers in the Acquisition layer context
-- [C&C View: DSP Pipeline Thread Model](../views/view-cc-dsp-pipeline.md) — runtime view;
+- [DSP Pipeline Thread Model View](../views/view-cc-dsp-pipeline.md) — runtime view;
   `SessionController` owns the T1 thread lifecycle shown here

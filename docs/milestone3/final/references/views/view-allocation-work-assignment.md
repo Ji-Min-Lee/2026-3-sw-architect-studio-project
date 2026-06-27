@@ -2,7 +2,7 @@
 
 This view shows which team owns which architectural concerns, mapped to Quality Attribute Scenarios and milestones. Its main message is: **the Experiment Team and Development Team operated in parallel, each owning specific QAS concerns, so that every architectural tactic decision was independently validated by experimental evidence — no tactic was accepted without an experiment result, preventing confirmation bias where the implementer also controls the evidence.**
 
-![Work Assignment View](../../assets/view7-work-assignment.png)
+![Work Assignment View](../../assets/allocation-work-assignment.png)
 
 ## Element Catalog
 

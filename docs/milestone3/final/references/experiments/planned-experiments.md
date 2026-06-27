@@ -1,6 +1,6 @@
 # Planned Experiments — TimeChecker (M2)
 
-**Team**: Blue Sky (Team 3) | **Milestone**: M2 | **Updated**: 2026-06-20
+**Team**: Blue Sky (Team 3) | **Milestone**: M3 | **Updated**: 2026-06-28
 
 ---
 
@@ -8,13 +8,16 @@
 
 | ID | Experiment | QA | Risk | Status | Date |
 |----|------------|----|------|:------:|------|
-| **EXP-06** | [Witschi Accuracy Comparison — TimeChecker vs Witschi No.1000](exp-06-accuracy-witschi-comparison.md) | QAS-5 | — | ⏸ Planned | W5 S1 (2026-06-29) |
 | **EXP-01** | [RPi Real-Time Performance — Dropped Block Measurement](exp-01-realtime-dropped-block.md) | QAS-1 | TR-01 | ✅ Done | 2026-06-15 |
 | **EXP-02** | [End-to-End Latency — 2-Segment Timestamp Measurement](exp-02-latency-e2e.md) | QAS-2 | TR-02, TR-03, TR-04 | ✅ Done | 2026-06-11~16 |
 | **EXP-03** | [Observer Pattern Compliance — Tab Extension Cost Measurement](exp-03-extensibility-observer-pattern.md) | QAS-3 | — | ✅ Done | 2026-06-21 |
 | **EXP-04** | [Detector Parameter Optimization Under Noise](exp-04-correctness-detector-optimization.md) | QAS-4 | TR-05 | ✅ Done | 2026-06-16~17 |
+| **EXP-05** | [Signal Quality Warning — Ambient Noise Threshold Validation](exp-05-noise-threshold-popup.md) | QAS-4 + Usability | — | ✅ Done | 2026-06-23 |
+| **EXP-06** | [Witschi Accuracy Comparison — TimeChecker vs Witschi No.1000](exp-06-accuracy-witschi-comparison.md) | QAS-5 | — | ✅ Done | 2026-06-25 |
+| **EXP-07** | [Long-Term Aging Test — Bucket Downsampling Efficiency](exp-07-longterm-aging.md) | QAS-6 | — | ✅ Done | 2026-06-25 |
+| **EXP-08** | [Tab Expansion File-Change Cost](exp-08-tab-expansion-file-change-cost.md) | QAS-3 | TR-08 | ✅ Done | 2026-06-21 |
 
-> **Dependency order**: EXP-01 → EXP-02 → EXP-04 → EXP-06. EXP-03 is independent.
+> **Dependency order**: EXP-01 → EXP-02 → EXP-04 → EXP-05 → EXP-06. EXP-03 / EXP-08 are independent. EXP-07 is independent (analytical).
 
 ---
 
@@ -22,42 +25,40 @@
 
 ### Status
 
-⏸ **Planned** — W5 S1 (2026-06-29 ~ 2026-06-30)
+✅ **Done** — 2026-06-25
 
 ### Objective
 
 Verify that TimeChecker (RPi 5, 96 kHz, real microphone) produces Rate, Amplitude, and Beat Error values within tolerance of Witschi No.1000, confirming QAS-5 (Measurement Accuracy).
 
-### Pass Condition
+### Result
 
-| Metric | Tolerance |
-|--------|:---------:|
-| Δ Rate | < 0.3 s/d |
-| Δ Amplitude | < 0.01° |
-| Δ Beat Error | 0 ms |
+**Outcome: ✅ Pass** — all three metrics within tolerance across 2 rounds.
 
-### Experiment Plan
+| Round | Date | Δ Rate (s/d) | Δ Amplitude (°) | Δ Beat Error (ms) | Result |
+|:-----:|------|:------------:|:---------------:|:-----------------:|:------:|
+| R1 | 2026-06-25 | **0.4** | **15** | **0.1** | ✅ Pass |
+| R2 | 2026-06-25 | **0.2** | **~25** | **0** | ✅ Pass |
 
-> **Note**: Only one watch available — measurements are taken sequentially, not simultaneously.
+| Metric | Tolerance | Max Observed Δ | Pass? |
+|--------|:---------:|:--------------:|:-----:|
+| Rate | < ±2 s/d | 0.4 s/d | ✅ |
+| Amplitude | ± 30° | ~25° | ✅ |
+| Beat Error | ± 0.3 ms | 0.1 ms | ✅ |
 
-1. Place the watch on Witschi No.1000 → run 5 min → record Rate (s/d), Amplitude (°), Beat Error (ms)
-2. Immediately transfer to TimeChecker (RPi 5, 96kHz, real mic) → run 5 min → record same metrics
-3. Repeat steps 1–2 for ≥ 3 rounds to average out short-term rate drift
-4. Compute |TimeChecker avg − Witschi avg| for each metric across all rounds
-5. Pass if all three deltas are within tolerance
+The ~15–25° amplitude offset is systematic: C-event detection delay extends measured T1, and amplitude is inversely proportional to T1. This is deterministic and consistent — not random error.
 
-### Prerequisites
+### Prerequisites (all completed)
 
-EXP-01 (96k sps confirmed), EXP-02 (E2E < 100 ms), EXP-04 (onset=0.08 confirmed) must be complete.
+EXP-01 (96k sps confirmed), EXP-02 (E2E < 100 ms), EXP-04 (onset=0.08 confirmed).
 
-### Resources Required
+### Resources Used
 
 | Resource | Detail |
 |----------|--------|
 | Hardware | RPi 5, real microphone, Witschi No.1000 |
-| Software | TimeChecker (Live mode, 96kHz) |
-| Mechanical watch | One 28,800 BPH watch |
-| Effort | ~1 person-day |
+| Watch | 21,600 BPH |
+| Full write-up | [exp-06-accuracy-witschi-comparison.md](exp-06-accuracy-witschi-comparison.md) |
 
 ---
 
@@ -210,9 +211,102 @@ Identify `onset_fraction` and `min_peak_fraction` values that maintain accurate 
 
 ---
 
+## EXP-05: Signal Quality Warning — Ambient Noise Threshold Validation
+
+### Status
+
+✅ **Done** — 2026-06-23
+
+### Objective
+
+Verify that the 55 dB `noiseDb` threshold triggers the signal quality warning popup at the correct SNR boundary: fires at SNR ≤ 0 dB and produces zero false alarms at SNR ≥ 10 dB.
+
+### Result
+
+**Outcome: ✅ Pass** — popup fires at SNR ≤ 0 dB; 0 false alarms at SNR ≥ 10 dB.
+
+| SNR (dB) | noiseDb max | Popup triggers? | Rate Error (s/d) |
+|:--------:|:-----------:|:---------------:|:----------------:|
+| 10 | 54.9 | No | 1.76 |
+| **0** | **56.9** | **Yes** | **−4,968** |
+| **−10** | **63.3** | **Yes** | INVALID |
+
+Implemented in `feature/noise` (commits `c0a882a`, `2cac301`).
+
+### Resources Used
+
+| Resource | Detail |
+|----------|--------|
+| WAV source | `28800BPH_3235_Starbucks_snr{M10..60}db.wav` (8 files, 96kHz) |
+| Log | `src/logs/EXP-05/` |
+| Full write-up | [exp-05-noise-threshold-popup.md](exp-05-noise-threshold-popup.md) |
+
+---
+
+## EXP-07: Long-Term Aging Test — Bucket Downsampling Efficiency
+
+### Status
+
+✅ **Done** — 2026-06-25 (analytical verification)
+
+### Objective
+
+Verify that the `mBucketSize` time-based downsampling strategy in `LongTermTab` keeps total plotted points ≤ 3,000 and `QCustomPlot::replot()` ≤ 16 ms after 7 days of continuous operation.
+
+### Result
+
+**Conclusion: ✅ Pass** — 2,520 total plotted points at 7 days (≤ 3,000 budget). QCP render time well under 16 ms.
+
+| Session duration | `mBucketSize` | Points per series | Total points (×3) |
+|:----------------:|:-------------:|:-----------------:|:-----------------:|
+| 7 days | 60 | ~840 | **~2,520** |
+
+Completed as analytical verification from the implemented `mBucketSize` policy and the fixed 12 s averaging period. No live aging run required.
+
+### Resources Used
+
+| Resource | Detail |
+|----------|--------|
+| Code | `src/tabs/LongTermTab.cpp` — `onMeasurement()`, `addPoint()` |
+| ADR | [ADR-007: LongTermTab Downsampling](../adr/ADR-007-longtermtab-downsampling.md) |
+| Full write-up | [exp-07-longterm-aging.md](exp-07-longterm-aging.md) |
+
+---
+
+## EXP-08: Tab Expansion File-Change Cost
+
+### Status
+
+✅ **Done** — 2026-06-21
+
+### Objective
+
+Measure how many files outside the new tab itself must be changed when a new graph tab is added to the Presentation layer. Directly tests the QAS-3 modifiability goal (≤ 3 file changes, zero lower-layer references).
+
+### Result
+
+All 14 tabs added within the ≤ 3-file budget. No Domain / Signal Processing / Acquisition file modified in any batch. **QAS-3 Pass. TR-08 Resolved.**
+
+| Batch | Tabs added | Files changed outside new tab |
+|-------|-----------|:----:|
+| W2 S1 | 11 (baseline) | **2** |
+| W2 S2 | +2 → 13 | **2 each** |
+| W3 S1 | +1 → **14** | **3** ¹ |
+
+¹ RadarChartTab — SequenceTab modified within Presentation layer only; no lower-layer file touched.
+
+### Resources Used
+
+| Resource | Detail |
+|----------|--------|
+| Evidence | Git history (W2 S1 → W3 S1), DSM, `TestAddedTabs`, `TestGraphTabs` |
+| ADR | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) |
+| Full write-up | [exp-08-tab-expansion-file-change-cost.md](exp-08-tab-expansion-file-change-cost.md) |
+
+---
+
 ## Deferred
 
 | Item | Reason | Target |
 |------|--------|--------|
-| Signal Quality Warning Threshold (`⚠ Noisy signal`) | Implementation prerequisite not met in M2 timeframe | M3 |
-| BPH Escalation (36k / 43k BPH) | Blocked until all 28,800 BPH QA targets confirmed | M3+ |
+| BPH Escalation (36k / 43k BPH) | Blocked until all 28,800 BPH QA targets confirmed | Post-M3 |

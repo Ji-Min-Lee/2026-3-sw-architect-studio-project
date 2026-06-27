@@ -3,7 +3,8 @@
 > M1 name: "Correctness (QA-C2)". M2 refactor: split into signal quality (this) and accuracy goal (QAS-1).
 > M1 status: Provisional (pending EXP-04). M2 status: ✅ Verified 06/17 — onset=0.08, min_peak=0.10 confirmed.
 
-Correctness is not a standard Bass/CMK Quality Attribute. Its three sub-requirements each map to a different QA lens:
+Correctness is not a standard Bass/CMK Quality Attribute. Its three sub-requirements
+each map to a different QA lens [Bass21]:
 
 - **Sub-1** — **Testability** (Bass/CMK Ch.12): formula correctness is enforced through architectural isolation that makes the calculation unit independently and deterministically testable at every commit
 - **Sub-2** — **Reliability**: single-source data flow ensures all tabs display consistent values at runtime
@@ -24,7 +25,7 @@ The architecture shall make formula correctness continuously verifiable: the `Wa
 | **Response** | Test suite executes, captures results, and blocks the commit if any case fails |
 | **Measure** | 44 test cases covering `beatErrorMs`, `amplitudeDeg`, `rateSpdFromPhase`, `instErrorSec` all pass within 30 s; zero formula deviation from Equations doc worked examples tolerated |
 
-**Tactics applied (Bass/CMK Ch.12 §12.2):**
+**Tactics applied (Bass/CMK Ch.12 §12.2 [Bass21]):**
 
 | Tactic | How it appears in this system |
 |--------|-------------------------------|
@@ -78,3 +79,7 @@ The system shall remain usable and produce reliable measurements in the presence
 |-----------|-----------------|-------------|
 | No signal | No beat event for N seconds | `⚠ No signal` — auto-cleared on recovery |
 | Noisy signal | Beat event inter-arrival variance exceeds threshold | `⚠ Noisy signal` — auto-cleared on stabilization |
+
+## References
+
+- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.

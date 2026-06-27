@@ -2,9 +2,9 @@
 
 This view shows how validated TimeGrapher code moves from the development machine to the Raspberry Pi target and where target-dependent validation happens. Its main message is that **deployment and target validation are separate concerns from commit-time correctness enforcement**. The Raspberry Pi is the place where runtime feasibility, hardware interaction, and end-to-end measurement behavior are confirmed.
 
-[Open draw.io source](../../assets/view4-deployment.drawio)
+[Open draw.io source](../../assets/deployment-raspberry-pi.drawio)
 
-![Raspberry Pi Deployment View](../../assets/view4-deployment.png)
+![Raspberry Pi Deployment View](../../assets/deployment-raspberry-pi.png)
 
 ## Element Catalog
 
@@ -45,7 +45,7 @@ This view intentionally starts after source-level correctness validation. It is 
 ## Related views
 
 - [Pre-commit Correctness Gate View](view-allocation-implementation.md) — shows the earlier correctness gate that happens before code reaches the deployment path.
-- [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — shows the runtime components that execute after deployment on the Raspberry Pi.
+- [DSP Pipeline Thread Model View](view-cc-dsp-pipeline.md) — shows the runtime components that execute after deployment on the Raspberry Pi.
 
 ## Related QA, Risks, and Experiments
 

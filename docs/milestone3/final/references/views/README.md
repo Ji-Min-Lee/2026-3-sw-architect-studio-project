@@ -5,11 +5,11 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
 
-## [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md)
+## [DSP Pipeline Thread Model View](view-cc-dsp-pipeline.md)
 
 > QA: Real-time Performance · Low Latency (QAS-1, QAS-2)
 
-[![DSP Pipeline Thread Model](../../assets/view3-thread-model-simple.png)](view-cc-dsp-pipeline.md)
+[![DSP Pipeline Thread Model View](../../assets/cc-dsp-pipeline.png)](view-cc-dsp-pipeline.md)
 
 [![E2E Latency Comparison](../../assets/thread-latency-chart.png)](view-cc-dsp-pipeline.md)
 
@@ -19,15 +19,15 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 > QA: Extensibility / Modifiability (QAS-3)
 
-[![Layered and Module Decomposition](../../assets/view1-layered-module.png)](view-layered-4layer.md)
+[![Layered and Module Decomposition](../../assets/layered-module-view.png)](view-layered-4layer.md)
 
 ---
 
-## [Module View: IAudioSource Dependency Inversion](view-iaudiosource.md)
+## [IAudioSource Dependency Inversion View](view-iaudiosource.md)
 
 > QA: Extensibility / Modifiability (QAS-3)
 
-[![IAudioSource Dependency Inversion](../../assets/view5-iaudiosource.png)](view-iaudiosource.md)
+[![IAudioSource Dependency Inversion View](../../assets/module-iaudiosource.png)](view-iaudiosource.md)
 
 ---
 
@@ -35,9 +35,9 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 > QA: Correctness · Extensibility (QAS-4, QAS-3)
 
-[![Graph Tab Module Uses View](../../assets/view2-decomposition.png)](view-decomposition-graph-tab.md)
+[![Graph Tab Module Uses View](../../assets/module-uses-graph-tab-decomposition.png)](view-decomposition-graph-tab.md)
 
-[![Observer Module](../../assets/view2b-observer-module.png)](view-decomposition-graph-tab.md)
+[![Observer Module](../../assets/module-uses-graph-tab-observer-module.png)](view-decomposition-graph-tab.md)
 
 ---
 
@@ -45,7 +45,7 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 > QA: Deployability
 
-[![Raspberry Pi Deployment View](../../assets/view4-deployment.png)](view-deployment-build-pipeline.md)
+[![Raspberry Pi Deployment View](../../assets/deployment-raspberry-pi.png)](view-deployment-build-pipeline.md)
 
 ---
 
@@ -57,8 +57,8 @@ Shows how formula and calculation regressions are blocked before commit acceptan
 
 ---
 
-## [Allocation View: Work Assignment Style — Sprint & Team Structure](view-allocation-work-assignment.md)
+## [Work Assignment View](view-allocation-work-assignment.md)
 
-> QA: All QAS · Style: 작업할당 스타일
+> QA: All QAS · Style: Work Assignment
 
 Architecture elements → Organizational units (team1, team2, milestones, sprints). Shows who owns what, when it lands, and how scope is gated between Milestone 2 (06-22) and Milestone 3 Demo (07-01).

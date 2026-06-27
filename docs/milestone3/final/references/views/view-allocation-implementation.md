@@ -2,9 +2,9 @@
 
 This view shows how TimeGrapher enforces formula and calculation correctness before a change is accepted into version control. Its main message is simple: **the first line of defense against correctness regressions is the local pre-commit gate, not target-device testing**. This is the architectural enforcement mechanism behind QAS-4 Sub-1.
 
-[Open draw.io source](../../assets/view6-precommit-local-deployment.drawio)
+[Open draw.io source](../../assets/allocation-precommit-gate.drawio)
 
-![Pre-commit Correctness Gate View](../../assets/view6-precommit-local-deployment.png)
+![Pre-commit Correctness Gate View](../../assets/allocation-precommit-gate.png)
 
 ## Element Catalog
 
