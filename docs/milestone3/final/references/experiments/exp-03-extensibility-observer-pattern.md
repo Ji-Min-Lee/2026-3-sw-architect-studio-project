@@ -43,5 +43,5 @@ Observed file-change counts across three sprint rounds (excludes build system an
 ## Links
 
 - File-change cost detail: [EXP-08: Tab Expansion File-Change Cost](exp-08-tab-expansion-file-change-cost.md)
-- Test evidence: [Allocation View: Implementation Style](../views/view-allocation-implementation.md)
+- Architecture evidence: [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md)
 - Experiment tracker: [experiment-results.md](experiment-results.md)

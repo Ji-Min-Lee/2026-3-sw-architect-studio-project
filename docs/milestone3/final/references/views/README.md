@@ -41,19 +41,19 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
 
-## [Deployment View: Build-Deploy Pipeline](view-deployment-build-pipeline.md)
+## [Raspberry Pi Deployment View](view-deployment-build-pipeline.md)
 
 > QA: Deployability
 
-[![Build-Deploy Pipeline](../../assets/view4-deployment.png)](view-deployment-build-pipeline.md)
+[![Raspberry Pi Deployment View](../../assets/view4-deployment.png)](view-deployment-build-pipeline.md)
 
 ---
 
-## [Deployment View: Local Pre-commit Unit Test Gate and Manual Deploy Path](view-allocation-implementation.md)
+## [Pre-commit Correctness Gate View](view-allocation-implementation.md)
 
-> QA: Correctness (QAS-4) · Deployability · Current-state gate view
+> QA: Correctness (QAS-4) · Commit-time enforcement view
 
-Current repository facts only: shared local `pre-commit` gate runs `TestWatchMath` and `TestMeasurementEngine` before commit, then push/deploy remains manual. No GitHub workflow is described because `.github/workflows/` is absent in the current tree.
+Shows how formula and calculation regressions are blocked before commit acceptance through the local `pre-commit` gate. Focuses on `TestWatchMath` and `TestMeasurementEngine` as the structural enforcement path for QAS-4 Sub-1.
 
 ---
 

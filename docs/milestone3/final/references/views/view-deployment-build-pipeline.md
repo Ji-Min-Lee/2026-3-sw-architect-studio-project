@@ -1,67 +1,57 @@
-# TimeGrapher Deployment View
+# Raspberry Pi Deployment View
 
-This view shows the computing infrastructure on which TimeGrapher runs: the hardware nodes, their key properties, and the connections between them. It answers: "What hardware does TimeGrapher run on, how are the nodes connected, and what are the relevant hardware constraints?"
+This view shows how validated TimeGrapher code moves from the development machine to the Raspberry Pi target and where target-dependent validation happens. Its main message is that **deployment and target validation are separate concerns from commit-time correctness enforcement**. The Raspberry Pi is the place where runtime feasibility, hardware interaction, and end-to-end measurement behavior are confirmed.
 
-![RPi 5 Deployment View](../../assets/view4-deployment.png)
+[Open draw.io source](../../assets/view4-deployment.drawio)
+
+![Raspberry Pi Deployment View](../../assets/view4-deployment.png)
 
 ## Element Catalog
 
-#### Dev Machine (macOS)
-- Primary development environment: Qt Creator, C++17 toolchain.
-- Runs the full build, unit tests, and structural validation (layered + C&C views).
-- Executes macOS experiments (e.g., EXP-01 R2–R4 for baseline latency measurements).
-- Does **not** require direct access to microphone hardware for structural validation.
+#### Development Machine
+- Source environment where code is built and then pushed to the shared repository.
+- Upstream structural validation happens here before the deployment path begins.
 
-#### Raspberry Pi 5 (Target Hardware)
-- ARM64 Cortex-A76, 4 cores @ 2.4 GHz, 8 GB LPDDR4X RAM.
-- Ubuntu 24.04, Qt 6, ALSA audio stack.
-- Runs the production binary: AudioCapture via ALSA, DSPWorker, Qt 6 GUI.
-- Used for hardware experiments (EXP-06, EXP-01 R5, EXP-04) and M3 final demo.
-- **Constraint**: AGC must be disabled on every boot (`alsamixer`) — AGC enabled causes Amplitude and Beat Error measurements to be unreliable.
+#### GitHub Repository
+- Shared transport point between the development machine and the Raspberry Pi.
+- Supports the push/pull deployment path without manual file transfer.
 
-#### Git Repository (Shared)
-- The transport layer between dev machine and RPi.
-- Dev machine pushes; RPi pulls. No file transfer or re-imaging required.
+#### Raspberry Pi 5
+- Target deployment node for live audio capture and runtime validation.
+- Runs the build that interacts with ALSA, the microphone, and the full GUI pipeline.
 
-#### Microphone (Hardware Input)
-- USB microphone connected to RPi via USB 2.0 (480 Mbps); captures the watch's acoustic beat signal at 96kHz (target) or 48kHz (fallback).
-- Audio data rate at 96kHz / 32-bit mono: ~3.1 Mbps — well within USB 2.0 bandwidth.
+#### Target Validation Stage
+- The point where hardware-dependent evidence is collected.
+- This is where dropped-block behavior, latency behavior, and Witschi-comparison readiness are validated.
 
 ## Behavior
 
-**Standard deploy cycle:**
+The important trace is:
 
-```
-Dev Machine
-    1. edit / build / unit test (macOS toolchain)
-    2. git push
-         │
-         ▼
-    Git Repository
-         │
-         ▼
-    Raspberry Pi 5
-    3. git pull
-    4. build (arm64 toolchain)
-    5. run experiment / validate
-```
+1. The development machine builds the application.
+2. The code is pushed to GitHub.
+3. The Raspberry Pi pulls the updated code.
+4. The Raspberry Pi builds the target binary.
+5. The Raspberry Pi runs the experiment or demo scenario.
+6. Target behavior is then analyzed.
 
-**Why this shortens the cycle**: structural validation (layer rule violations, API contracts) happens on macOS. The RPi is reserved for hardware-dependent experiments and the final demo. No repeated re-imaging or manual file transfers.
-
-**Boot checklist for every RPi session:**
-
-| Step | Command | Reason |
-|------|---------|--------|
-| Disable AGC | `alsamixer` → disable AGC | AGC on → Amplitude / Beat Error unreliable |
-| Confirm sample rate | check ALSA config | Must match ADR-003 decision (96kHz or 48kHz fallback) |
-| Run experiment script | `./run_exp.sh` | Structured CSV logging for EXP analysis |
+This view intentionally starts after source-level correctness validation. It is about deployment and target execution, not about commit-time gating.
 
 ## Related ADRs
 
-- [ADR-003: Audio Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — determines ALSA sample rate configured on RPi
-- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — thread model confirmed on macOS; RPi confirmation via EXP-01 R5
+- [ADR-003: Audio Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) — determines the target sample rate and explains why Raspberry Pi confirmation was required.
+- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — part of the runtime architecture whose behavior must be validated on the target device.
 
 ## Related views
 
-- [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — shows the runtime components that execute on the RPi node
-- [Layered and Module Decomposition View](view-layered-4layer.md) — module structure validated on dev machine before RPi deployment
+- [Pre-commit Correctness Gate View](view-allocation-implementation.md) — shows the earlier correctness gate that happens before code reaches the deployment path.
+- [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — shows the runtime components that execute after deployment on the Raspberry Pi.
+
+## Related QA, Risks, and Experiments
+
+- [QAS-1: Real Time Performance](../qa/qas-1-real-time-performance.md) — this view provides the deployment context in which dropped-block validation is performed on Raspberry Pi.
+- [QAS-5: Measurement Accuracy, Error Detection, and Handling](../qa/qas-5-measurement-accuracy-error-detection-handling.md) — this view provides the target environment in which final user-visible measurement behavior is validated.
+- [Risk Register](../risks.md) — this deployment path is part of the mitigation story for `TR-01`, `TR-02`, and related target-hardware risks.
+- [EXP-01: RPi Real-Time Performance](../experiments/exp-01-realtime-dropped-block.md) — validates that the deployed target can sustain the required sample rate without dropped blocks.
+- [EXP-02: End-to-End Latency](../experiments/exp-02-latency-e2e.md) — validates that the deployed target meets the runtime latency target after architectural tactics are applied.
+- [EXP-06: Witschi Accuracy Comparison](../experiments/exp-06-accuracy-witschi-comparison.md) — provides the final external accuracy evidence on the deployed target setup.

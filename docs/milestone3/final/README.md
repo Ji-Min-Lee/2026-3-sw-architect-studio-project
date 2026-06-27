@@ -64,7 +64,7 @@ LongTermTab downsampling view; see [Architecture Views](references/views/README.
 </tr>
 <tr>
   <td align="center">
-    <a href="references/views/view-deployment-build-pipeline.md">Deployment: Build-Deploy Pipeline<br>
+    <a href="references/views/view-deployment-build-pipeline.md">Raspberry Pi Deployment View<br>
     <img src="assets/view4-deployment.png" width="200"></a>
   </td>
 </tr>

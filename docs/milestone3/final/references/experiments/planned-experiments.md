@@ -168,7 +168,7 @@ All 14 tabs implemented under the ≤ 3-file constraint. Zero layer violations. 
 
 | Resource | Detail |
 |----------|--------|
-| Evidence | [Allocation View: Implementation Style](../views/view-allocation-implementation.md) |
+| Evidence | [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md) |
 | Code | `src/tabs/BaseGraphTab.h`, `src/tests/` |
 
 ---

@@ -1,55 +1,55 @@
-# TimeGrapher Local Pre-commit Correctness Gate View
+# Pre-commit Correctness Gate View
 
-This view shows the current enforcement path for correctness before deployment: formula and measurement regressions are checked on the developer machine at commit time, then code is pushed and deployed manually. The main architectural message is that **QAS-4 Sub-1 is enforced structurally before code reaches the shared repository or target device**. This view is not the final proof of measurement accuracy; that evidence comes from the related experiments.
+This view shows how TimeGrapher enforces formula and calculation correctness before a change is accepted into version control. Its main message is simple: **the first line of defense against correctness regressions is the local pre-commit gate, not target-device testing**. This is the architectural enforcement mechanism behind QAS-4 Sub-1.
 
 [Open draw.io source](../../assets/view6-precommit-local-deployment.drawio)
 
-![Local pre-commit and manual deploy view](../../assets/view6-precommit-local-deployment.png)
+![Pre-commit Correctness Gate View](../../assets/view6-precommit-local-deployment.png)
 
 ## Element Catalog
 
-#### Developer workstation
-- Hosts the only repository-defined correctness gate that is evidenced in code today.
-- Runs the shared Git hook configured by `scripts/setup-hooks.sh`.
+#### Developer Workstation
+- The commit-time correctness gate runs on the developer machine.
+- `scripts/setup-hooks.sh` configures `core.hooksPath` so the shared repository hook is used consistently.
 
-#### Pre-commit correctness gate
+#### Pre-commit Hook
 - Implemented in `.githooks/pre-commit`.
-- Executes `TestWatchMath` and `TestMeasurementEngine` before the commit is accepted.
-- Catches formula-level regressions in `WatchMath` and basic end-to-end calculation regressions in `MeasurementEngine`.
+- Invoked automatically by `git commit`.
+- Stops the commit when a required correctness test fails.
 
-#### GitHub repository
-- Acts as the shared source repository after the local gate passes.
-- In this view, it is a transfer point, not a separate validation node.
+#### `TestWatchMath`
+- The fast, deterministic formula-level gate.
+- Validates isolated `WatchMath` functions, which is the key mechanism behind QAS-4 Sub-1 testability.
 
-#### Raspberry Pi or demo target
-- Receives changes through the manual `git pull -> build -> run` path.
-- Hardware-dependent validation happens after the local correctness gate, not instead of it.
+#### `TestMeasurementEngine`
+- The broader calculation path gate.
+- Checks that the measurement pipeline still produces coherent outputs after code changes.
 
 ## Behavior
 
 The important trace is:
 
-1. A developer changes `src/engine` code or related tests.
-2. The developer builds local test binaries.
-3. `git commit` triggers `.githooks/pre-commit`.
-4. The hook runs `TestWatchMath` and `TestMeasurementEngine`.
-5. Only after that gate passes does the code move to `git push`.
-6. Deployment to Raspberry Pi or the demo environment remains manual.
+1. A developer changes `WatchMath`, `MeasurementEngine`, or their related tests.
+2. The developer builds the local test binaries.
+3. `git commit` invokes `.githooks/pre-commit`.
+4. The hook runs `TestWatchMath`.
+5. The hook runs `TestMeasurementEngine`.
+6. The commit is accepted only if both tests pass.
 
-This means the architecture does not rely on target-device testing to catch the first class of correctness defects. Formula regressions are intended to be stopped earlier, at commit time.
-
-## Related QA, Risks, and Experiments
-
-- [QAS-4: Correctness](../qa/qas-4-correctness.md) — this view supports **Sub-Requirement 1: Calculation Accuracy — Testability**, especially the requirement that formula deviations be revealed before the commit is accepted.
-- [Risk Register](../risks.md) — this view is part of the mitigation story for [NTR-07](../risks.md), where formula complexity is controlled through automated commit-time checking rather than manual reasoning alone.
-- [EXP-06: Witschi Accuracy Comparison](../experiments/exp-06-accuracy-witschi-comparison.md) — provides the external accuracy evidence that this view does not provide.
-- [EXP-04: Detector Parameter Optimization Under Noise](../experiments/exp-04-correctness-detector-optimization.md) — provides the detector-correctness evidence for noisy conditions, complementary to the formula gate shown here.
+This view intentionally stops at commit acceptance. It does not describe deployment, target hardware validation, or external accuracy comparison.
 
 ## Related ADRs
 
-- [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) — the key decision that makes `TestWatchMath` fast, deterministic, and suitable for commit-time enforcement.
+- [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) — makes `WatchMath` directly testable and therefore suitable for commit-time enforcement.
 
 ## Related views
 
-- [Deployment View: Build-Deploy Pipeline](view-deployment-build-pipeline.md) — continues the flow after the local gate passes and the code moves toward the target device.
-- [Layered and Module Decomposition View](view-layered-4layer.md) — shows where `WatchMath` sits structurally as an isolated domain module.
+- [Raspberry Pi Deployment View](view-deployment-build-pipeline.md) — shows what happens after validated code is pushed and deployed to the target device.
+- [Layered and Module Decomposition View](view-layered-4layer.md) — shows `WatchMath` as an isolated domain module rather than a Qt- or hardware-coupled implementation detail.
+
+## Related QA, Risks, and Experiments
+
+- [QAS-4: Correctness](../qa/qas-4-correctness.md) — this view supports **Sub-Requirement 1: Calculation Accuracy — Testability**, especially the requirement that formula deviations be revealed before commit acceptance.
+- [Risk Register](../risks.md) — this view contributes to the mitigation of `NTR-07`, where formula complexity is controlled through automated checking rather than manual inspection alone.
+- [EXP-04: Detector Parameter Optimization Under Noise](../experiments/exp-04-correctness-detector-optimization.md) — complementary correctness evidence for the detector side of QAS-4.
+- [EXP-06: Witschi Accuracy Comparison](../experiments/exp-06-accuracy-witschi-comparison.md) — external accuracy evidence that complements, but does not replace, this structural gate.

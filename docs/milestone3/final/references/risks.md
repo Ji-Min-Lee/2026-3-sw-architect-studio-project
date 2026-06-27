@@ -26,7 +26,7 @@
 |----|-------------|:----:|:------:|------------|:------:|
 | NTR-04 | English communication overhead slows documentation velocity | M | L | All deliverables in English. Internal discussion Korean; design summaries bilingual | ✅ Convention held |
 | NTR-05 | Single RPi device creates experiment bottleneck | H | M | EXP-01 validated on each dev machine first; RPi-independent work ran in parallel; RPi slot reserved for target-hardware confirmation | ✅ Mitigated |
-| NTR-07 | Equation-level derivations difficult (Rate / Beat Error / Amplitude formulas) | M | H | AI-assisted equation interpretation; [142 tests across 10 binaries](views/view-allocation-implementation.md) verify correctness independently of individual formula fluency; EXP-06 Witschi comparison confirmed within tolerance | ✅ Resolved |
+| NTR-07 | Equation-level derivations difficult (Rate / Beat Error / Amplitude formulas) | M | H | AI-assisted equation interpretation; the [Pre-commit Correctness Gate View](views/view-allocation-implementation.md) shows how `TestWatchMath` and `TestMeasurementEngine` block formula and calculation regressions before commit acceptance; EXP-06 Witschi comparison confirmed external accuracy within tolerance | ✅ Resolved |
 
 ---
 

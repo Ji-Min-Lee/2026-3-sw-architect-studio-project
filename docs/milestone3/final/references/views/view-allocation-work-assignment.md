@@ -116,8 +116,8 @@ Each issue represents an architecture element that must be built, validated, or 
 
 ## Related Views
 
-- [Deployment View: Build-Deploy Pipeline](view-deployment-build-pipeline.md) — shows the hardware targets these teams build for
-- [Implementation Allocation View: Test Binaries](view-allocation-implementation.md) — shows the build artifacts the team2 unit test work produces
+- [Raspberry Pi Deployment View](view-deployment-build-pipeline.md) — shows the hardware targets these teams build for
+- [Pre-commit Correctness Gate View](view-allocation-implementation.md) — shows the commit-time correctness gate that protects formula and calculation changes
 
 ## Related References
 
