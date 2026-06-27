@@ -33,14 +33,6 @@ The architecture shall make formula correctness continuously verifiable: the `Wa
 | **Specialized Interfaces** | Each formula (`beatErrorMs`, `amplitudeDeg`, `rateSpdFromPhase`, `instErrorSec`) is exposed as an individual public method, allowing per-formula test cases rather than end-to-end integration tests. |
 | **Limit Nondeterminism** | Pure math functions — no threads, no timers, no I/O — guarantee deterministic output for any given input, making fault reproduction exact. |
 
-## Related
-
-[QA Priority Summary](README.md)
-
-| Architecture | Rationale | Experiment | View |
-|---|---|---|---|
-| `WatchMath` Pure Calculation Module (Limit Structural Complexity + Abstract Data Sources) | [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md) | Pre-commit unit test gate (44 `WatchMath` cases) | [Allocation View: Implementation Style](../views/view-allocation-implementation.md) |
-
 ---
 
 ## Sub-Requirement 2: Internal Consistency — Reliability
@@ -56,15 +48,6 @@ Displayed values and graphs shall remain consistent across all GUI tabs — rate
 | **Response** | Every tab receives the identical `Measurement` object via Observer signal; no tab queries a separate data source |
 | **Measure** | Deviation between the same metric shown in any two tabs = 0 at all times |
 
-## Related
-
-[QA Priority Summary](README.md)
-
-| Architecture | Rationale | Experiment | View |
-|---|---|---|---|
-| Observer Pattern (BaseGraphTab) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Decomposition View: Graph Tab](../views/view-decomposition-graph-tab.md) |
-| Layered and Module Decomposition (single ownership of measurement state) | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) | [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md) | [Layered and Module Decomposition View](../views/view-layered-4layer.md) |
-
 ---
 
 ## Sub-Requirement 3: Noise Resilience — Usability
@@ -79,15 +62,6 @@ The system shall remain usable and produce reliable measurements in the presence
 | **Environment** | Live mode; ambient noise present |
 | **Response** | LP/HP filter rejects the non-beat signal; `BeatDetector` fires only on genuine T1/T3 events |
 | **Measure** | False trigger rate < 1% under standard ambient conditions; true T1 detection rate > 99% (verified in EXP-04) |
-
-## Related
-
-[QA Priority Summary](README.md)
-
-| Architecture | Rationale | Experiment | View |
-|---|---|---|---|
-| 96kHz Sample Rate | [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md) | [EXP-04: Detector Parameter Optimization](../experiments/exp-04-correctness-detector-optimization.md) | [C&C View: DSP Pipeline Thread Model](../views/view-cc-dsp-pipeline.md) |
-| LP/HP FilterChain | [ADR-009: FilterChain Design](../adr/ADR-009-filterchain-design.md) | [EXP-04: Detector Parameter Optimization](../experiments/exp-04-correctness-detector-optimization.md) | [C&C View: DSP Pipeline Thread Model](../views/view-cc-dsp-pipeline.md) |
 
 ---
 

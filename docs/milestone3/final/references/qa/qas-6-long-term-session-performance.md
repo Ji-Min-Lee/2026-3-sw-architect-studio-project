@@ -12,16 +12,10 @@
 | **Response** | The system renders each new data point without a perceptible delay; the total number of plotted points across all three series remains bounded; no out-of-memory crash or frame freeze occurs |
 | **Measure** | Total plotted points across 3 series after 7 days ≤ **3,000**; `QCustomPlot::replot()` call time ≤ **16 ms** throughout the session; heap growth of `LongTermTab` after 7 days ≤ **5 MB** |
 
-## Rationale
+## Tactics (Bass/CMK Ch.7 — Performance)
 
-The project plan requires the Long-Term Performance Graph to "support longer test durations by reducing update frequency as elapsed time increases, allowing the system to monitor performance over many hours while remaining readable and efficient." Without a bounded point count, `QCPGraph` would accumulate tens of thousands of data points on the Qt GUI thread, causing frame time to grow without bound and eventually freezing the Raspberry Pi display.
-
-The `mBucketSize` adaptive strategy (ADR-007) bounds the worst-case point count to ≈ 2,520 points for 7 days (≤ 840 per series), well within QCustomPlot's empirical limit of ~100,000 points before render time degrades. Memory is proportional to point count and remains negligible relative to the system's total heap.
-
-## Related
-
-[QA Priority Summary](README.md)
-
-| Architecture | Rationale | Experiment | View |
-|---|---|---|---|
-| Time-Based Bucket Downsampling (`mBucketSize`) | [ADR-007: LongTermTab Downsampling](../adr/ADR-007-longtermtab-downsampling.md) | [EXP-07: Long-Term Aging Test](../experiments/exp-07-longterm-aging.md) | [Decomposition View: LongTermTab Downsampling](../views/view-longtermtab-downsampling.md) |
+| Tactic (Ch.7) | How it appears in this system |
+|---|---|
+| **Manage Sampling Rate** | `mBucketSize` adaptive downsampling reduces point density as elapsed time grows — older data is aggregated into larger time buckets, bounding worst-case point count to ≈ 840 per series over 7 days. |
+| **Bound Execution Times** | `QCustomPlot::replot()` is gated by `ADR-002` lazy rendering; the `LongTermTab` repaint is skipped when the tab is not visible, keeping GUI-thread frame time within the 16 ms budget. |
+| **Limit Event Response** | New data points are appended at the averaging-period cadence (12 s); no per-beat repaint occurs on `LongTermTab`, decoupling render frequency from measurement frequency. |

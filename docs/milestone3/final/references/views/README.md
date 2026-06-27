@@ -1,6 +1,6 @@
 # Architecture Views — TimeGrapher
 
-Six views covering Latency, Correctness, Extensibility, and Deployability.  
+Five views covering Latency, Correctness, Extensibility, and Deployability.  
 Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
@@ -31,14 +31,6 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
 
-## [Module View: Domain Entity / Value Object](view-domain-entity-vo.md)
-
-> QA: Correctness · Accuracy (QAS-4, QAS-5)
-
-[![Domain Entity / Value Object](../../assets/view6-domain-entity-vo.png)](view-domain-entity-vo.md)
-
----
-
 ## [Graph Tab Module Uses View](view-decomposition-graph-tab.md)
 
 > QA: Correctness · Extensibility (QAS-4, QAS-3)
@@ -57,11 +49,11 @@ Each view follows the **Merson 7-section template** and targets a specific QA.
 
 ---
 
-## [Allocation View: Implementation Style — Test Binaries & Build Artifacts](view-allocation-implementation.md)
+## [Deployment View: Local Pre-commit Unit Test Gate and Manual Deploy Path](view-allocation-implementation.md)
 
-> QA: Correctness (QAS-3, QAS-4) · Style: 구현 스타일
+> QA: Correctness (QAS-4) · Deployability · Current-state gate view
 
-Software modules → Build artifacts (`src/build-mac/`). Shows which source module is realized as which test binary and what verification scope each binary covers. 142 tests / 10 binaries, all PASS.
+Current repository facts only: shared local `pre-commit` gate runs `TestWatchMath` and `TestMeasurementEngine` before commit, then push/deploy remains manual. No GitHub workflow is described because `.github/workflows/` is absent in the current tree.
 
 ---
 

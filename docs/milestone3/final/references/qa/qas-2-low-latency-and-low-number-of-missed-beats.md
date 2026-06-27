@@ -26,10 +26,3 @@
 | 28,800 | 125 ms | **< 100 ms** (Primary) | < 70 ms | < 30 ms |
 | 36,000 | 100 ms | < 80 ms | < 56 ms | < 24 ms |
 | 43,200 | 83 ms | < 66 ms | < 46 ms | < 20 ms |
-
-## Related
-
-- [QA Priority Summary](README.md)
-- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — threading strategy options and trade-offs
-- [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md) — skipping replot() on non-visible tabs reduces GUI-thread render time, contributing to the ② process→display segment
-- [EXP-02: End-to-End Latency](../experiments/exp-02-latency-e2e.md) — E2E 80ms → 2.1ms (−97%) after T2; FG avg 60ms unresolved

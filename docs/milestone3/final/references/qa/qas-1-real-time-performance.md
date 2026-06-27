@@ -14,10 +14,3 @@
 ## Real-Time Deadline
 
 The real-time deadline is set by ALSA: ~21ms per block on RPi. Every audio block must complete DSP processing before the next block arrives. The sample rate choice affects Beat Error resolution, not the deadline itself.
-
-## Related
-
-- [QA Priority Summary](README.md)
-- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md) — threading strategy options and trade-offs
-- [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md) — rendering strategy options and trade-offs
-- [EXP-01: RPi Real-Time Performance — Dropped Block Measurement](../experiments/exp-01-realtime-dropped-block.md) — Dropped Block = 0 at 96k sps confirmed

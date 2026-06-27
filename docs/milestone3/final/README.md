@@ -67,10 +67,6 @@ LongTermTab downsampling view; see [Architecture Views](references/views/README.
     <a href="references/views/view-deployment-build-pipeline.md">Deployment: Build-Deploy Pipeline<br>
     <img src="assets/view4-deployment.png" width="200"></a>
   </td>
-  <td align="center">
-    <a href="references/views/view-domain-entity-vo.md">Domain Entity &amp; Value Object Model<br>
-    <img src="assets/view6-domain-entity-vo.png" width="200"></a>
-  </td>
 </tr>
 </table>
 

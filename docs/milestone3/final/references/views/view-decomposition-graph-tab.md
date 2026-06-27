@@ -86,4 +86,3 @@ Measured results: → [EXP-03: Observer Pattern Compliance](../experiments/exp-0
 
 - [Layered and Module Decomposition View](view-layered-4layer.md) — parent view; shows where Presentation fits in the full layer stack
 - [C&C View: DSP Pipeline Thread Model](view-cc-dsp-pipeline.md) — shows the runtime path that produces the `Measurement` struct consumed here
-- [Module View: Domain Entity / Value Object](view-domain-entity-vo.md) — shows the structure of the `Measurement` snapshot delivered through this observer design
