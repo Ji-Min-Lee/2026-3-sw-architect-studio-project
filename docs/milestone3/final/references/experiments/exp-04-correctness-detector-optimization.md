@@ -33,6 +33,6 @@ WAV source: 28,800 BPH real recording + pink noise (96 kHz, float32). Platform: 
 
 ## Links
 
-- Full results table (7 noise levels): [experiment-results.md](../../../../milestone2/experiment-results.md#exp-05-detector-parameter-optimization-under-noise)
+- Full results table (7 noise levels): [experiment-results.md](experiment-results.md#exp-04-detector-parameter-optimization-under-noise)
 - Log directory: `src/logs/EXP-04/full-grid/` (274 CSVs) · `src/logs/EXP-04/pilot/` (pilot runs)
 - Analysis tool: `src/tools/analyze_exp04_scatter.py`
