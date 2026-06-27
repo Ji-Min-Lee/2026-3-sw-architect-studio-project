@@ -1,93 +1,18 @@
-# LongTermTab downsampling view
+# Decomposition View: LongTermTab Downsampling
 
 This view decomposes `LongTermTab` into its internal structural elements, focusing on
 the adaptive bucket aggregation strategy (`mBucketSize`) and the three-series layout.
+
+Its message is simple: `LongTermTab` keeps **all raw measurements for statistics**, but
+only commits **bucketed averages** to the plotted traces. That is how the design supports
+the Long-Term Performance Graph requirement without letting plot size grow without bound.
+
 It answers: "How does `LongTermTab` keep the plotted point count bounded over multi-day
-sessions while maintaining accurate statistical overlays?"
+sessions while maintaining meaningful long-term trends and accurate statistical overlays?"
 
-```mermaid
-classDiagram
-    class LongTermTab {
-        <<BaseGraphTab subclass>>
-        +onMeasurement(m: Measurement)
-        +reset()
-        +replotAll()
-        -mPlot: QCustomPlot*
-        -mSummaryLabel: QLabel*
-        -mRate: Series
-        -mAmp: Series
-        -mBeat: Series
-        -mTimeElapsed: double
-        -mBucketSize: int
-        -addPoint(series, timeSec, value)
-        -updateOverlay(series)
-        -makeSeries(row, name, color): Series
-        -addTolLine(series, yVal)
-    }
+[Open draw.io source](../../assets/view-longtermtab-downsampling-structure.drawio)
 
-    class Series {
-        <<inner struct>>
-        +graph: QCPGraph*
-        +meanLine: QCPItemLine*
-        +band: QCPItemRect*
-        +rect: QCPAxisRect*
-        +sum: double
-        +sumSq: double
-        +n: quint64
-        +bucketSum: double
-        +bucketN: int
-        +addRunning(v: double)
-        +mean(): double
-        +sigma(): double
-    }
-
-    class BucketPolicy {
-        <<logic, not a class>>
-        0–5 min → bucketSize = 1
-        5–30 min → bucketSize = 10
-        30 min–2 hr → bucketSize = 30
-        > 2 hr → bucketSize = 60
-    }
-
-    class QCustomPlot {
-        +addGraph(): QCPGraph*
-        +replot(mode)
-    }
-
-    class QCPGraph {
-        +addData(x, y)
-        +data(): QCPDataContainer*
-    }
-
-    class BaseGraphTab {
-        <<abstract>>
-        +onMeasurement()*
-        +replotAll()*
-        #mPaused: bool
-    }
-
-    class MeasurementEngine {
-        <<Subject>>
-        +measurementReady(m: Measurement)
-    }
-
-    class Measurement {
-        +metrics.rate: optional~double~
-        +metrics.amplitude: optional~double~
-        +metrics.beatError: optional~double~
-        +signal.pcm: PCMBlock
-        +signal.samplesPerSecond: int
-    }
-
-    BaseGraphTab <|-- LongTermTab
-    LongTermTab *-- Series : mRate, mAmp, mBeat
-    LongTermTab *-- QCustomPlot : mPlot
-    LongTermTab ..> BucketPolicy : «applies» in onMeasurement()
-    Series o-- QCPGraph : graph
-    QCustomPlot o-- QCPGraph : owns
-    MeasurementEngine ..> Measurement : «emits»
-    MeasurementEngine ..> LongTermTab : measurementReady → onMeasurement()
-```
+![LongTermTab Downsampling Structure](../../assets/view-longtermtab-downsampling-structure.png)
 
 ## Element Catalog
 
@@ -100,6 +25,10 @@ beat error) and the shared `mBucketSize` scalar. Every `onMeasurement()` call:
 3. Recomputes `mBucketSize` from `BucketPolicy`.
 4. Updates the summary label.
 5. Rescales and queues a repaint (guarded by `isVisible()` / `mPaused`).
+
+This is the element that turns the QAS-6 performance concern into a local implementation
+rule: older history is shown more coarsely, but the session summary still reflects all
+raw samples.
 
 #### Series (inner struct)
 Dual-purpose accumulator:
@@ -129,52 +58,24 @@ internal `QCPDataContainer`. Render time scales linearly with the number of stor
 All `replot()` calls from `LongTermTab` use `rpQueuedReplot` to coalesce multiple
 same-frame update requests.
 
+## Related Requirement and QA
+
+- [Functional Requirements](../requirments/functional-requirements.md#long-term-performance-graph)
+  — this view explains the implementation behind "Record and display rate, amplitude, and
+  beat error change over an extended period" and "Benefit from reduced update frequency as
+  elapsed time increases".
+- [QAS-6: Long-Term Session Performance](../qa/qas-6-long-term-session-performance.md) —
+  this is the primary view for explaining why multi-day sessions remain bounded and usable.
+- [EXP-07: Long-Term Aging Test](../experiments/exp-07-longterm-aging.md) — validates the
+  point-count bound explained by this view.
+
 ## Behavior
-
-### Sequence: one measurement event processed in LongTermTab
-
-```mermaid
-sequenceDiagram
-    participant ME as MeasurementEngine
-    participant LT as LongTermTab
-    participant S  as Series (e.g. mRate)
-    participant G  as QCPGraph
-
-    ME->>LT: onMeasurement(m)
-    LT->>LT: mTimeElapsed += pcm.size() / sps
-    LT->>S: addPoint(mRate, mTimeElapsed, *m.metrics.rate)
-    S->>S: addRunning(value)  [always — updates sum, sumSq, n]
-    S->>S: bucketSum += value; bucketN++
-    alt bucketN == mBucketSize
-        S->>G: addData(timeSec, bucketSum/bucketN)
-        S->>S: bucketSum=0; bucketN=0
-        S->>LT: updateOverlay(series)  [mean/σ refresh]
-    else bucketN < mBucketSize
-        note over S: point suppressed — accumulating
-    end
-    LT->>LT: recompute mBucketSize from BucketPolicy
-    LT->>LT: update mSummaryLabel
-    alt isVisible() && !mPaused
-        LT->>LT: rescale axes
-        LT->>LT: mPlot->replot(rpQueuedReplot)
-    end
-```
 
 ### State: mBucketSize transitions
 
-```mermaid
-stateDiagram-v2
-    [*] --> Live : reset() / session start
-    Live : mBucketSize = 1
-    Coarse1 : mBucketSize = 10
-    Coarse2 : mBucketSize = 30
-    Coarse3 : mBucketSize = 60
+[Open draw.io source](../../assets/view-longtermtab-downsampling-state.drawio)
 
-    Live --> Coarse1 : mTimeElapsed > 300 s (5 min)
-    Coarse1 --> Coarse2 : mTimeElapsed > 1800 s (30 min)
-    Coarse2 --> Coarse3 : mTimeElapsed > 7200 s (2 hr)
-    Coarse3 --> [*] : reset() called
-```
+![LongTermTab Downsampling State](../../assets/view-longtermtab-downsampling-state.png)
 
 Transitions are **one-way** within a session. `reset()` returns `mBucketSize` to 1.
 
@@ -182,7 +83,8 @@ Transitions are **one-way** within a session. `reset()` returns `mBucketSize` to
 
 - [ADR-007: LongTermTab Downsampling](../adr/ADR-007-longtermtab-downsampling.md) —
   rationale for time-based over point-count-based thresholds; justification of the four
-  threshold values; rejected alternatives.
+  threshold values; rejected alternatives. This view is the structural realization of that
+  decision.
 - [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) —
   `LongTermTab` inherits from `BaseGraphTab`; `onMeasurement()` is the observer hook.
 - [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md) —
