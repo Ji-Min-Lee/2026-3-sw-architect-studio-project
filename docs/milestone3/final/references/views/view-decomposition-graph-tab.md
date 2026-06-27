@@ -58,11 +58,7 @@ Observer contract compliance validated by AI-generated unit tests (see Behavior 
 
 ## Behavior
 
-[Open draw.io source](../../assets/view2-measurement-broadcast-to-graph-tabs.drawio)
-
-![Measurement Broadcast to Graph Tabs View](../../assets/view2-measurement-broadcast-to-graph-tabs.png)
-
-Representative beat-event trace:
+Beat-event delivery sequence:
 
 ```
 MainWindow
@@ -79,9 +75,9 @@ MeasurementEngine
     ->> ResultsSummary::onMeasurementReady(m)
 ```
 
-**QAS-4 Sub-2 (Internal Consistency):** The broadcast pattern above ensures every tab in `mAllTabs` receives the identical `Measurement` object within the same Qt event loop cycle. No tab reads from `MeasurementEngine` directly or maintains a secondary data path — the single `connect()` site in `SessionController` is the only wiring path (ADR-006, ADR-005).
+Every tab in `mAllTabs` receives the identical `Measurement` object within the same Qt event loop cycle. No tab reads from `MeasurementEngine` directly or maintains a secondary data path — the single `connect()` site in `SessionController` is the only wiring path, satisfying **QAS-4 Sub-2** (ADR-006, ADR-005).
 
-Exception: `RadarChartTab` supplements beat data with position-level readings pulled directly from `SequenceTab::capturedReadings()`. This is the only inter-tab dependency in the system and does not affect the core measurement consistency guarantee for the remaining 13 tabs.
+Exception: `RadarChartTab` supplements beat data with position-level readings pulled directly from `SequenceTab::capturedReadings()`. This is the only inter-tab dependency in the system and does not affect the consistency guarantee for the remaining 13 tabs.
 
 Measured results: → [EXP-03: Observer Pattern Compliance](../experiments/exp-03-extensibility-observer-pattern.md)
 
