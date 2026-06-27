@@ -1,124 +1,53 @@
-# TimeGrapher sprint and team structure view
+# Work Assignment View
 
-**Style**: Work Assignment (할당 뷰 — 작업할당 스타일)  
-**Mapping**: Software architecture elements → Organizational units (teams, milestones, sprints)  
-**Purpose**: Shows which architectural modules and QAS concerns are owned by which team, in which sprint, and gated by which milestone. Answers: "Who builds what, when, and how do we know it's done?"
+This view shows which team owns which architectural concerns, mapped to Quality Attribute Scenarios and milestones. Its main message is: **the Experiment Team and Development Team operated in parallel, each owning specific QAS concerns, so that every architectural tactic decision was independently validated by experimental evidence — no tactic was accepted without an experiment result, preventing confirmation bias where the implementer also controls the evidence.**
 
----
-
-## Diagram
-
-```
-Architecture Elements (Modules & QAS)
-        │
-        │  allocated-to
-        ▼
-┌─────────────────────────────────────────────────────────┐
-│                  GitHub Project Board                   │
-│         Ji-Min-Lee/2026-3-sw-architect-studio-project   │
-│                                                         │
-│  ┌──────────────┐          ┌──────────────┐             │
-│  │    team1     │          │    team2     │             │
-│  │  (Arch/Core) │          │  (UI/Scope)  │             │
-│  └──────┬───────┘          └──────┬───────┘             │
-│         │                        │                      │
-│    QAS-1,2,4,5              QAS-3, UI tabs              │
-│         │                        │                      │
-│         └──────────┬─────────────┘                      │
-│                    ▼                                     │
-│         Sprint Labels: w2-1 → w3-2 → w4-1 ...          │
-│                    │                                     │
-│         ┌──────────┴─────────────┐                      │
-│         ▼                        ▼                      │
-│   Milestone 2 (06-22)    Milestone 3 Demo (07-01)       │
-│   Architecture + Exp      Final demo                    │
-└─────────────────────────────────────────────────────────┘
-```
-
-**KEY**: Each GitHub Issue = one architecture work unit. Sprint label = iteration gate. Milestone = scope gate.
-
----
+![Work Assignment View](../../assets/view7-work-assignment.png)
 
 ## Element Catalog
 
-### Software Elements (Architecture Work Units)
+#### Experiment Team — Gyeongjin Shin, Dong Ho Shin, Kyudae Bahn
+Owns all QA validation experiments across both milestones. Each experiment produces pass/fail evidence that either confirms or refutes the architectural tactic chosen by the Development Team.
 
-Each issue represents an architecture element that must be built, validated, or documented.
+#### Development Team — Hung Son Tong, Sungho Shin, Taejoon Song, Jimin Lee
+In M2, owns all tactic implementation decisions (ADRs) and code-level enforcement. In M3, the team shifts to two additional responsibilities: (1) writing all architecture documentation (views, ADRs, ATAM evaluation), and (2) implementing missing functional features not completed in M2.
 
-| Work Unit Type | Examples | QAS Traceability |
-|---------------|----------|-----------------|
-| Experiment (EXP-xx) | EXP-06 Witschi comparison, EXP-01 latency | QAS-5 Accuracy, QAS-1 Performance |
-| ADR | ADR-001 T2 thread, ADR-003 sample rate | All QAS |
-| Architecture View | Module view, C&C view, Allocation view | QAS-3 Modifiability |
-| Implementation task | God Object → 4-layer refactor | QAS-4 Correctness |
-| Risk | Risk assessment, mitigation plans | All QAS |
+#### Work Assignment Mapping
 
-### Organizational Elements
+**Milestone 2 — Architecture Tactics**
 
-| Org Unit | Scope | Sprint Cadence |
-|----------|-------|---------------|
-| **team1** | Domain layer: DSP, measurement engine, experiments | Every 2 days (w2-1, w3-1, w3-2, …) |
-| **team2** | UI layer: tab data models, scope views, sound print | Every 2 days |
-| **Architecture Committee** | Sprint planning, ADR decisions, milestone gate review | Each sprint boundary |
-| **all-teams** | Integration, documentation, milestone submission | At milestone close |
+| Experiment (Experiment Team) | Decision / Implementation (Development Team) | QAS | Risk |
+|------------------------------|----------------------------------------------|-----|------|
+| [EXP-01](../experiments/exp-01-realtime-dropped-block.md) Dropped Block | [ADR-001](../adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread | [QAS-1](../qa/qas-1-real-time-performance.md) | TR-01, TR-02 |
+| [EXP-02](../experiments/exp-02-latency-e2e.md) E2E Latency | [ADR-002](../adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering | [QAS-2](../qa/qas-2-low-latency-and-low-number-of-missed-beats.md) | TR-03, TR-04 |
+| [EXP-03](../experiments/exp-03-extensibility-observer-pattern.md) Observer Cost | [ADR-006](../adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab, 4-layer refactor | [QAS-3](../qa/qas-3-extensibility-modifiability.md) | TR-06, TR-07, TR-08 |
+| [EXP-04](../experiments/exp-04-correctness-detector-optimization.md) Detector Optimization | [ADR-008](../adr/ADR-008-watchmath-module-isolation.md) WatchMath Isolation | [QAS-4](../qa/qas-4-correctness.md) | TR-05, NTR-07 |
 
-### Environmental Elements (Tracking Infrastructure)
+**Milestone 3 — Documentation + Feature Completion**
 
-| Tool / View | Purpose | URL |
-|-------------|---------|-----|
-| Kanban Board | Sprint WIP visibility (Todo / In Progress / Sprint Backlog / Done) | GitHub Projects view 2 |
-| Roadmap View | Schedule vs. milestone calendar; drift detection | GitHub Projects view 1 |
-| Table View | Assignee audit, milestone assignment, QAS label audit | GitHub Projects default |
-| Milestones | Scope gate: M2 (06-22) and M3-Demo (07-01) | GitHub Milestones page |
+| Experiment (Experiment Team) | Development Team | QAS |
+|------------------------------|------------------|-----|
+| [EXP-05](../experiments/exp-05-noise-threshold-popup.md) Signal Quality Warning | Missing feature implementation | [QAS-4](../qa/qas-4-correctness.md) |
+| [EXP-06](../experiments/exp-06-accuracy-witschi-comparison.md) Witschi Accuracy | [ADR-003](../adr/ADR-003-sample-rate-selection.md) 96 kHz Sample Rate | [QAS-5](../qa/qas-5-measurement-accuracy-error-detection-handling.md) |
+| [EXP-07](../experiments/exp-07-longterm-aging.md) Long-Term Aging | [ADR-007](../adr/ADR-007-longtermtab-downsampling.md) LongTermTab Downsampling | [QAS-6](../qa/qas-6-long-term-session-performance.md) |
+| — | Architecture views, ADRs, ATAM evaluation | All QAS |
 
----
+## Related ADRs
 
-## Work Assignment Mapping
+- [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md)
+- [ADR-002: R1 Lazy Rendering](../adr/ADR-002-r1-lazy-rendering.md)
+- [ADR-003: Sample Rate Selection](../adr/ADR-003-sample-rate-selection.md)
+- [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md)
+- [ADR-007: LongTermTab Downsampling](../adr/ADR-007-longtermtab-downsampling.md)
+- [ADR-008: WatchMath Module Isolation](../adr/ADR-008-watchmath-module-isolation.md)
 
-### By Team × QAS
+## Related views
 
-| Architecture Element | Team | Sprint | Milestone | Status |
-|---------------------|------|--------|-----------|--------|
-| EXP-06 Witschi accuracy comparison | team1 | w2-1 | M2 | ✅ Done |
-| ADR-003 Sample rate selection | team1 | w2-1 | M2 | ✅ Done |
-| 4-layer God Object refactor | team1+2 | w3-1 | M2 | ✅ Done |
-| Unit test suite (142 tests) | team2 | w3-2 | M2 | ✅ Done |
-| Architecture views (Module/C&C/Allocation) | all-teams | w3-2 | M2 | ✅ Done |
-| Risk assessment & mitigation | team1 | w3-1 | M2 | ✅ Done |
-| Final demo preparation | all-teams | w4-1 | M3-Demo | In Progress |
+- [Pre-commit Correctness Gate View](view-allocation-implementation.md) — correctness enforcement at commit time (QAS-4 Sub-1)
+- [Raspberry Pi Deployment View](view-deployment-build-pipeline.md) — hardware targets these teams built for
 
-### Sprint Board Column Rules
+## Related QA, Risks, and Experiments
 
-| Column | Entry Criteria | Exit Criteria |
-|--------|---------------|--------------|
-| **Todo** | Pulled from Backlog at sprint planning; assignee set | Work started |
-| **In Progress** | Actively worked; max 2–3 items per team | Pass criteria met, output doc written |
-| **Sprint Backlog** | Planned for future sprint; not yet pulled | Sprint planning pulls it to Todo |
-| **Done** | Pass criteria met; result linked in issue; issue closed | — |
-
-### Milestone Scope Gate
-
-| Milestone | Deadline | Scope Rule |
-|-----------|----------|-----------|
-| **Milestone 2** | 2026-06-22 | Architecture + experiments complete. M2 bar = 100% = scope done. |
-| **Milestone 3 Demo** | 2026-07-01 | Final demo ready. Issues surfacing mid-sprint and post-M2 go here — M2 scope never expands. |
-
----
-
-## What This View Reveals
-
-- **No orphaned tasks**: Table view enforces that every issue has an assignee and a milestone before sprint close.
-- **Scope protection**: The milestone field (not a label, not a column) is the authoritative scope gate. Mid-sprint issues are immediately assigned to M3-Demo to prevent M2 scope creep.
-- **QAS traceability**: Sprint and QAS labels on every issue mean any filter immediately shows "what is team X working on, for which quality attribute, in which sprint" — the architecture committee can audit QA coverage at a glance.
-- **WIP discipline**: In Progress cap of 2–3 items per team prevents the common failure mode of starting everything and finishing nothing before the milestone deadline.
-
----
-
-## Related Views
-
-- [Raspberry Pi Deployment View](view-deployment-build-pipeline.md) — shows the hardware targets these teams build for
-- [Pre-commit Correctness Gate View](view-allocation-implementation.md) — shows the commit-time correctness gate that protects formula and calculation changes
-
-## Related References
-
-- [Planned Experiments](../experiments/planned-experiments.md) — experiment issues that flow through this sprint/milestone structure
+- [QA README](../qa/README.md) — governing QAS hierarchy (QAS-5 Accuracy as top-level goal)
+- [Risk Register](../risks.md) — all risks in this view are resolved as of M3
+- [Planned Experiments](../experiments/planned-experiments.md) — experiment dependency order and pass conditions

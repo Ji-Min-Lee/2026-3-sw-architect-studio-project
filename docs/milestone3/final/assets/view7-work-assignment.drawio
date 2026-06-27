@@ -1,0 +1,151 @@
+<mxfile host="app.diagrams.net" modified="2026-06-27" agent="Claude" version="21.0.0">
+  <diagram name="Work Assignment View" id="work-assignment">
+    <mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="0" arrows="0" fold="0" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="TimeGrapher — Work Assignment View" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=16;fontColor=#1a1a1a;" vertex="1" parent="1">
+          <mxGeometry x="100" y="20" width="820" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Allocation Style: Software Architecture Elements → Organizational Units" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="100" y="52" width="820" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ── COLUMN HEADERS ── -->
+        <mxCell id="exp-header" value="&lt;b&gt;Experiment Team&lt;/b&gt;&lt;br/&gt;G. Shin · D.H. Shin · K. Bahn" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontColor=#1a1a1a;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="100" y="90" width="280" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-header" value="&lt;b&gt;Development Team&lt;/b&gt;&lt;br/&gt;H.S. Tong · S. Shin · T. Song · J. Lee" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#1a1a1a;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="420" y="90" width="280" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-header" value="&lt;b&gt;QAS Concern&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=12;fontColor=#1a1a1a;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="740" y="90" width="180" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- ── M2 SEPARATOR ── -->
+        <mxCell id="sep-m2" value="Milestone 2  (deadline: 2026-06-22) — Architecture Tactics" style="text;html=1;strokeColor=#b85450;fillColor=#f8cecc;align=center;verticalAlign=middle;fontSize=10;fontStyle=1;fontColor=#b85450;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="158" width="820" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ROW 1: QAS-1 -->
+        <mxCell id="exp-r1" value="&lt;b&gt;EXP-01&lt;/b&gt; Dropped Block Measurement&lt;br/&gt;RPi 5 @ 96 kHz — Dropped = 0 ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="186" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-r1" value="&lt;b&gt;ADR-001&lt;/b&gt; T2 DSP Offload Thread&lt;br/&gt;wait_ms ×32,000 reduction ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="186" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-r1" value="QAS-1&lt;br/&gt;Real-Time Performance&lt;br/&gt;TR-01, TR-02" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="186" width="180" height="46" as="geometry" />
+        </mxCell>
+
+        <!-- ROW 2: QAS-2 -->
+        <mxCell id="exp-r2" value="&lt;b&gt;EXP-02&lt;/b&gt; E2E Latency Measurement&lt;br/&gt;2-segment timestamp — 2.2 / 4.8 ms ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="240" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-r2" value="&lt;b&gt;ADR-002&lt;/b&gt; R1 Lazy Rendering&lt;br/&gt;replot_count ↓85% ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="240" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-r2" value="QAS-2&lt;br/&gt;Low Latency&lt;br/&gt;TR-03, TR-04" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="240" width="180" height="46" as="geometry" />
+        </mxCell>
+
+        <!-- ROW 3: QAS-3 -->
+        <mxCell id="exp-r3" value="&lt;b&gt;EXP-03&lt;/b&gt; Observer Pattern Compliance&lt;br/&gt;14 tabs ≤ 3-file change each ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="294" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-r3" value="&lt;b&gt;ADR-006&lt;/b&gt; BaseGraphTab Observer Pattern&lt;br/&gt;4-layer God Object Refactor ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="294" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-r3" value="QAS-3&lt;br/&gt;Extensibility &amp; Modifiability&lt;br/&gt;TR-06, TR-07, TR-08" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="294" width="180" height="46" as="geometry" />
+        </mxCell>
+
+        <!-- ROW 4: QAS-4 -->
+        <mxCell id="exp-r4" value="&lt;b&gt;EXP-04&lt;/b&gt; Detector Parameter Optimization&lt;br/&gt;274 runs, 0–60 dB SNR ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="348" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-r4" value="&lt;b&gt;ADR-008&lt;/b&gt; WatchMath Isolation&lt;br/&gt;142 unit tests (10 binaries), all pass ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="348" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-r4" value="QAS-4&lt;br/&gt;Correctness&lt;br/&gt;TR-05, NTR-07" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="348" width="180" height="46" as="geometry" />
+        </mxCell>
+
+        <!-- ── M3 SEPARATOR ── -->
+        <mxCell id="sep-m3" value="Milestone 3 Demo  (deadline: 2026-07-01) — Documentation + Feature Completion" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=center;verticalAlign=middle;fontSize=10;fontStyle=1;fontColor=#1a4a8a;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="404" width="820" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ROW 5: QAS-4 EXP-05 -->
+        <mxCell id="exp-r5a" value="&lt;b&gt;EXP-05&lt;/b&gt; Signal Quality Warning&lt;br/&gt;Noise threshold validation ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="432" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-r5a" value="Missing feature implementation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="432" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-r5a" value="QAS-4&lt;br/&gt;Correctness" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="432" width="180" height="46" as="geometry" />
+        </mxCell>
+
+        <!-- ROW 6: QAS-5 -->
+        <mxCell id="exp-r5b" value="&lt;b&gt;EXP-06&lt;/b&gt; Witschi Accuracy Comparison&lt;br/&gt;Rate / Amplitude / Beat Error ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="486" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-r5b" value="&lt;b&gt;ADR-003&lt;/b&gt; 96 kHz Sample Rate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="486" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-r5b" value="QAS-5&lt;br/&gt;Measurement Accuracy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="486" width="180" height="46" as="geometry" />
+        </mxCell>
+
+        <!-- ROW 7: QAS-6 -->
+        <mxCell id="exp-r6" value="&lt;b&gt;EXP-07&lt;/b&gt; Long-Term Aging Session&lt;br/&gt;Bucket downsampling efficiency ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="540" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-r6" value="&lt;b&gt;ADR-007&lt;/b&gt; LongTermTab Downsampling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="540" width="280" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-r6" value="QAS-6&lt;br/&gt;Long-Term Session" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="540" width="180" height="46" as="geometry" />
+        </mxCell>
+
+        <!-- ROW 8: Docs (all-teams) -->
+        <mxCell id="docs-label" value="All-Teams" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontStyle=1;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="100" y="594" width="280" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-docs" value="Architecture views · ADRs · ATAM evaluation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="594" width="280" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="qas-docs" value="All QAS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="594" width="180" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- ── LEGEND ── -->
+        <mxCell id="legend-title" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="638" width="60" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="658" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1t" value="Experiment Team work (EXP-xx)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="122" y="658" width="200" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="340" y="658" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2t" value="Development Team work (ADR-xx, implementation, docs)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="362" y="658" width="300" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="680" y="658" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3t" value="Quality Attribute Scenario" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="702" y="658" width="180" height="16" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
