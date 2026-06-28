@@ -395,6 +395,17 @@ public:
 
     VerticalTimeDirection verticalTimeDirection() const { return cfg_.vertical_time_direction; }
 
+    // Returns the absolute sample range [start, end) for screen column x.
+    // Returns false if x is out of range or the column has no valid data.
+    bool sampleRangeForColumn(int x, quint64 &start, quint64 &end) const {
+        if (x < 0 || x >= static_cast<int>(rendered_columns_.size())) return false;
+        const RenderedColumn &col = rendered_columns_[x];
+        if (!col.valid) return false;
+        start = col.start_sample;
+        end   = col.end_sample;
+        return true;
+    }
+
 private:
     /**
         Persistent marker overlay entry.

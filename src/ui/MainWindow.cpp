@@ -760,7 +760,7 @@ void MainWindow::onMeasurementReady(const Measurement &m)
     checkPosition(m);       // demo: auto horizontal<->vertical POS
     DisplayResults(m);
 
-    if (mTickEnabled) {
+    if (mTickEnabled && mSessionState != SessionState::Paused) {
         for (const AcousticEvent &ev : m.events) {
             if (ev.isA) { mTickPos.store(0, std::memory_order_relaxed); break; }
         }
@@ -974,7 +974,7 @@ void MainWindow::DisplayResults(const Measurement &m)
     html += colored("POS ", cLbl) + colored(mActivePosition, cBph);
     html += sep + colored("RATE ", cLbl) + colored(rateStr + " s/d", axisColor(diagResult.breakdown.rate));
     html += sep + colored("AMP ",  cLbl) + colored(ampStr,           axisColor(diagResult.breakdown.amplitude));
-    html += sep + colored("ERR ",  cLbl) + colored(beatStr + " ms",  axisColor(diagResult.breakdown.beatError));
+    html += sep + colored("Beat Err ",  cLbl) + colored(beatStr + " ms",  axisColor(diagResult.breakdown.beatError));
     html += sep + colored("BPH ",  cLbl) + colored(bphStr,           cBph);
     html += "</span>";
     ui->Results->setText(html);
