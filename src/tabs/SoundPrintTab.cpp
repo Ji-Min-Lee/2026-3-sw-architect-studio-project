@@ -1,4 +1,5 @@
 #include "SoundPrintTab.h"
+#include <algorithm>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QDialog>
@@ -33,6 +34,15 @@ SoundPrintTab::SoundPrintTab(SoundImageWidget *widget, int sampleRate, QWidget *
 
 void SoundPrintTab::setSampleRate(int sampleRate) { mSampleRate = sampleRate; }
 void SoundPrintTab::setBph(int bph)               { mRenderer.setBph(bph); }
+
+quint64 SoundPrintTab::maxBufferedSamples() const
+{
+    // Cover the full visible image; fall back to 120s if BPH not yet known
+    if (mRenderer.bphValid() && mRenderer.samplesPerColumnExact() > 0.0)
+        return static_cast<quint64>(mRenderer.imageWidth()
+                                    * mRenderer.samplesPerColumnExact()) + 4096;
+    return static_cast<quint64>(mSampleRate) * 120;
+}
 
 void SoundPrintTab::reset()
 {
@@ -81,7 +91,7 @@ void SoundPrintTab::onMeasurement(const Measurement &m)
         mPcmBuffer.push_back(std::move(chunk));
         mPcmBufferedSamples += m.signal.rawPcm.size();
 
-        while (mPcmBufferedSamples > kMaxBufferedSamples && !mPcmBuffer.empty()) {
+        while (mPcmBufferedSamples > maxBufferedSamples() && !mPcmBuffer.empty()) {
             mPcmBufferedSamples -= mPcmBuffer.front().pcm.size();
             mPcmBuffer.pop_front();
         }

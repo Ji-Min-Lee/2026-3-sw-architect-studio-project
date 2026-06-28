@@ -37,8 +37,8 @@ private:
     int                 mSampleRate = 48000;
     float               mPeakAmplitude = 0.0f;
 
-    // PCM ring buffer — last ~30 s of audio for waveform popup
+    // PCM ring buffer — covers full visible image (imageWidth × samplesPerColumn)
+    quint64 maxBufferedSamples() const;
     std::deque<PcmChunk> mPcmBuffer;
     quint64               mPcmBufferedSamples = 0;
-    static constexpr quint64 kMaxBufferedSamples = 44100 * 30; // 30 s
 };
