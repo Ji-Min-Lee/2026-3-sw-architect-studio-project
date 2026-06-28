@@ -128,57 +128,11 @@
 > "Now the additional graph displays.
 > I'll navigate to each tab using the More button in the tab bar."
 
-- Click "More" to show the full tab list, then select the first tab
+- Click "More" to show the full tab list, then select Trace
 
 ---
 
-**① Rate/Scope** (~45 sec)
-
-- Switch to Rate/Scope tab
-
-> "Rate/Scope is the main measurement display — two panels.
->
-> The top panel plots timing offset in milliseconds for every single beat.
-> Red dots are tic events, blue dots are toc events.
-> The green line is a 20-beat rolling average trend.
-> In the top-left corner you can see the session statistics —
-> mean, standard deviation, and total beat count.
-> Right now: mean −0.002 ms, σ 0.055 ms across 919 beats.
-> Those numbers tell you this watch is running almost perfectly.
->
-> The bottom panel is the scope view.
-> It shows the raw acoustic signal in real time.
-> The blue line is the rectified signal — the actual sound envelope.
-> The red line is the detection trigger threshold.
-> The green dashed lines mark A events, the red dashed lines mark C events.
-> The arrows on the graph show the measured values directly —
-> 6.8 milliseconds A-to-C interval giving 302 degrees of amplitude,
-> and 125 milliseconds for the full beat interval at 28800 BPH.
-> Every number you see in the status bar is derived from exactly what's on this screen."
-
----
-
-**② Sound Print** (~30 sec)
-
-- Switch to Sound Print tab
-
-> "Sound Print is a fingerprint of the watch's acoustic pattern.
-> Each dot is a detected beat event, plotted by timing.
-> Green, yellow, and orange dots are A events — tic —
-> colored by signal strength: strong, medium, weak.
-> Blue dots are C events — tac — same three levels.
-> The green horizontal line marks the A event boundary.
-> The blue horizontal line marks the C event boundary — the half-period.
-> The pink background band is the normal operating zone.
->
-> When the dots are tightly clustered in one spot,
-> the watch is producing consistent beats.
-> If they scatter vertically, the timing is inconsistent.
-> If a whole color disappears, the signal is too weak to detect that event reliably."
-
----
-
-**③ Trace Display** (~40 sec)
+**① Trace Display** (~40 sec)
 
 - Switch to Trace tab
 
@@ -202,7 +156,7 @@
 
 ---
 
-**④ Rate and Amplitude Stability — Vario** (~40 sec)
+**② Rate and Amplitude Stability — Vario** (~40 sec)
 
 - Switch to Vario tab
 
@@ -226,7 +180,7 @@
 
 ---
 
-**⑤ Multi-Position Sequence Display** (~45 sec)
+**③ Multi-Position Sequence Display** (~45 sec)
 
 - Switch to Sequence tab
 
@@ -252,7 +206,7 @@
 
 ---
 
-**④ Beat-Noise Scope Display** (~45 sec)
+**④ Beat Scope Display** (~45 sec)
 
 - Switch to Beat Scope tab
 
@@ -276,7 +230,7 @@
 
 ---
 
-**⑤ Beat Error Display and Diagnostic Trace** (~40 sec)
+**⑤ Beat Error** (~40 sec)
 
 - Switch to Beat Error tab
 
@@ -296,7 +250,7 @@
 
 ---
 
-**⑥ Long-Term Performance Graph** (~45 sec)
+**⑥ Long Term** (~45 sec)
 
 - Switch to Long Term tab
 
@@ -323,7 +277,7 @@
 
 ---
 
-**⑦ Escapement Analyzer** (~40 sec)
+**⑦ Escapement** (~40 sec)
 
 - Switch to Escapement tab
 
@@ -347,7 +301,7 @@
 
 ---
 
-**⑧ Time-Frequency Spectrogram** (~35 sec)
+**⑧ Spectrogram** (~35 sec)
 
 - Switch to Spectrogram tab
 
@@ -370,7 +324,7 @@
 
 ---
 
-**⑨ Waveform Comparison** (~40 sec)
+**⑨ Waveform** (~40 sec)
 
 - Switch to Waveform tab
 
@@ -397,7 +351,7 @@
 
 ---
 
-**⑩ Scope Mode with Synchronized Sweep Display** (~40 sec)
+**⑩ Sweep** (~40 sec)
 
 - Switch to Sweep tab
 
@@ -419,7 +373,7 @@
 
 ---
 
-**⑪ Scope Function with Multiple Filter Views** (~40 sec)
+**⑪ Filter Scope** (~40 sec)
 
 - Switch to Filters tab
 
