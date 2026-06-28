@@ -5,15 +5,14 @@
 
 ---
 
-## 0:00 – 2:00 | System Introduction + UI Overview + Best UI
+## 0:00 – 1:00 | System Introduction + UI Overview
 
 > "Good morning. We are Team Blue Sky.
 > Let's get started."
 
 - Confirm signal is live on Rate/Scope tab
 
-> "Before we go into the graphs, let me walk through the layout
-> and the UI improvements we made.
+> "Before we go into the graphs, let me quickly walk through the layout.
 >
 > The screen is divided into two areas.
 > On the left is the control panel — Run Parameters at the top,
@@ -22,82 +21,23 @@
 >
 > On the right is the graph area.
 > The tab bar across the top gives you access to all 14 displays.
-> Tabs that don't fit in the bar are accessible through the More button on the right."
-
-- Point to control panel and tab bar
-
-> "At the very top of the graph area is the status bar.
+> Tabs that don't fit in the bar are accessible through the More button on the right.
+>
+> At the very top of the graph area is the status bar.
 > It always shows five live values: position, rate, amplitude, beat error, and BPH.
-> We added three-level color coding — green means excellent, amber means acceptable, red means needs service.
-> In the top-right corner is the AI Diagnosis badge — the color matches the status bar,
-> so the user gets the same signal in two places at once."
+> Color coding tells you the health at a glance —
+> green means within tolerance, amber is borderline, red means attention needed.
+> In the top-right corner is the AI Diagnosis badge — Excellent, Good, or Needs Service.
+>
+> At the bottom-left, the session controls: Start, Pause, Stop.
+> Space bar starts or pauses. Escape stops.
+> The elapsed time counter is next to the session status dot."
 
-- Point to status bar with colors visible
-
-**Keyboard shortcuts:**
-
-> "The full shortcut map is shown in the status bar hint at all times.
-> Space to start or pause. Escape to stop. Left and right arrows to navigate tabs.
-> F11 for fullscreen — useful on a small display.
-> F1 opens the built-in User Guide. Ctrl+T opens tab management.
-> Ctrl+backslash toggles split view. Ctrl+D opens AI Diagnosis.
-> Everything reachable without touching the mouse."
-
-- Demonstrate: Space to pause, arrow keys to switch tabs, F11 fullscreen then back
-
-**F1 — User Guide:**
-
-> "F1 opens the help panel. Every graph has its own entry —
-> what it shows, how to read it, what to watch for."
-
-- Press F1, scroll briefly, close
-
-**Ctrl+T — Manage Tabs:**
-
-> "Ctrl+T opens tab management.
-> The app starts with four tabs visible by default — Rate, Sound Print, Trace, and Vario.
-> You can add or remove tabs depending on what the session needs."
-
-- Press Ctrl+T, toggle a tab on and off
-
-**Ctrl+\ — Split View:**
-
-> "Ctrl+backslash toggles split view —
-> two tabs side by side, both updating live.
-> Trace on the left, Beat Error on the right — no switching needed."
-
-- Press Ctrl+\, show two live tabs
-
-**Ctrl+D — AI Diagnosis:**
-
-> "Ctrl+D opens AI Diagnosis directly — same panel we'll show later, one shortcut away."
-
-- Press Ctrl+D briefly, close
-
-**Record session — checkbox:**
-
-> "Recording used to open a separate dialog.
-> We replaced it with a simple checkbox in the Run Parameters panel —
-> check it before starting, and the session is recorded automatically.
-> It disables itself while a session is running so you can't change it mid-measurement."
-
-- Show the checkbox in the left panel
-
-**About TimeGrapher:**
-
-> "And About TimeGrapher in the More menu.
-> Version, build info, team. Small detail, but it's what a finished application looks like."
-
-- Open More → About TimeGrapher
-
-> "At the bottom-left, the session controls: Start, Pause, Stop.
-> Space bar starts or pauses. Escape stops."
-
-- Point to session controls
+- Point to each area as you describe it
 
 ---
 
-## 2:00 – 4:00 | Area 1 — Watch-Position Testing + Area 2 — Base Graph Enhancements
+## 1:00 – 3:00 | Area 1 — Watch-Position Testing + Area 2 — Base Graph Enhancements
 
 ### Watch-Position Testing (5 pts)
 
@@ -195,7 +135,7 @@
 
 ---
 
-## 4:00 – 10:00 | Area 1 — Additional Graph Displays (55 pts)
+## 3:00 – 9:00 | Area 1 — Additional Graph Displays (55 pts)
 
 > "Now the additional graph displays.
 > I'll navigate to each tab using the More button in the tab bar."
@@ -472,7 +412,7 @@
 
 ---
 
-## 10:00 – 11:00 | Area 2 — AI Feature (9 pts)
+## 9:00 – 10:00 | Area 2 — AI Feature (9 pts)
 
 - Switch to AI Diagnosis panel
 
@@ -501,7 +441,7 @@
 
 ---
 
-## 11:00 – 13:30 | Area 4 — Accuracy Verification (25 pts)
+## 10:00 – 12:30 | Area 4 — Accuracy Verification (25 pts)
 
 > "Now the most important quality attribute: Measurement Accuracy.
 >
@@ -565,7 +505,7 @@
 
 ---
 
-## 13:30 – 15:30 | Area 6 — GUI Modifications (25 pts)
+## 12:30 – 14:30 | Area 6 — GUI Modifications (25 pts)
 
 **Sensor unplug / replug detection** (~30 sec)
 
@@ -619,7 +559,7 @@
 
 ---
 
-## 15:30 – 17:00 | Area 4 — Latency & Real-Time Evidence
+## 14:30 – 16:00 | Area 4 — Latency & Real-Time Evidence
 
 > "Let me put some numbers on the real-time performance claims."
 
@@ -639,7 +579,79 @@
 
 ---
 
-## 17:00 – 18:30 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
+## 16:00 – 17:30 | Area 8 — Best UI Showcase (10 pts)
+
+> "Now, the UI improvements."
+
+**Status bar — live metric colors:**
+
+> "The status bar always shows RATE, AMP, and Beat Error live.
+> We added three-level color coding — green means excellent, amber means acceptable, red means needs service.
+> The color matches the AI diagnosis badge, so the user gets the same signal in two places at once."
+
+- Point to the status bar with colors visible
+
+**Keyboard shortcuts:**
+
+> "The full shortcut map is in the status bar hint at all times.
+> Space to start or pause. Escape to stop. Left and right arrows to navigate tabs.
+> F11 for fullscreen — useful when presenting or on a small display.
+> F1 opens the User Guide. Ctrl+T opens tab management. Ctrl+backslash toggles split view. Ctrl+D opens AI Diagnosis.
+> Everything reachable without touching the mouse."
+
+- Demonstrate: Space to pause, arrow keys to switch tabs, F11 fullscreen then back
+
+**F1 — User Guide:**
+
+> "F1 opens the built-in help panel.
+> Every graph has its own entry — what it shows, how to read it, what to watch for."
+
+- Press F1, scroll briefly
+
+**Ctrl+T — Manage Tabs:**
+
+> "Ctrl+T opens tab management.
+> The app starts with four tabs visible by default — Rate, Sound Print, Trace, and Vario.
+> You can add or remove tabs depending on what the session needs."
+
+- Press Ctrl+T, toggle a tab on and off
+
+**Ctrl+\ — Split View:**
+
+> "Ctrl+backslash toggles split view —
+> two tabs side by side, both updating live.
+> Trace on the left, Beat Error on the right — no switching."
+
+- Press Ctrl+\, show two live tabs
+
+**Ctrl+D — AI Diagnosis:**
+
+> "Ctrl+D opens AI Diagnosis — same panel we showed earlier, one shortcut away."
+
+- Press Ctrl+D briefly
+
+**Record session — checkbox:**
+
+> "Recording a session used to open a separate dialog.
+> We replaced it with a simple checkbox in the Run Parameters panel —
+> check it before starting, and the session is recorded automatically.
+> The checkbox is disabled while a session is running so you can't accidentally change it mid-measurement."
+
+- Show the checkbox in the left panel
+
+**About TimeGrapher:**
+
+> "Finally — About TimeGrapher in the More menu.
+> Version, build info, team.
+> Small detail, but it's what a finished application looks like."
+
+- Open More → About TimeGrapher
+
+> "All of this is the same integrated application running live on the Raspberry Pi."
+
+---
+
+## 17:30 – 19:00 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
 
 **Radar Chart** (~45 sec)
 
@@ -689,7 +701,7 @@
 
 ---
 
-## 18:30 – 20:00 | Buffer / Q&A
+## 19:00 – 20:00 | Buffer / Q&A
 
 - Handle evaluator questions
 - Re-demonstrate any item on request
@@ -714,13 +726,14 @@
 
 | Area | Points | Time Slot |
 |------|-------:|-----------|
-| Intro + UI Overview + 8 — Best UI | 10 | 0:00 – 2:00 |
-| 1 — Watch-Position Testing + 2 — Base Graph Enhancements | 5+16 | 2:00 – 4:00 |
-| 1 — 11 Additional Graphs | 55 | 4:00 – 10:00 |
-| 2 — AI Feature | 9 | 10:00 – 11:00 |
-| 4 — Accuracy (Witschi comparison) | 25 | 11:00 – 13:30 |
-| 6 — GUI Modifications | 25 | 13:30 – 15:30 |
-| 4 — Latency & Real-Time Evidence | (supporting) | 15:30 – 17:00 |
-| Bonus — Radar Chart + Diagnosis | +15 | 17:00 – 18:30 |
-| Buffer / Q&A | — | 18:30 – 20:00 |
+| Intro + UI Overview | — | 0:00 – 1:00 |
+| 1 — Watch-Position Testing + 2 — Base Graph Enhancements | 5+16 | 1:00 – 3:00 |
+| 1 — 11 Additional Graphs | 55 | 3:00 – 9:00 |
+| 2 — AI Feature | 9 | 9:00 – 10:00 |
+| 4 — Accuracy (Witschi comparison) | 25 | 10:00 – 12:30 |
+| 6 — GUI Modifications | 25 | 12:30 – 14:30 |
+| 4 — Latency & Real-Time Evidence | (supporting) | 14:30 – 16:00 |
+| 8 — Best UI | 10 | 16:00 – 17:30 |
+| Bonus — Radar Chart + Diagnosis | +15 | 17:30 – 19:00 |
+| Buffer / Q&A | — | 19:00 – 20:00 |
 | **Total** | **145 + 15** | |
