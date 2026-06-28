@@ -73,38 +73,53 @@
 
 - Switch to Sound Print tab
 
-> "Now the base graph improvements — starting with Sound Print.
-> The original Sound Print plotted raw acoustic events with no filtering.
-> We added two things.
+> "Sound Print improvements — two additions to the original display.
 >
-> First, a moving average overlay — the bright line smooths the signal
-> so the A and C events stand out clearly against background noise.
+> First, dot health coloring.
+> Every event dot is now colored by signal strength.
+> Green means strong — the beat was loud and clean.
+> Yellow means medium — detectable but weaker.
+> Orange means weak — barely above the threshold.
+> This immediately tells you whether the microphone is positioned well
+> and whether the watch signal is strong enough for reliable detection.
+> If you see mostly orange, move the microphone closer.
 >
 > Second, handling-noise rejection.
 > Watch this."
 
 - Tap the sensor stand deliberately
 
-> "The tap barely registers.
-> The A and C beat events are still clearly visible.
-> The filter distinguishes mechanical watch impacts from external noise."
+> "The tap barely registers as a dot.
+> The A and C beat events are still clearly visible and still colored green.
+> The filter distinguishes sharp mechanical watch impacts from lower-frequency handling noise."
 
 ---
 
 ### Area 2 — Rate / Scope Enhancements (8 pts)
 
-- Switch to Rate/Scope tab
+- Switch to Rate/Scope tab, point to the top-left stats box
 
-> "On Rate/Scope, we added session controls and history navigation.
-> Start, Pause, and Stop — or Space and Escape from the keyboard.
-> While paused, you can scroll back through the history using the time-axis controls.
-> The data is preserved — no need to restart the session."
+> "Rate/Scope has three improvements.
+>
+> First — the statistics box in the top-left of the upper panel.
+> Mean, sigma, and beat count, always visible.
+> Right now: mean −0.029 ms, σ 0.023 ms, 121 beats.
+> That tells you immediately how consistent this watch has been
+> across the entire session — not just the last few beats.
+>
+> Second — the green Trend line.
+> It's a 20-beat rolling average overlaid on the scatter plot.
+> Individual beats bounce around, but the trend line cuts through the noise
+> and shows you the actual direction the watch is drifting.
+>
+> Third — the orange crosshair marker.
+> Click anywhere on the bottom scope panel
+> and a vertical orange dashed line appears on the upper panel
+> at the corresponding beat position.
+> It lets you pinpoint exactly which beat you're looking at in the scope
+> and cross-reference it with the rate data above."
 
-- Demonstrate Pause, scroll back, resume
-
-> "We also added the raw waveform overlay on the scope panel —
-> so you can see the acoustic input and the derived rate value simultaneously.
-> That makes it easy to catch signal quality issues before they corrupt measurements."
+- Click on the scope panel to demonstrate the orange marker
 
 ---
 
