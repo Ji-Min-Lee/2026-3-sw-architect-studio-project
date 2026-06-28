@@ -37,41 +37,78 @@
 
 ---
 
-## 1:00 – 2:30 | Area 1 — Watch-Position Testing (5 pts)
+## 1:00 – 3:00 | Area 1 — Watch-Position Testing + Area 2 — Base Graph Enhancements
 
-> "First, Watch-Position Testing."
+### Watch-Position Testing (5 pts)
 
-- Show the sensor stand with the watch mounted
-- The position indicator in the status bar currently reads "CH" (Crown Horizontal)
+- Show the watch on the sensor stand, status bar showing "CH"
 
-> "A mechanical watch behaves differently depending on how it's oriented —
-> dial up, dial down, crown down, crown left, and so on.
-> Traditionally, the user had to manually note the position and record measurements one by one.
-> We automated that.
+> "A mechanical watch runs differently depending on how it's oriented.
+> Dial up, dial down, crown left — each position changes how gravity acts
+> on the balance wheel, which shifts the rate and amplitude.
 >
-> The sensor stand has an accelerometer built in.
-> As I rotate the watch into each position,
-> the system detects the orientation automatically
-> and updates the active position label here."
+> We implemented automatic position detection using amplitude tracking.
+> The idea: when you flip the watch from dial-up to crown-left,
+> the average amplitude shifts measurably within a few seconds.
+> Our system monitors that change and infers the position.
+>
+> We were able to reliably distinguish two positions —
+> CH, dial up, and 6H, crown left.
+> These two produce a clear enough amplitude difference to detect automatically."
 
-- Rotate the watch to 9H (crown down)
+- Demonstrate: watch in CH, then rotate to 6H, show POS label update
 
-> "Crown down — the system detected it and switched to 9H automatically.
-> No button press, no dropdown."
-
-- Rotate to 6H (crown left)
-
-> "Crown left — 6H. Detected instantly."
-
-- Rotate back to CH
-
-> "Each time the position changes, the system tags the incoming measurements
-> with the detected position and routes them to the Sequence tab automatically.
-> We'll see the full picture across all positions in a moment."
+> "For the other four standard positions — CB, 9H, 3H, 12H —
+> the amplitude differences were too small or too noisy to distinguish reliably.
+> Automation for those positions failed.
+> The user still selects them manually in the Sequence tab.
+>
+> Two out of six is a partial result, and we're being honest about that.
+> The architecture is in place — with better sensor data or a longer averaging window,
+> the remaining positions could be added."
 
 ---
 
-## 2:30 – 8:30 | Area 1 — Additional Graph Displays (55 pts)
+### Area 2 — Sound Print Enhancements (8 pts)
+
+- Switch to Sound Print tab
+
+> "Now the base graph improvements — starting with Sound Print.
+> The original Sound Print plotted raw acoustic events with no filtering.
+> We added two things.
+>
+> First, a moving average overlay — the bright line smooths the signal
+> so the A and C events stand out clearly against background noise.
+>
+> Second, handling-noise rejection.
+> Watch this."
+
+- Tap the sensor stand deliberately
+
+> "The tap barely registers.
+> The A and C beat events are still clearly visible.
+> The filter distinguishes mechanical watch impacts from external noise."
+
+---
+
+### Area 2 — Rate / Scope Enhancements (8 pts)
+
+- Switch to Rate/Scope tab
+
+> "On Rate/Scope, we added session controls and history navigation.
+> Start, Pause, and Stop — or Space and Escape from the keyboard.
+> While paused, you can scroll back through the history using the time-axis controls.
+> The data is preserved — no need to restart the session."
+
+- Demonstrate Pause, scroll back, resume
+
+> "We also added the raw waveform overlay on the scope panel —
+> so you can see the acoustic input and the derived rate value simultaneously.
+> That makes it easy to catch signal quality issues before they corrupt measurements."
+
+---
+
+## 3:00 – 9:00 | Area 1 — Additional Graph Displays (55 pts)
 
 > "Now the additional graph displays.
 > I'll navigate to each tab using the More button in the tab bar."
@@ -394,50 +431,7 @@
 
 ---
 
-## 8:30 – 9:30 | Area 2 — Sound Print Enhancements (8 pts)
-
-- Switch to Sound Print tab
-
-> "Now let me show our Sound Print improvements.
-> The original Sound Print just plotted the raw acoustic signal.
-> We added two things.
->
-> First, a moving average window overlay —
-> that bright line is the smoothed version of the signal.
-> It makes it much easier to spot where the actual beat events are
-> against the background noise.
->
-> Second, we added noise reduction for handling noise.
-> Watch this — I'll tap the sensor stand deliberately."
-
-- Tap the sensor deliberately
-
-> "The tap barely registers.
-> But the A and C beat events are still clearly visible.
-> The filter preserves the useful signal and suppresses the noise."
-
----
-
-## 9:30 – 10:30 | Area 2 — Rate / Scope Enhancements (8 pts)
-
-- Switch to Rate Scope tab
-
-> "On the Rate and Scope displays, we added interactive controls.
-> You can Start, Stop, and Pause the session at any time."
-
-- Demonstrate Pause
-
-> "While paused, you can navigate backward and forward through the history
-> using the time-axis controls.
-> You don't lose your data, and you don't need to restart the session.
->
-> We also added a raw signal waveform overlay on the Rate graph —
-> so you can see the actual acoustic input at the same time as the derived Rate value.
-> This makes it easy to correlate signal quality with measurement quality."
-
----
-
-## 10:30 – 11:30 | Area 2 — AI Feature (9 pts)
+## 9:00 – 10:00 | Area 2 — AI Feature (9 pts)
 
 - Switch to AI Diagnosis panel
 
@@ -466,7 +460,7 @@
 
 ---
 
-## 11:30 – 14:00 | Area 4 — Accuracy Verification (25 pts)
+## 10:00 – 12:30 | Area 4 — Accuracy Verification (25 pts)
 
 > "Now the most important quality attribute: Measurement Accuracy.
 >
@@ -530,7 +524,7 @@
 
 ---
 
-## 14:00 – 16:00 | Area 6 — GUI Modifications (25 pts)
+## 12:30 – 14:30 | Area 6 — GUI Modifications (25 pts)
 
 **Sensor unplug / replug detection** (~30 sec)
 
@@ -584,7 +578,7 @@
 
 ---
 
-## 16:00 – 17:30 | Area 4 — Latency & Real-Time Evidence
+## 14:30 – 16:00 | Area 4 — Latency & Real-Time Evidence
 
 > "Let me put some numbers on the real-time performance claims."
 
@@ -604,7 +598,7 @@
 
 ---
 
-## 17:30 – 19:00 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
+## 16:00 – 17:30 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
 
 **Radar Chart** (~45 sec)
 
@@ -654,7 +648,7 @@
 
 ---
 
-## 19:00 – 20:00 | Area 8 — Best UI Showcase (10 pts)
+## 17:30 – 19:00 | Area 8 — Best UI Showcase (10 pts)
 
 > "Finally, a look at the UI improvements we made."
 
@@ -752,13 +746,13 @@
 | Area | Points | Time Slot |
 |------|-------:|-----------|
 | Intro + UI Overview | — | 0:00 – 1:00 |
-| 1 — Watch-Position Testing | 5 | 1:00 – 2:30 |
-| 1 — 11 Additional Graphs | 55 | 2:30 – 8:30 |
-| 2 — Sound Print + Rate/Scope Enhancements | 16 | 8:30 – 10:30 |
-| 2 — AI Feature | 9 | 10:30 – 11:30 |
-| 4 — Accuracy (WeiShi comparison) | 25 | 11:30 – 14:00 |
-| 6 — GUI Modifications | 25 | 14:00 – 16:00 |
-| 4 — Latency & Real-Time Evidence | (supporting) | 16:00 – 17:30 |
-| Bonus — Radar Chart + Diagnosis | +15 | 17:30 – 19:00 |
-| 8 — Best UI | 10 | 19:00 – 20:00 |
+| 1 — Watch-Position Testing + 2 — Base Graph Enhancements | 5+16 | 1:00 – 3:00 |
+| 1 — 11 Additional Graphs | 55 | 3:00 – 9:00 |
+| 2 — AI Feature | 9 | 9:00 – 10:00 |
+| 4 — Accuracy (WeiShi comparison) | 25 | 10:00 – 12:30 |
+| 6 — GUI Modifications | 25 | 12:30 – 14:30 |
+| 4 — Latency & Real-Time Evidence | (supporting) | 14:30 – 16:00 |
+| Bonus — Radar Chart + Diagnosis | +15 | 16:00 – 17:30 |
+| 8 — Best UI | 10 | 17:30 – 19:00 |
+| Buffer / Q&A | — | 19:00 – 20:00 |
 | **Total** | **145 + 15** | |
