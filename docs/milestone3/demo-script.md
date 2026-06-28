@@ -8,11 +8,29 @@
 ## 0:00 – 1:00 | System Introduction + UI Overview
 
 > "Good morning. We are Team Blue Sky.
-> Let's get started."
+> Let me start by launching the application."
 
-- Confirm signal is live on Rate/Scope tab
+- Launch TimeGrapher from the desktop shortcut or terminal
 
-> "Before we go into the graphs, let me quickly walk through the layout.
+> "The app is now starting on the Raspberry Pi.
+> First thing it does on startup — it reads the screen resolution
+> and automatically sizes the window to fit the display.
+> No manual resizing needed.
+> Whether you're on a 7-inch touchscreen or a 1080p monitor,
+> the layout adapts."
+
+- App window appears, sized to the screen
+
+> "And now — fullscreen mode."
+
+- Press F11
+
+> "There we go. Hopefully everyone in the back can see that.
+> If not — I can't make the watch any louder either, so we're even."
+
+*(pause for laughs)*
+
+> "Alright. Let me walk through the layout.
 >
 > The screen is divided into two areas.
 > On the left is the control panel — Run Parameters at the top,
@@ -23,17 +41,17 @@
 > The tab bar across the top gives you access to all 14 displays.
 > Tabs that don't fit in the bar are accessible through the More button on the right.
 >
-> At the very top of the graph area is the status bar.
-> It always shows five live values: position, rate, amplitude, beat error, and BPH.
+> At the very top is the status bar.
+> Five live values always visible: position, rate, amplitude, beat error, and BPH.
 > Color coding tells you the health at a glance —
 > green means within tolerance, amber is borderline, red means attention needed.
 > In the top-right corner is the AI Diagnosis badge — Excellent, Good, or Needs Service.
 >
 > At the bottom-left, the session controls: Start, Pause, Stop.
-> Space bar starts or pauses. Escape stops.
-> The elapsed time counter is next to the session status dot."
+> Space bar starts or pauses. Escape stops."
 
 - Point to each area as you describe it
+- Press Space to start the session — confirm signal is live on Rate/Scope tab
 
 ---
 
