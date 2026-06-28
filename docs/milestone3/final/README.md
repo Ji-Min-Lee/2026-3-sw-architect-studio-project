@@ -153,7 +153,7 @@ risks, their resolution status, and the experiments or architectural decisions t
 
 ## Traceability: QAS → Risk → Experiment → ADR
 
-### QAS-1 — Real-Time Performance *(H)*
+### [QAS-1 — Real-Time Performance](references/qa/qas-1-real-time-performance.md) *(H)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
@@ -161,7 +161,7 @@ risks, their resolution status, and the experiments or architectural decisions t
 | [TR-03](references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-02](references/experiments/exp-02-latency-e2e.md) | Backlog 0% (macOS + RPi) | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
 | [TR-04](references/risks.md) | `replot()` in exec path consumes 79% of exec budget | [EXP-02](references/experiments/exp-02-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%) | [ADR-002](references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ |
 
-### QAS-2 — Low Latency and Low Number of Missed Beats *(H)*
+### [QAS-2 — Low Latency and Low Number of Missed Beats](references/qa/qas-2-low-latency-and-low-number-of-missed-beats.md) *(H)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|

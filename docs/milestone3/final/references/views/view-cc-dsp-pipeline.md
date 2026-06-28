@@ -27,28 +27,21 @@ This view shows the runtime component-and-connector structure of the audio proce
 
 ## Behavior
 
-**Normal beat processing path:**
+Normal beat processing path:
 
 ```
-IAudioSource / AudioWorker (Audio Source Thread, ~21ms period)
+AudioWorker (Audio Source Thread, ~21 ms period)
     │  write PCM block
     ▼
 Audio Buffer (SPSC ring buffer)
     │  read PCM block
     ▼
-DSPWorker (DSP Thread, separate core) [ADR-001]
-    │  tg_process() → FilterChain → BeatDetector → MeasurementEngine
-    │  Qt::QueuedConnection (cross-thread)
-    ▼
-MeasurementEngine (DSP Thread) → emit measurementReady(Measurement)
-    │
-    ▼  [Qt Main Thread]
-GraphTabManager → BaseGraphTab::onMeasurement(m)
-    │  isVisible() guard (R1) [ADR-002]
-    └─▶ update() → paintEvent() → replot()
+DSPWorker (DSP Thread) [ADR-001]
+    │  FilterChain → BeatDetector → MeasurementEngine
+    └─▶ emit measurementReady(Measurement) →[Qt::QueuedConnection]→ Qt Main Thread
 ```
 
-Measured results on RPi: → [EXP-02: End-to-End Latency](../experiments/exp-02-latency-e2e.md)
+Rendering on the Qt Main Thread is detailed in the [Graph Tab Module Uses View](view-decomposition-graph-tab.md). Measured results: [EXP-02: End-to-End Latency](../experiments/exp-02-latency-e2e.md).
 
 ## Related ADRs
 
