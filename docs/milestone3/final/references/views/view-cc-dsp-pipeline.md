@@ -41,6 +41,10 @@ DSPWorker (DSP Thread) [ADR-001]
     └─▶ emit measurementReady(Measurement) →[Qt::QueuedConnection]→ Qt Main Thread
 ```
 
+![Real-Time Thread Timing — Decoupled Pipeline](../../assets/realtime-thread-timing.png)
+
+Audio and DSP finish their per-block work (capture < 0.1 ms, DSP ≈ 2.7 ms) inside every 21.3 ms beat, so the deadline is met on every block. The GUI thread is decoupled — it renders lazily, ~60 ms behind — but that lag never propagates upstream: the ring buffer (audio→DSP) and the queued signal (DSP→GUI) absorb both hand-offs, so a slow GUI cannot stall capture or DSP. Real-time correctness therefore depends only on the audio and DSP threads staying on the beat, not on GUI render speed.
+
 Rendering on the Qt Main Thread is detailed in the [Graph Tab Module Uses View](view-decomposition-graph-tab.md). Measured results: [EXP-02: End-to-End Latency](../experiments/exp-02-latency-e2e.md).
 
 ## Related ADRs
