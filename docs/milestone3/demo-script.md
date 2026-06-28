@@ -73,7 +73,7 @@
 
 - Switch to Sound Print tab
 
-> "Sound Print improvements — two additions to the original display.
+> "Sound Print has three improvements over the original.
 >
 > First, dot health coloring.
 > Every event dot is now colored by signal strength.
@@ -91,7 +91,20 @@
 
 > "The tap barely registers as a dot.
 > The A and C beat events are still clearly visible and still colored green.
-> The filter distinguishes sharp mechanical watch impacts from lower-frequency handling noise."
+> The filter distinguishes sharp mechanical watch impacts from lower-frequency handling noise.
+>
+> Third — beat drill-down.
+> Click any dot on the Sound Print display
+> and a popup opens showing the raw waveform for exactly that beat.
+> Beat number, duration in milliseconds, and sample count are shown at the top.
+> You can see the actual acoustic signal that produced that dot —
+> useful for investigating outliers or weak events."
+
+- Click one dot on the Sound Print to show the waveform popup
+- Point to the beat number, ms, and sample count in the popup header
+
+> "This turns Sound Print from a summary view into a diagnostic tool —
+> any suspicious dot can be inspected directly."
 
 ---
 
