@@ -172,6 +172,10 @@
 
 ## 13:00 – 15:00 | Area 2 — AI Feature (9 pts)
 
+- More → Developer Info (check)
+
+> "I'll keep Developer Info on for this section — watch the CPU usage as the LLM runs."
+
 - Switch to AI Diagnosis panel (Ctrl+D)
 
 > "Two parts. First — a rule-based classifier.
@@ -195,6 +199,7 @@
 > Ask something unrelated — it refuses. Watchmaking only."
 
 - Type a follow-up question
+- More → Developer Info (uncheck)
 
 ---
 
