@@ -238,6 +238,10 @@
 > Verdict: Excellent, Good, or Needs Service.
 >
 > Second — a local LLM via Ollama on this Raspberry Pi. No internet, no cloud.
+> It doesn't just tell you the verdict — it tells you why, and what to do about it.
+> Likely mechanical cause. Which part to inspect. What service is needed.
+> That's the part that normally requires a trained watchmaker sitting in front of you.
+>
 > Let me trigger a diagnosis now — I'll explain what's happening while it runs."
 
 - Trigger diagnosis
