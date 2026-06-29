@@ -98,8 +98,29 @@
                 <mxCell id="noteEx" value="&lt;b&gt;Exception: RadarChartTab&lt;/b&gt;&lt;br&gt;Reads per-position data from SequenceTab directly." style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;align=left;spacingLeft=6;" parent="1" vertex="1">
                     <mxGeometry x="60" y="550" width="220" height="44" as="geometry"/>
                 </mxCell>
-                <mxCell id="notation" value="Notation: UML" style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11;fontStyle=2;" parent="1" vertex="1">
-                    <mxGeometry x="370" y="426" width="160" height="64" as="geometry"/>
+                <mxCell id="notation" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#AAAAAA;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="420" width="310" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg-title" value="Legend" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#2C2C2A;" parent="1" vertex="1">
+                    <mxGeometry x="370" y="426" width="290" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg-qt-arr" style="endArrow=open;endFill=0;html=1;strokeColor=#1e4d78;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry"><mxPoint x="370" y="458" as="sourcePoint"/><mxPoint x="410" y="458" as="targetPoint"/></mxGeometry>
+                </mxCell>
+                <mxCell id="leg-qt-lbl" value="Qt signal broadcast (non-standard UML)" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=10;fontColor=#1e4d78;" parent="1" vertex="1">
+                    <mxGeometry x="416" y="448" width="248" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg-inh-arr" style="endArrow=block;endFill=0;endSize=10;html=1;strokeColor=#000000;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry"><mxPoint x="370" y="484" as="sourcePoint"/><mxPoint x="410" y="484" as="targetPoint"/></mxGeometry>
+                </mxCell>
+                <mxCell id="leg-inh-lbl" value="extends / implements (UML)" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=10;fontColor=#444441;" parent="1" vertex="1">
+                    <mxGeometry x="416" y="474" width="248" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg-dep-arr" style="dashed=1;endArrow=open;endFill=0;html=1;strokeColor=#555555;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry"><mxPoint x="370" y="510" as="sourcePoint"/><mxPoint x="410" y="510" as="targetPoint"/></mxGeometry>
+                </mxCell>
+                <mxCell id="leg-dep-lbl" value="uses / dependency (UML)" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=10;fontColor=#444441;" parent="1" vertex="1">
+                    <mxGeometry x="416" y="500" width="248" height="18" as="geometry"/>
                 </mxCell>
                 <mxCell id="3" value=". . . (Total 14 Tabs)&amp;nbsp;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
                     <mxGeometry x="740" y="318" width="130" height="30" as="geometry"/>

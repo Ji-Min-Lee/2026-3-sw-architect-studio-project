@@ -32,6 +32,10 @@ In M2, owns all tactic implementation decisions (ADRs) and code-level enforcemen
 | [EXP-07](../experiments/exp-07-longterm-aging.md) Long-Term Aging | [ADR-007](../adr/ADR-007-longtermtab-downsampling.md) LongTermTab Downsampling | [QAS-6](../qa/qas-6-long-term-session-performance.md) |
 | — | Architecture views, ADRs, ATAM evaluation | All QAS |
 
+## Behavior
+
+N/A
+
 ## Related ADRs
 
 - [ADR-001: T2 DSP Offload Thread](../adr/ADR-001-t2-dsp-offload-thread.md)

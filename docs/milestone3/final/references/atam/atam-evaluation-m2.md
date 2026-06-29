@@ -5,8 +5,8 @@
 **Team**: Blue Sky (Team 3)  
 **Method**: ATAM (Architecture Tradeoff Analysis Method) — SEI [Kazman00]
 
-> **Snapshot document** — This report captures the ATAM evaluation conducted on **2026-06-22**.
-> It will not be updated. For the current architecture state, refer to the [Architecture Views](../views/README.md) and [ADRs](../adr/).
+> ⚠️ **OUT OF DATE** — Superseded by [ATAM M3 evaluation](atam-evaluation-m3.md) (2026-06-28).
+> This snapshot captures the evaluation conducted on **2026-06-22** and will not be updated.
 
 ---
 

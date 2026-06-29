@@ -1,7 +1,7 @@
 # Architecture Views — TimeGrapher
 
 Eight views covering Latency, Correctness, Extensibility, and Deployability.  
-Each view follows the **Merson 7-section template** and targets a specific QA.
+Each view targets a specific QA.
 
 ---
 
