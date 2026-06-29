@@ -268,6 +268,13 @@
 
 - Stop music
 
+- Switch to Rate/Scope tab, tap near the microphone a few times
+
+> "Now tapping near the microphone — handling noise.
+> Bottom panel shows the noise spikes in the raw scope.
+> But the top panel stays clean — the rate scatter is unaffected.
+> The DSP filter chain rejects noise beats before they reach the measurement engine.
+> This is QAS-4: the system remains accurate under acoustic interference."
 
 ---
 
