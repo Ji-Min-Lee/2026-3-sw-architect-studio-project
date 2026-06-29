@@ -26,8 +26,8 @@
 >
 > The status bar also shows the session state.
 > Ready before you start. Acquiring while collecting beats for a diagnosis.
-> Running once locked in. Paused when graphs are frozen.
-> If the mic is pulled or ambient noise spikes — it tells you immediately."
+> Running once locked in. Paused when graphs are frozen."
+
 
 - Press Space to start
 
