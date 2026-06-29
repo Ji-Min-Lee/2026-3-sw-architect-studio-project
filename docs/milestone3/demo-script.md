@@ -96,9 +96,9 @@
 > First, dot health coloring.
 > Every event dot is now colored by signal strength.
 > A events — the tic — are colored on a green-to-yellow scale:
-> bright green means strong, yellow-green means medium, yellow means weak.
+> green means strong, yellow-green means medium, yellow means weak.
 > C events — the tac — use a blue-to-cyan scale:
-> bright blue is strong, light blue is medium, cyan is weak.
+> blue is strong, light blue is medium, cyan is weak.
 > This immediately shows you whether both events are detected with equal confidence —
 > if the C dots are consistently cyan while the A dots are green,
 > the C-event signal is weaker, and amplitude accuracy may suffer.
@@ -438,30 +438,44 @@
 
 ## 9:00 – 10:00 | Area 2 — AI Feature (9 pts)
 
-- Switch to AI Diagnosis panel
+- Switch to AI Diagnosis panel (Ctrl+D)
 
 > "Our team-selected AI feature is an on-device watch diagnosis system.
+> It has two parts working together.
 >
-> The idea is simple: a skilled watchmaker can look at Rate, Amplitude,
-> and Beat Error and tell you whether the watch is in good condition,
-> needs adjustment, or shows signs of wear.
-> That takes years of experience.
-> We asked — can we encode some of that into a classifier?
+> The first part is a rule-based classifier.
+> It evaluates Rate, Amplitude, and Beat Error against known watchmaker tolerances
+> and produces one of three verdicts: Excellent, Good, or Needs Service.
+> Every metric is scored independently, and all three must pass at the same band
+> for the overall verdict to reach that level.
 >
-> What we built is a rule-based and machine learning hybrid classifier
-> that runs entirely on this Raspberry Pi — no internet, no cloud, no Python runtime.
-> It uses the ONNX format so inference is fast and portable.
+> The second part is a local LLM running via Ollama on this Raspberry Pi —
+> no internet, no cloud, no external server.
+> When the classifier produces a verdict, the LLM explains it in plain English:
+> why this diagnosis, the likely mechanical cause, and what a watchmaker should check.
+>
+> Before the LLM answers, it runs a RAG retrieval step —
+> cosine similarity search over a local knowledge base
+> built from the Witschi training course, the Chronoscope X1 manual,
+> and our own domain documents.
+> The most relevant chunks are injected into the prompt as context,
+> so the explanation is grounded in actual watchmaking knowledge.
 >
 > Let me trigger a diagnosis now."
 
-- Trigger diagnosis
+- Trigger diagnosis (point to verdict badge and LLM explanation text)
 
-> "It classifies the watch as [Good / Needs Adjustment / Worn],
-> and gives a plain-English explanation of why.
-> In this case: [read out the result].
+> "The badge shows [Excellent / Good / Needs Service] —
+> and below it, the LLM streams the explanation token by token.
+> You can also type a follow-up question and continue the conversation —
+> the model keeps the full conversation history across turns.
 >
-> Inference time is under 50 milliseconds on the RPi.
-> This feature runs live, every time you take a measurement."
+> Everything runs locally on the RPi 5 — the classifier, the LLM, and the RAG database."
+
+- (Optional) Type a follow-up question to demonstrate chat
+
+> "The system prompt constrains the model to watchmaking topics only.
+> If you ask something unrelated, it refuses."
 
 ---
 
