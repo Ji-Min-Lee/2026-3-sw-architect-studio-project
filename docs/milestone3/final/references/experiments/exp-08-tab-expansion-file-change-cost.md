@@ -80,10 +80,7 @@ Completed 2026-06-21 (W3 S1 final batch confirmed).
 
 ---
 
-## Links and References
+## Links
 
-- **QA**: [QAS-3: Extensibility, Modifiability](../qa/qas-3-extensibility-modifiability.md)
-- **ADR**: [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md)
-- **Risk**: [TR-08](../risks.md)
-- **View**: [Layered View: 4-Layer Allowed-to-Use](../views/view-layered-4layer.md) — Behavior section, Tab addition history table
-- **Related experiment**: [EXP-03: Observer Pattern Compliance](exp-03-extensibility-observer-pattern.md) — covers observer contract and DSM verification for QAS-3 broadly; this experiment isolates the file-change cost measurement
+- Full run history: [experiment-results.md](experiment-results.md)
+- Analysis tool: `src/tools/analyze_log.py`

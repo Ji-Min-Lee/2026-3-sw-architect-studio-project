@@ -1,7 +1,5 @@
 # Planned Experiments — TimeChecker
 
-**Team**: Blue Sky (Team 3) | **Milestone**: M3 | **Updated**: 2026-06-28
-
 ---
 
 ## Overview

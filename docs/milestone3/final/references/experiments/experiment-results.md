@@ -1,8 +1,5 @@
 # Experiment Results
 
-**Milestone**: M3 | **Due**: 2026-07-01 | **Status**: [x] Draft  [ ] Final  
-**Last Updated**: 2026-06-25
-
 ---
 
 ## Summary

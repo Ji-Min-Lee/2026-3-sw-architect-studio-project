@@ -91,3 +91,8 @@ This offset is deterministic and consistent (not random noise), which explains w
 
 EXP-01 (96k sps confirmed), EXP-02 (E2E latency < 100 ms), EXP-04 (detector params onset=0.08) must be complete before running.
 
+## Links
+
+- Full run history: [experiment-results.md](experiment-results.md)
+- Analysis tool: `src/tools/analyze_log.py`
+

@@ -42,6 +42,5 @@ Observed file-change counts across three sprint rounds (excludes build system an
 
 ## Links
 
-- File-change cost detail: [EXP-08: Tab Expansion File-Change Cost](exp-08-tab-expansion-file-change-cost.md)
-- Architecture evidence: [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md)
-- Experiment tracker: [experiment-results.md](experiment-results.md)
+- Full run history: [experiment-results.md](experiment-results.md)
+- Analysis tool: `src/tools/analyze_log.py`

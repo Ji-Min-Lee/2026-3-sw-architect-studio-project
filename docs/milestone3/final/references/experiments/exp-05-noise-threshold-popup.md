@@ -60,6 +60,5 @@ The 55 dB value was chosen because:
 
 ## Links
 
-- [QAS-4: Correctness — Sub-3 Noise Resilience](../qa/qas-4-correctness.md)
-- [EXP-04: Detector Parameter Optimization Under Noise](exp-04-correctness-detector-optimization.md) — establishes onset=0.08 that determines `onset_threshold` (and therefore `noiseDb`)
-- [experiment-results.md](experiment-results.md) — summary table and architecture decisions log
+- Full run history: [experiment-results.md](experiment-results.md)
+- Analysis tool: `src/tools/analyze_log.py`

@@ -82,22 +82,7 @@ This method is sufficient because the design claim being tested is a hard upper 
 once `mBucketSize` reaches 60, the plotted point count grows at a fixed and predictable
 rate for the rest of the session.
 
-## Links and References
+## Links
 
-- [Functional Requirements](../requirments/functional-requirements.md) — Long-Term
-  Performance Graph requirement source.
-- [ADR-007: LongTermTab Downsampling](../adr/ADR-007-longtermtab-downsampling.md) — the
-  architectural decision being validated.
-- [QAS-6: Long-Term Session Performance](../qa/qas-6-long-term-session-performance.md) —
-  the quality attribute scenario this experiment addresses.
-- [LongTermTab Downsampling Decomposition View](../views/view-longtermtab-downsampling.md)
-  — structural explanation of the mechanism validated here.
-- [Risk Register](../risks.md) — this concern is resolved through the QAS-6
-  evidence chain rather than a standalone `TR-*` row.
-- [M3 Final README](../../README.md) — summary traceability map connecting requirement,
-  QAS, ADR, experiment, and view.
-- `src/tabs/LongTermTab.cpp` — implementation under test; see `onMeasurement()` for
-  `mBucketSize` logic and `addPoint()` for bucket accumulation.
-- `src/tabs/ReplotCounter.h` — `g_plotUs` / `g_replotCount` instrumentation macros.
-- [Experiment Logging & Analysis](../../../../../.github/skills/time-grapher/references/workflow/experiment-logging.md)
-  — workflow for running `--log` build and `analyze_log.py`.
+- Full run history: [experiment-results.md](experiment-results.md)
+- Analysis tool: `src/tools/analyze_log.py`
