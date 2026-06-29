@@ -4,7 +4,11 @@ This view shows how validated TimeGrapher code moves from the development machin
 
 [Open draw.io source](../../assets/deployment-raspberry-pi.drawio)
 
+<div align="center">
+
 ![Raspberry Pi Deployment View](../../assets/deployment-raspberry-pi.png)
+
+</div>
 
 ## Element Catalog
 

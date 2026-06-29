@@ -7,7 +7,11 @@ This view decomposes the Presentation layer into its internal components, focusi
 
 [Open draw.io source](../../assets/module-uses-graph-tab.drawio)
 
+<div align="center">
+
 ![Graph Tab Module Uses View](../../assets/module-uses-graph-tab-observer-contract.png)
+
+</div>
 
 > No compile-time link `MeasurementEngine → BaseGraphTab`. `SessionController` is the wiring coordinator — it stores `mObserverTabs` and applies `connect()` at session start. Per-beat delivery remains Qt signal-slot only.
 

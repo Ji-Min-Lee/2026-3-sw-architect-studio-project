@@ -4,7 +4,11 @@ This view shows the AS-IS vs. TO-BE structure of the audio source abstraction. I
 
 In the AS-IS design, each input mode had its own concrete pointer and its own `connect()` block in `MainWindow`. Mode-specific wiring meant the DSP chain could silently diverge between modes — a correctness risk. In the TO-BE design (P1 + i1 refactors), `SessionController` holds a single `IAudioSource*` and connects once; all three modes share the identical DSP entry path, enforced at compile time.
 
+<div align="center">
+
 ![IAudioSource Dependency Inversion View](../../assets/module-iaudiosource.png)
+
+</div>
 
 ## Element Catalog
 

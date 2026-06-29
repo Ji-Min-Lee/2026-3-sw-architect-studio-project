@@ -2,7 +2,11 @@
 
 This view shows which team owns which architectural concerns, mapped to Quality Attribute Scenarios and milestones. Its main message is: **the Experiment Team and Development Team operated in parallel, each owning specific QAS concerns, so that every architectural tactic decision was independently validated by experimental evidence — no tactic was accepted without an experiment result, preventing confirmation bias where the implementer also controls the evidence.**
 
+<div align="center">
+
 ![Work Assignment View](../../assets/allocation-work-assignment.png)
+
+</div>
 
 ## Element Catalog
 
@@ -54,4 +58,4 @@ N/A
 
 - [QA README](../qa/README.md) — governing QAS hierarchy (QAS-5 Accuracy as top-level goal)
 - [Risk Register](../risks.md) — all risks in this view are resolved as of M3
-- [Planned Experiments](../experiments/planned-experiments.md) — experiment dependency order and pass conditions
+- [Experiments](../experiments/README.md) — experiment index, dependency order, and QA traceability

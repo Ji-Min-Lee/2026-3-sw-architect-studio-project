@@ -12,7 +12,11 @@ sessions while maintaining meaningful long-term trends and accurate statistical 
 
 [Open draw.io source](../../assets/module-decomposition-longtermtab.drawio)
 
+<div align="center">
+
 ![LongTermTab Downsampling Decomposition View](../../assets/module-decomposition-longtermtab.png)
+
+</div>
 
 ## Element Catalog
 
@@ -75,7 +79,11 @@ same-frame update requests.
 
 [Open draw.io source](../../assets/cc-longtermtab-downsampling-state.drawio)
 
+<div align="center">
+
 ![LongTermTab Downsampling State](../../assets/cc-longtermtab-downsampling-state.png)
+
+</div>
 
 Transitions are **one-way** within a session. `reset()` returns `mBucketSize` to 1.
 

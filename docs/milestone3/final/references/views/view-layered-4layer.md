@@ -2,7 +2,11 @@
 
 This view answers one question: **why can you add a new graph tab by touching ≤ 3 files?** The four-layer structure enforces that Presentation may only depend on Domain — so a new tab implements `BaseGraphTab`, reads the `Measurement` VO, and registers in `MainWindow`. Nothing below Domain is touched. It is the primary evidence for [QAS-3 (Extensibility / Modifiability)](../qa/qas-3-extensibility-modifiability.md).
 
+<div align="center">
+
 ![TimeGrapher Layered View](../../assets/layered-view.png)
+
+</div>
 
 ## Element Catalog
 

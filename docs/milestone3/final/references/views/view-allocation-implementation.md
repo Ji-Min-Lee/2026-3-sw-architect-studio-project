@@ -4,7 +4,11 @@ This view shows how TimeGrapher enforces formula and calculation correctness bef
 
 [Open draw.io source](../../assets/allocation-precommit-gate.drawio)
 
+<div align="center">
+
 ![Pre-commit Correctness Gate View](../../assets/allocation-precommit-gate.png)
+
+</div>
 
 ## Element Catalog
 

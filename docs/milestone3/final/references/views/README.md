@@ -9,9 +9,13 @@ Each view targets a specific QA.
 
 > QA: Real-time Performance · Low Latency (QAS-1, QAS-2)
 
+<div align="center">
+
 [![DSP Pipeline Thread Model View](../../assets/cc-dsp-pipeline.png)](view-cc-dsp-pipeline.md)
 
 [![E2E Latency Comparison](../../assets/thread-latency-chart.png)](view-cc-dsp-pipeline.md)
+
+</div>
 
 ---
 
@@ -19,7 +23,11 @@ Each view targets a specific QA.
 
 > QA: Extensibility / Modifiability (QAS-3)
 
+<div align="center">
+
 [![Layered and Module Decomposition](../../assets/layered-view.png)](view-layered-4layer.md)
+
+</div>
 
 ---
 
@@ -27,7 +35,11 @@ Each view targets a specific QA.
 
 > QA: Correctness · Internal Consistency (QAS-4 Sub-2)
 
+<div align="center">
+
 [![IAudioSource Dependency Inversion View](../../assets/module-iaudiosource.png)](view-iaudiosource.md)
+
+</div>
 
 ---
 
@@ -35,9 +47,13 @@ Each view targets a specific QA.
 
 > QA: Correctness · Extensibility (QAS-4, QAS-3)
 
+<div align="center">
+
 [![Graph Tab Module Uses View](../../assets/module-uses-graph-tab-decomposition.png)](view-decomposition-graph-tab.md)
 
 [![Observer Module](../../assets/module-uses-graph-tab-observer-module.png)](view-decomposition-graph-tab.md)
+
+</div>
 
 ---
 
@@ -45,7 +61,11 @@ Each view targets a specific QA.
 
 > QA: Long-Term Performance · Bounded Plot Growth (QAS-6)
 
+<div align="center">
+
 [![LongTermTab Downsampling Decomposition View](../../assets/module-decomposition-longtermtab.png)](view-longtermtab-downsampling.md)
+
+</div>
 
 ---
 
@@ -69,6 +89,10 @@ Shows how formula and calculation regressions are blocked before commit acceptan
 
 > QA: All QAS · Style: Work Assignment
 
+<div align="center">
+
 [![Work Assignment View](../../assets/allocation-work-assignment.png)](view-allocation-work-assignment.md)
+
+</div>
 
 Architecture elements → Organizational units (team1, team2, milestones, sprints). Shows who owns what, when it lands, and how scope is gated between Milestone 2 (06-22) and Milestone 3 Demo (07-01).
