@@ -284,26 +284,26 @@
 
 - Switch to Long Term tab
 
-> "Long Term stacks three graphs on top of each other —
-> Rate, Amplitude, and Beat Error — all over the same time axis.
-> The header shows the current values at a glance:
-> Rate, Amplitude, Beat Error, and the granularity mode.
+> "Long Term shows Rate, Amplitude, and Beat Error over time —
+> all three stacked, same time axis, with a mean line and one-sigma band on each.
 >
-> The top panel is Rate in seconds per day.
-> The pink line shows the raw measurement, the dashed line is the mean.
-> You can see it started noisy and then settled — that's normal warm-up behavior.
+> The key design question for this tab was memory.
+> A watch session can run for hours, and if we store every single measurement,
+> the data grows without bound.
+> So we use bucket averaging — instead of plotting each point individually,
+> we average them into buckets and plot one point per bucket.
+> The bucket size grows automatically with the session length:
+> under 5 minutes, every measurement is plotted live.
+> Past 5 minutes, we average 10 measurements into one point.
+> Past 30 minutes, 30 into one. Past 2 hours, 60 into one.
 >
-> The middle panel is Amplitude in degrees.
-> The blue line fluctuates slightly around 302 degrees.
-> The shaded blue band is the one-sigma range — it tells you how much the amplitude varies.
-> A narrow band means the watch is consistent. A wide band means something is changing.
+> The header always shows the current granularity —
+> so you know exactly how much compression is being applied.
+> The mean and sigma are computed on the full raw stream, not the bucketed points,
+> so the statistics stay accurate even as the display gets sparser.
 >
-> The bottom panel is Beat Error in milliseconds.
-> The green line oscillates around 0.013 milliseconds — essentially zero.
-> Again the shaded band shows the variation range.
->
-> All three together give you a complete picture of how the watch behaves over time,
-> not just at this moment."
+> The result: a session running all day fits in a few hundred data points per metric —
+> negligible memory, no performance cost, full session history."
 
 ---
 
