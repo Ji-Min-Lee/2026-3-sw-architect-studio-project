@@ -395,33 +395,38 @@
 
 ## 14:30 – 16:00 | Area 4 — Latency & Real-Time Evidence
 
-> "Let me put some numbers on the real-time performance claims.
+> "Let me show the system working in real time — not just claim it.
 > First — I'll turn on Developer Info."
 
-- More 메뉴 → Developer Info 체크
+- More → Developer Info (check)
 
-> "This is a diagnostic overlay we built specifically for this demo —
-> it's hidden by default and would be excluded from a production release.
-> But it lets us show the system's internals live.
+> "This overlay is hidden by default — built for this demo,
+> and would be excluded from a production release.
 >
-> The status bar now shows BG and DSP frame rate, samples per second,
-> and on the Raspberry Pi — CPU and memory usage in real time.
-> You can see the Pi handling audio capture, DSP, beat detection, and rendering
-> all at once — without saturating the CPU.
+> You can see two counters: BG and DSP.
+> BG is the background audio thread — it captures raw audio from the microphone.
+> DSP is the signal processing thread — it detects beats and computes measurements.
+> They run independently on separate threads.
 >
-> Now the latency numbers.
-> End-to-end — from microphone to GUI update — is 2.05 milliseconds on average.
-> Our target was under 100 milliseconds. We're at 2.
+> The key thing to notice is that the FPS and samples-per-second of both threads match.
+> That means neither thread is falling behind the other —
+> audio is being captured and processed at exactly the same rate.
+> No queue building up, no backlog, no dropped frames.
+> The exact numbers are in our experiment report — the point here is that they're equal.
 >
-> Dropped audio blocks at 96 kHz over a 10-minute session: zero.
->
-> Before our threading refactor, the DSP queue wait time was 77 milliseconds.
-> After separating DSP into its own thread, it dropped to 0.03 milliseconds —
-> a 2,600x improvement.
->
-> All of this, live, on the Raspberry Pi 5."
+> Now let me show it working."
 
-- More 메뉴 → Developer Info 체크 해제
+- More → Developer Info (uncheck)
+- Tap near the microphone or introduce a noise event
+
+> "Watch the graph — I'm introducing a noise event right now.
+> You can see the scope react immediately — the spike appears with no visible delay.
+> That's the end-to-end latency: microphone to screen update, under 100 milliseconds.
+> On the Raspberry Pi 5, we measured it at 2 milliseconds.
+>
+> Dropped audio blocks over a 10-minute session: zero.
+> Before our threading refactor, DSP wait time was 77 milliseconds.
+> After — 0.03 milliseconds. The exact numbers are in our written report."
 
 ---
 
