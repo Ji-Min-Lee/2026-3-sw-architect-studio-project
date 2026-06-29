@@ -61,11 +61,18 @@
 
 > "Each watch position changes how gravity acts on the balance wheel — rate and amplitude shift.
 > We detect position automatically using amplitude tracking.
-> Two positions work reliably — CH and 6H.
-> The other four were too noisy to distinguish; the user selects those manually.
-> Two out of six — partial result, honest about it."
+> Two positions work reliably — CH, dial up, and 6H, crown left.
+> Let me show you."
 
-- Rotate watch CH → 6H, show POS label update
+- Rotate watch from CH to 6H, show POS label update in status bar
+
+> "POS switched automatically — no button pressed.
+>
+> The other four positions — CB, 3H, 9H, 12H — the amplitude difference between them
+> was too small and too noisy to distinguish reliably with just a microphone.
+> We tried, ran experiments, couldn't get it below the noise floor.
+> So for those, the user selects the position manually from the dropdown.
+> Two out of six automated — partial result, and we're honest about it."
 
 ---
 
