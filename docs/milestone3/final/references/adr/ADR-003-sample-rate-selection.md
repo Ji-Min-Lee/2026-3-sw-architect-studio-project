@@ -5,7 +5,7 @@ by the sample rate. Higher SPS shortens the block period and increases T1 timest
 but increases DSP CPU load per callback — this trade-off is not verifiable without target hardware measurement.
 
 macOS confirms 96kHz is sustainable with 0 dropped blocks (EXP-01 R2 baseline).
-RPi 5 confirmation is pending EXP-06 (target: 2026-06-23).
+RPi 5 confirmed via EXP-01: 0 dropped blocks at 96kHz across all scheduling policies.
 
 Two fallback options exist if 96kHz is not achievable on RPi:
 

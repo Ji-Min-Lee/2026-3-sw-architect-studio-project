@@ -88,5 +88,4 @@ Accepted
 - SignalBuffer design must be clarified: existing buffer vs. new PCM ring buffer — risk of
   role overlap; resolved by scoping SignalBuffer to DSP-internal use and ring buffer to
   capture-to-DSP handoff only
-- RPi validation still pending — macOS results establish confidence but do not substitute
-  for target hardware measurement (EXP-01 R5)
+- RPi validation confirmed via EXP-01 R5: E2E avg 2.05ms, 0 deadline miss, 0 backlog on RPi 5

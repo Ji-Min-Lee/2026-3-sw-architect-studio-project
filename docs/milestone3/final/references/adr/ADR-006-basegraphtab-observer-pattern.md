@@ -93,7 +93,7 @@ indirection between `MainWindow` and the tab widget. Since `MainWindow` already 
 `QTabWidget`, extracting a manager adds complexity without reducing coupling. The
 `registerTab()` template achieves the same single-point-of-registration goal inline.
 
-## Architectural Pattern Classification (Bass/CMK Ch.8 §8.4)
+### Architectural Pattern Classification (Bass/CMK Ch.8 §8.4)
 
 This ADR implements the **Publish-Subscribe pattern** as described in
 Bass, Clements & Kazman *Software Architecture in Practice* (4th ed., Ch.8 §8.4 p.129)
@@ -147,21 +147,4 @@ Accepted
   `replotAll()` inside a custom `replotAll()` override — the base class cannot enforce this
   at compile time
 
-## Related ADRs
-
-- [ADR-002: R1 Lazy Rendering](ADR-002-r1-lazy-rendering.md) — `isVisible()` guard and
-  `showEvent()` catch-up; this ADR provides the structural home for that pattern
-- [ADR-004: R2 Timer-Decoupled Rendering](ADR-004-r2-timer-decoupled-rendering.md) —
-  contingency if full-tab load (EXP-04) reveals R1 insufficient
-
-## Related views
-
-- [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md) — structural
-  decomposition of the Presentation layer; this ADR is the rationale for that structure
-- [Layered and Module Decomposition View](../views/view-layered-4layer.md) — `BaseGraphTab`
-  and all tab implementations live in the Presentation layer; allowed to reference Domain only
-
-## References
-
-- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.
-- [Gamma94] E. Gamma et al. *Design Patterns: Elements of Reusable Object-Oriented Software*. Addison-Wesley, 1994.
+Related: [ADR-002](ADR-002-r1-lazy-rendering.md) (`isVisible()` guard — this ADR provides its structural home); [ADR-004](ADR-004-r2-timer-decoupled-rendering.md) (Withdrawn — R1 confirmed sufficient); [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md); [Layered and Module Decomposition View](../views/view-layered-4layer.md). [Bass21] L. Bass et al. *Software Architecture in Practice*, 4th ed. [Gamma94] E. Gamma et al. *Design Patterns*.

@@ -101,11 +101,4 @@ Accepted
   access to the concrete `TAudioWorker` type; these are wired per-session in `startLive()`
   before the abstract pointer is stored, which is a deliberate exception to the interface rule
 
-## Related views
-
-- [IAudioSource Dependency Inversion View](../views/view-iaudiosource.md) — AS-IS
-  vs TO-BE structural comparison
-- [Layered and Module Decomposition View](../views/view-layered-4layer.md) — `IAudioSource`
-  and workers in the Acquisition layer context
-- [DSP Pipeline Thread Model View](../views/view-cc-dsp-pipeline.md) — runtime view;
-  `SessionController` owns the T1 thread lifecycle shown here
+Related views: [IAudioSource Dependency Inversion View](../views/view-iaudiosource.md) (AS-IS vs TO-BE structural comparison); [Layered and Module Decomposition View](../views/view-layered-4layer.md) (`IAudioSource` and workers in the Acquisition layer); [DSP Pipeline Thread Model View](../views/view-cc-dsp-pipeline.md) (`SessionController` owns the T1 thread lifecycle shown here).

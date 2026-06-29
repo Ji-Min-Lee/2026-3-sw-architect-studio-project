@@ -101,13 +101,4 @@ Accepted
   uses a slightly different call pattern for legacy rolling-state code) but should be
   consolidated in a future cleanup.
 
-## Related
-
-- [QAS-4: Correctness — Sub-1 Calculation Accuracy](../qa/qas-4-correctness.md)
-- [ADR-006: BaseGraphTab Observer Pattern](ADR-006-basegraphtab-observer-pattern.md) —
-  `MeasurementEngine` is the observable subject; `WatchMath` computes the values
-  it publishes via `measurementReady()`
-
-## References
-
-- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.
+Related: [QAS-4 Correctness Sub-1](../qa/qas-4-correctness.md); [ADR-006](ADR-006-basegraphtab-observer-pattern.md) (`MeasurementEngine` is the observable subject; `WatchMath` computes the values it publishes). [Bass21] L. Bass et al. *Software Architecture in Practice*, 4th ed.

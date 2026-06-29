@@ -80,9 +80,4 @@ Accepted
   no benefit — R2 or R3 would be needed in that scenario (not a current use case)
 - Catch-up frame fires once on showEvent(); rapid tab cycling could produce visible
   one-frame lag on very fast switches (not observed in testing)
-- RPi effectiveness depends on the ratio of active to total tabs — must be confirmed by EXP-04
-
-## Supersedes
-
-None. If EXP-04 confirms R1 insufficient under 11-tab full load, this ADR will be superseded
-by a new ADR adopting R2 (Timer-Decoupled Rendering).
+- RPi effectiveness depends on the ratio of active to total tabs; confirmed sufficient by EXP-04 under full 11-tab load (see [ADR-004](ADR-004-r2-timer-decoupled-rendering.md) Withdrawn).

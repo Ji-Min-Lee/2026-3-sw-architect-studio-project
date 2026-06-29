@@ -121,11 +121,4 @@ Accepted
   For unusual watches with very short A–C intervals (high BPH, small lift angle), this
   may need adjustment.
 
-## Related
-
-- [QAS-4: Correctness — Sub-3 Noise Resilience](../qa/qas-4-correctness.md)
-- [ADR-003: Sample Rate Selection](ADR-003-sample-rate-selection.md) —
-  96kHz chosen in part because it allows the 0.15 ms smoothing constant to
-  span enough samples (14.4 samples) to be effective; at 48kHz the same
-  constant spans only 7.2 samples, reducing smoothing stability
-- [EXP-04: Detector Parameter Optimization](../experiments/exp-04-correctness-detector-optimization.md)
+Related: [QAS-4 Correctness Sub-3](../qa/qas-4-correctness.md); [ADR-003](ADR-003-sample-rate-selection.md) (96kHz allows the 0.15 ms smoothing constant to span 14.4 samples; at 48kHz only 7.2); [EXP-04](../experiments/exp-04-correctness-detector-optimization.md).

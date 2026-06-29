@@ -51,14 +51,4 @@ Withdrawn
 
 ## Consequences
 
-**If adopted (ADR-002 superseded)**:
-- ADR-002 status changes to Superseded; this file becomes the active decision
-- `isVisible()` guards removed from all `updateData()` implementations
-- `showEvent()` overrides removed
-- `QTimer` added to `GraphTabManager` — start/stop lifecycle tied to pipeline state
-- Rendering rate decoupled from BPH: consistent 20 FPS regardless of watch speed
-- `updateData()` implementations simplified (data model update only, no UI call)
-
-**Not adopted — R1 confirmed sufficient**:
-- R1 (ADR-002) held 0% deadline miss under full tab load on RPi 5; R2 was not implemented.
-- ADR-002 remains the active rendering decision.
+R1 (ADR-002) held 0% deadline miss under full 11-tab load on RPi 5; R2 was not implemented. ADR-002 remains the active rendering decision.

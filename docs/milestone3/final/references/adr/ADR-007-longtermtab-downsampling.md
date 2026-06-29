@@ -97,19 +97,4 @@ Accepted
 - The mean/σ overlay is updated only when a full bucket is committed, not on every raw
   measurement. For `bucket = 60` (> 2 hr phase), the overlay lags by up to 12 minutes.
 
-## Related ADRs
-
-- [ADR-006: BaseGraphTab Observer Pattern](ADR-006-basegraphtab-observer-pattern.md) —
-  `LongTermTab` is a concrete `BaseGraphTab` subclass; ADR-007 logic lives inside
-  `onMeasurement()`, the observer callback defined by ADR-006.
-- [ADR-002: R1 Lazy Rendering](ADR-002-r1-lazy-rendering.md) —
-  `LongTermTab::onMeasurement()` guards with `isVisible()` before calling
-  `rpQueuedReplot`, consistent with the lazy rendering contract.
-
-## Related views
-
-- [LongTermTab Downsampling Decomposition View](../views/view-longtermtab-downsampling.md) —
-  structural view of the `LongTermTab` internals, bucket accumulation flow, and
-  three-series layout.
-- [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md) —
-  `LongTermTab` within the full Presentation-layer observer hierarchy.
+Related: [ADR-006](ADR-006-basegraphtab-observer-pattern.md) (`LongTermTab` is a concrete `BaseGraphTab`; bucket logic lives inside `onMeasurement()`); [ADR-002](ADR-002-r1-lazy-rendering.md) (`isVisible()` guard applied in `onMeasurement()`); [LongTermTab Downsampling Decomposition View](../views/view-longtermtab-downsampling.md); [Graph Tab Module Uses View](../views/view-decomposition-graph-tab.md).
