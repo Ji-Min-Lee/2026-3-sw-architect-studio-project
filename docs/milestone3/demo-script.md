@@ -195,18 +195,29 @@
 
 ## 15:00 – 17:00 | Area 4 — Accuracy Verification (25 pts)
 
-> "Now the most important quality attribute: Measurement Accuracy.
->
-> Our governing design goal — the reason everything else exists —
-> is that our measurements must match a reference device.
+> "Now accuracy — the most important quality attribute.
+> Our measurements must match a reference device.
 > We're using the WeiShi No.1000 as that reference.
 >
-> Here's how we verify: the same watch, at the same time,
-> measured by both systems simultaneously."
+> I'm going to move the watch to the WeiShi now."
 
-- Point to WeiShi display and TimeGrapher display side by side
+- Detach watch from RPi sensor, move to WeiShi No.1000
 
-> "Let me read the values."
+> "As soon as the watch is removed — the mic loses signal and a dialog appears.
+> This is the same hardware detection we just showed in the GUI section.
+> The system notices immediately, no polling, no delay."
+
+- Place watch on WeiShi, let it run briefly, read WeiShi values
+- Move watch back to RPi sensor
+
+> "Watch is back on our system — dialog closes automatically, signal detected.
+> You'll notice Rate drops for a moment — that's expected.
+> Rate is a rolling average, so it takes a few beats to stabilize after reconnection.
+> Give it a few seconds."
+
+- Wait for Rate to stabilize
+
+> "There — stable. Let me read the values."
 
 | Metric | WeiShi No.1000 | Our TimeGrapher | Notes |
 |--------|:--------------:|:---------------:|-------|
@@ -237,10 +248,6 @@
 ---
 
 ## 17:00 – 18:00 | Area 6 — GUI Modifications (25 pts)
-
-- Unplug microphone
-
-> "Unplug the mic — system detects it immediately, shows alert. Plug back in — recovers automatically, no restart."
 
 - Play music from phone near the microphone
 
