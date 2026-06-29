@@ -7,7 +7,9 @@
 
 ## 0:00 – 1:30 | System Introduction + UI Overview
 
-> "Good morning. We are Team Blue Sky."
+> "Good morning. We are Team Blue Sky.
+> On startup the app reads the screen resolution and sizes itself automatically.
+> F11 for fullscreen — hopefully everyone can see that."
 
 - Set Sample Rate to 96000 Hz, Mode to Extended
 - Launch TimeGrapher, press F11
@@ -16,10 +18,7 @@
 > 192000 Hz gives higher resolution but slows down after a few minutes on the Pi.
 > 96000 Hz Extended is the stable sweet spot for a live demo."
 
-> "On startup the app reads the screen resolution and sizes itself automatically.
-> F11 for fullscreen — hopefully everyone can see that.
->
-> Quick layout: control panel on the left, 14 graph tabs on the right.
+> "Quick layout: control panel on the left, 14 graph tabs on the right.
 > Status bar at the top — Rate, Amplitude, Beat Error, BPH, live.
 > Color coded: green is good, amber is borderline, red needs attention.
 > AI Diagnosis badge in the top-right corner.
