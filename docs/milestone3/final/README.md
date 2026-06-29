@@ -86,19 +86,19 @@ The architecture was evaluated using **ATAM** (Architecture Tradeoff Analysis Me
 [Kazman00].
 The evaluation identified the DSP + GUI single-thread coupling as the primary risk,
 resolved by ADR-001 (T2 Offload Thread) and ADR-002 (Lazy Rendering), cutting deadline
-misses from 43% to 0% and queue wait time by ×2,600.
+misses from 43% to 0% and queue wait time by ×32,000 (420ms → 0.013ms on RPi 5).
 
-See [atam-evaluation-m2.md](references/atam-evaluation-m2.md) for the full evaluation,
+See [atam-evaluation-m3.md](references/atam/atam-evaluation-m3.md) for the full evaluation,
 including utility tree, sensitivity points, tradeoff points, and risk themes.
 
 <table>
 <tr>
   <td align="center">
-    <a href="references/atam-evaluation-m2.md">ATAM Utility Tree<br>
+    <a href="references/atam/atam-evaluation-m3.md">ATAM Utility Tree<br>
     <img src="assets/atam-utility-tree.png" width="500"></a>
   </td>
   <td align="center">
-    <a href="references/atam-evaluation-m2.md">ATAM Before / After<br>
+    <a href="references/atam/atam-evaluation-m3.md">ATAM Before / After<br>
     <img src="assets/atam-before-after.png" width="500"></a>
   </td>
 </tr>
@@ -221,7 +221,7 @@ docs/milestone3/final/
 └── references/
     ├── qa/                               ← QA scenario files (qas-1 ~ qas-6)
     ├── risks.md                          ← full risk register
-    ├── atam-evaluation-m2.md             ← ATAM architecture evaluation (snapshot 2026-06-22)
+    ├── atam/                             ← ATAM evaluations (M2 snapshot 2026-06-22; M3 snapshot 2026-06-28)
     ├── lessons-learned.md                ← team retrospective
     ├── views/                            ← architecture view index + detailed view files (8 views)
     ├── experiments/                      ← experiment files (EXP-01 ~ EXP-08)
