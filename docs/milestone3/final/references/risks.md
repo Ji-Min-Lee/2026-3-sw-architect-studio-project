@@ -29,24 +29,3 @@
 | NTR-07 | Equation-level derivations difficult (Rate / Beat Error / Amplitude formulas) | M | H | AI-assisted equation interpretation; the [Pre-commit Correctness Gate View](views/view-allocation-implementation.md) shows how `TestWatchMath` and `TestMeasurementEngine` block formula and calculation regressions before commit acceptance; EXP-06 Witschi comparison confirmed external accuracy within tolerance | ✅ Resolved |
 
 ---
-
-## Open Risk Summary (as of M3)
-
-> ✅ No open risks — all technical and non-technical risks resolved as of 2026-06-25.
-
----
-
-## Risk Resolution History
-
-| Date | ID | Event |
-|------|----|-------|
-| 2026-06-25 | NTR-07 | EXP-06 Witschi comparison complete: Rate/Amplitude/Beat Error within tolerance; QAS-5 Pass |
-| 2026-06-21 | TR-04/06/08 | EXP-03 complete: 14 tabs verified ≤ 3-file change each, zero layer violations; test suite expanded to 142 tests (10 binaries), all passing |
-| 2026-06-17 | TR-05 | EXP-04 E5-03 complete (274 runs): `onset_fraction=0.08`, `min_peak_fraction=0.10` — stable beat detection at 0–60 dB SNR; `Detector.cpp` defaults updated |
-| 2026-06-15 | TR-01 | EXP-01 RPi: Dropped=0 at 48k/96k/192k under all scheduling policies; ADR-003 Accepted |
-| 2026-06-15 | TR-02/03 | EXP-02 RPi E2-5/6: T2+R1 on RPi — E2E avg 2.05ms, 0 deadline miss, 0 backlog |
-| 2026-06-15 | TR-02/03 | EXP-02 macOS R2: T2 applied — wait_ms ×32,000 reduction, backlog 0% |
-| 2026-06-15 | TR-04 | EXP-02 macOS R3/R4: R1 applied — replot ↓75–85% |
-| 2026-06-13 | TR-06/07 | Layer refactoring complete; initial 116 unit tests passing |
-| 2026-06-10 | TR-08 | Domain output review complete — all graph data requirements covered |
-| 2026-06-10 | TR-09 | Adaptive threshold implementation complete |
