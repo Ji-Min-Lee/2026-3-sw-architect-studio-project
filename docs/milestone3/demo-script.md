@@ -170,6 +170,18 @@
 
 ---
 
+**⑫ Radar Chart** — Switch to Radar Chart tab
+
+> "Radar Chart visualizes amplitude across all six watch positions as a polygon.
+> A perfectly balanced watch produces a circle.
+> Deviations show exactly which positions are weak and by how much —
+> at a glance, without reading a table.
+> The warning at the bottom names the worst position and what it likely means mechanically."
+
+- Point to the asymmetric polygon and warning message
+
+---
+
 ## 13:00 – 15:00 | Area 2 — AI Feature (9 pts)
 
 - More → Developer Info (check)
@@ -387,40 +399,7 @@
 
 ---
 
-## 22:00 – 24:00 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
-
-**Radar Chart** (~45 sec)
-
-- Switch to Radar Chart tab
-
-> "For the bonus feature — the Radar Chart.
->
-> Each position label around the edge corresponds to a watch orientation —
-> CH is dial up, CB is dial down, 9H is crown down, 6H is crown left, 3H is crown up, 12H is crown right,
-> and CU, CD for crown up and down.
->
-> The red dots are the measured Amplitude for each position.
-> The blue polygon connects them.
-> The green dashed circles are the tolerance bands —
-> the inner circle is the minimum acceptable Amplitude,
-> the outer circle is the target.
->
-> A perfectly regulated watch produces a polygon that hugs the outer green circle uniformly.
-> Here you can see the polygon is asymmetric —
-> the CH and CB positions are close to 300 degrees,
-> but 12H and 3H are pulling inward toward 275 degrees.
-> That asymmetry tells you exactly which positions are weak
-> and by how much — without needing to read a table.
->
-> The warning at the bottom confirms: 6 of 6 positions out of tolerance,
-> worst at CH at 302 degrees.
-> Positional variance suggests a poising or balance review is needed.
-> That is the kind of diagnostic that used to require a trained watchmaker
-> to manually compare six separate measurements."
-
-- Point to the asymmetric shape and the warning message
-
----
+## 22:00 – 24:00 | Bonus — Diagnosis Classification (+15 pts)
 
 **Diagnosis with multi-position data** (~45 sec)
 
