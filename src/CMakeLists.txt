@@ -48,6 +48,8 @@ set(PROJECT_SOURCES
     ui/UserGuideContent.cpp
     ui/UserGuideDialog.h
     ui/UserGuideDialog.cpp
+    ui/SplashScreen.h
+    ui/SplashScreen.cpp
     engine/WatchExplainer.h
     engine/WatchExplainer.cpp
     rag/RagRetriever.h
@@ -233,7 +235,10 @@ execute_process(
 if(NOT TG_GIT_COMMIT)
     set(TG_GIT_COMMIT "unknown")
 endif()
-target_compile_definitions(TimeGrapher PRIVATE TG_GIT_COMMIT="${TG_GIT_COMMIT}")
+target_compile_definitions(TimeGrapher PRIVATE
+    TG_GIT_COMMIT="${TG_GIT_COMMIT}"
+    TG_APP_VERSION="1.0.0"
+)
 message(STATUS "TimeGrapher: git_commit=${TG_GIT_COMMIT}")
 
 include(GNUInstallDirs)

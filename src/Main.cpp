@@ -1,11 +1,13 @@
 #include "MainWindow.h"
 #include "Measurement.h"
+#include "SplashScreen.h"
 
 #include <QApplication>
 #include <QMetaType>
-#include <QElapsedTimer>
-#include <QEvent>
 #include <QEventLoop>
+#include <QGuiApplication>
+#include <QScreen>
+#include <QThread>
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <processthreadsapi.h>
@@ -40,55 +42,16 @@ int main(int argc, char *argv[])
  signal(SIGTERM, handleSignal);
 #endif
 
- //QApplication::setStyle(QStyleFactory::create("Fusion"));
+ SplashScreen splash;
+ const QRect screenGeometry = QGuiApplication::primaryScreen()->availableGeometry();
+ splash.move((screenGeometry.width() - splash.width()) / 2,
+             (screenGeometry.height() - splash.height()) / 2);
+ splash.start();
 
- QPixmap Pixmap(":/images/Splash.png");
- if (Pixmap.isNull())
-  {
-     qInfo() << "Failed to load splash image!";
-  }
- QPixmap scaledPixmap = Pixmap.scaled(1280, 750, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
- QSplashScreen splash(scaledPixmap,Qt::WindowStaysOnTopHint);
- splash.show();
-
- QRect screenGeometry = QGuiApplication::primaryScreen()->availableGeometry();
- int splashX = (screenGeometry.width() - splash.width()) / 2;
- int splashY = (screenGeometry.height() - splash.height()) / 2;
- splash.move(splashX, splashY);
-
- QThread::msleep(100); //Needed for Linux.... not sure why
+ QThread::msleep(100); // Needed for Linux.... not sure why
  app.processEvents();
 
- // Show splash up to 2s; click / key / double-click skips early.
- bool splashSkipped = false;
- class SplashSkipFilter : public QObject {
- public:
-  explicit SplashSkipFilter(bool *flag, QObject *parent = nullptr)
-      : QObject(parent), mFlag(flag) {}
- protected:
-  bool eventFilter(QObject *, QEvent *event) override {
-   switch (event->type()) {
-    case QEvent::MouseButtonPress:
-    case QEvent::MouseButtonDblClick:
-    case QEvent::KeyPress:
-     *mFlag = true;
-     break;
-    default:
-     break;
-   }
-   return false;
-  }
- private:
-  bool *mFlag;
- };
- SplashSkipFilter splashSkip(&splashSkipped);
- splash.installEventFilter(&splashSkip);
-
- QElapsedTimer splashClock;
- splashClock.start();
- constexpr int kSplashMaxMs = 2000;
- while (splashClock.elapsed() < kSplashMaxMs && !splashSkipped) {
+ while (!splash.isAnimationComplete()) {
   app.processEvents(QEventLoop::AllEvents, 50);
   QThread::msleep(10);
  }
@@ -96,7 +59,7 @@ int main(int argc, char *argv[])
  MainWindow mainWindow;
  mainWindow.show();
 
- splash.finish(&mainWindow);
+ splash.close();
 
  result = app.exec();
 

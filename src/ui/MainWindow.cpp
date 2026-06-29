@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstring>
 #include "MainWindow.h"
+#include "AppInfo.h"
 #include "MovementSpec.h"
 #include "AcquisitionConfig.h"
 #include "SessionController.h"
@@ -583,13 +584,16 @@ void MainWindow::setupTabOverflow(void)
 
         auto *textLabel = new QLabel(
             tr("<h3>TimeGrapher</h3>"
-               "<p>Version 1.0.0</p>"
+               "<p>Version %1</p>"
                "<p>Mechanical Watch Timing Analyzer<br>"
-               "LG SW Architect Training Program 2026<br>"
-               "Team 3 &middot; Blue Sky</p>"
+               "%2<br>"
+               "%3</p>"
                "<hr>"
                "<p style='color:gray; font-size:10pt;'>"
-               "&copy; 2026 LG Electronics &middot; Internal Use Only</p>"));
+               "&copy; 2026 LG Electronics &middot; Internal Use Only</p>")
+                .arg(AppInfo::version(),
+                     AppInfo::programLabel(),
+                     AppInfo::teamLabel()));
         textLabel->setAlignment(Qt::AlignCenter);
         textLabel->setWordWrap(true);
         vlay->addWidget(textLabel);
