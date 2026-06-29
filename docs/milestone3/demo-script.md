@@ -372,16 +372,17 @@
 > The time between them is t_AC — shown in each panel header.
 > t_AC is what we use to calculate amplitude.
 >
-> The top x-axis shows the balance wheel angle —
-> how far the wheel has swung from A by the time C happens.
-> Lift angle is 52 degrees, matching our Watch Parameters.
+> There are two x-axes on each panel — same window, two units.
+> The bottom axis is time in milliseconds — how long since the A event.
+> The top axis is balance wheel rotation in degrees —
+> the same time converted to how far the wheel has swung.
+> So if C happens at 8ms, we can also read off that the wheel was at 23 degrees at that moment.
+> That's how we reverse-calculate amplitude from timing alone.
 >
 > Notice that Beat 1 and Beat 3 have similar t_AC values,
 > while Beat 2 is slightly different.
 > That's because Beat 1 and 3 are Tic — the same direction of swing —
 > and Beat 2 is Toc — the other direction.
-> The small difference between Tic and Toc t_AC
-> is what drives the amplitude variation you see here.
 >
 > The summary line at the top shows min, max, and sigma across all beats.
 > A tight sigma means the watch is swinging consistently every beat."
