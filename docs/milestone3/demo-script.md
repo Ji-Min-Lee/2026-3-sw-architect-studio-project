@@ -228,6 +228,11 @@
 
 - Switch to AI Diagnosis panel (Ctrl+D)
 
+> "One constraint upfront — the assignment required local inference. No cloud calls.
+> The Pi 5 has no GPU, no NPU — pure CPU only.
+> That forced us to pick a small model that could run in reasonable time on 4 cores.
+> That tradeoff shapes everything in this section."
+
 > "Two parts. First — a rule-based classifier.
 > Rate, Amplitude, Beat Error evaluated against watchmaker tolerances.
 > Verdict: Excellent, Good, or Needs Service.
