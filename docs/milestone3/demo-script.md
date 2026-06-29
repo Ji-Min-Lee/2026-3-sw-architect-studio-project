@@ -5,85 +5,37 @@
 
 ---
 
-## 0:00 – 1:00 | System Introduction + UI Overview
+## 0:00 – 1:30 | System Introduction + UI Overview
 
-> "Good morning. We are Team Blue Sky.
-> Let me start by launching the application."
+> "Good morning. We are Team Blue Sky."
 
-- Launch TimeGrapher from the desktop shortcut or terminal
+- Launch TimeGrapher, press F11
 
-> "The app is now starting on the Raspberry Pi.
-> First thing it does on startup — it reads the screen resolution
-> and automatically sizes the window to fit the display.
-> No manual resizing needed.
-> Whether you're on a 7-inch touchscreen or a 1080p monitor,
-> the layout adapts."
-
-- App window appears, sized to the screen
-
-> "And now — fullscreen mode."
-
-- Press F11
-
-> "There we go. Hopefully everyone in the back can see that.
-> If not — I can't make the watch any louder either, so we're even."
-
-*(pause for laughs)*
-
-> "Alright. Let me walk through the layout.
+> "On startup the app reads the screen resolution and sizes itself automatically.
+> F11 for fullscreen — hopefully everyone can see that.
 >
-> The screen is divided into two areas.
-> On the left is the control panel — Run Parameters at the top,
-> Watch Parameters below, and Advanced settings at the bottom.
-> This is where you set the mode, sample rate, BPH, and lift angle.
->
-> On the right is the graph area.
-> The tab bar across the top gives you access to all 14 displays.
-> Tabs that don't fit in the bar are accessible through the More button on the right.
->
-> At the very top is the status bar.
-> Five live values always visible: position, rate, amplitude, beat error, and BPH.
-> Color coding tells you the health at a glance —
-> green means within tolerance, amber is borderline, red means attention needed.
-> In the top-right corner is the AI Diagnosis badge — Excellent, Good, or Needs Service.
->
-> At the bottom-left, the session controls: Start, Pause, Stop.
-> Space bar starts or pauses. Escape stops."
+> Quick layout: control panel on the left, 14 graph tabs on the right.
+> Status bar at the top — Rate, Amplitude, Beat Error, BPH, live.
+> Color coded: green is good, amber is borderline, red needs attention.
+> AI Diagnosis badge in the top-right corner."
 
-- Point to each area as you describe it
-- Press Space to start the session — confirm signal is live on Rate/Scope tab
+- Press Space to start
 
 ---
 
-## 1:00 – 3:00 | Area 1 — Watch-Position Testing + Area 2 — Base Graph Enhancements
+## 1:30 – 6:30 | Area 1 — Watch-Position Testing + Area 2 — Base Graph Enhancements
 
 ### Watch-Position Testing (5 pts)
 
-- Show the watch on the sensor stand, status bar showing "CH"
+- Show watch on stand, status bar showing "CH"
 
-> "A mechanical watch runs differently depending on how it's oriented.
-> Dial up, dial down, crown left — each position changes how gravity acts
-> on the balance wheel, which shifts the rate and amplitude.
->
-> We implemented automatic position detection using amplitude tracking.
-> The idea: when you flip the watch from dial-up to crown-left,
-> the average amplitude shifts measurably within a few seconds.
-> Our system monitors that change and infers the position.
->
-> We were able to reliably distinguish two positions —
-> CH, dial up, and 6H, crown left.
-> These two produce a clear enough amplitude difference to detect automatically."
+> "Each watch position changes how gravity acts on the balance wheel — rate and amplitude shift.
+> We detect position automatically using amplitude tracking.
+> Two positions work reliably — CH and 6H.
+> The other four were too noisy to distinguish; the user selects those manually.
+> Two out of six — partial result, honest about it."
 
-- Demonstrate: watch in CH, then rotate to 6H, show POS label update
-
-> "For the other four standard positions — CB, 9H, 3H, 12H —
-> the amplitude differences were too small or too noisy to distinguish reliably.
-> Automation for those positions failed.
-> The user still selects them manually in the Sequence tab.
->
-> Two out of six is a partial result, and we're being honest about that.
-> The architecture is in place — with better sensor data or a longer averaging window,
-> the remaining positions could be added."
+- Rotate watch CH → 6H, show POS label update
 
 ---
 
@@ -91,72 +43,35 @@
 
 - Switch to Sound Print tab
 
-> "Sound Print has two improvements over the original.
+> "Two improvements. First — dot coloring by signal strength.
+> A events green-to-yellow, C events blue-to-cyan.
+> If C dots are cyan while A dots are green, the C-event signal is weaker —
+> amplitude accuracy may suffer.
 >
-> First, dot health coloring.
-> Every event dot is now colored by signal strength.
-> A events — the tic — are colored on a green-to-yellow scale:
-> green means strong, yellow-green means medium, yellow means weak.
-> C events — the tac — use a blue-to-cyan scale:
-> blue is strong, light blue is medium, cyan is weak.
-> This immediately shows you whether both events are detected with equal confidence —
-> if the C dots are consistently cyan while the A dots are green,
-> the C-event signal is weaker, and amplitude accuracy may suffer.
->
-> Second — beat drill-down.
-> Click any column on the Sound Print display
-> and a dialog opens showing the raw PCM waveform for exactly that beat.
-> The title bar shows the beat number.
-> Inside the plot header: beat number, duration in milliseconds, and sample count.
-> The waveform is drawn in green on a dark background,
-> centered on the loudest peak in that beat window.
-> A red dashed vertical line marks the exact peak position.
-> At the bottom of the dialog, Prev and Next buttons let you step
-> through adjacent beats one at a time — both buttons disable automatically
-> when you reach the beginning or end of the buffer.
-> You can walk through every beat in the session and inspect the raw signal directly."
+> Second — click any column to open the raw PCM waveform for that beat.
+> Green waveform on dark background, red dashed peak marker.
+> Prev and Next buttons to step through adjacent beats."
 
-- Click one column on the Sound Print to open the waveform popup
-- Point to the beat number, ms, and sample count in the plot header
-- Click Prev and Next to browse adjacent beats
-
-> "This turns Sound Print from a summary view into a beat-level diagnostic tool —
-> any suspicious dot can be opened, inspected, and compared with its neighbors."
+- Click a column, show waveform popup, click Prev/Next
 
 ---
 
 ### Area 2 — Rate / Scope Enhancements (8 pts)
 
-- Switch to Rate/Scope tab, point to the top-left stats box
+- Switch to Rate/Scope tab
 
-> "Rate/Scope has three improvements.
->
-> First — the statistics box in the top-left of the upper panel.
-> Mean, sigma, and beat count, always visible.
-> Right now: mean −0.029 ms, σ 0.023 ms, 121 beats.
-> That tells you immediately how consistent this watch has been
-> across the entire session — not just the last few beats.
->
-> Second — the green Trend line.
-> It's a 20-beat rolling average overlaid on the scatter plot.
-> Individual beats bounce around, but the trend line cuts through the noise
-> and shows you the actual direction the watch is drifting.
->
-> Third — the orange crosshair marker.
-> Click anywhere on the bottom scope panel
-> and a vertical orange dashed line appears on the upper panel
-> at the corresponding beat position.
-> It lets you pinpoint exactly which beat you're looking at in the scope
-> and cross-reference it with the rate data above."
+> "Three improvements.
+> Stats box top-left: mean, sigma, beat count — session-wide at a glance.
+> Green trend line: 20-beat rolling average cutting through scatter noise.
+> Orange crosshair: click the scope panel to cross-reference that beat in the rate plot above."
 
-- Click on the scope panel to demonstrate the orange marker
+- Click scope panel to show orange marker
 
 ---
 
-## 3:00 – 9:00 | Area 1 — Additional Graph Displays (55 pts)
+## 6:30 – 13:00 | Area 1 — Additional Graph Displays (55 pts)
 
-> "Now the additional graph displays — eleven tabs total.
-> I'll go through each one quickly."
+> "Eleven additional graph displays. Each one quickly."
 
 - Click "More" to show the full tab list
 
@@ -250,53 +165,35 @@
 
 ---
 
-## 9:00 – 10:00 | Area 2 — AI Feature (9 pts)
+## 13:00 – 15:00 | Area 2 — AI Feature (9 pts)
 
 - Switch to AI Diagnosis panel (Ctrl+D)
 
-> "Our team-selected AI feature is an on-device watch diagnosis system.
-> It has two parts working together.
+> "Two parts. First — a rule-based classifier.
+> Rate, Amplitude, Beat Error evaluated against watchmaker tolerances.
+> Verdict: Excellent, Good, or Needs Service.
 >
-> The first part is a rule-based classifier.
-> It evaluates Rate, Amplitude, and Beat Error against known watchmaker tolerances
-> and produces one of three verdicts: Excellent, Good, or Needs Service.
-> Every metric is scored independently, and all three must pass at the same band
-> for the overall verdict to reach that level.
->
-> The second part is a local LLM running via Ollama on this Raspberry Pi —
-> no internet, no cloud, no external server.
-> When the classifier produces a verdict, the LLM explains it in plain English:
-> why this diagnosis, the likely mechanical cause, and what a watchmaker should check.
-> The LLM receives not just the three core metrics, but also additional signals
-> when available — Tic/Toc amplitude asymmetry, rate jitter, and
-> escapement beat-to-beat variation — giving it richer context for the explanation.
->
-> Before the LLM answers, it runs a RAG retrieval step —
-> cosine similarity search over a local knowledge base
-> built from the Witschi training course, the Chronoscope X1 manual,
-> and our own domain documents.
-> The most relevant chunks are injected into the prompt as context,
-> so the explanation is grounded in actual watchmaking knowledge.
+> Second — a local LLM via Ollama on this Raspberry Pi. No internet, no cloud.
+> It explains the verdict in plain English — why, likely mechanical cause, what to service.
+> Before answering, it runs RAG retrieval over a local knowledge base:
+> Witschi training course, Chronoscope X1 manual, our own domain docs.
+> The LLM also receives additional signals beyond the three core metrics —
+> Tic/Toc asymmetry, rate jitter, escapement variation — for richer context.
 >
 > Let me trigger a diagnosis now."
 
-- Trigger diagnosis (point to verdict badge and LLM explanation text)
+- Trigger diagnosis
 
-> "The badge shows [Excellent / Good / Needs Service] —
-> and below it, the LLM streams the explanation token by token.
-> You can also type a follow-up question and continue the conversation —
-> the model keeps the full conversation history across turns.
->
-> Everything runs locally on the RPi 5 — the classifier, the LLM, and the RAG database."
+> "The badge shows [Excellent / Good / Needs Service].
+> The explanation streams token by token.
+> You can follow up with a question — conversation history is maintained.
+> Ask something unrelated — it refuses. Watchmaking only."
 
-- (Optional) Type a follow-up question to demonstrate chat
-
-> "The system prompt constrains the model to watchmaking topics only.
-> If you ask something unrelated, it refuses."
+- Type a follow-up question
 
 ---
 
-## 10:00 – 12:30 | Area 4 — Accuracy Verification (25 pts)
+## 15:00 – 17:00 | Area 4 — Accuracy Verification (25 pts)
 
 > "Now the most important quality attribute: Measurement Accuracy.
 >
@@ -339,61 +236,27 @@
 
 ---
 
-## 12:30 – 14:30 | Area 6 — GUI Modifications (25 pts)
+## 17:00 – 18:00 | Area 6 — GUI Modifications (25 pts)
 
-**Sensor unplug / replug detection** (~30 sec)
+- Unplug microphone
 
-- Physically unplug the microphone
+> "Unplug the mic — system detects it immediately, shows alert. Plug back in — recovers automatically, no restart."
 
-> "We handle hardware events gracefully.
-> I've just unplugged the microphone —
-> the system immediately detects the lost audio source
-> and shows an alert in the status bar."
+- Show scope view
 
-- Replug the microphone
+> "A and C events rendered at consistent positions every beat — easy to compare timing visually."
 
-> "Plugging it back in — the system recovers automatically.
-> No restart needed. The session continues."
+- Point to dropdown controls
 
----
+> "Rarely-used controls moved into dropdowns. Screen space reserved for signal and measurements."
 
-**Beat-synchronized A/C display** (~30 sec)
+- Point to status bar
 
-- Show the scope view
-
-> "On the scope display, the A and C events —
-> the tic and the toc of each beat —
-> are rendered at consistent relative positions across every beat cycle.
-> This makes it easy to visually compare their timing
-> without the display jumping around."
+> "Status bar shows sample rate, dropped blocks, signal quality — know immediately if something is wrong before wasting a measurement."
 
 ---
 
-**UI layout — dropdowns and screen space** (~30 sec)
-
-- Show the main window, demonstrate a dropdown
-
-> "We reorganized the UI to reduce clutter.
-> Controls that are rarely needed during active measurement
-> are moved into dropdown menus — out of the way, but still accessible.
-> The main screen space is reserved for the signal and measurements."
-
----
-
-**System health and status** (~30 sec)
-
-- Point to the status bar
-
-> "The status bar always shows you whether the system is ready.
-> Sample rate, dropped block count, signal quality indicator —
-> all visible at a glance.
-> If something is wrong — the microphone is too far away,
-> or the signal is too noisy for a reliable measurement —
-> the system tells you before you waste time taking bad data."
-
----
-
-## 14:30 – 16:00 | Area 4 — Latency & Real-Time Evidence
+## 18:00 – 19:00 | Area 4 — Latency & Real-Time Evidence
 
 > "Let me show the system working in real time — not just claim it.
 > First — I'll turn on Developer Info."
@@ -430,7 +293,7 @@
 
 ---
 
-## 16:00 – 17:30 | Area 8 — Best UI Showcase (10 pts)
+## 19:00 – 22:00 | Area 8 — Best UI Showcase (10 pts)
 
 > "Now, the UI improvements."
 
@@ -502,7 +365,7 @@
 
 ---
 
-## 17:30 – 19:00 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
+## 22:00 – 24:00 | Bonus — Radar Chart + Diagnosis Classification (+15 pts)
 
 **Radar Chart** (~45 sec)
 
@@ -552,7 +415,7 @@
 
 ---
 
-## 19:00 – 20:00 | Buffer / Q&A
+## 24:00 – 25:00 | Buffer / Q&A
 
 - Handle evaluator questions
 - Re-demonstrate any item on request
@@ -618,14 +481,14 @@ Four DSP stages per beat cycle (125ms): Raw (HPF output, noisy), Smoothed (movin
 
 | Area | Points | Time Slot |
 |------|-------:|-----------|
-| Intro + UI Overview | — | 0:00 – 1:00 |
-| 1 — Watch-Position Testing + 2 — Base Graph Enhancements | 5+16 | 1:00 – 3:00 |
-| 1 — 11 Additional Graphs | 55 | 3:00 – 9:00 |
-| 2 — AI Feature | 9 | 9:00 – 10:00 |
-| 4 — Accuracy (Witschi comparison) | 25 | 10:00 – 12:30 |
-| 6 — GUI Modifications | 25 | 12:30 – 14:30 |
-| 4 — Latency & Real-Time Evidence | (supporting) | 14:30 – 16:00 |
-| 8 — Best UI | 10 | 16:00 – 17:30 |
-| Bonus — Radar Chart + Diagnosis | +15 | 17:30 – 19:00 |
-| Buffer / Q&A | — | 19:00 – 20:00 |
+| Intro + UI Overview | — | 0:00 – 1:30 |
+| 1 — Watch-Position Testing + 2 — Base Graph Enhancements | 5+16 | 1:30 – 6:30 |
+| 1 — 11 Additional Graphs | 55 | 6:30 – 13:00 |
+| 2 — AI Feature | 9 | 13:00 – 15:00 |
+| 4 — Accuracy (Witschi comparison) | 25 | 15:00 – 17:00 |
+| 6 — GUI Modifications | 25 | 17:00 – 18:00 |
+| 4 — Latency & Real-Time Evidence | (supporting) | 18:00 – 19:00 |
+| 8 — Best UI | 10 | 19:00 – 22:00 |
+| Bonus — Radar Chart + Diagnosis | +15 | 22:00 – 24:00 |
+| Buffer / Q&A | — | 24:00 – 25:00 |
 | **Total** | **145 + 15** | |
