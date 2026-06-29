@@ -364,26 +364,27 @@
 
 - Switch to Waveform tab
 
-> "Waveform Comparison stacks the last three beats one below the other —
-> all aligned to the same A event at time zero.
+> "Waveform Comparison stacks three consecutive beats one below the other,
+> all aligned to the A event at time zero.
 >
-> The top x-axis shows the balance wheel angle from A in degrees —
-> so you can read off where in the swing the C event happens.
-> Lift angle is 52 degrees, matching our Watch Parameters setting.
+> The blue vertical line on each panel is the A event — the moment the pallet fork strikes.
+> The yellow spike is the C event — the moment the escapement locks.
+> The time between them is t_AC — shown in each panel header.
+> t_AC is what we use to calculate amplitude.
 >
-> The blue vertical line on each panel marks the A event.
-> The yellow spike is the C event — the tac.
-> The t_AC value in each panel header is the measured A-to-C interval for that beat.
-> Beat 1: 131.85 ms. Beat 2: 131.82 ms. Beat 3: 131.86 ms.
+> The top x-axis shows the balance wheel angle —
+> how far the wheel has swung from A by the time C happens.
+> Lift angle is 52 degrees, matching our Watch Parameters.
 >
-> The header at the top summarizes the range —
-> min 131.82, max 131.86, sigma 0.01 milliseconds across all captured beats.
-> That 0.04 millisecond spread is what produces the Beat Error reading.
+> Notice that Beat 1 and Beat 3 have similar t_AC values,
+> while Beat 2 is slightly different.
+> That's because Beat 1 and 3 are Tic — the same direction of swing —
+> and Beat 2 is Toc — the other direction.
+> The small difference between Tic and Toc t_AC
+> is what drives the amplitude variation you see here.
 >
-> If the yellow spike shifts left or right between panels,
-> the timing is inconsistent beat to beat.
-> If the spike disappears in one panel, that beat was not detected —
-> a signal quality problem."
+> The summary line at the top shows min, max, and sigma across all beats.
+> A tight sigma means the watch is swinging consistently every beat."
 
 ---
 
