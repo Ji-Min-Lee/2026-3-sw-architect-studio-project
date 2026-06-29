@@ -264,9 +264,10 @@
 > Our measurements must match a reference device.
 > We're using the WeiShi No.1000 as that reference.
 >
-> I'm going to move the watch to the WeiShi now."
+> I'm going to move the watch to the WeiShi now — and take a measurement."
 
 - Detach watch from RPi sensor, move to WeiShi No.1000
+- Start measurement on WeiShi
 
 > "As soon as the watch is removed — the mic loses signal and a dialog appears.
 > The system notices immediately, no polling, no delay."
