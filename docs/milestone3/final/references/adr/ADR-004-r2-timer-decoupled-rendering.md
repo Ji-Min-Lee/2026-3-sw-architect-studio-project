@@ -47,11 +47,7 @@ to the UI thread — R3 needs significant redesign. Deferred to post-M3 review.
 
 ## Status
 
-Proposed
-
-Conditional on EXP-04 result (2026-06-26):
-- If EXP-04 confirms R1 sufficient (0% deadline miss under 11-tab load): **this ADR is withdrawn; ADR-002 remains Accepted**
-- If EXP-04 shows R1 insufficient (deadline miss > 0% persists): **this ADR transitions to Accepted; ADR-002 is Superseded**
+Withdrawn
 
 ## Consequences
 
@@ -63,6 +59,6 @@ Conditional on EXP-04 result (2026-06-26):
 - Rendering rate decoupled from BPH: consistent 20 FPS regardless of watch speed
 - `updateData()` implementations simplified (data model update only, no UI call)
 
-**If not adopted (R1 confirmed sufficient)**:
-- This ADR remains Proposed/Withdrawn — no implementation
-- ADR-002 continues as the active rendering decision
+**Not adopted — R1 confirmed sufficient**:
+- R1 (ADR-002) held 0% deadline miss under full tab load on RPi 5; R2 was not implemented.
+- ADR-002 remains the active rendering decision.
