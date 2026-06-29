@@ -248,10 +248,12 @@
 
 ## 17:00 – 18:00 | Area 6 — GUI Modifications (25 pts)
 
+
+> "Now I'm playing music next to the microphone — watch for the dialog that pops up."
+
 - Play music from phone near the microphone
 
-> "Now I'm playing music next to the microphone — high ambient noise.
-> The status bar flags it immediately. The graphs show the disruption.
+> "The graphs show the disruption.
 > Stop the noise — the system recovers on its own, no intervention needed."
 
 - Stop music
