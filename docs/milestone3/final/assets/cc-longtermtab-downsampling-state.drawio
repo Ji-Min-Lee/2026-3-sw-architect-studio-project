@@ -61,13 +61,13 @@
                 <mxCell id="e5" value="reset()" style="endArrow=open;endFill=0;html=1;strokeColor=#333333;strokeWidth=1.8;fontSize=10;" parent="1" source="coarse3" target="end" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="note1" value="Implementation source: LongTermTab::onMeasurement() recomputes mBucketSize every measurement event from elapsed time." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1e4d78;fontSize=10;align=left;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+                <mxCell id="note1" value="Implementation source: LongTermTab::onMeasurement() recomputes mBucketSize every measurement event from elapsed time." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#AAAAAA;fontSize=10;align=left;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
                     <mxGeometry x="100" y="210" width="420" height="52" as="geometry"/>
                 </mxCell>
-                <mxCell id="note2" value="ADR-007 claim: transitions are one-way inside a session, so late-session plot growth is predictable and bounded." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=left;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+                <mxCell id="note2" value="ADR-007 claim: transitions are one-way inside a session, so late-session plot growth is predictable and bounded." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#AAAAAA;fontSize=10;align=left;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
                     <mxGeometry x="860" y="370" width="400" height="52" as="geometry"/>
                 </mxCell>
-                <mxCell id="note3" value="QAS-6 consequence: once the session reaches bucket 60, the plotted history grows at a fixed coarse rate instead of raw-measurement rate." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+                <mxCell id="note3" value="QAS-6 consequence: once the session reaches bucket 60, the plotted history grows at a fixed coarse rate instead of raw-measurement rate." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#AAAAAA;fontSize=10;align=left;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
                     <mxGeometry x="860" y="690" width="400" height="52" as="geometry"/>
                 </mxCell>
             </root>
