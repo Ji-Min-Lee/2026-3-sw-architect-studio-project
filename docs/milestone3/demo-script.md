@@ -246,7 +246,10 @@
 > The vector database was built on a Windows server and deployed to the Pi.
 > Retrieval is pure cosine similarity over embeddings — no round-trip to the cloud."
 
-> "The badge shows [Excellent / Good / Needs Service].
+> "You can see the CPU usage climbing — up to around 80% during inference.
+> That's the LLM running on the Pi, no GPU, no cloud.
+>
+> The badge shows [Excellent / Good / Needs Service].
 > The explanation streams token by token.
 > You can follow up with a question — conversation history is maintained.
 > Ask something unrelated — it refuses. Watchmaking only."
