@@ -1504,6 +1504,7 @@ void MainWindow::SetGuiRunMode(void)
     ui->RefreshPushButton->setEnabled(false);
     ui->AveragingPeriodComboBox->setEnabled(false);
     ui->LiftAngleSpinBox->setEnabled(false);
+    ui->WatchTypeComboBox->setEnabled(false);
     ui->SimAmplitudeSpinBox->setEnabled(false);
     ui->SimBeatErrorSpinBox->setEnabled(false);
     ui->SimBPHComboBox->setEnabled(false);
@@ -1531,6 +1532,7 @@ void MainWindow::SetGuiStopMode(void)
         ui->SampleRatesComboBox->setEnabled(true);
     ui->AveragingPeriodComboBox->setEnabled(true);
     ui->LiftAngleSpinBox->setEnabled(true);
+    ui->WatchTypeComboBox->setEnabled(true);
     ui->BPHComboBox->setEnabled(true);
     ui->SimAmplitudeSpinBox->setEnabled(true);
     ui->SimBeatErrorSpinBox->setEnabled(true);
