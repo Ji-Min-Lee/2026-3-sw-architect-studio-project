@@ -395,21 +395,33 @@
 
 ## 14:30 – 16:00 | Area 4 — Latency & Real-Time Evidence
 
-> "Let me put some numbers on the real-time performance claims."
+> "Let me put some numbers on the real-time performance claims.
+> First — I'll turn on Developer Info."
 
-- Show log output or metrics panel
+- More 메뉴 → Developer Info 체크
 
-> "End-to-end latency — from the moment the microphone picks up a beat
-> to the moment the GUI updates — is 2.05 milliseconds on average on the RPi.
+> "This is a diagnostic overlay we built specifically for this demo —
+> it's hidden by default and would be excluded from a production release.
+> But it lets us show the system's internals live.
+>
+> The status bar now shows BG and DSP frame rate, samples per second,
+> and on the Raspberry Pi — CPU and memory usage in real time.
+> You can see the Pi handling audio capture, DSP, beat detection, and rendering
+> all at once — without saturating the CPU.
+>
+> Now the latency numbers.
+> End-to-end — from microphone to GUI update — is 2.05 milliseconds on average.
 > Our target was under 100 milliseconds. We're at 2.
 >
-> Dropped audio blocks at 96 kilohertz over a 10-minute session: zero.
+> Dropped audio blocks at 96 kHz over a 10-minute session: zero.
 >
 > Before our threading refactor, the DSP queue wait time was 77 milliseconds.
-> After separating DSP into its own thread,
-> it dropped to 0.03 milliseconds — that's a 2,600x improvement.
+> After separating DSP into its own thread, it dropped to 0.03 milliseconds —
+> a 2,600x improvement.
 >
-> All of this runs on the Raspberry Pi 5. Not a workstation."
+> All of this, live, on the Raspberry Pi 5."
+
+- More 메뉴 → Developer Info 체크 해제
 
 ---
 
