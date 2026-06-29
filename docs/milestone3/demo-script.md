@@ -155,284 +155,98 @@
 
 ## 3:00 – 9:00 | Area 1 — Additional Graph Displays (55 pts)
 
-> "Now the additional graph displays.
-> I'll navigate to each tab using the More button in the tab bar."
+> "Now the additional graph displays — eleven tabs total.
+> I'll go through each one quickly."
 
-- Click "More" to show the full tab list, then select Trace
-
----
-
-**① Trace Display** (~40 sec)
-
-- Switch to Trace tab
-
-> "Trace shows Rate and Amplitude as continuous lines over time —
-> the same measurements as Rate/Scope, but scrolling over a longer window.
->
-> The top panel is Rate Error in seconds per day.
-> Zero means perfect. Positive means running fast, negative means slow.
-> The blue line here is flat near zero — this watch is well regulated.
-> The header says 'Rate and amplitude within normal limits.'
->
-> The bottom panel is Amplitude in degrees.
-> The green flat line sitting at 302 degrees means the balance wheel
-> is swinging consistently at a healthy angle.
-> The background color bands tell you immediately how to interpret the value —
-> green zone is 270 to 310 degrees: strong.
-> Amber is 220 to 270: acceptable.
-> Red below 220 means the mainspring is running down
-> or there is friction — the watch needs service.
-> Right now we are firmly in the green zone."
+- Click "More" to show the full tab list
 
 ---
 
-**② Rate and Amplitude Stability — Vario** (~40 sec)
+**① Trace** — Switch to Trace tab
 
-- Switch to Vario tab
-
-> "Vario summarizes the entire session into a compact statistical view.
-> The large number at the top is the elapsed session time — here, 3 minutes 3 seconds.
->
-> The top half shows Rate.
-> Min, Max, Now, and sigma — all shown as colored text, and plotted as arrows on the scale below.
-> Blue arrows are the Min and Max, the red arrow is the current value.
-> The green background means all values are within tolerance.
-> Here: Min −3.5, Max 0.6, Now −0.4 seconds per day, sigma 0.3.
-> The checkmark confirms it's within acceptable range.
->
-> The bottom half shows Amplitude the same way.
-> Right now Min, Max, and Now are all 302 degrees with sigma zero —
-> perfectly stable.
->
-> If you see a wide spread between Min and Max,
-> the watch is behaving inconsistently —
-> probably warming up, or the mainspring tension is uneven."
+> "Rate and Amplitude as continuous scrolling lines.
+> Color bands show the tolerance zone — green is healthy, red means service needed.
+> Right now both are flat and green."
 
 ---
 
-**③ Multi-Position Sequence Display** (~45 sec)
+**② Vario** — Switch to Vario tab
 
-- Switch to Sequence tab
-
-> "Sequence is where all the position measurements come together.
-> Each row is one watch position —
-> CH is dial up, CB is dial down,
-> 9H is crown down, 6H is crown left, 3H is crown up, 12H is crown right.
-> The columns show Rate, Beat Error, and Amplitude for each position.
-> The currently active position is highlighted — right now 12H.
->
-> At the bottom, three summary rows:
-> X is the mean across all positions.
-> D is max minus min — the positional spread.
-> DVH is the difference between vertical and horizontal averages —
-> a key number for diagnosing balance and poising issues.
->
-> On the right, the Radar Chart plots Amplitude for each position
-> as a polygon on a circular grid.
-> A perfectly balanced watch would produce a near-perfect circle.
-> Deviations show exactly which positions are pulling the watch off.
-> The warning at the bottom tells you which position is worst
-> and what it likely means mechanically."
+> "Session summary at a glance — Rate and Amplitude as Min, Max, Now, and sigma.
+> Arrows on the scale show where the values land. Green background means within tolerance."
 
 ---
 
-**④ Beat Scope Display** (~45 sec)
+**③ Sequence** — Switch to Sequence tab
 
-- Switch to Beat Scope tab
-
-> "This display shows the acoustic waveform of a single beat — zoomed in to about 20 milliseconds.
-> Every mechanical watch produces two impacts per beat — we call them A and C.
-> The green dashed line marks the A event — the tic.
-> The red dashed line marks the C event — the tac.
-> The distance between those two lines, relative to the half-beat interval,
-> is what gives us Beat Error.
->
-> The bottom strip shows the last ten beats as thumbnails.
-> If every thumbnail looks the same shape and the two peaks land in the same spots,
-> the watch is consistent.
-> If the peaks shift or the waveform changes shape between beats,
-> something is off mechanically.
->
-> Right now you can see the green line at roughly 1.5 milliseconds
-> and the red line at roughly 12 milliseconds.
-> The gap between them is the measured A-to-C interval —
-> our system uses that to compute amplitude and beat error."
+> "All six watch positions in one table — Rate, Amplitude, Beat Error per position.
+> The Radar Chart on the right shows amplitude balance across positions.
+> A perfect circle means a perfectly balanced watch."
 
 ---
 
-**⑤ Beat Error** (~40 sec)
+**④ Beat Scope** — Switch to Beat Scope tab
 
-- Switch to Beat Error tab
-
-> "Beat Error has two panels.
->
-> The top panel shows Beat Error in milliseconds over time.
-> The purple line is the rolling Beat Error value.
-> The red dots are the tic timing offset, the blue dots are the toc timing offset.
-> The green background band is the tolerance zone — roughly 0 to 0.5 milliseconds.
-> As long as the purple line stays inside the green band, the watch is well adjusted.
-> Right now the line is flat near zero, well inside tolerance.
->
-> The bottom panel plots the same tic and toc offsets against beat number instead of time.
-> This lets you see whether the timing is drifting beat to beat,
-> or staying consistently at the same level.
-> Red and blue dots both sitting on zero means the tic and toc are perfectly even."
+> "Acoustic waveform of a single beat, zoomed to 20ms.
+> Green line is the A event, red is C. The gap gives us Beat Error and Amplitude.
+> The strip at the bottom shows the last ten beats — consistency check at a glance."
 
 ---
 
-**⑥ Long Term** (~45 sec)
+**⑤ Beat Error** — Switch to Beat Error tab
 
-- Switch to Long Term tab
-
-> "Long Term shows Rate, Amplitude, and Beat Error over time —
-> all three stacked, same time axis, with a mean line and one-sigma band on each.
->
-> The key design question for this tab was memory.
-> A watch session can run for hours, and if we store every single measurement,
-> the data grows without bound.
-> So we use bucket averaging — instead of plotting each point individually,
-> we average them into buckets and plot one point per bucket.
-> The bucket size grows automatically with the session length:
-> under 5 minutes, every measurement is plotted live.
-> Past 5 minutes, we average 10 measurements into one point.
-> Past 30 minutes, 30 into one. Past 2 hours, 60 into one.
->
-> The header always shows the current granularity —
-> so you know exactly how much compression is being applied.
-> The mean and sigma are computed on the full raw stream, not the bucketed points,
-> so the statistics stay accurate even as the display gets sparser.
->
-> The result: a session running all day fits in a few hundred data points per metric —
-> negligible memory, no performance cost, full session history."
+> "Beat Error over time, with the green tolerance band.
+> Red and blue dots are the Tic and Toc offsets — both near zero means the watch is well adjusted."
 
 ---
 
-**⑦ Escapement** (~40 sec)
+**⑥ Long Term** — Switch to Long Term tab
 
-- Switch to Escapement tab
-
-> "The Escapement display zooms into a single beat and measures the A-to-C interval directly.
->
-> The x-axis is time from the A event — from negative 2.5 milliseconds to about 11 milliseconds.
-> The green vertical line is the A event — the tic.
-> The red vertical line is the C event — T3 — the tac.
-> The amber shaded area between them is the measured interval.
-> Right now that interval is 6.84 milliseconds, labeled in the center.
->
-> At the top you can see two sigma values —
-> sigma peak is 0.012 milliseconds, sigma onset is also 0.012 milliseconds.
-> That means the system measured this interval 20 times
-> and the standard deviation is 0.012 milliseconds.
-> Sub-millisecond precision, consistent across every beat.
->
-> The waveform shows the actual acoustic signal —
-> the burst at A, quiet space in between, and the spike at C.
-> If that quiet space has extra bumps, the escapement is not releasing cleanly."
+> "Rate, Amplitude, and Beat Error over the full session — hours if needed.
+> To avoid unbounded memory growth, we use bucket averaging:
+> the data is compressed automatically as the session grows —
+> every measurement live for the first 5 minutes,
+> then averaged 10-into-1 past 5 min, 30-into-1 past 30 min, 60-into-1 past 2 hours.
+> The header shows the current granularity. Statistics stay accurate on the full raw stream."
 
 ---
 
-**⑧ Spectrogram** (~40 sec)
+**⑦ Escapement** — Switch to Escapement tab
 
-- Switch to Spectrogram tab
-
-> "This is the Spectrogram — it shows the watch sound split into time and frequency at the same time.
->
-> X-axis is time, left to right. This window covers one second.
-> Y-axis on the left is frequency — low sounds at the bottom, high sounds at the top, up to 20,000 Hz.
-> The color bar on the right is the legend — it tells you what each color means in loudness.
-> Yellow is loud, around minus 20 dB. Teal is medium. Purple is quiet, minus 60 dB or below.
->
-> Now look at the graph.
-> You can see vertical stripes repeating at regular intervals — about every 125 milliseconds.
-> Each stripe is one beat. Eight stripes in one second — that's exactly 28,800 BPH.
->
-> Each stripe is wide and tall — it covers almost the entire frequency range,
-> from a few hundred hertz all the way to 20 kilohertz.
-> That wide spread is the signature of a sharp mechanical impact.
-> A soft or gradual sound only appears in a narrow band.
-> An escapement strike hits everything at once.
->
-> The green bar at the top is the signal strength meter —
-> green means the microphone is picking up the watch clearly.
-> If a part were loose or worn, you would see an extra stripe
-> appearing between the regular beats, or a smeared blurry pattern
-> instead of these clean vertical lines."
+> "Zooms into the A-to-C interval of a single beat — the amber shaded region.
+> Shows the exact timing with sub-millisecond sigma across repeated measurements."
 
 ---
 
-**⑨ Waveform** (~40 sec)
+**⑧ Spectrogram** — Switch to Spectrogram tab
 
-- Switch to Waveform tab
-
-> "Waveform Comparison stacks three consecutive beats one below the other,
-> all aligned to the A event at time zero.
->
-> The blue vertical line on each panel is the A event — the moment the pallet fork strikes.
-> The yellow spike is the C event — the moment the escapement locks.
-> The time between them is t_AC — shown in each panel header.
-> t_AC is what we use to calculate amplitude.
->
-> There are two x-axes on each panel — same window, two units.
-> The bottom axis is time in milliseconds — how long since the A event.
-> The top axis is balance wheel rotation in degrees —
-> the same time converted to how far the wheel has swung.
-> So if C happens at 8ms, we can also read off that the wheel was at 23 degrees at that moment.
-> That's how we reverse-calculate amplitude from timing alone.
->
-> Notice that Beat 1 and Beat 3 have similar t_AC values,
-> while Beat 2 is slightly different.
-> That's because Beat 1 and 3 are Tic — the same direction of swing —
-> and Beat 2 is Toc — the other direction.
->
-> The summary line at the top shows min, max, and sigma across all beats.
-> A tight sigma means the watch is swinging consistently every beat."
+> "Watch sound split into time and frequency.
+> Vertical stripes are the beats — 8 per second at 28800 BPH, each spanning the full frequency range.
+> That wide spread is the fingerprint of a sharp mechanical impact.
+> Green bar at the top is signal strength — green means the microphone is picking up clearly."
 
 ---
 
-**⑩ Sweep** (~40 sec)
+**⑨ Waveform** — Switch to Waveform tab
 
-- Switch to Sweep tab
-
-> "Sweep mode stacks every 250-millisecond window on top of each other.
-> At 28800 BPH one tick is 125 ms, so a 2-tick window covers exactly 250 ms —
-> and you see two spikes per window: the Tic around 90 ms, the Toc around 215 ms.
->
-> Every time a new window is captured, it is drawn on top of the previous one.
-> If the watch is on rate, each tick lands at the exact same position every time —
-> the spikes stack up and look sharp and tall.
-> If the watch is running fast, each new window's tick lands a little to the left —
-> the spikes spread out and look wide and blurry.
->
-> Here both spikes are narrow and sharp — the rate is stable.
->
-> The header confirms: Daily Rate −0.4 s/d, Amplitude 302°, Beat Error 1.00 ms."
+> "Three consecutive beats stacked and aligned to the A event.
+> Blue line is A, yellow spike is C — the t_AC interval between them is how we calculate amplitude.
+> Tight sigma across all three beats means the watch is swinging consistently."
 
 ---
 
-**⑪ Filter Scope** (~40 sec)
+**⑩ Sweep** — Switch to Sweep tab
 
-- Switch to Filters tab
+> "Overlays every 250ms window on top of each other.
+> If the watch is on rate, the spikes stack sharp and narrow.
+> If it's drifting, the spikes spread out. Here — sharp. Rate is stable."
 
-> "Filter Scope shows one full beat cycle — 125 milliseconds, 3803 samples —
-> through four different filter stages stacked vertically.
->
-> The top panel is Raw — the unprocessed high-pass filtered signal.
-> You can see the beat event as a sharp spike around 50 to 60 milliseconds.
-> But it's noisy — hard to pinpoint the exact moment.
->
-> The second panel is Smoothed — a moving average applied on top of the raw signal.
-> The event shape is now cleaner and easier to read.
->
-> The third panel is Envelope — the absolute value of the smoothed signal.
-> This removes the negative half and shows only the energy profile.
->
-> The fourth panel is Upper Envelope — a single clean positive spike.
-> This is what the beat detector actually sees.
-> One unambiguous peak, no noise, no false triggers.
->
-> Each stage makes the signal easier to detect reliably.
-> This view lets us verify that the filter chain is working correctly —
-> and helped us tune the High Pass Cutoff parameter during development."
+---
+
+**⑪ Filter Scope** — Switch to Filters tab
+
+> "Shows the signal through four DSP stages — Raw, Smoothed, Envelope, Upper Envelope.
+> Each stage removes noise until one clean unambiguous spike reaches the beat detector."
 
 ---
 
@@ -739,6 +553,47 @@
 - [ ] HDMI output confirmed on external display
 - [ ] Backup laptop with compiled binary ready
 - [ ] Multiple measurements already taken and visible in Trace / Long-Term for consistency demo
+
+---
+
+---
+
+## Q&A Reference — Graph Explanations (Deep Dive)
+
+> Use these if a professor asks for more detail on any tab.
+
+### Trace
+Rate Error (s/d) top panel — zero is perfect, positive is fast, negative is slow. Amplitude bottom panel with color bands: green 270–310° (strong), amber 220–270° (acceptable), red below 220° (needs service). Line flat and green = well regulated.
+
+### Vario
+Session-wide statistics — Min, Max, Now, sigma for both Rate and Amplitude. Arrows plotted on a scale. Wide spread between Min and Max means the watch is inconsistent — warming up or uneven mainspring tension.
+
+### Sequence
+Six positions: CH (dial up), CB (dial down), 9H (crown down), 6H (crown left), 3H (crown up), 12H (crown right). Summary rows: X = mean, D = max−min spread, DVH = vertical minus horizontal average — key for diagnosing balance and poising issues. Radar Chart on the right: amplitude per position as a polygon — a perfect circle is a perfectly balanced watch.
+
+### Beat Scope
+20ms zoom into one beat. Green dashed line = A event (tic), red dashed line = C event (tac). Distance between them relative to half-beat period = Beat Error. Strip at the bottom = last ten beat thumbnails — if shapes shift or peaks move, something is off mechanically.
+
+### Beat Error
+Top panel: Beat Error over time with green tolerance band (0–0.5ms). Purple line = rolling value. Red dots = tic offset, blue dots = toc offset. Bottom panel: same offsets vs beat number — shows whether drift is consistent or random.
+
+### Long Term
+Three stacked panels (Rate, Amplitude, Beat Error) over the full session. Bucket averaging keeps memory bounded: live for first 5 min, then 10-into-1 past 5 min, 30-into-1 past 30 min, 60-into-1 past 2 hours. Mean and sigma computed on the full raw stream, not the bucketed points — statistics stay accurate. A full-day session fits in a few hundred points per metric.
+
+### Escapement
+Zoomed view of one beat aligned to the A event (x from −2.5ms to ~11ms). Green line = A event, red line = C event, amber shaded area = measured A-to-C interval. Sigma peak and sigma onset shown at top — sub-millisecond precision across repeated measurements. Extra bumps in the quiet zone between A and C = escapement not releasing cleanly.
+
+### Spectrogram
+X = time (1 second window), Y = frequency (0–20kHz), color = loudness (yellow = loud ~−20dB, purple = quiet ~−60dB). Vertical stripes = beats — 8 per second at 28800 BPH. Wide frequency spread per stripe = signature of a sharp mechanical impact. Extra stripe between beats or smeared pattern = loose or worn part. Green bar at top = signal strength meter.
+
+### Waveform Comparison
+Three consecutive beats stacked and aligned to the A event at t=0. Blue line = A event, yellow spike = C event. t_AC = A-to-C interval per beat, used to calculate amplitude. Two x-axes: bottom in ms, top in balance wheel degrees (same window, two units). Beat 1 and 3 are Tic, Beat 2 is Toc — slight t_AC difference between them is expected. Summary line shows min/max/sigma across all beats.
+
+### Sweep
+Overlays every 250ms window (2 ticks at 28800 BPH) on top of each other. On-rate = spikes stack sharp. Running fast = spikes drift left and spread. Running slow = drift right. Persistence-oscilloscope principle — more windows = sharper stack if rate is stable.
+
+### Filter Scope
+Four DSP stages per beat cycle (125ms): Raw (HPF output, noisy), Smoothed (moving average, cleaner shape), Envelope (absolute value, energy profile), Upper Envelope (single clean positive spike for detection). Each stage removes noise. Used to verify filter chain and tune High Pass Cutoff during development.
 
 ---
 
