@@ -1075,13 +1075,15 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
         QFile memFile("/proc/meminfo");
         if (memFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
             quint64 memTotal = 0, memAvail = 0;
-            QTextStream ts(&memFile);
-            while (!ts.atEnd()) {
-                QString line = ts.readLine();
-                if (line.startsWith(QLatin1String("MemTotal:")))
-                    memTotal = line.mid(9).trimmed().section(QLatin1Char(' '), 0, 0).toULongLong();
-                else if (line.startsWith(QLatin1String("MemAvailable:")))
-                    memAvail = line.mid(13).trimmed().section(QLatin1Char(' '), 0, 0).toULongLong();
+            while (!memFile.atEnd()) {
+                const QString line = memFile.readLine().trimmed();
+                const QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+                if (parts.size() >= 2) {
+                    if (parts[0] == QLatin1String("MemTotal:"))
+                        memTotal = parts[1].toULongLong();
+                    else if (parts[0] == QLatin1String("MemAvailable:"))
+                        memAvail = parts[1].toULongLong();
+                }
                 if (memTotal && memAvail) break;
             }
             memFile.close();
