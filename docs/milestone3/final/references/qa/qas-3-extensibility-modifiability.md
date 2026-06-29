@@ -1,8 +1,5 @@
 # QAS-3: Extensibility, Modifiability — Priority 3 (Execution Enabler)
 
-> M1 name: "Extensibility (QAS-5)". M2: uses exact Project Plan terminology "Extensibility, Modifiability".
-> M1 status: Provisional (post-refactoring). M2 status: ✅ Verified by 06/22.
-
 | Field | Detail |
 |-------|--------|
 | **Source** | Developer (adding a new graph display tab) |

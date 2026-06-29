@@ -1,7 +1,5 @@
 # QAS-1: Real-Time Performance
 
-**Importance**: H · **Complexity**: H
-
 | Field | Detail |
 |-------|--------|
 | **Source** | Mechanical watch placed on microphone |

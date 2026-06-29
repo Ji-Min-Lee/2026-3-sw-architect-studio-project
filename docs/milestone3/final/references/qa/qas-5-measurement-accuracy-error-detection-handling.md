@@ -1,9 +1,5 @@
 # QAS-5: Measurement Accuracy, Error Detection, and Handling — Priority 5 (Usability)
 
-> This QA did not exist explicitly in M1. Promoted from "Correctness (QAS-3 M1)" to Priority 1 / governing goal in M2. Reclassified in M3 to **Priority 5 / Usability** — it is the user-facing outcome that structural QAs 1–4 collectively enable.
-
-**Note on scope:** "Accuracy" is the overarching project goal, not a standalone architectural QA. The structural QAs (QAS-1 through QAS-4) each represent an architectural decision made *in service of* that goal. This scenario captures the user-observable result: can the user trust the displayed values? Verification is empirical (EXP-06), not structural.
-
 | Field | Detail |
 |-------|--------|
 | **Source** | Mechanical watch under measurement |
@@ -12,3 +8,5 @@
 | **Environment** | Raspberry Pi 5, Live mode, 96kHz sample rate, normal operating temperature |
 | **Response** | Rate (s/d), Amplitude (°), Beat Error (ms), BPH computed and displayed in all views |
 | **Measure** | Δ Rate < 0.3 s/d vs. Witschi No.1000; Δ Amplitude < 0.01°; Δ Beat Error = 0 ms; deviation = 0 across all graph tabs showing the same metric (see EXP-06 for protocol) |
+
+**Note on scope:** "Accuracy" is the overarching project goal, not a standalone architectural QA. The structural QAs (QAS-1 through QAS-4) each represent an architectural decision made *in service of* that goal. This scenario captures the user-observable result: can the user trust the displayed values? Verification is empirical (EXP-06), not structural.

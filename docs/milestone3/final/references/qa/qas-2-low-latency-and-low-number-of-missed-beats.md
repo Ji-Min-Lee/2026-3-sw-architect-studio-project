@@ -1,7 +1,5 @@
 # QAS-2: Low Latency and Low Number of Missed Beats
 
-**Importance**: H · **Complexity**: M
-
 | Field | Detail |
 |-------|--------|
 | **Source** | Mechanical watch placed on microphone |

@@ -3,8 +3,6 @@
 This scenario protects the Long-Term Performance Graph from one failure mode: a multi-day
 session keeps appending points until the GUI becomes slow or unreadable.
 
-> Status: ✅ Verified analytically on 2026-06-25. See EXP-07 for the point-count bound.
-
 | Field | Detail |
 |-------|--------|
 | **Source** | End user running a multi-hour or multi-day aging test |

@@ -1,8 +1,5 @@
 # QAS-4: Correctness — Priority 4
 
-> M1 name: "Correctness (QA-C2)". M2 refactor: split into signal quality (this) and accuracy goal (QAS-1).
-> M1 status: Provisional (pending EXP-04). M2 status: ✅ Verified 06/17 — onset=0.08, min_peak=0.10 confirmed.
-
 Correctness is not a standard Bass/CMK Quality Attribute. Its three sub-requirements
 each map to a different QA lens [Bass21]:
 
