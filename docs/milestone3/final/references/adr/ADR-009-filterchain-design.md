@@ -94,8 +94,10 @@ in varied environments while preserving measurement accuracy.
 
 Accepted
 
-Implemented in `src/external/Dsp.h` / `Dsp.cpp`.
-Default parameters verified via EXP-04 (274 runs, onset=0.08, min_peak=0.10 confirmed):
+## Consequences
+
+**Positive**:
+- Default parameters verified via EXP-04 (274 runs): `onset=0.08`, `min_peak=0.10` confirmed.
 
 | onset | 0–50 dB SNR | 60 dB SNR |
 |-------|:-----------:|:---------:|
@@ -103,12 +105,7 @@ Default parameters verified via EXP-04 (274 runs, onset=0.08, min_peak=0.10 conf
 | 0.05 | stable (+4.1–4.2 s/d) | ❌ −393 s/d |
 | **0.08** ✅ | **stable (+3.9–4.1 s/d)** | **+7.5 s/d** |
 
-`onset=0.08` is the only value that maintains tracking at 60 dB SNR.
-`min_peak` has negligible effect within the `onset=0.08` group; `0.10` selected for lowest Beat Error.
-
-## Consequences
-
-**Positive**:
+`onset=0.08` is the only value that maintains tracking at 60 dB SNR. `min_peak=0.10` selected for lowest Beat Error within this group.
 - A and C events remain distinguishable as separate envelope peaks at all supported BPH
   rates (18,000–43,200 BPH); amplitude computation requires both
 - Two-stage pipeline is stateless between beats (reset on session start); no accumulated

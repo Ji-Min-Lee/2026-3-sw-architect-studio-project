@@ -75,8 +75,6 @@ Selected combination **T2 + R1** confirmed by EXP-01 on both macOS and RPi (E2-5
 
 Accepted
 
-RPi R5 confirmation scheduled: 2026-06-23.
-
 ## Consequences
 
 **Positive**:

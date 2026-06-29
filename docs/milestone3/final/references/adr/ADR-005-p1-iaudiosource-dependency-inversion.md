@@ -82,9 +82,6 @@ blocks; and retains the per-mode wiring divergence risk.
 
 Accepted
 
-Implemented as part of the P1 refactor series (i1: `SessionController` extraction,
-i6: `AudioManager` dead-code removal).
-
 ## Consequences
 
 **Positive**:

@@ -124,12 +124,10 @@ We mitigate this risk by three means, each corresponding to a Ch.12 testability 
 
 Accepted
 
-All 14 tabs implemented and registered using this pattern. Verified: no tab touches
-`MeasurementEngine`, `SessionController`, or any layer below Presentation.
-
 ## Consequences
 
 **Positive**:
+- All 14 tabs implemented and registered using this pattern; no tab touches `MeasurementEngine`, `SessionController`, or any layer below Presentation.
 - Parallel tab development across sprint team members with zero merge conflicts at the
   tab boundary — each developer works in their own `.h`/`.cpp` pair
 - R1 Lazy Rendering (ADR-002) is enforced at the base class level; `showEvent()` catch-up

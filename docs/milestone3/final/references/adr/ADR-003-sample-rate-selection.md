@@ -48,9 +48,6 @@ Deferred unless EXP-06 produces an unexpectedly favorable result.
 
 Accepted
 
-EXP-06 RPi result confirmed — [EXP-06: Verifying Sustained High-Resolution Sampling on RPi 5 for Beat Error Timestamp Resolution](../experiments/exp-01-realtime-dropped-block.md).
-Transitioned from Proposed to Accepted on 2026-06-15 (2 days ahead of target).
-
 ## Consequences
 
 **Option A (96kHz) adopted**:
