@@ -1,6 +1,6 @@
 # EXP-07: Long-Term Aging Test — Bucket Downsampling Efficiency
 
-**QA**: QAS-6 | **Status**: ✅ Done (analytical verification, 2026-06-25)
+**QA**: QAS-6 | **Status**: ✅ Done (2026-06-25)
 
 ---
 
@@ -59,7 +59,7 @@ evidence, but it is not required to justify the architectural pass.
 
 ## Status
 
-✅ Done (analytical verification, 2026-06-25)
+✅ Done (2026-06-25)
 
 ## Expected Outcomes
 

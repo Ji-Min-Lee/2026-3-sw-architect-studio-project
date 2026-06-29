@@ -1,6 +1,6 @@
 # EXP-08: Tab Expansion File-Change Cost
 
-**QA**: QAS-3 (Extensibility, Modifiability) | **Risk**: TR-08 | **Status**: ✅ Concluded (2026-06-21)
+**QA**: QAS-3 (Extensibility, Modifiability) | **Status**: ✅ Done (2026-06-21)
 
 ---
 
@@ -22,7 +22,7 @@ This directly tests whether the 4-layer allowed-to-use structure and `BaseGraphT
 
 ## Status
 
-Concluded
+✅ Done (2026-06-21)
 
 ---
 
