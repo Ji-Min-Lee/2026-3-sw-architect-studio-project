@@ -82,5 +82,4 @@ Completed 2026-06-21 (W3 S1 final batch confirmed).
 
 ## Links
 
-- Full run history: [experiment-results.md](experiment-results.md)
 - Analysis tool: `src/tools/analyze_log.py`

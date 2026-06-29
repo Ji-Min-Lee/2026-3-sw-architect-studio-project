@@ -84,5 +84,4 @@ rate for the rest of the session.
 
 ## Links
 
-- Full run history: [experiment-results.md](experiment-results.md)
 - Analysis tool: `src/tools/analyze_log.py`

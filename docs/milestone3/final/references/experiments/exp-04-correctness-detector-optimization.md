@@ -33,5 +33,4 @@ WAV source: 28,800 BPH real recording + pink noise (96 kHz, float32). Platform: 
 
 ## Links
 
-- Full run history: [experiment-results.md](experiment-results.md)
 - Analysis tool: `src/tools/analyze_log.py`

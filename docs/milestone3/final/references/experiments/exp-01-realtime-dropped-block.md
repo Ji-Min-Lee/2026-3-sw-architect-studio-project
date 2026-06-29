@@ -47,5 +47,4 @@ Platform: RPi (host=lg1), 5 min/sps, 30 s ring buffer. Deadline: 48k=42.67 ms ·
 ## Links
 
 - Risk resolved: [TR-01](../risks.md)
-- Full run table: [experiment-results.md](experiment-results.md#exp-01-rpi-real-time-performance--dropped-block-measurement)
 - Log directory: `src/logs/EXP-01/`

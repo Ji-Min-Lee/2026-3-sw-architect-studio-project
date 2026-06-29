@@ -343,7 +343,7 @@ All risks are resolved as of M3. The architecture is ready for final demo.
 - [QA Scenarios](qa/README.md)
 - [ADR-007](adr/ADR-007-longtermtab-downsampling.md) · [ADR-008](adr/ADR-008-watchmath-module-isolation.md) · [ADR-009](adr/ADR-009-filterchain-design.md)
 - [Architecture Views](../views/README.md)
-- [Experiment Results](experiments/experiment-results.md)
+- [Experiments](experiments/README.md)
 - [Risk Register](risks.md)
 
 ## References

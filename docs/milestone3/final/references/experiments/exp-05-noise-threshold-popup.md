@@ -60,5 +60,4 @@ The 55 dB value was chosen because:
 
 ## Links
 
-- Full run history: [experiment-results.md](experiment-results.md)
 - Analysis tool: `src/tools/analyze_log.py`

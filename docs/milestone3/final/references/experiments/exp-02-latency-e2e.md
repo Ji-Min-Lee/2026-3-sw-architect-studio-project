@@ -41,5 +41,4 @@ DSP E2E avg **2.2 ms** / max **4.8 ms** — within QAS-2 target (< 100 ms).
 
 ## Links
 
-- Full run history: [experiment-results.md](experiment-results.md#exp-02-end-to-end-latency--2-segment-timestamp-measurement)
 - Analysis tool: `src/tools/analyze_log.py`

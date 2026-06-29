@@ -49,31 +49,31 @@ and complements the stakeholder-oriented view separation popularized by the 4+1 
 <tr>
   <td align="center">
     <a href="references/views/view-layered-4layer.md">Layered and Module Decomposition<br>
-    <img src="assets/layered-view.png" width="200"></a>
+    <img src="assets/layered-view.png" width="500"></a>
   </td>
   <td align="center">
     <a href="references/views/view-cc-dsp-pipeline.md">DSP Pipeline Thread Model View<br>
-    <img src="assets/cc-dsp-pipeline.png" width="200"></a>
+    <img src="assets/cc-dsp-pipeline.png" width="500"></a>
   </td>
 </tr>
 <tr>
   <td align="center">
     <a href="references/views/view-decomposition-graph-tab.md">Graph Tab Module Uses View<br>
-    <img src="assets/module-uses-graph-tab-decomposition.png" width="200"></a>
+    <img src="assets/module-uses-graph-tab-decomposition.png" width="500"></a>
   </td>
   <td align="center">
     <a href="references/views/view-iaudiosource.md">IAudioSource Dependency Inversion View<br>
-    <img src="assets/module-iaudiosource.png" width="200"></a>
+    <img src="assets/module-iaudiosource.png" width="500"></a>
   </td>
 </tr>
 <tr>
   <td align="center">
     <a href="references/views/view-longtermtab-downsampling.md">LongTermTab Downsampling Decomposition View<br>
-    <img src="assets/module-decomposition-longtermtab.png" width="200"></a>
+    <img src="assets/module-decomposition-longtermtab.png" width="500"></a>
   </td>
   <td align="center">
     <a href="references/views/view-deployment-build-pipeline.md">Raspberry Pi Deployment View<br>
-    <img src="assets/deployment-raspberry-pi.png" width="200"></a>
+    <img src="assets/deployment-raspberry-pi.png" width="500"></a>
   </td>
 </tr>
 </table>
@@ -95,11 +95,11 @@ including utility tree, sensitivity points, tradeoff points, and risk themes.
 <tr>
   <td align="center">
     <a href="references/atam-evaluation-m2.md">ATAM Utility Tree<br>
-    <img src="assets/atam-utility-tree.png" width="200"></a>
+    <img src="assets/atam-utility-tree.png" width="500"></a>
   </td>
   <td align="center">
     <a href="references/atam-evaluation-m2.md">ATAM Before / After<br>
-    <img src="assets/atam-before-after.png" width="200"></a>
+    <img src="assets/atam-before-after.png" width="500"></a>
   </td>
 </tr>
 </table>
@@ -121,10 +121,6 @@ resolve identified risks before committing to design choices.
 | [EXP-06](references/experiments/exp-06-accuracy-witschi-comparison.md) | Accuracy vs. Witschi Reference Device | QAS-5 | ✅ Done |
 | [EXP-07](references/experiments/exp-07-longterm-aging.md) | Long-Term Aging Test — Bucket Downsampling Efficiency | QAS-6 | ✅ Done |
 | [EXP-08](references/experiments/exp-08-tab-expansion-file-change-cost.md) | Tab Expansion File-Change Cost | QAS-3 | ✅ Done |
-
-See [planned-experiments.md](references/experiments/planned-experiments.md) for the
-original experiment plan and rationale. Consolidated results are in
-[experiment-results.md](references/experiments/experiment-results.md).
 
 ---
 
@@ -229,8 +225,7 @@ docs/milestone3/final/
     ├── lessons-learned.md                ← team retrospective
     ├── views/                            ← architecture view index + detailed view files (8 views)
     ├── experiments/                      ← experiment files (EXP-01 ~ EXP-08)
-    │   ├── planned-experiments.md        ← original experiment plan
-    │   └── experiment-results.md         ← consolidated results summary
+    │   └── README.md                     ← experiment index and QA traceability
     ├── adr/                              ← ADR files (ADR-001 ~ ADR-009)
     ├── ai/                               ← AI usage log
     └── architecture-drivers/                      ← functional requirements and constraints
