@@ -207,15 +207,18 @@
 > Verdict: Excellent, Good, or Needs Service.
 >
 > Second — a local LLM via Ollama on this Raspberry Pi. No internet, no cloud.
-> It explains the verdict in plain English — why, likely mechanical cause, what to service.
-> Before answering, it runs RAG retrieval over a local knowledge base:
-> Witschi training course, Chronoscope X1 manual, our own domain docs.
-> The LLM also receives additional signals beyond the three core metrics —
-> Tic/Toc asymmetry, rate jitter, escapement variation — for richer context.
->
-> Let me trigger a diagnosis now."
+> Let me trigger a diagnosis now — I'll explain what's happening while it runs."
 
 - Trigger diagnosis
+
+> "The LLM receives Rate, Amplitude, and Beat Error —
+> plus additional signals: Tic/Toc asymmetry, rate jitter, escapement variation.
+> Richer input, more specific explanation.
+>
+> Before generating, it runs RAG retrieval over a local knowledge base —
+> Witschi training course, Chronoscope X1 manual, our own domain docs.
+> The vector database was built on a Windows server and deployed to the Pi.
+> Retrieval is pure cosine similarity over embeddings — no round-trip to the cloud."
 
 > "The badge shows [Excellent / Good / Needs Service].
 > The explanation streams token by token.
