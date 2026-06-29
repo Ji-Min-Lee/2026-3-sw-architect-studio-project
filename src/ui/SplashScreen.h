@@ -17,7 +17,7 @@ public:
     bool isAnimationComplete() const;
     void requestSkip();
 
-    static constexpr int kDurationMs = 4000;
+    static constexpr int kDurationMs = 5000;
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -36,7 +36,9 @@ private:
     void drawCornerBrackets(QPainter &p, const QRectF &card, qreal progress) const;
     void drawScopePanel(QPainter &p, const QRectF &card, qreal progress) const;
     void drawWaveform(QPainter &p, const QRectF &panel, qreal progress) const;
+    void drawEventMarkers(QPainter &p, const QRectF &panel, qreal progress) const;
     void drawBranding(QPainter &p, const QRectF &card, qreal progress) const;
+    void drawHudReadout(QPainter &p, const QRectF &card, qreal progress) const;
     void drawStatusBar(QPainter &p, const QRectF &card, qreal progress) const;
 
     QFont hudFont(int pixelSize, bool bold = false) const;
