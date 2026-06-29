@@ -24,7 +24,27 @@
 > Color coded: green is good, amber is borderline, red needs attention.
 > AI Diagnosis badge in the top-right corner.
 >
-> The status bar also shows the session state.
+> Control panel parameters: Mode — Live, Playback, or Sim.
+> BPH — beats per hour, or auto-detect.
+> Sample Rate — we set this to 96000 Hz.
+> Lift Angle — 52 degrees, the mechanical constant for amplitude calculation.
+> Watch Type — Men or Women, changes the rate tolerance thresholds.
+> Microphone volume slider."
+
+- Click Mode → Sim to show SimFrame
+
+> "Switching to Sim reveals a simulation BPH panel — useful for testing without a real watch.
+> We'll keep it on Live for the demo."
+
+- Switch back to Live, click Advanced
+
+> "Advanced expands two more options:
+> AI Model — selects which Ollama LLM to use for diagnosis.
+> Auto H↔V position — automatically switches the position label between horizontal and vertical based on the signal."
+
+- Collapse Advanced
+
+> "The status bar also shows the session state.
 > Ready before you start. Acquiring while collecting beats for a diagnosis.
 > Running once locked in. Paused when graphs are frozen."
 
