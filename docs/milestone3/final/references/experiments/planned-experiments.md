@@ -300,11 +300,3 @@ All 14 tabs added within the ≤ 3-file budget. No Domain / Signal Processing / 
 | Evidence | Git history (W2 S1 → W3 S1), DSM, `TestAddedTabs`, `TestGraphTabs` |
 | ADR | [ADR-006: BaseGraphTab Observer Pattern](../adr/ADR-006-basegraphtab-observer-pattern.md) |
 | Full write-up | [exp-08-tab-expansion-file-change-cost.md](exp-08-tab-expansion-file-change-cost.md) |
-
----
-
-## Deferred
-
-| Item | Reason | Target |
-|------|--------|--------|
-| BPH Escalation (36k / 43k BPH) | Blocked until all 28,800 BPH QA targets confirmed | Post-M3 |
