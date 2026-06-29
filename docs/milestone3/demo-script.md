@@ -204,7 +204,6 @@
 - Detach watch from RPi sensor, move to WeiShi No.1000
 
 > "As soon as the watch is removed — the mic loses signal and a dialog appears.
-> This is the same hardware detection we just showed in the GUI section.
 > The system notices immediately, no polling, no delay."
 
 - Place watch on WeiShi, let it run briefly, read WeiShi values
