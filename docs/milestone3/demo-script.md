@@ -9,7 +9,12 @@
 
 > "Good morning. We are Team Blue Sky."
 
+- Set Sample Rate to 96000 Hz, Mode to Extended
 - Launch TimeGrapher, press F11
+
+> "Before we start — sample rate is 96000 Hz, Extended mode.
+> 192000 Hz gives higher resolution but slows down after a few minutes on the Pi.
+> 96000 Hz Extended is the stable sweet spot for a live demo."
 
 > "On startup the app reads the screen resolution and sizes itself automatically.
 > F11 for fullscreen — hopefully everyone can see that.
@@ -185,8 +190,14 @@
 ## 13:00 – 15:00 | Area 2 — AI Feature (9 pts)
 
 - More → Developer Info (check)
+- Lower Sample Rate to 44100 Hz before triggering diagnosis
 
-> "I'll keep Developer Info on for this section — watch the CPU usage as the LLM runs."
+> "Turning on Developer Info so you can watch CPU during inference.
+> I'm also dropping the sample rate to 44100 Hz here —
+> the LLM and RAG retrieval are CPU-heavy, and the Pi has to share resources.
+> This is a real tradeoff: higher sample rate means better signal resolution,
+> but the LLM needs headroom to run without dropping frames.
+> Lower sample rate, faster inference, less memory pressure — pick two."
 
 - Switch to AI Diagnosis panel (Ctrl+D)
 
@@ -212,6 +223,7 @@
 
 - Type a follow-up question
 - More → Developer Info (uncheck)
+- Restore Sample Rate to 96000 Hz Extended
 
 ---
 
