@@ -193,6 +193,7 @@
 - Lower Sample Rate to 44100 Hz before triggering diagnosis
 
 > "Turning on Developer Info so you can watch CPU during inference.
+> By the way — this overlay is hidden by default, built for this demo, and would be excluded from a production release.
 > I'm also dropping the sample rate to 44100 Hz here —
 > the LLM and RAG retrieval are CPU-heavy, and the Pi has to share resources.
 > This is a real tradeoff: higher sample rate means better signal resolution,
@@ -309,10 +310,7 @@
 
 - More → Developer Info (check)
 
-> "This overlay is hidden by default — built for this demo,
-> and would be excluded from a production release.
->
-> You can see two counters: BG and DSP.
+> "You can see two counters: BG and DSP.
 > BG is the background audio thread — it captures raw audio from the microphone.
 > DSP is the signal processing thread — it detects beats and computes measurements.
 > They run independently on separate threads.
