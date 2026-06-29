@@ -1,7 +1,5 @@
 # Design Constraints — TimeGrapher
 
-**Team**: Blue Sky (Team 3) | **Milestone**: M3 | **Date**: 2026-06-30
-
 Design Constraints = already-decided design decisions. Not subject to architectural discussion; cannot be changed.
 
 | Constraint | Detail | Rationale |
