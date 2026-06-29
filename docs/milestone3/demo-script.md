@@ -393,21 +393,19 @@
 
 - Switch to Sweep tab
 
-> "Sweep mode shows multiple beats across one continuous time axis.
-> The window is currently set to 4 ticks — so you see 4 complete beat events
-> spread across 500 milliseconds.
+> "Sweep mode stacks every 250-millisecond window on top of each other.
+> At 28800 BPH one tick is 125 ms, so a 2-tick window covers exactly 250 ms —
+> and you see two spikes per window: the Tic around 90 ms, the Toc around 215 ms.
 >
-> Each pair of spikes is one beat — the first spike is the A event, the second is C.
-> The spacing between pairs is the beat period — here about 125 milliseconds,
-> which is exactly what you expect at 28800 BPH.
+> Every time a new window is captured, it is drawn on top of the previous one.
+> If the watch is on rate, each tick lands at the exact same position every time —
+> the spikes stack up and look sharp and tall.
+> If the watch is running fast, each new window's tick lands a little to the left —
+> the spikes spread out and look wide and blurry.
 >
-> The key insight from this view is in the x-axis label:
-> stable pattern means the watch is on rate.
-> If the spikes drift left over time, the watch is running fast.
-> If they drift right, it's running slow.
-> Here the pattern is perfectly stable — the watch is on rate.
+> Here both spikes are narrow and sharp — the rate is stable.
 >
-> The header confirms: Daily Rate −0.2 s/d, Amplitude 302°, Beat Error 0.02 ms."
+> The header confirms: Daily Rate −0.4 s/d, Amplitude 302°, Beat Error 1.00 ms."
 
 ---
 
