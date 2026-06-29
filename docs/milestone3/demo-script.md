@@ -17,7 +17,12 @@
 > Quick layout: control panel on the left, 14 graph tabs on the right.
 > Status bar at the top — Rate, Amplitude, Beat Error, BPH, live.
 > Color coded: green is good, amber is borderline, red needs attention.
-> AI Diagnosis badge in the top-right corner."
+> AI Diagnosis badge in the top-right corner.
+>
+> The status bar also shows the session state.
+> Ready before you start. Acquiring while collecting beats for a diagnosis.
+> Running once locked in. Paused when graphs are frozen.
+> If the mic is pulled or ambient noise spikes — it tells you immediately."
 
 - Press Space to start
 
@@ -258,20 +263,6 @@
 
 - Stop music
 
-- Show scope view
-
-> "A and C events rendered at consistent positions every beat — easy to compare timing visually."
-
-- Point to dropdown controls
-
-> "Rarely-used controls moved into dropdowns. Screen space reserved for signal and measurements."
-
-- Point to status bar
-
-> "The status bar also shows the session state at all times.
-> Ready before you start. Acquiring while it collects enough beats for a diagnosis.
-> Running once the diagnosis locks in. Paused when you freeze the graphs for a closer look.
-> If the mic is pulled or ambient noise spikes — it tells you immediately."
 
 ---
 
