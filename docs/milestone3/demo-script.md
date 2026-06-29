@@ -252,7 +252,10 @@
 
 - Point to status bar
 
-> "Status bar shows sample rate, dropped blocks, signal quality — know immediately if something is wrong before wasting a measurement."
+> "The status bar also shows the session state at all times.
+> Ready before you start. Acquiring while it collects enough beats for a diagnosis.
+> Running once the diagnosis locks in. Paused when you freeze the graphs for a closer look.
+> If the mic is pulled or ambient noise spikes — it tells you immediately."
 
 ---
 
