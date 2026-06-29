@@ -17,6 +17,8 @@
 
 #if defined(Q_OS_LINUX)
 #include "LinuxAudio.h"
+#include <QFile>
+#include <QRegularExpression>
 #elif defined(Q_OS_WIN)
 #include "WindowsAudio.h"
 #endif
@@ -549,6 +551,17 @@ void MainWindow::setupTabOverflow(void)
 
     mMoreTabsMenu->addSeparator();
 
+    // Developer info (FPS + CPU + MEM) — hidden by default
+    QAction *devAct = mMoreTabsMenu->addAction(tr("Developer Info"));
+    devAct->setCheckable(true);
+    devAct->setChecked(false);
+    connect(devAct, &QAction::toggled, this, [this](bool on) {
+        mDevInfoEnabled = on;
+        if (!on) statusBar()->clearMessage();
+    });
+
+    mMoreTabsMenu->addSeparator();
+
     // About
     QAction *aboutAct = mMoreTabsMenu->addAction(tr("About TimeGrapher..."));
     connect(aboutAct, &QAction::triggered, this, [this]() {
@@ -1045,13 +1058,72 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
             mDspLastSPS = frame.fg_sps;
             mDspLastSPF = frame.fg_spf;
         }
-        statusBar()->showMessage(
-            QString("BG FPS:%1 SPS:%2 SPF:%3 | DSP FPS:%4 SPS:%5 SPF:%6")
-                .arg(mBackgroundLastFPS, 0, 'f', 0).arg(mBackgroundLastSPS, 0, 'f', 0)
-                .arg(mBackgroundLastSPF, 0, 'f', 0).arg(mDspLastFPS, 0, 'f', 0)
-                .arg(mDspLastSPS, 0, 'f', 0).arg(mDspLastSPF, 0, 'f', 0));
+#ifdef Q_OS_LINUX
+        // Update CPU delta on every FPS tick (~2 s interval)
+        CpuStat cur = readCpuStat();
+        quint64 dTotal = cur.total - mLastCpuStat.total;
+        quint64 dIdle  = cur.idle  - mLastCpuStat.idle;
+        if (dTotal > 0)
+            mLastCpuPct = 100.0 * (1.0 - static_cast<double>(dIdle) / dTotal);
+        mLastCpuStat = cur;
+
+        // Memory from /proc/meminfo
+        QFile memFile("/proc/meminfo");
+        if (memFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            quint64 memTotal = 0, memAvail = 0;
+            while (!memFile.atEnd()) {
+                QString line = memFile.readLine().trimmed();
+                if (line.startsWith("MemTotal:"))
+                    memTotal = line.split(QRegularExpression("\\s+"))[1].toULongLong();
+                else if (line.startsWith("MemAvailable:"))
+                    memAvail = line.split(QRegularExpression("\\s+"))[1].toULongLong();
+                if (memTotal && memAvail) break;
+            }
+            memFile.close();
+            if (memTotal > 0)
+                mLastMemPct = 100.0 * (1.0 - static_cast<double>(memAvail) / memTotal);
+        }
+#endif
+        updateDevStatusBar();
     }
 }
+
+void MainWindow::updateDevStatusBar()
+{
+    if (!mDevInfoEnabled) return;
+
+    QString msg = QString("BG FPS:%1 SPS:%2 SPF:%3 | DSP FPS:%4 SPS:%5 SPF:%6")
+        .arg(mBackgroundLastFPS, 0, 'f', 0).arg(mBackgroundLastSPS, 0, 'f', 0)
+        .arg(mBackgroundLastSPF, 0, 'f', 0).arg(mDspLastFPS, 0, 'f', 0)
+        .arg(mDspLastSPS, 0, 'f', 0).arg(mDspLastSPF, 0, 'f', 0);
+
+#ifdef Q_OS_LINUX
+    msg += QString(" | CPU %1% | MEM %2%")
+        .arg(mLastCpuPct, 0, 'f', 1)
+        .arg(mLastMemPct, 0, 'f', 1);
+#endif
+
+    statusBar()->showMessage(msg);
+}
+
+#ifdef Q_OS_LINUX
+MainWindow::CpuStat MainWindow::readCpuStat() const
+{
+    CpuStat stat;
+    QFile f("/proc/stat");
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) return stat;
+    QString line = f.readLine().trimmed(); // "cpu  ..."
+    f.close();
+
+    QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    // fields: cpu user nice system idle iowait irq softirq steal ...
+    if (parts.size() < 5) return stat;
+    for (int i = 1; i < parts.size(); ++i)
+        stat.total += parts[i].toULongLong();
+    stat.idle = parts[4].toULongLong(); // idle is field index 4
+    return stat;
+}
+#endif
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reset — reinitialise Presentation layer before a new session starts.

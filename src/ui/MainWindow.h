@@ -305,5 +305,18 @@ private:
     std::atomic<int> mTickPos{-1};
     bool             mTickEnabled = true;
 
+    // Developer info overlay (More → Developer Info, default OFF)
+    bool   mDevInfoEnabled = false;
+    void   updateDevStatusBar();
+
+#ifdef Q_OS_LINUX
+    // CPU usage via /proc/stat (delta between two reads)
+    struct CpuStat { quint64 total = 0; quint64 idle = 0; };
+    CpuStat readCpuStat() const;
+    CpuStat mLastCpuStat;
+    double  mLastCpuPct = 0.0;
+    double  mLastMemPct = 0.0;
+#endif
+
 };
 #endif
