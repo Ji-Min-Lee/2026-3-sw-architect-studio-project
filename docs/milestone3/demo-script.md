@@ -352,7 +352,8 @@
 > A soft or gradual sound only appears in a narrow band.
 > An escapement strike hits everything at once.
 >
-> The True Peak meter at the top shows −0.1 dBFS — the signal is strong and clean.
+> The green bar at the top is the signal strength meter —
+> green means the microphone is picking up the watch clearly.
 > If a part were loose or worn, you would see an extra stripe
 > appearing between the regular beats, or a smeared blurry pattern
 > instead of these clean vertical lines."
