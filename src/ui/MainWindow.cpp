@@ -1075,8 +1075,10 @@ void MainWindow::onFrameLogged(Logger::Frame frame)
         QFile memFile("/proc/meminfo");
         if (memFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
             quint64 memTotal = 0, memAvail = 0;
-            while (!memFile.atEnd()) {
-                const QString line = memFile.readLine().trimmed();
+            while (true) {
+                const QByteArray raw = memFile.readLine();
+                if (raw.isEmpty()) break;
+                const QString line = QString::fromLatin1(raw).trimmed();
                 const QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
                 if (parts.size() >= 2) {
                     if (parts[0] == QLatin1String("MemTotal:"))
