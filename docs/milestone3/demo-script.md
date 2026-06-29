@@ -242,6 +242,14 @@
 
 > "Unplug the mic — system detects it immediately, shows alert. Plug back in — recovers automatically, no restart."
 
+- Play music from phone near the microphone
+
+> "Now I'm playing music next to the microphone — high ambient noise.
+> The status bar flags it immediately. The graphs show the disruption.
+> Stop the noise — the system recovers on its own, no intervention needed."
+
+- Stop music
+
 - Show scope view
 
 > "A and C events rendered at consistent positions every beat — easy to compare timing visually."
