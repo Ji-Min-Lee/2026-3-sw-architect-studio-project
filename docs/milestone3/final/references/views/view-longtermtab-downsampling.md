@@ -60,7 +60,7 @@ same-frame update requests.
 
 ## Related Requirement and QA
 
-- [Functional Requirements](../requirments/functional-requirements.md#long-term-performance-graph)
+- [Functional Requirements](../architecture-drivers/functional-requirements.md#long-term-performance-graph)
   — this view explains the implementation behind "Record and display rate, amplitude, and
   beat error change over an extended period" and "Benefit from reduced update frequency as
   elapsed time increases".
