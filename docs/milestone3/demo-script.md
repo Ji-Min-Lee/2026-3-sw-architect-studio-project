@@ -512,37 +512,16 @@
 **If values differ (especially Amplitude):**
 > "There is a small difference — most visible in Amplitude. This is expected and understood.
 >
-> Notice that Rate and Beat Error match closely between the two systems.
-> That is not a coincidence — it is evidence.
+> Rate and Beat Error both match. Those only use the A-event — the loud tic.
+> Amplitude is the only metric that also needs the C-event, which is much quieter.
+> A quieter signal takes longer to cross the detection threshold,
+> so our detector catches it slightly late — and that pushes amplitude down.
 >
-> Rate and Beat Error are computed from A-events only:
-> the strong impulse sound when the pallet fork engages the balance wheel.
-> A-events are loud and sharp, so our onset detection is accurate.
-> The fact that these match Weishi confirms our A-event detection is correct.
+> Weishi also uses a microphone, but their internal threshold and signal processing
+> are not documented — so we can't rule out differences on their side either.
 >
-> Amplitude is the only metric that uses both A and C events.
-> The C-event — when the pallet fork exits — produces a much weaker sound,
-> because no energy is transferred at that moment.
-> A weaker signal takes longer to cross our detection threshold,
-> making the measured A-to-C interval slightly longer than the true mechanical value,
-> which lowers the amplitude reading.
->
-> Weishi also uses a microphone, but its internal detection threshold and
-> signal processing are not publicly documented,
-> so differences in C-event detection tuning or formula cannot be ruled out.
->
-> The offset is small and consistent — characteristic of a systematic offset, not random error.
-> The root cause is the C-event detection timing, not our A-event pipeline."
-
-**Consistency demonstration:**
-
-> "Accuracy isn't just a single match — it needs to be repeatable.
-> Here are measurements we took earlier at different points in the session."
-
-- Show repeated measurement log or Trace display
-
-> "The values are stable across multiple readings under the same conditions.
-> A well-wound watch produces consistent output — and our system reflects that consistently."
+> The gap is small, consistent, and understood — not random noise, a known offset.
+> Overall: Rate and Beat Error are accurate. Amplitude has a systematic offset we can explain."
 
 ---
 
