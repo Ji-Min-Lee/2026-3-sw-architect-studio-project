@@ -314,7 +314,7 @@
 > "The Escapement display zooms into a single beat and measures the A-to-C interval directly.
 >
 > The x-axis is time from the A event — from negative 2.5 milliseconds to about 11 milliseconds.
-> The green vertical line is the A event — T1 — the tic.
+> The green vertical line is the A event — the tic.
 > The red vertical line is the C event — T3 — the tac.
 > The amber shaded area between them is the measured interval.
 > Right now that interval is 6.84 milliseconds, labeled in the center.
@@ -524,7 +524,7 @@
 > The C-event — when the pallet fork exits — produces a much weaker sound,
 > because no energy is transferred at that moment.
 > A weaker signal takes longer to cross our detection threshold,
-> making T1 slightly longer than the true mechanical value,
+> making the measured A-to-C interval slightly longer than the true mechanical value,
 > which lowers the amplitude reading.
 >
 > Weishi also uses a microphone, but its internal detection threshold and
