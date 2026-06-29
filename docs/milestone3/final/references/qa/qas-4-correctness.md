@@ -76,7 +76,3 @@ The system shall remain usable and produce reliable measurements in the presence
 |-----------|-----------------|-------------|
 | No signal | No beat event for N seconds | `⚠ No signal` — auto-cleared on recovery |
 | Noisy signal | Beat event inter-arrival variance exceeds threshold | `⚠ Noisy signal` — auto-cleared on stabilization |
-
-## References
-
-- [Bass21] L. Bass, P. Clements, R. Kazman. *Software Architecture in Practice*, Fourth Edition. Addison-Wesley, 2021.
