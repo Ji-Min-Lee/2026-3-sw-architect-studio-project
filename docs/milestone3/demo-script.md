@@ -453,6 +453,9 @@
 > no internet, no cloud, no external server.
 > When the classifier produces a verdict, the LLM explains it in plain English:
 > why this diagnosis, the likely mechanical cause, and what a watchmaker should check.
+> The LLM receives not just the three core metrics, but also additional signals
+> when available — Tic/Toc amplitude asymmetry, rate jitter, and
+> escapement beat-to-beat variation — giving it richer context for the explanation.
 >
 > Before the LLM answers, it runs a RAG retrieval step —
 > cosine similarity search over a local knowledge base
