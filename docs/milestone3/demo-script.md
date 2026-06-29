@@ -331,26 +331,31 @@
 
 ---
 
-**⑧ Spectrogram** (~35 sec)
+**⑧ Spectrogram** (~40 sec)
 
 - Switch to Spectrogram tab
 
-> "The Spectrogram shows which frequencies are present in the sound
-> and how they change over time — a 200 millisecond window per beat.
+> "This is the Spectrogram — it shows the watch sound split into time and frequency at the same time.
 >
-> X-axis is time in milliseconds, Y-axis is frequency from 0 to 20,000 Hz.
-> The color scale on the right goes from yellow — loud — to purple — quiet.
+> X-axis is time, left to right. This window covers one second.
+> Y-axis on the left is frequency — low sounds at the bottom, high sounds at the top, up to 20,000 Hz.
+> The color bar on the right is the legend — it tells you what each color means in loudness.
+> Yellow is loud, around minus 20 dB. Teal is medium. Purple is quiet, minus 60 dB or below.
 >
-> What you see here are two bright vertical bursts.
-> The left burst is the A event, the right burst is the C event.
-> Both events produce energy across a very wide frequency range,
-> from a few hundred Hz all the way up to 20 kilohertz.
-> That wide spread is characteristic of a sharp mechanical impact.
+> Now look at the graph.
+> You can see vertical stripes repeating at regular intervals — about every 125 milliseconds.
+> Each stripe is one beat. Eight stripes in one second — that's exactly 28,800 BPH.
+>
+> Each stripe is wide and tall — it covers almost the entire frequency range,
+> from a few hundred hertz all the way to 20 kilohertz.
+> That wide spread is the signature of a sharp mechanical impact.
+> A soft or gradual sound only appears in a narrow band.
+> An escapement strike hits everything at once.
 >
 > The True Peak meter at the top shows −0.1 dBFS — the signal is strong and clean.
-> If the watch had a loose part or a worn gear,
-> you would see an extra burst appearing between the two main ones,
-> or a smeared frequency pattern instead of a clean vertical line."
+> If a part were loose or worn, you would see an extra stripe
+> appearing between the regular beats, or a smeared blurry pattern
+> instead of these clean vertical lines."
 
 ---
 
