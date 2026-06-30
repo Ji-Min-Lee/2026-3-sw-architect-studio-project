@@ -73,7 +73,7 @@ protected:
     }
 
     void mousePressEvent(QMouseEvent *ev) override {
-        int i = (ev->x() - kPad) / (kStripW + kGap);
+        int i = (qRound(ev->position().x()) - kPad) / (kStripW + kGap);
         if (i >= 0 && i < mStrips.size())
             emit beatSelected(i);
     }
