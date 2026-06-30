@@ -326,43 +326,17 @@
 > Bottom panel shows the noise spikes in the raw scope.
 > But the top panel stays clean — the rate scatter is unaffected.
 > The DSP filter chain rejects noise beats before they reach the measurement engine.
-> This is also evidence of low latency and real-time. You can see the scope react immediately — the spike appears with no visible delay. We have 2ms of end-to-end latency"
+> This is also evidence of low latency and real-time. You can see the scope react immediately — the spike appears with no visible delay. We have 2ms of end-to-end latency.
+>
+> If you want the numbers — we have two threads, BG and DSP, running independently.
+> BG captures audio. DSP detects beats and computes measurements.
+> Both threads are running at the same FPS and samples-per-second.
+> That means no queue building up, no dropped frames.
+> We measured zero dropped audio blocks over a 10-minute session."
 
 ---
 
-## 18:00 – 19:00 | Area 4 — Latency & Real-Time Evidence
-
-> "SKIP"
-
-- More → Developer Info (check)
-
-> "You can see two counters: BG and DSP.
-> BG is the background audio thread — it captures raw audio from the microphone.
-> DSP is the signal processing thread — it detects beats and computes measurements.
-> They run independently on separate threads.
->
-> The key thing to notice is that the FPS and samples-per-second of both threads match.
-> That means neither thread is falling behind the other —
-> audio is being captured and processed at exactly the same rate.
-> No queue building up, no backlog, no dropped frames.
-> The exact numbers are in our experiment report — the point here is that they're equal.
->
-> Now let me show it working."
-
-- More → Developer Info (uncheck)
-- Tap near the microphone or introduce a noise event
-
-> "Watch the graph — I'm introducing a noise event right now.
-> You can see the  microphone to screen update, under 100 milliseconds.
-> On the Raspberry Pi 5, we measured it at 2 milliseconds.
->
-> Dropped audio blocks over a 10-minute session: zero.
-> Before our threading refactor, DSP wait time was 77 milliseconds.
-> After — 0.03 milliseconds. The exact numbers are in our written report."
-
----
-
-## 19:00 – 22:00 | Area 8 — Best UI Showcase (10 pts)
+## 18:00 – 21:00 | Area 8 — Best UI Showcase (10 pts)
 
 > "Now, the UI improvements."
 
