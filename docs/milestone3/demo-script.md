@@ -218,58 +218,40 @@
 - More → Developer Info (check)
 - Lower Sample Rate to 44100 Hz before triggering diagnosis
 
-> "I'm turning on Developer Info so you can watch the CPU while the AI runs.
+> "I will explain AI features we have. I'm turning on Developer Info so you can watch the CPU usage while the AI runs.
 > By the way — this overlay is hidden by default. It's built just for this demo, and wouldn't ship in a production release.
-> I'm also dropping the sample rate down to 44100 Hz.
-> The AI is CPU-heavy, and the Pi has to share that with everything else.
-> Higher sample rate gives better signal, but the AI needs room to breathe.
-> We had to pick. 44100 during inference, 96000 the rest of the time."
+> One thing to keep in mind before I show this.
+> We want to use cloud AI model, but the studio project required all inference to run locally — no internet, no cloud.
+> And, the Pi has no GPU, no NPU. It's just four CPU cores, so our AI model is CPU-heavy.
+> So, I'm dropping the sample rate down to 44 kHz for now, look at the CPU usage increases while it runs.
+> Let me run it now — I'll explain what's happening while it goes."
 
-- Switch to AI Diagnosis panel (Ctrl+D)
-
-> "One thing to keep in mind before I show this.
-> The assignment required all inference to run locally — no internet, no cloud.
-> The Pi 5 has no GPU, no NPU. It's just four CPU cores.
-> So we had to choose a model small enough to actually run here.
-> That's the constraint that shaped everything you're about to see."
+- Trigger diagnosis
 
 > "The AI feature has two parts.
 >
 > First, a rule-based classifier. It looks at Rate, Amplitude, and Beat Error,
 > compares them against standard watchmaker tolerances,
-> and gives you a result — Excellent, Good, or Needs Service.
+> and gives you a three result — Excellent, Good, or Needs Service.
 >
-> Second, a local language model running via Ollama, right here on this Pi.
-> No internet. No API calls.
-> And this is the important part — it doesn't just tell you the result.
-> It tells you why. What's likely causing it mechanically. And what you should do to fix it.
-> That's the kind of explanation you'd normally only get from a trained watchmaker.
->
-> Let me run it now — I'll explain what's happening while it goes."
-
-- Trigger diagnosis
-
-> "So right now, the model is receiving Rate, Amplitude, and Beat Error,
+> Second, a local LLM runs via Ollama framework.
+> the model is receiving Rate, Amplitude, and Beat Error,
 > plus three extra signals — Tic/Toc asymmetry, rate jitter, and escapement variation.
-> More context, more specific output.
 >
 > Before it generates anything, it does a retrieval step —
 > it searches a local knowledge base we built: Witschi training materials,
 > the Chronoscope X1 manual, and our own domain docs.
 > We built that vector database on a Windows server and deployed it to the Pi.
-> No cloud lookup. Just cosine similarity over local embeddings."
-
-> "You can see the CPU climbing — around 80% right now.
-> That's the model running on four CPU cores, no GPU, no cloud.
->
-> The result shows up as a badge — Excellent, Good, or Needs Service.
-> The explanation streams in word by word.
-> You can ask follow-up questions — it remembers the conversation.
-> Ask something off-topic and it won't answer. Watchmaking only."
+> 
+> it doesn't just tell you the result.
+> It tells you why. What's likely causing it mechanically. And what you should do to fix it.
+> That's the kind of explanation you'd normally only get from a trained watchmaker."
 
 - Type a follow-up question
 - More → Developer Info (uncheck)
 - Restore Sample Rate to 96000 Hz Extended
+
+> You can also ask follow-up questions — it remembers the conversation."
 
 ---
 
@@ -334,8 +316,7 @@
 
 - Play music from phone near the microphone
 
-> "The graphs show the disruption.
-> Stop the noise — the system recovers on its own, no intervention needed."
+> "The graphs show the disruption, and the system recovers on its own"
 
 - Stop music
 
@@ -345,14 +326,13 @@
 > Bottom panel shows the noise spikes in the raw scope.
 > But the top panel stays clean — the rate scatter is unaffected.
 > The DSP filter chain rejects noise beats before they reach the measurement engine.
-> This is QAS-4: the system remains accurate under acoustic interference."
+> This is also evidence of low latency and real-time. You can see the scope react immediately — the spike appears with no visible delay. We have 2ms of end-to-end latency"
 
 ---
 
 ## 18:00 – 19:00 | Area 4 — Latency & Real-Time Evidence
 
-> "Let me show the system working in real time — not just claim it.
-> First — I'll turn on Developer Info."
+> "SKIP"
 
 - More → Developer Info (check)
 
@@ -373,8 +353,7 @@
 - Tap near the microphone or introduce a noise event
 
 > "Watch the graph — I'm introducing a noise event right now.
-> You can see the scope react immediately — the spike appears with no visible delay.
-> That's the end-to-end latency: microphone to screen update, under 100 milliseconds.
+> You can see the  microphone to screen update, under 100 milliseconds.
 > On the Raspberry Pi 5, we measured it at 2 milliseconds.
 >
 > Dropped audio blocks over a 10-minute session: zero.
@@ -387,14 +366,6 @@
 
 > "Now, the UI improvements."
 
-**Status bar — live metric colors:**
-
-> "The status bar always shows RATE, AMP, and Beat Error live.
-> We added three-level color coding — green means excellent, amber means acceptable, red means needs service.
-> The color matches the AI diagnosis badge, so the user gets the same signal in two places at once."
-
-- Point to the status bar with colors visible
-
 **Keyboard shortcuts:**
 
 > "The full shortcut map is in the status bar hint at all times.
@@ -402,40 +373,6 @@
 > F11 for fullscreen — useful when presenting or on a small display.
 > F1 opens the User Guide. Ctrl+T opens tab management. Ctrl+backslash toggles split view. Ctrl+D opens AI Diagnosis.
 > Everything reachable without touching the mouse."
-
-- Demonstrate: Space to pause, arrow keys to switch tabs, F11 fullscreen then back
-
-**F1 — User Guide:**
-
-> "F1 opens the built-in help panel.
-> Every graph has its own entry — what it shows, how to read it, what to watch for."
-
-- Press F1, scroll briefly
-
-**Ctrl+T — Manage Tabs:**
-
-> "Ctrl+T opens tab management.
-> The app starts with four tabs visible by default — Rate, Sound Print, Trace, and Vario.
-> You can add or remove tabs depending on what the session needs."
-
-- Press Ctrl+T, toggle a tab on and off
-
-**Ctrl+\ — Split View:**
-
-> "Ctrl+backslash toggles split view —
-> two tabs side by side, both updating live.
-> Trace on the left, Beat Error on the right — no switching."
-
-- Press Ctrl+\, show two live tabs
-
-**Ctrl+D — AI Diagnosis:**
-
-> "Ctrl+D opens AI Diagnosis — same panel we showed earlier, one shortcut away."
-
-- Press Ctrl+D briefly
-
-
-- Show the checkbox in the left panel
 
 **About TimeGrapher:**
 
@@ -445,47 +382,7 @@
 
 - Open More → About TimeGrapher
 
-> "All of this is the same integrated application running live on the Raspberry Pi."
 
----
-
-## 22:00 – 24:00 | Bonus — Diagnosis Classification (+15 pts)
-
-**Diagnosis with multi-position data** (~45 sec)
-
-- Trigger full diagnosis
-
-> "With multi-position data loaded,
-> the diagnosis classifier now has more information to work with.
-> It produces a condition assessment across all positions —
-> [read result: e.g., 'Rate is inconsistent between crown-up and dial-up positions,
-> suggesting the balance spring may need centering.']
->
-> This is the kind of insight that used to require a trained watchmaker.
-> We're running it on a 80-dollar computer, offline, in under 50 milliseconds."
-
----
-
-## 24:00 – 25:00 | Buffer / Q&A
-
-- Handle evaluator questions
-- Re-demonstrate any item on request
-- Recovery time if anything went wrong earlier
-
----
-
-## Pre-Demo Checklist
-
-- [ ] RPi powered on, TimeGrapher GUI running and receiving signal
-- [ ] Watch fully wound and seated on sensor stand
-- [ ] WeiShi No.1000 powered on with the same watch loaded
-- [ ] Microphone plugged in — signal visible on Sound Print
-- [ ] Log output visible (terminal overlay or metrics panel)
-- [ ] HDMI output confirmed on external display
-- [ ] Backup laptop with compiled binary ready
-- [ ] Multiple measurements already taken and visible in Trace / Long-Term for consistency demo
-
----
 
 ---
 
