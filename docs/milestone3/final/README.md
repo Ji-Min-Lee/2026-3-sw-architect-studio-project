@@ -28,8 +28,8 @@ provided by CMU MSE / LG Software Architectures Training Program, along with ass
 the team made during elaboration. These requirements were the primary drivers for all
 architectural decisions in this proposal.
 
-- [Functional Requirements](references/architecture-drivers/functional-requirements.md)
-- [Design Constraints](references/architecture-drivers/constraints.md) — hardware and development environment constraints that are fixed and not subject to architectural discussion
+- [Functional Requirements](references/architectural-drivers/functional-requirements.md)
+- [Design Constraints](references/architectural-drivers/constraints.md) — hardware and development environment constraints that are fixed and not subject to architectural discussion
 - [Quality Attribute Scenarios](references/qa/README.md) — six QAS covering real-time performance, latency, extensibility, correctness, measurement accuracy, and long-term session performance
 
 ---
@@ -228,7 +228,7 @@ docs/milestone3/final/
     │   └── README.md                     ← experiment index and QA traceability
     ├── adr/                              ← ADR files (ADR-001 ~ ADR-009)
     ├── ai/                               ← AI usage log
-    └── architecture-drivers/                      ← functional requirements and constraints
+    └── architectural-drivers/                      ← functional requirements and constraints
 ```
 
 ## External References
