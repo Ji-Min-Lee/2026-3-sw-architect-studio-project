@@ -218,50 +218,54 @@
 - More → Developer Info (check)
 - Lower Sample Rate to 44100 Hz before triggering diagnosis
 
-> "Turning on Developer Info so you can watch CPU during inference.
-> By the way — this overlay is hidden by default, built for this demo, and would be excluded from a production release.
-> I'm also dropping the sample rate to 44100 Hz here —
-> the LLM and RAG retrieval are CPU-heavy, and the Pi has to share resources.
-> This is a real tradeoff: higher sample rate means better signal resolution,
-> but the LLM needs headroom to run without dropping frames.
-> Lower sample rate, faster inference, less memory pressure — pick two."
+> "I'm turning on Developer Info so you can watch the CPU while the AI runs.
+> By the way — this overlay is hidden by default. It's built just for this demo, and wouldn't ship in a production release.
+> I'm also dropping the sample rate down to 44100 Hz.
+> The AI is CPU-heavy, and the Pi has to share that with everything else.
+> Higher sample rate gives better signal, but the AI needs room to breathe.
+> We had to pick. 44100 during inference, 96000 the rest of the time."
 
 - Switch to AI Diagnosis panel (Ctrl+D)
 
-> "One constraint upfront — the assignment required local inference. No cloud calls.
-> The Pi 5 has no GPU, no NPU — pure CPU only.
-> That forced us to pick a small model that could run in reasonable time on 4 cores.
-> That tradeoff shapes everything in this section."
+> "One thing to keep in mind before I show this.
+> The assignment required all inference to run locally — no internet, no cloud.
+> The Pi 5 has no GPU, no NPU. It's just four CPU cores.
+> So we had to choose a model small enough to actually run here.
+> That's the constraint that shaped everything you're about to see."
 
-> "Two parts. First — a rule-based classifier.
-> Rate, Amplitude, Beat Error evaluated against watchmaker tolerances.
-> Verdict: Excellent, Good, or Needs Service.
+> "The AI feature has two parts.
 >
-> Second — a local LLM via Ollama on this Raspberry Pi. No internet, no cloud.
-> It doesn't just tell you the verdict — it tells you why, and what to do about it.
-> Likely mechanical cause. Which part to inspect. What service is needed.
-> That's the part that normally requires a trained watchmaker sitting in front of you.
+> First, a rule-based classifier. It looks at Rate, Amplitude, and Beat Error,
+> compares them against standard watchmaker tolerances,
+> and gives you a result — Excellent, Good, or Needs Service.
 >
-> Let me trigger a diagnosis now — I'll explain what's happening while it runs."
+> Second, a local language model running via Ollama, right here on this Pi.
+> No internet. No API calls.
+> And this is the important part — it doesn't just tell you the result.
+> It tells you why. What's likely causing it mechanically. And what you should do to fix it.
+> That's the kind of explanation you'd normally only get from a trained watchmaker.
+>
+> Let me run it now — I'll explain what's happening while it goes."
 
 - Trigger diagnosis
 
-> "The LLM receives Rate, Amplitude, and Beat Error —
-> plus additional signals: Tic/Toc asymmetry, rate jitter, escapement variation.
-> Richer input, more specific explanation.
+> "So right now, the model is receiving Rate, Amplitude, and Beat Error,
+> plus three extra signals — Tic/Toc asymmetry, rate jitter, and escapement variation.
+> More context, more specific output.
 >
-> Before generating, it runs RAG retrieval over a local knowledge base —
-> Witschi training course, Chronoscope X1 manual, our own domain docs.
-> The vector database was built on a Windows server and deployed to the Pi.
-> Retrieval is pure cosine similarity over embeddings — no round-trip to the cloud."
+> Before it generates anything, it does a retrieval step —
+> it searches a local knowledge base we built: Witschi training materials,
+> the Chronoscope X1 manual, and our own domain docs.
+> We built that vector database on a Windows server and deployed it to the Pi.
+> No cloud lookup. Just cosine similarity over local embeddings."
 
-> "You can see the CPU usage climbing — up to around 80% during inference.
-> That's the LLM running on the Pi, no GPU, no cloud.
+> "You can see the CPU climbing — around 80% right now.
+> That's the model running on four CPU cores, no GPU, no cloud.
 >
-> The badge shows [Excellent / Good / Needs Service].
-> The explanation streams token by token.
-> You can follow up with a question — conversation history is maintained.
-> Ask something unrelated — it refuses. Watchmaking only."
+> The result shows up as a badge — Excellent, Good, or Needs Service.
+> The explanation streams in word by word.
+> You can ask follow-up questions — it remembers the conversation.
+> Ask something off-topic and it won't answer. Watchmaking only."
 
 - Type a follow-up question
 - More → Developer Info (uncheck)
