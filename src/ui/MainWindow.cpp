@@ -422,7 +422,7 @@ void MainWindow::setupTabOverflow(void)
     tw->tabBar()->moveTab(tw->indexOf(mRadarChartTab), n - 1);
 
     // Default visibility: Rate/Scope, Sound Print, Trace, Vario
-    const QSet<QWidget *> defaultVisible = { ui->RateTab, ui->SoundTab, mTraceTab, mVarioTab };
+    const QSet<QWidget *> defaultVisible = { ui->RateTab, ui->SoundTab, mTraceTab, mVarioTab, mSequenceTab };
     for (int i = 0; i < n; ++i)
         tw->setTabVisible(i, defaultVisible.contains(tw->widget(i)));
     tw->setCurrentWidget(ui->RateTab);  // start on Rate/Scope

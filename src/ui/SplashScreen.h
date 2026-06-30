@@ -17,7 +17,7 @@ public:
     bool isAnimationComplete() const;
     void requestSkip();
 
-    static constexpr int kDurationMs = 5000;
+    static constexpr int kDurationMs = 8000;
 
 protected:
     void paintEvent(QPaintEvent *event) override;
