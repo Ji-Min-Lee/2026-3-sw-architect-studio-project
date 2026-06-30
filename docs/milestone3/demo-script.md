@@ -165,9 +165,9 @@
 
 **⑦ Escapement** — Switch to Escapement tab
 
-> "Zooms into the A-to-C interval of a single beat — the yellow shaded region.
-> Each measurement lands almost exactly the same spot — the variation is under a millisecond.
-> That tells you the watch is swinging consistently, and our detector is stable."
+> "This zooms into the A-to-C interval of a single beat, which is the yellow shaded region you can see here.
+> Every measurement lands almost exactly the same spot. The variation is under a millisecond.
+> That means the watch is swinging consistently, and our detector is picking it up reliably every time."
 
 ---
 
