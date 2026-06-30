@@ -5,7 +5,7 @@
 
 ---
 
-## 0:00 – 1:30 | System Introduction + UI Overview
+## 0:00 – 3:00 | System Introduction + UI Overview
 
 > "Good morning. We are Team Blue Sky. Let's get started by running our application.
 > When the app starts, it reads the screen resolution and sizes itself automatically.
@@ -49,7 +49,7 @@
 
 ---
 
-## 1:30 – 6:30 | Area 1 — Watch-Position Testing + Area 2 — Base Graph Enhancements
+## 3:00 – 6:00 | Area 1 — Watch-Position Testing + Area 2 — Base Graph Enhancements
 
 ### Watch-Position Testing (5 pts)
 
@@ -110,7 +110,7 @@
 
 ---
 
-## 6:30 – 13:00 | Area 1 — Additional Graph Displays (55 pts)
+## 6:00 – 10:30 | Area 1 — Additional Graph Displays (55 pts)
 
 > "We have twelve additional graph displays. I'll go through each one quickly."
 
@@ -214,7 +214,7 @@
 
 ---
 
-## 13:00 – 15:00 | Area 2 — AI Feature (9 pts)
+## 10:30 – 13:30 | Area 2 — AI Feature (9 pts)
 
 - More → Developer Info (check)
 - Lower Sample Rate to 44100 Hz before triggering diagnosis
@@ -267,7 +267,7 @@
 
 ---
 
-## 15:00 – 17:00 | Area 4 — Accuracy Verification (25 pts)
+## 13:30 – 16:30 | Area 4 — Accuracy Verification (25 pts)
 
 > "Now accuracy — the most important quality attribute for us.
 > Our measurements need to match a reference device.
@@ -320,7 +320,7 @@
 
 ---
 
-## 17:00 – 18:00 | Area 6 — GUI Modifications (25 pts)
+## 16:30 – 18:30 | Area 6 — GUI Modifications (25 pts)
 
 > "Next — GUI and real-time behavior.
 > We made a few usability improvements, and I want to show two things:
@@ -352,7 +352,7 @@
 
 ---
 
-## 18:00 – 21:00 | Area 8 — Best UI Showcase (10 pts)
+## 18:30 – 19:30 | Area 8 — Best UI Showcase (10 pts)
 
 > "Now, some of the UI improvements."
 
