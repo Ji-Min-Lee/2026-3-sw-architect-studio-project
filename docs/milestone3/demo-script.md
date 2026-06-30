@@ -351,11 +351,13 @@
 
 **About TimeGrapher:**
 
-> "And finally, we have About menu.
-> Version, build information, team name.
-> It's a small detail, but it's what a finished application looks like."
+> "And finally, we have an About page in the More menu.
+> It shows the version, build info, and team name.
+> It's a small thing, but it's the kind of detail that makes it feel like a finished product."
 
 - Open More → About TimeGrapher
+
+> "That's our demo. Thank you."
 
 ---
 
