@@ -158,22 +158,20 @@ risks, their resolution status, and the experiments or architectural decisions t
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| [TR-02](docs/milestone3/final/references/risks.md) | Single-threaded pipeline saturates cpu2; 43% deadline miss on RPi | [EXP-02](docs/milestone3/final/references/experiments/exp-02-latency-e2e.md) | wait_ms 420ms → **0.013ms** (×32,000) | [ADR-001](docs/milestone3/final/references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
-| [TR-03](docs/milestone3/final/references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-02](docs/milestone3/final/references/experiments/exp-02-latency-e2e.md) | Backlog 0% (macOS + RPi) | [ADR-001](docs/milestone3/final/references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
-| [TR-04](docs/milestone3/final/references/risks.md) | `replot()` in exec path consumes 79% of exec budget | [EXP-02](docs/milestone3/final/references/experiments/exp-02-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%) | [ADR-002](docs/milestone3/final/references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ |
+| [TR-01](docs/milestone3/final/references/risks.md) | RPi cannot sustain 96kHz audio capture alongside Qt GUI | [EXP-01](docs/milestone3/final/references/experiments/exp-01-realtime-dropped-block.md) | Dropped=0 at 48k/96k/192k ✅ | [ADR-003](docs/milestone3/final/references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
 
 ### [QAS-2 — Low Latency and Low Number of Missed Beats](docs/milestone3/final/references/qa/qas-2-low-latency-and-low-number-of-missed-beats.md) *(H)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| [TR-01](docs/milestone3/final/references/risks.md) | RPi cannot sustain 96kHz audio capture alongside Qt GUI | [EXP-01](docs/milestone3/final/references/experiments/exp-01-realtime-dropped-block.md) | Dropped=0 at 48k/96k/192k | [ADR-003](docs/milestone3/final/references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
-| [TR-02/03](docs/milestone3/final/references/risks.md) | Single-threaded capture-to-process latency | [EXP-02](docs/milestone3/final/references/experiments/exp-02-latency-e2e.md) | E2E avg **2.05ms** on RPi | [ADR-001](docs/milestone3/final/references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
+| [TR-02](docs/milestone3/final/references/risks.md) | Single-threaded pipeline saturates cpu2; 43% deadline miss on RPi | [EXP-02](docs/milestone3/final/references/experiments/exp-02-latency-e2e.md) | wait_ms 420ms → **0.013ms** (×32,000); E2E 80ms → 2.1ms | [ADR-001](docs/milestone3/final/references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
+| [TR-03](docs/milestone3/final/references/risks.md) | Signal backlog accumulates unbounded under single-threaded load | [EXP-02](docs/milestone3/final/references/experiments/exp-02-latency-e2e.md) | E2E avg **2.2ms** / max 4.8ms on RPi (< 100ms target) | [ADR-001](docs/milestone3/final/references/adr/ADR-001-t2-dsp-offload-thread.md) T2 DSP Offload Thread ✅ |
+| [TR-04](docs/milestone3/final/references/risks.md) | `replot()` in exec path consumes 79% of exec budget | [EXP-02](docs/milestone3/final/references/experiments/exp-02-latency-e2e.md) | replot/beat 8.22 → **1.20** (↓85%); max tail 11.1ms → 5.7ms | [ADR-002](docs/milestone3/final/references/adr/ADR-002-r1-lazy-rendering.md) R1 Lazy Rendering ✅ |
 
 ### QAS-3 — Extensibility / Modifiability *(M)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| [TR-06](docs/milestone3/final/references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | N/A | 142 unit tests (10 binaries) all passing ✅ | Layered and Module Decomposition View enforced |
 | [TR-07](docs/milestone3/final/references/risks.md) | Residual coupling survives refactoring | N/A | Compiler catches upward dependency ✅ | Allowed-to-use rule + per-layer include restriction |
 | [TR-08](docs/milestone3/final/references/risks.md) | New tab requires data not in current Domain output | [EXP-03](docs/milestone3/final/references/experiments/exp-03-extensibility-observer-pattern.md) | All 14 tabs implemented within the target change budget ✅ | [ADR-006](docs/milestone3/final/references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
 | [TR-08](docs/milestone3/final/references/risks.md) | Tab addition file-change cost exceeds ≤ 3-file budget | [EXP-08](docs/milestone3/final/references/experiments/exp-08-tab-expansion-file-change-cost.md) | All 14 tabs added within budget; no lower-layer files touched ✅ | [ADR-006](docs/milestone3/final/references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
@@ -184,14 +182,15 @@ risks, their resolution status, and the experiments or architectural decisions t
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
 | [TR-05](docs/milestone3/final/references/risks.md) | Filter defaults reject beat signal at edge BPH values | [EXP-04](docs/milestone3/final/references/experiments/exp-04-correctness-detector-optimization.md) | onset=0.08, min_peak=0.10 confirmed ✅ | Default parameters locked in `Detector.cpp` |
-| [NTR-07](docs/milestone3/final/references/risks.md) | Equation-level derivations difficult to verify manually | N/A | 142 unit tests across 10 binaries provide an architectural safety net ✅ | [ADR-008](docs/milestone3/final/references/adr/ADR-008-watchmath-module-isolation.md) WatchMath module isolation |
+| [TR-06](docs/milestone3/final/references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | N/A | 142 unit tests (10 binaries) run as a pre-commit gate on every commit, not a one-time pass ✅ | `TestWatchMath`/`TestMeasurementEngine` pre-commit gate ([ADR-008](docs/milestone3/final/references/adr/ADR-008-watchmath-module-isolation.md)) |
+| [NTR-07](docs/milestone3/final/references/risks.md) | Equation-level derivations difficult to verify manually | N/A | Pre-commit gate blocks any commit that fails the 142-test suite, keeping formula correctness continuously verified ✅ | [ADR-008](docs/milestone3/final/references/adr/ADR-008-watchmath-module-isolation.md) WatchMath module isolation |
+| [TR-09](docs/milestone3/final/references/risks.md) | Signal quality warning thresholds mismatched to actual watch signal | [EXP-05](docs/milestone3/final/references/experiments/exp-05-noise-threshold-popup.md) | Heartbeat pattern validated; threshold tunable via single parameter ✅ | Noise threshold tuning (QAS-4 Sub-3) |
 
 ### QAS-5 — Measurement Accuracy *(M)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
 | N/A | Accuracy vs. Witschi reference device unvalidated | [EXP-06](docs/milestone3/final/references/experiments/exp-06-accuracy-witschi-comparison.md) | Validation against reference device completed ✅ | N/A |
-| [NTR-07](docs/milestone3/final/references/risks.md) | Equation-level derivations difficult to verify manually | N/A | Test suite provides safety net (142 tests / 10 binaries) | [ADR-008](docs/milestone3/final/references/adr/ADR-008-watchmath-module-isolation.md) |
 
 ### QAS-6 — Long-Term Session Performance *(L)*
 
