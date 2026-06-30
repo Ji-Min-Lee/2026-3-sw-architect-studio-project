@@ -14,35 +14,29 @@
 - Set Sample Rate to 96000 Hz, Mode to Extended
 - Launch TimeGrapher, press F11
 
-> "Before we start, one thing to note — sample rate is set to 96000 Hz, Extended mode.
-> We tried 192000 Hz. It gives better resolution, but after a few minutes on the Pi it starts slowing down.
-> So 96000 Extended is what we're running today."
+> "Before we start, I will set sample rate to 96 kHz.
+> 192000 kHz gives better resolution, but after a few minutes on the Pi it starts slowing down.
+> So let's run live mode first."
 
-> "So let me walk you through the layout quickly.
-> Left side is the control panel. Right side has 14 graph tabs.
-> Along the top you've got the live readings — Rate, Amplitude, Beat Error, BPH.
-> Color coded: green means good, amber is borderline, red needs attention.
-> And over here in the top-right corner is the AI diagnosis badge.
+> "let me walk you through the layout quickly.
+> Left side is the control panel. Right side has multiple graph tabs.
+> On top you can see the live readings — Position, Rate, Amplitude, Beat Error, and BPH.
+> In top-right corner, there is the AI diagnosis badge.
 >
-> In the control panel, the main parameters are —
-> Mode: Live, Playback, or Sim.
-> BPH: the beat rate of the watch, or you can let it auto-detect.
-> Sample Rate: 96000 Hz as I mentioned.
-> Lift Angle: 52 degrees — that's the mechanical constant we use to calculate amplitude.
-> Watch Type: Men or Women, because the rate tolerances are different.
-> And the microphone volume slider at the bottom."
+> In the control panel, we update some of run parameters and watch parameters for better usuablity.
+> For example, recording a session used to open a separate dialog.
+> We replaced it with a simple checkbox, so that we can check it before starting, and the session is recorded automatically.
+> Also, for example, we added watch type for men and women as well, this is because the rate tolerances are different."
 
 - Click Mode → Sim to show SimFrame
 
-> "If I switch to Sim, you can see a simulation panel appears —
-> lets you test without a real watch attached.
-> We'll keep it on Live for today."
+> "I am gonna stop the live mode for a moment. I switch to the mode Sim, you can see a simulation panel appears"
 
-- Switch back to Live, click Advanced
+- Click Advanced
 
 > "There's also an Advanced section — collapsed by default.
 > In here you can pick which AI model Ollama uses for diagnosis,
-> and there's a checkbox for auto position detection — it switches between horizontal and vertical automatically based on the signal."
+> and there's a checkbox for auto position detection. If it is checked, watch position will be detected automatically"
 
 - Collapse Advanced
 
@@ -72,9 +66,6 @@
 >
 > The other four positions — CB, 3H, 9H, 12H — the amplitude difference between them
 > was too small and too noisy to distinguish reliably with just a microphone.
-> We tried, ran experiments, couldn't get it below the noise floor.
-> So for those, the user selects the position manually from the dropdown.
-> Two out of six automated — partial result, and we're honest about it."
 
 ---
 
@@ -83,13 +74,9 @@
 - Switch to Sound Print tab
 
 > "Two improvements. First — dot coloring by signal strength.
-> A events green-to-yellow, C events blue-to-cyan.
-> If C dots are cyan while A dots are green, the C-event signal is weaker —
-> amplitude accuracy may suffer.
->
-> Second — click any column to open the raw PCM waveform for that beat.
-> Green waveform on dark background, red dashed peak marker.
-> Prev and Next buttons to step through adjacent beats."
+> For example for A-event, we can see green for strong signal and yellow for weak signal.
+> Second — click any column. We can check the raw PCM waveform for that beat.
+> We also have Prev and Next buttons to look around neighbor beats.
 
 - Click a column, show waveform popup, click Prev/Next
 
@@ -99,10 +86,10 @@
 
 - Switch to Rate/Scope tab
 
-> "Three improvements.
-> Stats box top-left: mean, sigma, beat count — session-wide at a glance.
-> Green trend line: 20-beat rolling average cutting through scatter noise.
-> Orange crosshair: click the scope panel to cross-reference that beat in the rate plot above."
+> "There are three improvements.
+> On top-left corner, we have stat box for mean, sigma, beat count. We can check these session-wide stats at a glance.
+> Second, we have Green trend line, which is 20-beat rolling average.
+> Third, we can click the below scope panel to cross-reference that beat in the rate plot above. Here, you can see orange marker above > whenever I click the plot below"
 
 - Click scope panel to show orange marker
 
@@ -143,14 +130,14 @@
 
 > "Acoustic waveform of a single beat, zoomed to 20ms.
 > Green line is the A event, red is C. The gap gives us Beat Error and Amplitude.
-> The strip at the bottom shows the last ten beats — consistency check at a glance."
+> The thumbnail at the bottom shows the last ten beats. We can check consistency at a glance."
 
 ---
 
 **⑤ Beat Error** — Switch to Beat Error tab
 
 > "Beat Error over time, with the green tolerance band.
-> Red and blue dots are the Tic and Toc offsets — both near zero means the watch is well adjusted."
+> Red and blue dots are the Tic and Toc offsets."
 
 ---
 
@@ -158,16 +145,13 @@
 
 > "Rate, Amplitude, and Beat Error over the full session — hours if needed.
 > To avoid unbounded memory growth, we use bucket averaging:
-> the data is compressed automatically as the session grows —
-> every measurement live for the first 5 minutes,
-> then averaged 10-into-1 past 5 min, 30-into-1 past 30 min, 60-into-1 past 2 hours.
-> The header shows the current granularity. Statistics stay accurate on the full raw stream."
+> the data is compressed automatically as the session grows."
 
 ---
 
 **⑦ Escapement** — Switch to Escapement tab
 
-> "Zooms into the A-to-C interval of a single beat — the amber shaded region.
+> "Zooms into the A-to-C interval of a single beat — the yellow shaded region.
 > Shows the exact timing with sub-millisecond sigma across repeated measurements."
 
 ---
@@ -176,7 +160,6 @@
 
 > "Watch sound split into time and frequency.
 > Vertical stripes are the beats — 8 per second at 28800 BPH, each spanning the full frequency range.
-> That wide spread is the fingerprint of a sharp mechanical impact.
 > Green bar at the top is signal strength — green means the microphone is picking up clearly."
 
 ---
@@ -200,7 +183,7 @@
 **⑪ Filter Scope** — Switch to Filters tab
 
 > "Shows the signal through four DSP stages — Raw, Smoothed, Envelope, Upper Envelope.
-> Each stage removes noise until one clean unambiguous spike reaches the beat detector."
+> Each stage removes noise until clean unambiguous spike reaches the beat detector."
 
 ---
 
@@ -437,12 +420,6 @@
 
 - Press Ctrl+D briefly
 
-**Record session — checkbox:**
-
-> "Recording a session used to open a separate dialog.
-> We replaced it with a simple checkbox in the Run Parameters panel —
-> check it before starting, and the session is recorded automatically.
-> The checkbox is disabled while a session is running so you can't accidentally change it mid-measurement."
 
 - Show the checkbox in the left panel
 
