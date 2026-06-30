@@ -311,6 +311,10 @@
 
 ## 17:00 – 18:00 | Area 6 — GUI Modifications (25 pts)
 
+> "Next — GUI and real-time behavior.
+> We made a few usability improvements to the interface, and I want to show two things:
+> how the system reacts to acoustic noise, and that the pipeline is genuinely real-time — low latency, no dropped frames.
+> Let me demonstrate both at once."
 
 > "Now I'm playing music next to the microphone — watch for the dialog that pops up."
 
