@@ -7,16 +7,16 @@
 
 ## 0:00 – 1:30 | System Introduction + UI Overview
 
-> "Good morning. We are Team Blue Sky.
+> "Good morning. We are Team Blue Sky. Let's get started by running our application.
 > On startup the app reads the screen resolution and sizes itself automatically.
-> F11 for fullscreen — hopefully everyone can see that."
+> Let's go to fullscreen mode — hopefully everyone back can see that."
 
 - Set Sample Rate to 96000 Hz, Mode to Extended
 - Launch TimeGrapher, press F11
 
-> "Before we start — sample rate is 96000 Hz, Extended mode.
-> 192000 Hz gives higher resolution but slows down after a few minutes on the Pi.
-> 96000 Hz Extended is the stable sweet spot for a live demo."
+> "Before we start, we will set sample rate as 96 kHz.
+> 192 kHz gives higher resolution but slows down after a few minutes on the Pi.
+> 96 kHz is the stable sweet spot for a live demo."
 
 > "Quick layout: control panel on the left, 14 graph tabs on the right.
 > Status bar at the top — Rate, Amplitude, Beat Error, BPH, live.
