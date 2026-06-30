@@ -344,15 +344,15 @@
 
 **Keyboard shortcuts:**
 
-> "The full shortcut map is always visible in the status bar.
+> "The full shortcut map is always visible in the status bar in bottom-right.
 > Space to start or pause. Escape to stop. Arrow keys to navigate between tabs.
 > F11 for fullscreen. F1 opens the User Guide. Ctrl+backslash toggles split view. Ctrl+D opens AI Diagnosis.
 > Everything is reachable without touching the mouse."
 
 **About TimeGrapher:**
 
-> "And finally — About TimeGrapher in the More menu.
-> Version, build info, team name.
+> "And finally, we have About menu.
+> Version, build information, team name.
 > It's a small detail, but it's what a finished application looks like."
 
 - Open More → About TimeGrapher
