@@ -236,8 +236,7 @@
 > compares them against standard watchmaker tolerances,
 > and gives you a result — Excellent, Good, or Needs Service.
 >
-> Second, we have a local LLM running via Ollama framework. The model is receiving Rate, Amplitude, and Beat Error,
-> plus three extra signals — Tic/Toc asymmetry, rate jitter, and escapement variation.
+> Second, we have a local LLM running via Ollama framework.
 > Before it generates anything, it uses RAG. We built a vector DB on our server and deploy it to the PI.
 > 
 > The answer from LLM doesn't just tell you the result.
