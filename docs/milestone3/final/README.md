@@ -163,37 +163,37 @@ risks, their resolution status, and the experiments or architectural decisions t
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
 | [TR-01](references/risks.md) | RPi cannot sustain 96kHz audio capture alongside Qt GUI | [EXP-01](references/experiments/exp-01-realtime-dropped-block.md) | Dropped=0 at 48k/96k/192k | [ADR-003](references/adr/ADR-003-sample-rate-selection.md) 96kHz Accepted ✅ |
-| TR-02/03 | Single-threaded capture-to-process latency | [EXP-02](references/experiments/exp-02-latency-e2e.md) | E2E avg **2.05ms** on RPi | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
+| [TR-02/03](references/risks.md) | Single-threaded capture-to-process latency | [EXP-02](references/experiments/exp-02-latency-e2e.md) | E2E avg **2.05ms** on RPi | [ADR-001](references/adr/ADR-001-t2-dsp-offload-thread.md) T2 + AudioRingBuffer ✅ |
 
 ### QAS-3 — Extensibility / Modifiability *(M)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| [TR-06](references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | — | 142 unit tests (10 binaries) all passing ✅ | Layered and Module Decomposition View enforced |
-| [TR-07](references/risks.md) | Residual coupling survives refactoring | — | Compiler catches upward dependency ✅ | Allowed-to-use rule + per-layer include restriction |
+| [TR-06](references/risks.md) | Layer refactoring introduces regression in existing DSP behavior | N/A | 142 unit tests (10 binaries) all passing ✅ | Layered and Module Decomposition View enforced |
+| [TR-07](references/risks.md) | Residual coupling survives refactoring | N/A | Compiler catches upward dependency ✅ | Allowed-to-use rule + per-layer include restriction |
 | [TR-08](references/risks.md) | New tab requires data not in current Domain output | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | All 14 tabs implemented within the target change budget ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
 | [TR-08](references/risks.md) | Tab addition file-change cost exceeds ≤ 3-file budget | [EXP-08](references/experiments/exp-08-tab-expansion-file-change-cost.md) | All 14 tabs added within budget; no lower-layer files touched ✅ | [ADR-006](references/adr/ADR-006-basegraphtab-observer-pattern.md) BaseGraphTab Observer |
-| — | Audio source extension touches multiple unrelated components | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
+| N/A | Audio source extension touches multiple unrelated components | [EXP-03](references/experiments/exp-03-extensibility-observer-pattern.md) | Adding `NetworkWorker` reduced to ≤ 2 files | [ADR-005](references/adr/ADR-005-p1-iaudiosource-dependency-inversion.md) IAudioSource Dependency Inversion ✅ |
 
 ### QAS-4 — Correctness *(M)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
 | [TR-05](references/risks.md) | Filter defaults reject beat signal at edge BPH values | [EXP-04](references/experiments/exp-04-correctness-detector-optimization.md) | onset=0.08, min_peak=0.10 confirmed ✅ | Default parameters locked in `Detector.cpp` |
-| [NTR-07](references/risks.md) | Equation-level derivations difficult to verify manually | — | 142 unit tests across 10 binaries provide an architectural safety net ✅ | [ADR-008](references/adr/ADR-008-watchmath-module-isolation.md) WatchMath module isolation |
+| [NTR-07](references/risks.md) | Equation-level derivations difficult to verify manually | N/A | 142 unit tests across 10 binaries provide an architectural safety net ✅ | [ADR-008](references/adr/ADR-008-watchmath-module-isolation.md) WatchMath module isolation |
 
 ### QAS-5 — Measurement Accuracy *(M)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| — | Accuracy vs. Witschi reference device unvalidated | [EXP-06](references/experiments/exp-06-accuracy-witschi-comparison.md) | Validation against reference device completed ✅ | — |
-| [NTR-07](references/risks.md) | Equation-level derivations difficult to verify manually | — | Test suite provides safety net (142 tests / 10 binaries) | [ADR-008](references/adr/ADR-008-watchmath-module-isolation.md) |
+| N/A | Accuracy vs. Witschi reference device unvalidated | [EXP-06](references/experiments/exp-06-accuracy-witschi-comparison.md) | Validation against reference device completed ✅ | N/A |
+| [NTR-07](references/risks.md) | Equation-level derivations difficult to verify manually | N/A | Test suite provides safety net (142 tests / 10 binaries) | [ADR-008](references/adr/ADR-008-watchmath-module-isolation.md) |
 
 ### QAS-6 — Long-Term Session Performance *(L)*
 
 | Risk | Description | Experiment | Result | ADR |
 |------|-------------|-----------|--------|-----|
-| — | Multi-day sessions may accumulate unbounded plot points and degrade GUI responsiveness | [EXP-07](references/experiments/exp-07-longterm-aging.md) | Worst case stays bounded at **840 points per series / 2,520 total points** over 7 days ✅ | [ADR-007](references/adr/ADR-007-longtermtab-downsampling.md) Time-Based Bucket Downsampling ✅ |
+| N/A | Multi-day sessions may accumulate unbounded plot points and degrade GUI responsiveness | [EXP-07](references/experiments/exp-07-longterm-aging.md) | Worst case stays bounded at **840 points per series / 2,520 total points** over 7 days ✅ | [ADR-007](references/adr/ADR-007-longtermtab-downsampling.md) Time-Based Bucket Downsampling ✅ |
 
 ---
 
