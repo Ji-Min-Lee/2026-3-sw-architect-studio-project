@@ -30,7 +30,7 @@
 
 - Click Mode → Sim to show SimFrame
 
-> "Let me stop the live mode for a second. If I switch to Sim, you can see a simulation panel appears.
+> "Let me stop the live mode for a second. If I switch to Sim, you can see that a simulation panel appears.
 > That's useful for testing without a real watch attached. We'll go back to Live for today."
 
 - Switch back to Live, click Advanced
@@ -120,7 +120,7 @@
 
 **① Trace** — Switch to Trace tab
 
-> "Rate and Amplitude as continuous scrolling lines.
+> "This shows Rate and Amplitude as continuous scrolling lines.
 > The color bands show the tolerance zone — green means healthy, red means it needs service.
 > Right now both are flat and green, so we're in good shape."
 
@@ -158,7 +158,7 @@
 
 **⑥ Long Term** — Switch to Long Term tab
 
-> "Rate, Amplitude, and Beat Error over the full session — hours if needed.
+> "This shows Rate, Amplitude, and Beat Error over the full session — hours if needed.
 > To keep memory from growing unbounded, we compress the data automatically as the session gets longer.
 > The granularity label at the top shows you whether you're looking at live data or averaged points."
 
@@ -182,7 +182,7 @@
 
 **⑨ Waveform** — Switch to Waveform tab
 
-> "Three consecutive beats stacked and aligned to the A event.
+> "This shows three consecutive beats stacked and aligned to the A event.
 > The blue line is A, the yellow spike is C — the time between them is how we calculate amplitude.
 > If the sigma across all three beats is tight, the watch is swinging consistently."
 
