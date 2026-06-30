@@ -66,6 +66,20 @@
 >
 > The other four positions — CB, 3H, 9H, 12H — the amplitude difference between them
 > was too small and too noisy to distinguish reliably with just a microphone.
+> We tried, ran experiments, couldn't get it below the noise floor.
+> So for those, the user selects the position manually from the dropdown."
+
+- Switch to Sequence tab, select a position manually from the dropdown
+
+> "This is the Sequence tab. Each row is a watch position.
+> As measurements come in for each position, the table fills in — Rate, Amplitude, Beat Error.
+> And if I select a position manually here, the system starts recording data for that orientation.
+>
+> On the right you can see the Radar Chart.
+> Each point around the edge is a position. The polygon connects the measured amplitudes.
+> A perfectly balanced watch gives you a circle.
+> Where the polygon pulls inward, that position is weaker.
+> At a glance you can see which orientations need attention — without reading a table."
 
 ---
 
