@@ -222,7 +222,7 @@
 > By the way — this overlay is hidden by default. It's just for this demo, and wouldn't be in a production release.
 >
 > One constraint to know upfront. We wanted to use a more powerful cloud model, but the project required all inference to run locally.
-> The Pi 5 has no GPU, no NPU — just four CPU cores.
+> The Pi 5 has no powerful GPU or NPU — just four CPU cores.
 > So the model is CPU-heavy. You might notice the graphs update a little slower while it's running — that's the Pi sharing resources between audio processing and the LLM.
 > Watch the CPU climb as it goes."
 
