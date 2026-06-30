@@ -166,7 +166,8 @@
 **⑦ Escapement** — Switch to Escapement tab
 
 > "Zooms into the A-to-C interval of a single beat — the yellow shaded region.
-> Shows the exact timing with sub-millisecond sigma across repeated measurements."
+> Each measurement lands almost exactly the same spot — the variation is under a millisecond.
+> That tells you the watch is swinging consistently, and our detector is stable."
 
 ---
 
@@ -188,7 +189,7 @@
 
 **⑩ Sweep** — Switch to Sweep tab
 
-> "Overlays every 250ms window on top of each other.
+> "Overlays one beat window on top of each other — the window size adjusts to BPH automatically.
 > If the watch is on rate, the spikes stack sharp and narrow.
 > If it's drifting, the spikes spread out. Here — sharp. Rate is stable."
 
