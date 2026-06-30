@@ -217,15 +217,14 @@
 ## 10:30 – 13:30 | Area 2 — AI Feature (9 pts)
 
 - More → Developer Info (check)
-- Lower Sample Rate to 44100 Hz before triggering diagnosis
 
 > "Now let me show the AI features. I'm turning on Developer Info so you can watch the CPU usage while it runs.
 > By the way — this overlay is hidden by default. It's just for this demo, and wouldn't be in a production release.
 >
-> I want to mention one constraint. We wanted to use more powerful cloud AI model, but the project required all inference to run locally.
-> Also, the Pi 5 has no GPU, no NPU — just four CPU cores.
-> So I'm dropping the sample rate down to 44 kHz while the AI runs.
-> The model is CPU-heavy, and the Pi has to share resources. Watch the CPU climb as it runs."
+> One constraint to know upfront. We wanted to use a more powerful cloud model, but the project required all inference to run locally.
+> The Pi 5 has no GPU, no NPU — just four CPU cores.
+> So the model is CPU-heavy. You might notice the graphs update a little slower while it's running — that's the Pi sharing resources between audio processing and the LLM.
+> Watch the CPU climb as it goes."
 
 - Switch to AI Diagnosis panel (Ctrl+D)
 
@@ -248,8 +247,6 @@
 - Type a follow-up question
 
 > "You can also ask follow-up questions and it remembers the conversation."
-
-- Restore Sample Rate to 96 kHZ
 
 ---
 
