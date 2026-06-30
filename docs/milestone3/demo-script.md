@@ -219,51 +219,37 @@
 - More → Developer Info (check)
 - Lower Sample Rate to 44100 Hz before triggering diagnosis
 
-> "Now let me show the AI features. I'm turning on Developer Info so you can watch the CPU while it runs.
+> "Now let me show the AI features. I'm turning on Developer Info so you can watch the CPU usage while it runs.
 > By the way — this overlay is hidden by default. It's just for this demo, and wouldn't be in a production release.
 >
-> One constraint to know upfront: the assignment required all inference to run locally — no internet, no cloud.
-> The Pi 5 has no GPU, no NPU — just four CPU cores.
+> I want to mention one constraint. We wanted to use more powerful cloud AI model, but the project required all inference to run locally.
+> Also, the Pi 5 has no GPU, no NPU — just four CPU cores.
 > So I'm dropping the sample rate down to 44 kHz while the AI runs.
-> The model is CPU-heavy, and the Pi has to share resources. Higher sample rate means better signal, but the AI needs room.
-> Watch the CPU climb as it runs."
+> The model is CPU-heavy, and the Pi has to share resources. Watch the CPU climb as it runs."
 
 - Switch to AI Diagnosis panel (Ctrl+D)
 
-> "The AI feature has two parts.
+> "Let me run it now — I'll explain what's happening while it goes
+>
+> The AI feature has two parts.
 >
 > First, a rule-based classifier. It looks at Rate, Amplitude, and Beat Error,
 > compares them against standard watchmaker tolerances,
 > and gives you a result — Excellent, Good, or Needs Service.
 >
-> Second, a local language model running via Ollama, right here on this Pi.
-> And this is the important part — it doesn't just tell you the result.
+> Second, we have a local LLM running via Ollama framework. The model is receiving Rate, Amplitude, and Beat Error,
+> plus three extra signals — Tic/Toc asymmetry, rate jitter, and escapement variation.
+> Before it generates anything, it uses RAG. We built a vector DB on our server and deploy it to the PI.
+> 
+> The answer from LLM doesn't just tell you the result.
 > It tells you why. What's likely causing it mechanically. And what you should do to fix it.
-> That's the kind of explanation you'd normally only get from a trained watchmaker.
->
-> Let me run it now — I'll explain what's happening while it goes."
-
-- Trigger diagnosis
-
-> "The model is receiving Rate, Amplitude, and Beat Error,
-> plus three extra signals — Tic/Toc asymmetry, rate jitter, and escapement variation. More context, more specific output.
->
-> Before it generates anything, it does a retrieval step.
-> It searches a local knowledge base we built: Witschi training materials,
-> the Chronoscope X1 manual, and our own domain docs.
-> We built that vector database on a Windows server and deployed it to the Pi.
->
-> You can see the CPU climbing — up to around 80% right now.
-> That's the model running on four CPU cores, no GPU, no cloud.
->
-> The result shows up as a badge — Excellent, Good, or Needs Service.
-> The explanation streams in word by word.
-> You can ask follow-up questions and it remembers the conversation.
-> Ask something off-topic and it won't answer — watchmaking only."
+> That's the kind of explanation you'd normally only get from a trained watchmaker."
 
 - Type a follow-up question
-- More → Developer Info (uncheck)
-- Restore Sample Rate to 96000 Hz Extended
+
+> "You can also ask follow-up questions and it remembers the conversation."
+
+- Restore Sample Rate to 96 kHZ
 
 ---
 
