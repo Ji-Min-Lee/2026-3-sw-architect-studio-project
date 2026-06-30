@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
+#include <QShortcut>
 #include <QTextBrowser>
 #include <QVBoxLayout>
 
@@ -15,6 +16,10 @@ UserGuideDialog::UserGuideDialog(UserGuideSection initialSection, QWidget *paren
     resize(860, 600);
     setupUi();
     showSection(initialSection);
+
+    auto *scEsc = new QShortcut(Qt::Key_Escape, this);
+    scEsc->setContext(Qt::WindowShortcut);
+    connect(scEsc, &QShortcut::activated, this, &QDialog::close);
 }
 
 void UserGuideDialog::setupUi()

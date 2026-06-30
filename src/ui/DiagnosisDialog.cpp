@@ -7,6 +7,7 @@
 #include <QScrollBar>
 #include <QSizePolicy>
 #include <QResizeEvent>
+#include <QShortcut>
 #include <QTimer>
 #include <QRegularExpression>
 #include <cmath>
@@ -154,6 +155,10 @@ DiagnosisDialog::DiagnosisDialog(const ExplainRequest &req,
 
     setLoading(true);
     m_explainer->explain(req);
+
+    auto *scEsc = new QShortcut(Qt::Key_Escape, this);
+    scEsc->setContext(Qt::WindowShortcut);
+    connect(scEsc, &QShortcut::activated, this, &QDialog::close);
 }
 
 void DiagnosisDialog::refreshBreakdownLabelHeight()
