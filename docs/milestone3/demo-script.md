@@ -14,38 +14,41 @@
 - Set Sample Rate to 96000 Hz, Mode to Extended
 - Launch TimeGrapher, press F11
 
-> "Before we start, we will set sample rate as 96 kHz.
-> 192 kHz gives higher resolution but slows down after a few minutes on the Pi.
-> 96 kHz is the stable sweet spot for a live demo."
+> "Before we start, one thing to note — sample rate is set to 96000 Hz, Extended mode.
+> We tried 192000 Hz. It gives better resolution, but after a few minutes on the Pi it starts slowing down.
+> So 96000 Extended is what we're running today."
 
-> "Quick layout: control panel on the left, 14 graph tabs on the right.
-> Status bar at the top — Rate, Amplitude, Beat Error, BPH, live.
-> Color coded: green is good, amber is borderline, red needs attention.
-> AI Diagnosis badge in the top-right corner.
+> "So let me walk you through the layout quickly.
+> Left side is the control panel. Right side has 14 graph tabs.
+> Along the top you've got the live readings — Rate, Amplitude, Beat Error, BPH.
+> Color coded: green means good, amber is borderline, red needs attention.
+> And over here in the top-right corner is the AI diagnosis badge.
 >
-> Control panel parameters: Mode — Live, Playback, or Sim.
-> BPH — beats per hour, or auto-detect.
-> Sample Rate — we set this to 96000 Hz.
-> Lift Angle — 52 degrees, the mechanical constant for amplitude calculation.
-> Watch Type — Men or Women, changes the rate tolerance thresholds.
-> Microphone volume slider."
+> In the control panel, the main parameters are —
+> Mode: Live, Playback, or Sim.
+> BPH: the beat rate of the watch, or you can let it auto-detect.
+> Sample Rate: 96000 Hz as I mentioned.
+> Lift Angle: 52 degrees — that's the mechanical constant we use to calculate amplitude.
+> Watch Type: Men or Women, because the rate tolerances are different.
+> And the microphone volume slider at the bottom."
 
 - Click Mode → Sim to show SimFrame
 
-> "Switching to Sim reveals a simulation BPH panel — useful for testing without a real watch.
-> We'll keep it on Live for the demo."
+> "If I switch to Sim, you can see a simulation panel appears —
+> lets you test without a real watch attached.
+> We'll keep it on Live for today."
 
 - Switch back to Live, click Advanced
 
-> "Advanced expands two more options:
-> AI Model — selects which Ollama LLM to use for diagnosis.
-> Auto H↔V position — automatically switches the position label between horizontal and vertical based on the signal."
+> "There's also an Advanced section — collapsed by default.
+> In here you can pick which AI model Ollama uses for diagnosis,
+> and there's a checkbox for auto position detection — it switches between horizontal and vertical automatically based on the signal."
 
 - Collapse Advanced
 
-> "The status bar also shows the session state.
-> Ready before you start. Acquiring while collecting beats for a diagnosis.
-> Running once locked in. Paused when graphs are frozen."
+> "And the status bar here shows the session state as you go.
+> It starts as Ready. Once you start measuring, it goes to Acquiring — collecting enough beats to confirm a diagnosis.
+> Then Running once it locks in. And Paused if you freeze the graphs to take a closer look."
 
 
 - Press Space to start
