@@ -288,14 +288,20 @@
 
 **If values differ (especially Amplitude):**
 > "There's a small difference, most visible in Amplitude. This is expected and we understand why.
+> Let me switch to Beat Scope to explain."
+
+- Switch to Beat Scope tab, point to green and red markers
+
+> "Rate and Beat Error only use A-to-A intervals — the time between tic events.
+> So even if our A detection is slightly delayed, that delay cancels out across beats.
+> Rate and Beat Error stay accurate.
 >
-> Rate and Beat Error both match. Those only need the A-event — the loud tic.
-> Amplitude is the only metric that also needs the C-event, which is much quieter.
-> A quieter signal takes a bit longer to cross the detection threshold,
-> so our detector catches it slightly late — and that shifts amplitude down a little.
+> Amplitude is different. It uses the A-to-C interval — the gap between these two markers here.
+> If A is detected even slightly late, that delay doesn't cancel — the gap comes out shorter,
+> and amplitude reads lower as a result.
 >
-> WeiShi also uses a microphone, but their internal processing isn't documented,
-> so we can't rule out differences on their end either.
+> WeiShi also uses a microphone, but their detection threshold isn't documented,
+> so there may be differences on their end too.
 >
 > The gap is small, consistent, and understood — it's not random noise, it's a known offset.
 > Rate and Beat Error are accurate. Amplitude has a systematic offset we can explain."
