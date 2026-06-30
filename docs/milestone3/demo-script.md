@@ -16,7 +16,7 @@
 
 > "Before we start, I'm setting the sample rate to 96 kHz.
 > We tried 192 kHz — it gives better resolution, but after a few minutes on the Pi it starts slowing down.
-> So 96 kHz is what we're going with today."
+> So let's play live mode first."
 
 > "Let me walk you through the layout quickly.
 > The left side is the control panel. The right side has multiple graph tabs.
