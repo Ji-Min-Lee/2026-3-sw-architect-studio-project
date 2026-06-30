@@ -2,12 +2,13 @@
 
 **Team**: Blue Sky (Team 3) | LG SW Architect Training Program
 
-> This repository is currently being prepared for the **Final Demo** presentation.
-> Documentation for the final demo is in progress and not yet complete.
-
 ---
 
 ## Entry Point
+
+For the Milestone 3 (Final Demo) presentation, start here:
+
+**[docs/milestone3/final/README.md](docs/milestone3/final/README.md)**
 
 For the Milestone 2 presentation, start here:
 
