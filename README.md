@@ -1,26 +1,19 @@
 # TimeGrapher
 
-**Team**: Blue Sky (Team 3) | LG SW Architect Training Program
+A real-time acoustic timegrapher for mechanical watches, built for the LG SW Architect Training Program.
 
-**Date**: 2026-07-01
-
-Team members:
-- HUNG SON TONG
-- DONG HO SHIN
-- GYEONGJIN SHIN
-- JIMIN LEE
-- KYUDAE BAHN
-- SUNGHO SHIN
-- TAEJOON SONG
-
-Repository: [Ji-Min-Lee/2026-3-sw-architect-studio-project](https://github.com/Ji-Min-Lee/2026-3-sw-architect-studio-project)
-
-> For the Milestone 2 presentation, see [docs/milestone2/final/README.md](docs/milestone2/final/README.md).
+**Contents**: [Demo](#demo) · [Project Plan](#project-plan) · [Requirements](#requirements) · [Architecture](#architecture) ·
+[Architecture Evaluation](#architecture-evaluation) · [Experiments](#experiments) · [ADRs](#adrs) ·
+[Risk Register](#risk-register) · [Traceability](#traceability-qas--risk--experiment--adr) ·
+[Lessons Learned](#lessons-learned) · [AI Usage](#ai-usage) · [Appendix](#appendix) · [About](#about)
 
 ---
 
-## Final Presentation
+## Demo
 
+![Demo highlight reel](docs/misc/demo-highlight.gif)
+
+- [Full Demo Recording (MP4)](docs/misc/demo.mp4)
 - [SW Architecture Final Presentation (PDF)](docs/milestone3/TimeGrapher-SW-Architecture_FinalPresentation_v2.1.pdf)
 
 ---
@@ -221,7 +214,9 @@ and documentation).
 
 ---
 
-## Document Structure
+## Appendix
+
+### Repository Structure
 
 ```
 docs/milestone3/final/
@@ -240,7 +235,7 @@ docs/milestone3/final/
     └── architectural-drivers/             ← functional requirements and constraints
 ```
 
-## External References
+### External References
 
 A full bibliography is available as a PDF: [Software Architecture References.pdf](docs/milestone3/final/references/Software%20Architecture%20References.pdf)
 
@@ -250,9 +245,9 @@ A full bibliography is available as a PDF: [Software Architecture References.pdf
 
 ---
 
-## Developer Setup
+### Getting Started
 
-### Prerequisites
+#### Prerequisites
 
 | Item | Version |
 |------|---------|
@@ -261,14 +256,14 @@ A full bibliography is available as a PDF: [Software Architecture References.pdf
 | Compiler | Apple clang (macOS) / MinGW 64-bit (Windows) / GCC (RPi) |
 | Docker | Required for RPi cross-build only |
 
-### 1. Clone
+#### 1. Clone
 
 ```bash
 git clone git@github.com:Ji-Min-Lee/2026-3-sw-architect-studio-project.git
 cd 2026-3-sw-architect-studio-project
 ```
 
-### 2. Configure Git Hooks (required, run once)
+#### 2. Configure Git Hooks (required, run once)
 
 ```bash
 sh scripts/setup-hooks.sh
@@ -277,9 +272,9 @@ sh scripts/setup-hooks.sh
 This sets `core.hooksPath` to `.githooks/` and activates the pre-commit unit test hook.
 After this, `TestWatchMath` and `TestMeasurementEngine` run automatically before every commit.
 
-### 3. Build
+#### 3. Build
 
-#### macOS
+##### macOS
 
 ```bash
 mkdir -p src/build-mac
@@ -290,7 +285,7 @@ cmake --build . -j$(sysctl -n hw.ncpu)
 
 Artifacts: `src/build-mac/TimeGrapher.app`
 
-#### Windows (MinGW)
+##### Windows (MinGW)
 
 ```powershell
 mkdir src\build
@@ -303,7 +298,7 @@ Artifacts: `src\build\TimeGrapher.exe`
 
 For detailed Windows setup, see [docs/week0/pc-build-verification-windows.md](docs/week0/pc-build-verification-windows.md).
 
-#### Raspberry Pi 5 (cross-build via Docker)
+##### Raspberry Pi 5 (cross-build via Docker)
 
 ```bash
 sh build-rpi.sh
@@ -317,7 +312,7 @@ To deploy directly to the RPi:
 RPI_HOST=pi@<ip-address> sh build-rpi.sh
 ```
 
-### 4. Run Unit Tests
+#### 4. Run Unit Tests
 
 Tests run automatically on commit via the pre-commit hook. To run manually:
 
@@ -335,3 +330,23 @@ src\build\TestMeasurementEngine.exe
 |--------|----------|---------|
 | TestWatchMath | Rate, Amplitude, Beat Error formulas | 44 passed |
 | TestMeasurementEngine | End-to-end measurement computation | 8 passed |
+
+---
+
+## About
+
+**Team**: Blue Sky (Team 3) | LG SW Architect Training Program
+
+Team members:
+- HUNG SON TONG
+- DONG HO SHIN
+- GYEONGJIN SHIN
+- JIMIN LEE
+- KYUDAE BAHN
+- SUNGHO SHIN
+- TAEJOON SONG
+
+### License
+
+This project was developed as coursework for the LG SW Architect Training Program.
+It is not licensed for public reuse or redistribution.
