@@ -59,7 +59,7 @@ Completed 2026-06-21 (W3 S1 final batch confirmed).
 
 ## Tab Addition History
 
-| Batch | Tabs added | Trigger | Files changed outside new tab |
+| Sprint | Tabs added | Trigger | Files changed outside new tab |
 |-------|-----------|---------|:----:|
 | W2 S1 | 11 (baseline) | Core requirements | **2** (NewTab × N + MainWindow) |
 | W2 S2 | +2 → 13 (FilterScopeTab, SweepScopeTab) | Project-plan screen requirements (Fig 7-19) | **2 each** |
