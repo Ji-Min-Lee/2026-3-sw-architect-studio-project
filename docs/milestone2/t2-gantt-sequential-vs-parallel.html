@@ -39,7 +39,7 @@
 <body>
 
 <h1>T2 DSP Offload Thread — Sequential vs Parallel Execution</h1>
-<p class="sub">EXP-02 · macOS 96 kHz · R1 Baseline (before) vs R2 T2 (after) · feature/layer-ex-baseline</p>
+<p class="sub">EXP-02 · 96 kHz · R1 Baseline (before) vs R2 T2 (after) · feature/layer-ex-baseline</p>
 
 <!-- BEFORE -->
 <div class="section">
@@ -76,6 +76,14 @@
     within 0.4 ms, well before the next BG signal arrives at 10 ms. Backlog drops to 0 %.
     The only new cost is <em>fg_wait</em> (avg 8.9 ms): the Qt scheduler wakes the Main Thread
     after DSPWorker emits <code>frameLogged</code>.
+  </div>
+
+  <!-- Zoom panel -->
+  <div style="margin-top:12px;">
+    <div class="section-title" style="background:rgba(34,211,238,.1);color:#22d3ee;margin-bottom:8px;">
+      ↳ Zoom — First 1 ms (BG emit → DSP start)
+    </div>
+    <canvas id="c3"></canvas>
   </div>
 </div>
 
@@ -228,20 +236,29 @@ function annotBefore(ctx, W, total) {
 
 /* After annotations */
 function annotAfter(ctx, W, total) {
-  // 0.013ms bracket
-  const x1 = tx(0.013, total, W);
-  const x2 = tx(0.41,  total, W);
-  const y  = ry(0) - 14;
+  // wait 0.013ms — vertical bracket between BG start and DSP start
+  const bgX  = tx(0,     total, W);  // BG emit start
+  const dspX = tx(0.013, total, W);  // DSP exec start
+  const yBG  = ry(0);
+  const yDSP = ry(1);
   ctx.save();
-  ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 1.2; ctx.setLineDash([]);
+  // simple arrow from BG start down to DSP start
+  ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 1.4; ctx.setLineDash([]);
   ctx.beginPath();
-  ctx.moveTo(x1, y); ctx.lineTo(x1, y+5);
-  ctx.moveTo(x1, y+2); ctx.lineTo(x2, y+2);
-  ctx.moveTo(x2, y); ctx.lineTo(x2, y+5);
+  ctx.moveTo(dspX, yBG + 10);
+  ctx.lineTo(dspX, yDSP - 10);
   ctx.stroke();
+  // arrowhead
+  ctx.beginPath();
+  ctx.moveTo(dspX - 4, yDSP - 16);
+  ctx.lineTo(dspX,     yDSP - 9);
+  ctx.lineTo(dspX + 4, yDSP - 16);
+  ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 1.4;
+  ctx.stroke();
+  // label
   ctx.fillStyle = '#4ade80'; ctx.font = 'bold 10px system-ui';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  ctx.fillText('wait 0.013ms', (x1+x2)/2, y);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText('wait 0.013ms  ↓ zoom', dspX + 6, (yBG + yDSP) / 2);
 
   // "parallel" dashed connector between rows 1 and 2 at mid-frame
   for (let i = 0; i < 3; i++) {
@@ -257,6 +274,40 @@ function annotAfter(ctx, W, total) {
 
 drawGantt('c1', BEFORE_ROWS, BEFORE_BARS, BEFORE_TOTAL, 50, annotBefore);
 drawGantt('c2', AFTER_ROWS,  AFTER_BARS,  AFTER_TOTAL,   5, annotAfter);
+
+/* ── ZOOM panel (0 ~ 1ms) ── */
+const ZOOM_TOTAL = 1.0;
+const ZOOM_ROWS  = ['BG Thread', 'DSP Thread'];
+const ZOOM_BARS  = [
+  { row:0, s:0,      e:0.5,   c:C.bg,      lbl:'emit' },
+  { row:1, s:0.013,  e:1.0,   c:C.dsp_new, lbl:'DSP exec' },
+];
+
+function annotZoom(ctx, W, total) {
+  // wait bracket between row 0 end-of-emit and row 1 start
+  const x1 = tx(0,     total, W);
+  const x2 = tx(0.013, total, W);
+  const y  = ry(1) - 16;
+  ctx.save();
+  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 1.4; ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(x1, y); ctx.lineTo(x1, y+5);
+  ctx.moveTo(x1, y+2); ctx.lineTo(x2, y+2);
+  ctx.moveTo(x2, y); ctx.lineTo(x2, y+5);
+  ctx.stroke();
+  ctx.fillStyle = '#facc15'; ctx.font = 'bold 11px system-ui';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillText('wait 0.013 ms', (x1+x2)/2, y+1);
+
+  // vertical dashed lines at x1 and x2
+  ctx.strokeStyle = 'rgba(250,204,21,0.35)'; ctx.lineWidth = 1; ctx.setLineDash([3,2]);
+  [x1, x2].forEach(x => {
+    ctx.beginPath(); ctx.moveTo(x, PAD_TOP); ctx.lineTo(x, PAD_TOP + ZOOM_ROWS.length * ROW_H); ctx.stroke();
+  });
+  ctx.restore();
+}
+
+drawGantt('c3', ZOOM_ROWS, ZOOM_BARS, ZOOM_TOTAL, 0.1, annotZoom);
 </script>
 </body>
 </html>
