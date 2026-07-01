@@ -77,7 +77,7 @@ void SoundPrintTab::onMeasurement(const Measurement &m)
     if (mPaused) return;
     if (!mWidget) return;
 
-    if (m.synced && mRenderer.currentBph() <= 0.0)
+    if (m.synced && m.detectedBph > 0 && m.detectedBph != mRenderer.currentBph())
         mRenderer.setBph(m.detectedBph);
 
     mRenderer.processSamples(m.signal.rawPcm.data(), m.signal.rawPcm.size());

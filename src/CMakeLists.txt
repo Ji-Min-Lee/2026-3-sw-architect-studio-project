@@ -237,7 +237,7 @@ if(NOT TG_GIT_COMMIT)
 endif()
 target_compile_definitions(TimeGrapher PRIVATE
     TG_GIT_COMMIT="${TG_GIT_COMMIT}"
-    TG_APP_VERSION="1.0.2"
+    TG_APP_VERSION="1.0.3"
 )
 message(STATUS "TimeGrapher: git_commit=${TG_GIT_COMMIT}")
 

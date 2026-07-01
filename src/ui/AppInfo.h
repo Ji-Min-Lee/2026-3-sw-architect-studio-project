@@ -4,7 +4,7 @@
 #include <QString>
 
 #ifndef TG_APP_VERSION
-#define TG_APP_VERSION "1.0.2"
+#define TG_APP_VERSION "1.0.3"
 #endif
 #ifndef TG_GIT_COMMIT
 #define TG_GIT_COMMIT "dev"
