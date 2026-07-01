@@ -19,6 +19,12 @@ Repository: [Ji-Min-Lee/2026-3-sw-architect-studio-project](https://github.com/J
 
 ---
 
+## Final Presentation
+
+- [SW Architecture Final Presentation (PDF)](docs/milestone3/TimeGrapher-SW-Architecture_FinalPresentation_v2.1.pdf)
+
+---
+
 ## Project Plan
 
 - [Kanban Board](https://github.com/users/Ji-Min-Lee/projects/3/views/2) — single board tracking all issues across milestones
