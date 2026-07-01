@@ -2,3 +2,4 @@
 # so they run correctly on Linux/RPi regardless of where they were edited.
 *.sh   text eol=lf
 *.py   text eol=lf
+*.mp4 filter=lfs diff=lfs merge=lfs -text
